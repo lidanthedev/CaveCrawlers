@@ -1,0 +1,4 @@
+name: CaveCrawlers
+version: '${version}'
+main: me.lidan.cavecrawlers.CaveCrawlers
+api-version: '1.19'

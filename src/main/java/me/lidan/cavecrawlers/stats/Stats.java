@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
 import org.jetbrains.annotations.NotNull;
 
@@ -81,7 +82,7 @@ public class Stats implements Iterable<Stat> {
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
             if (stat.getValue() > 0){
-                str.append(Color.GRAY).append(stat.getType().getName()).append(": ").append(Color.GREEN).append(stat.getValue());
+                str.append(ChatColor.GRAY).append(stat.getType().getName()).append(": ").append(type.getLoreColor()).append(stat.getValue());
                 str.append("\n");
             }
         }

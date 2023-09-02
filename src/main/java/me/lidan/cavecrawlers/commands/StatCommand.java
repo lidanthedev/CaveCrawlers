@@ -23,6 +23,15 @@ public class StatCommand {
         sender.sendMessage(stats.toFormatString());
     }
 
+    @Subcommand("lore")
+    public void loreStats(Player sender, @Optional Player arg){
+        if(arg == null) {
+            arg = sender;
+        }
+        Stats stats = StatsManager.getInstance().getStats(arg);
+        sender.sendMessage(stats.toLoreString());
+    }
+
     @Subcommand("message")
     public void testMessage(Player sender){
         sender.sendMessage(ChatColor.AQUA + "SCAM!!!");

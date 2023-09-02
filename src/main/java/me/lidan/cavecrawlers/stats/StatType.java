@@ -18,18 +18,18 @@ public enum StatType {
     INTELLIGENCE("Intelligence",
             "✎",
             ChatColor.AQUA, 100),
-    DAMAGE("Damage", "❁", ChatColor.RED)
+    DAMAGE("Damage", "❁", ChatColor.RED, 0, ChatColor.RED)
     ,STRENGTH("Strength",
-            "❁",ChatColor.RED)
+            "❁",ChatColor.RED, 0, ChatColor.RED)
     ,CRIT_DAMAGE("Crit Damage",
             "☠",
-            ChatColor.BLUE)
+            ChatColor.BLUE, 0, ChatColor.RED)
     ,CRIT_CHANCE("Crit Chance",
             "☣",
-            ChatColor.BLUE)
+            ChatColor.BLUE, 0, ChatColor.RED)
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
-            ChatColor.RED)
+            ChatColor.RED, 0, ChatColor.RED)
     ,SPEED("Speed",
             "✦",
             ChatColor.WHITE, 100)
@@ -46,17 +46,22 @@ public enum StatType {
     private final String icon;
     private final ChatColor color;
     private final double base;
-
+    private final ChatColor loreColor;
 
     StatType(String name, String icon, ChatColor color) {
         this(name, icon, color, 0.0);
     }
 
     StatType(String name, String icon, ChatColor color, double base) {
+        this(name, icon, color, base, ChatColor.GREEN);
+    }
+
+    StatType(String name, String icon, ChatColor color, double base, ChatColor loreColor) {
         this.name = name;
         this.icon = icon;
         this.color = color;
         this.base = base;
+        this.loreColor = loreColor;
     }
 
     public String getFormatName(){

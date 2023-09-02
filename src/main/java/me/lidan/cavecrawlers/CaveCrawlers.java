@@ -13,7 +13,8 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         commandHandler = BukkitCommandHandler.create(this);
-
+        registerCommands();
+        getSLF4JLogger().info("Loaded CaveCrawlers!");
     }
 
     public void registerCommands(){

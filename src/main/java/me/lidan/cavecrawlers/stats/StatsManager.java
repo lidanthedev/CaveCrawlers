@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.stats;
 
+import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -30,5 +32,20 @@ public class StatsManager {
 
     public Stats getStats(Player player){
         return getStats(player.getUniqueId());
+    }
+
+    public void applyStats(Player player){
+        Stats stats = getStats(player);
+        player.setHealthScale(40);
+        double maxHealth = stats.get(StatType.HEALTH).getValue();
+        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
+        double regen = ((maxHealth * 0.01) + 1.5);
+        double health = player.getHealth();
+        player.setHealth(Math.min(health + regen, maxHealth));
+        player.setFoodLevel(200);
+    }
+
+    public void statLoop(){
+        Bukkit.getOnlinePlayers().forEach(this::applyStats);
     }
 }

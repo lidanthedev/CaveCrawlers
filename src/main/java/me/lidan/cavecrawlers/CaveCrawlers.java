@@ -1,7 +1,10 @@
 package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.StatCommand;
+import me.lidan.cavecrawlers.events.AntiBanEvent;
 import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.StatsManager;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
@@ -15,19 +18,34 @@ public final class CaveCrawlers extends JavaPlugin {
         // Plugin startup logic
         commandHandler = BukkitCommandHandler.create(this);
         registerCommands();
+        registerEvents();
+        startTasks();
         getLogger().info("Loaded CaveCrawlers!");
     }
 
+    public void startTasks(){
+        getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
+            StatsManager.getInstance().statLoop();
+        }, 0, 40);
+    }
+
     public void registerCommands(){
-        commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> {
-            return StatType.names();
-        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.register(new StatCommand());
+    }
+
+    public void registerEvents(){
+        registerEvent(new AntiBanEvent());
+    }
+
+    public void registerEvent(Listener listener){
+        getServer().getPluginManager().registerEvents(listener, this);
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        getServer().getScheduler().cancelTasks(this);
     }
 
     public static CaveCrawlers getInstance(){

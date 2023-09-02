@@ -20,6 +20,10 @@ repositories {
     }
     maven { url = "https://repo.mattstudios.me/artifactory/public/" }
     maven { url = 'https://jitpack.io' }
+    maven {
+        name = "CodeMC"
+        url = uri("https://repo.codemc.io/repository/maven-public/")
+    }
 }
 
 dependencies {
@@ -27,6 +31,7 @@ dependencies {
     implementation "dev.triumphteam:triumph-gui:3.1.2"
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
+    implementation 'com.github.tr7zw:Item-NBT-API:3.8.0'
 }
 
 def targetJavaVersion = 17

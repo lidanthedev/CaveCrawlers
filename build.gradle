@@ -18,7 +18,6 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
-    maven { url = "https://repo.mattstudios.me/artifactory/public/" }
     maven { url = 'https://jitpack.io' }
     maven {
         name = "CodeMC"
@@ -27,11 +26,17 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT"
-    implementation "dev.triumphteam:triumph-gui:3.1.2"
+    compileOnly "org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT"
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+    // implementation "dev.triumphteam:triumph-gui:3.1.2"
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
-    implementation 'com.github.tr7zw:Item-NBT-API:3.8.0'
+    compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api:2.11.3'
+}
+
+shadowJar{
+    archiveClassifier = null
+    exclude('com.google.gson')
 }
 
 def targetJavaVersion = 17
@@ -45,6 +50,7 @@ java {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release = targetJavaVersion
     }

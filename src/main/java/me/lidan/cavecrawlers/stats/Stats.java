@@ -1,5 +1,8 @@
 package me.lidan.cavecrawlers.stats;
 
+import org.bukkit.Color;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -63,13 +66,33 @@ public class Stats implements Iterable<Stat> {
         return new ArrayList<>(stats.values());
     }
 
+    public String toFormatString(){
+        StringBuilder str = new StringBuilder();
+        for (Stat stat : stats.values()) {
+            str.append(stat.getType().getFormatName()).append(": ").append(stat.getValue());
+            str.append("\n");
+        }
+        return str.toString();
+    }
+
+    public String toLoreString(){
+        StringBuilder str = new StringBuilder();
+        for (Stat stat : stats.values()) {
+            if (stat.getValue() > 0){
+                str.append(Color.GRAY).append(stat.getType().getName()).append(": ").append(Color.GREEN).append(stat.getValue());
+                str.append("\n");
+            }
+        }
+        return str.toString();
+    }
+
     @Override
     public String toString() {
         return this.toList().toString();
     }
 
     @Override
-    public Iterator<Stat> iterator() {
+    public @NotNull Iterator<Stat> iterator() {
         return this.toList().iterator();
     }
 

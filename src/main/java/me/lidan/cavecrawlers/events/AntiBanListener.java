@@ -4,12 +4,11 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-public class AntiBanEvent implements Listener {
+public class AntiBanListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerKick(PlayerQuitEvent event) {

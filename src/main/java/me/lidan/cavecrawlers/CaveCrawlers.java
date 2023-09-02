@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.StatCommand;
-import me.lidan.cavecrawlers.events.AntiBanEvent;
+import me.lidan.cavecrawlers.events.AntiBanListener;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import org.bukkit.event.Listener;
@@ -35,7 +35,7 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void registerEvents(){
-        registerEvent(new AntiBanEvent());
+        registerEvent(new AntiBanListener());
     }
 
     public void registerEvent(Listener listener){

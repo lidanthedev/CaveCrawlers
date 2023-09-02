@@ -60,11 +60,7 @@ public class Stats implements Iterable<Stat> {
     }
 
     public List<Stat> toList() {
-        List<Stat> stats = new ArrayList<>();
-        for (StatType stat : StatTypes.STATS) {
-            stats.add(this.stats.getOrDefault(stat, new Stat(stat, 0)));
-        }
-        return stats;
+        return new ArrayList<>(stats.values());
     }
 
     @Override

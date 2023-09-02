@@ -23,6 +23,7 @@ repositories {
         name = "CodeMC"
         url = uri("https://repo.codemc.io/repository/maven-public/")
     }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
 }
 
 dependencies {
@@ -32,11 +33,11 @@ dependencies {
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
     compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api:2.11.3'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
 }
 
 shadowJar{
     archiveClassifier = null
-    exclude('com.google.gson')
 }
 
 def targetJavaVersion = 17

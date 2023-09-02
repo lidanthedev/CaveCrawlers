@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.damage;
 
 import lombok.Getter;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -23,11 +24,11 @@ public class PlayerDamageCalculation {
     public double calculate(){
         double damage = stats.get(StatType.DAMAGE).getValue();
         double strength = stats.get(StatType.STRENGTH).getValue();
-        double critDamage = stats.get(StatType.STRENGTH).getValue();
+        double critDamage = stats.get(StatType.CRIT_DAMAGE).getValue();
 
         double finalDamage = (5 + damage) * (1 + strength/100);
         if (isCrit()){
-            finalDamage *= (1 + critDamage/100);
+            finalDamage *= 1 + critDamage / 100;
         }
         return finalDamage;
     }

@@ -57,6 +57,12 @@ public class Stats implements Iterable<Stat> {
         }
     }
 
+    public void reset(){
+        for (Stat stat : this) {
+            stat.setValue(stat.getType().getBase());
+        }
+    }
+
     public void add(Stats stats) {
         for (Stat stat : stats) {
             this.add(stat.getType(), stat.getValue());

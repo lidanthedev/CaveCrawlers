@@ -41,6 +41,12 @@ public enum StatType {
             ChatColor.GOLD)
     ,MINING_FORTUNE("Mining Fortune",
             "☘",
+            ChatColor.GOLD),
+    MINING_POWER("Mining Power",
+            "⸕",
+            ChatColor.GOLD),
+    MINING_HAMMER("Hammer",
+            "🔨",
             ChatColor.GOLD);
     private final String name;
     private final String icon;

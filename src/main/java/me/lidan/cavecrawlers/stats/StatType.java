@@ -19,7 +19,7 @@ public enum StatType {
             ChatColor.RED)
     ,HEALTH("Health",
             "❤",
-            ChatColor.RED)
+            ChatColor.RED, 100)
     ,DEFENSE("Defense",
             "❈",
             ChatColor.GREEN)

@@ -68,7 +68,8 @@ public class Stats implements Iterable<Stat> {
 
     public String toFormatString(){
         StringBuilder str = new StringBuilder();
-        for (Stat stat : stats.values()) {
+        for (StatType type : StatType.getStats()) {
+            Stat stat = get(type);
             str.append(stat.getType().getFormatName()).append(": ").append(stat.getValue());
             str.append("\n");
         }
@@ -77,7 +78,8 @@ public class Stats implements Iterable<Stat> {
 
     public String toLoreString(){
         StringBuilder str = new StringBuilder();
-        for (Stat stat : stats.values()) {
+        for (StatType type : StatType.getStats()) {
+            Stat stat = get(type);
             if (stat.getValue() > 0){
                 str.append(Color.GRAY).append(stat.getType().getName()).append(": ").append(Color.GREEN).append(stat.getValue());
                 str.append("\n");

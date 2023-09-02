@@ -6,10 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public final class CaveCrawlers extends JavaPlugin {
 
     private CommandHandler commandHandler;
@@ -24,9 +20,7 @@ public final class CaveCrawlers extends JavaPlugin {
 
     public void registerCommands(){
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> {
-            return Arrays.stream(StatType.values())
-                    .map(StatType::name)
-                    .collect(Collectors.toList());
+            return StatType.names();
         });
         commandHandler.register(new StatCommand());
     }

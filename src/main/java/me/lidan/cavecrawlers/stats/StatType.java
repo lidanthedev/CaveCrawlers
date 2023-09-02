@@ -3,8 +3,21 @@ package me.lidan.cavecrawlers.stats;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Getter
 public enum StatType {
+    HEALTH("Health",
+            "❤",
+            ChatColor.RED, 100)
+    ,DEFENSE("Defense",
+            "❈",
+            ChatColor.GREEN),
+    INTELLIGENCE("Intelligence",
+            "✎",
+            ChatColor.AQUA, 100),
     DAMAGE("Damage", "❁", ChatColor.RED)
     ,STRENGTH("Strength",
             "❁",ChatColor.RED)
@@ -17,18 +30,9 @@ public enum StatType {
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
             ChatColor.RED)
-    ,HEALTH("Health",
-            "❤",
-            ChatColor.RED, 100)
-    ,DEFENSE("Defense",
-            "❈",
-            ChatColor.GREEN)
     ,SPEED("Speed",
             "✦",
             ChatColor.WHITE, 100)
-    ,INTELLIGENCE("Intelligence",
-            "✎",
-            ChatColor.AQUA, 100)
     ,MANA("Mana",
             "✎",
             ChatColor.AQUA, 100)
@@ -61,5 +65,13 @@ public enum StatType {
 
     public String getColoredName(){
         return color + name;
+    }
+
+    public static List<StatType> getStats(){
+        return Arrays.asList(values());
+    }
+
+    public static List<String> names(){
+        return getStats().stream().map(StatType::name).collect(Collectors.toList());
     }
 }

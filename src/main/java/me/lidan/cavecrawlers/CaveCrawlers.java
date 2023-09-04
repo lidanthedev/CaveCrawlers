@@ -24,10 +24,22 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler = BukkitCommandHandler.create(this);
 
         registerSerializer();
+
+        registerAbilities();
+        registerItems();
+
         registerCommands();
         registerEvents();
         startTasks();
         getLogger().info("Loaded CaveCrawlers! Ready to cave!");
+    }
+
+    private void registerItems() {
+        //TODO: register items using a file
+    }
+
+    private void registerAbilities() {
+        //TODO: register an example ability
     }
 
     private static void registerSerializer() {

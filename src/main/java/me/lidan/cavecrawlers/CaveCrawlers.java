@@ -1,10 +1,14 @@
 package me.lidan.cavecrawlers;
 
+import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.AntiBanListener;
 import me.lidan.cavecrawlers.events.DamageEntityListener;
 import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
@@ -18,10 +22,16 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         commandHandler = BukkitCommandHandler.create(this);
+
+        registerSerializer();
         registerCommands();
         registerEvents();
         startTasks();
         getLogger().info("Loaded CaveCrawlers! Ready to cave!");
+    }
+
+    private static void registerSerializer() {
+        ConfigurationSerialization.registerClass(Stats.class, "stats");
     }
 
     public void startTasks(){
@@ -33,6 +43,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void registerCommands(){
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.register(new StatCommand());
+        commandHandler.register(new CaveTestCommand());
     }
 
     public void registerEvents(){

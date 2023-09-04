@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.stats;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class Stats implements Iterable<Stat> {
+public class Stats implements Iterable<Stat>, ConfigurationSerializable {
     private final Map<StatType, Stat> stats;
 
     public Stats(List<Stat> statList) {
@@ -120,5 +121,25 @@ public class Stats implements Iterable<Stat> {
 
     public Stream<Stat> stream() {
         return StreamSupport.stream(spliterator(), false);
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        for (StatType statType : stats.keySet()) {
+            map.put(statType.name(), get(statType).getValue());
+        }
+        return map;
+    }
+
+    public static Stats deserialize(Map<String, Object> map){
+        Stats stats = new Stats();
+        for (String key : map.keySet()) {
+            StatType type = StatType.valueOf(key);
+            Double value = (Double) map.get(key);
+            stats.set(type, value);
+        }
+        return stats;
     }
 }

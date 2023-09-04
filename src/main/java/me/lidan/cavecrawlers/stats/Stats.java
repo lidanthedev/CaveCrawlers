@@ -89,7 +89,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
             if (stat.getValue() > 0){
-                str.append(ChatColor.GRAY).append(stat.getType().getName()).append(": ").append(type.getLoreColor()).append(stat.getValue());
+                str.append(ChatColor.GRAY).append(stat.getType().getName()).append(": ").append(type.getLoreColor()).append("+").append(stat.getValue());
                 str.append("\n");
             }
         }

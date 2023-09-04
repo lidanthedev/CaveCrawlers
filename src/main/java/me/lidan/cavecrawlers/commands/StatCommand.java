@@ -50,7 +50,7 @@ public class StatCommand {
     public void set(Player sender, StatType type, double amount){
         Stats stats = statsManager.getStats(sender);
         stats.get(type).setValue(amount);
-        sender.sendMessage("set stat %s to %s".formatted(type, amount));
+        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
 
     @Subcommand("health")

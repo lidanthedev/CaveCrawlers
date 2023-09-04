@@ -21,7 +21,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerCommands();
         registerEvents();
         startTasks();
-        getLogger().info("Loaded CaveCrawlers!");
+        getLogger().info("Loaded CaveCrawlers! Ready to cave!");
     }
 
     public void startTasks(){

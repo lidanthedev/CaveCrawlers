@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.AntiBanListener;
 import me.lidan.cavecrawlers.events.DamageEntityListener;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -36,6 +37,8 @@ public final class CaveCrawlers extends JavaPlugin {
 
     private void registerItems() {
         //TODO: register items using a file
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        itemsManager.registerExampleItems();
     }
 
     private void registerAbilities() {
@@ -55,7 +58,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void registerCommands(){
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.register(new StatCommand());
-        commandHandler.register(new CaveTestCommand());
+        commandHandler.register(new CaveTestCommand(commandHandler));
     }
 
     public void registerEvents(){

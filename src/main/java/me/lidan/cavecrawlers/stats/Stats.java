@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +26,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
 
     public Stats() {
         this(new ArrayList<>());
+    }
+
+    public Stats(boolean zero){
+        this();
+        if (zero){
+            zero();
+        }
     }
 
     public Stat get(StatType type){
@@ -64,6 +70,12 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         }
     }
 
+    public void zero(){
+        for (Stat stat : this) {
+            stat.setValue(0);
+        }
+    }
+
     public void add(Stats stats) {
         for (Stat stat : stats) {
             this.add(stat.getType(), stat.getValue());
@@ -84,16 +96,18 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         return str.toString();
     }
 
-    public String toLoreString(){
-        StringBuilder str = new StringBuilder();
+    public List<String> toLoreList(){
+        List<String> lore = new ArrayList<>();
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
-            if (stat.getValue() > 0){
-                str.append(ChatColor.GRAY).append(stat.getType().getName()).append(": ").append(type.getLoreColor()).append("+").append(stat.getValue());
-                str.append("\n");
+            double value = stat.getValue();
+            if (value > 0){
+                String strValue = "" + value;
+                String[] splitValue = strValue.split("\\.");
+                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + splitValue[0]);
             }
         }
-        return str.toString();
+        return lore;
     }
 
     @Override

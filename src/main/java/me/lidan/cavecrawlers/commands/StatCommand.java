@@ -11,8 +11,10 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.util.List;
+
 @Command({"stats", "stat", "statadmin"})
-@CommandPermission("stats.admin")
+@CommandPermission("cavecrawlers.stats")
 public class StatCommand {
 
     private final StatsManager statsManager;
@@ -36,7 +38,10 @@ public class StatCommand {
             arg = sender;
         }
         Stats stats = statsManager.getStats(arg);
-        sender.sendMessage(stats.toLoreString());
+        List<String> lore = stats.toLoreList();
+        for (String line : lore) {
+            sender.sendMessage(line);
+        }
     }
 
     @Subcommand("add")

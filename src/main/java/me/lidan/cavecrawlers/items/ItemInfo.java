@@ -48,6 +48,10 @@ public class ItemInfo {
         list.add("");
         list.addAll(stats.toLoreList());
         list.add("");
+        if (description != null){
+            list.add(description);
+            list.add("");
+        }
         if (ability != null){
             list.addAll(ability.toList());
             list.add("");

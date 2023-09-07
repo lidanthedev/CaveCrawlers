@@ -19,7 +19,7 @@ public class ItemChangeListener implements Listener {
         Player player = event.getPlayer();
 
         scheduler.runTaskLater(plugin, bukkitTask -> {
-            StatsManager.getInstance().applyStats(player);
+            StatsManager.getInstance().calculateStats(player);
         }, 1);
     }
 }

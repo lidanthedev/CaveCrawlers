@@ -49,15 +49,16 @@ public class StatsManager {
         statsAutoMap.put(player.getUniqueId(), b);
     }
 
-    public void applyStats(Player player){
+    public void loadPlayer(Player player){
+        applyStats(player);
         Stats stats = getStats(player);
-        if (isStatsAuto(player)){
-            Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
-            double manaAmount = stats.get(StatType.MANA).getValue();
-            statsFromEquipment.set(StatType.MANA, manaAmount);
-            stats = statsFromEquipment;
-        }
-        statsMap.put(player.getUniqueId(), stats);
+        player.setHealth(player.getMaxHealth());
+        double value = stats.get(StatType.INTELLIGENCE).getValue();
+        stats.get(StatType.MANA).setValue(value);
+    }
+
+    public void applyStats(Player player){
+        Stats stats = calculateStats(player);
 
         if (player.isDead()){
             player.spigot().respawn();
@@ -83,6 +84,20 @@ public class StatsManager {
         double mana = manaStat.getValue();
         double manaRegen = intel * 0.02;
         manaStat.setValue(Math.min(mana + manaRegen, intel));
+
+        ActionBarManager.getInstance().actionBar(player);
+    }
+
+    public Stats calculateStats(Player player) {
+        Stats stats = getStats(player);
+        if (isStatsAuto(player)){
+            Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
+            double manaAmount = stats.get(StatType.MANA).getValue();
+            statsFromEquipment.set(StatType.MANA, manaAmount);
+            stats = statsFromEquipment;
+        }
+        statsMap.put(player.getUniqueId(), stats);
+        return stats;
     }
 
     public Stats getStatsFromPlayerEquipment(Player player){

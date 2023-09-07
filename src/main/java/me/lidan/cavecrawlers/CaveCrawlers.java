@@ -10,7 +10,6 @@ import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,11 +36,9 @@ public final class CaveCrawlers extends JavaPlugin {
         getLogger().info("Loaded CaveCrawlers! Ready to cave!");
     }
 
-    private void registerItems() {
-        //TODO: register items using a file
-        ItemsManager itemsManager = ItemsManager.getInstance();
-        itemsManager.registerExampleItems();
-        itemsManager.registerItemsFromConfig();
+    private static void registerSerializer() {
+        ConfigurationSerialization.registerClass(Stats.class);
+        ConfigurationSerialization.registerClass(ItemInfo.class);
     }
 
     private void registerAbilities() {
@@ -50,15 +47,11 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
     }
 
-    private static void registerSerializer() {
-        ConfigurationSerialization.registerClass(Stats.class);
-        ConfigurationSerialization.registerClass(ItemInfo.class);
-    }
-
-    public void startTasks(){
-        getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
-            StatsManager.getInstance().statLoop();
-        }, 0, 40);
+    private void registerItems() {
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        itemsManager.registerExampleItems();
+        itemsManager.registerItemsFromConfig();
+        itemsManager.registerItemsFromFolder();
     }
 
     public void registerCommands(){
@@ -73,6 +66,12 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
+    }
+
+    public void startTasks(){
+        getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
+            StatsManager.getInstance().statLoop();
+        }, 0, 40);
     }
 
     public void registerEvent(Listener listener){

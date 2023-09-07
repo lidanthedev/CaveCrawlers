@@ -48,6 +48,10 @@ public class ItemInfo {
         list.add("");
         list.addAll(stats.toLoreList());
         list.add("");
+        if (ability != null){
+            list.addAll(ability.toList());
+            list.add("");
+        }
         list.add(rarity.getColor().toString() + ChatColor.BOLD + rarity.name());
         return list;
     }

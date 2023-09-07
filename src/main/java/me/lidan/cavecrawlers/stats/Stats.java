@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
@@ -102,9 +103,8 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
             Stat stat = get(type);
             double value = stat.getValue();
             if (value > 0){
-                String strValue = "" + value;
-                String[] splitValue = strValue.split("\\.");
-                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + splitValue[0]);
+                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
             }
         }
         return lore;

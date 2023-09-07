@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.utils;
 
 import net.md_5.bungee.api.ChatColor;
+import org.jetbrains.annotations.NotNull;
 
 public class StringUtils {
     public static String setTitleCase(String text) {
@@ -181,5 +182,12 @@ public class StringUtils {
                 return "Black";
         }
         return "";
+    }
+
+    @NotNull
+    public static String getNumberWithoutDot(double value) {
+        String strValue = "" + value;
+        String[] splitValue = strValue.split("\\.");
+        return splitValue[0];
     }
 }

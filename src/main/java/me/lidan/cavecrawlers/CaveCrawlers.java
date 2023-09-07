@@ -4,7 +4,10 @@ import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.AntiBanListener;
 import me.lidan.cavecrawlers.events.DamageEntityListener;
+import me.lidan.cavecrawlers.events.RemoveArrowsListener;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.abilities.AbilityManager;
+import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -42,7 +45,8 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     private void registerAbilities() {
-        //TODO: register an example ability
+        //example ability
+        AbilityManager.getInstance().registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
     }
 
     private static void registerSerializer() {
@@ -64,6 +68,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void registerEvents(){
         registerEvent(new AntiBanListener());
         registerEvent(new DamageEntityListener());
+        registerEvent(new RemoveArrowsListener());
     }
 
     public void registerEvent(Listener listener){

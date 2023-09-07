@@ -1,12 +1,19 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import lombok.Getter;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Cooldown;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -22,6 +29,9 @@ public abstract class ItemAbility {
         this.description = description;
         this.cost = cost;
         this.cooldown = cooldown;
+        if (cooldown < 50){
+            throw new IllegalArgumentException("cooldown must be at least 50ms");
+        }
         this.abilityCooldown = new Cooldown<>();
     }
 
@@ -31,23 +41,40 @@ public abstract class ItemAbility {
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
-        double mana = stats.get(StatType.MANA).getValue();
-        if (mana < cost){
+        Stat manaStat = stats.get(StatType.MANA);
+        if (manaStat.getValue() < cost){
             abilityFailedNoMana(player);
             return;
         }
 
         abilityCooldown.startCooldown(player.getUniqueId());
+        manaStat.setValue(manaStat.getValue() - cost);
         useAbility(player);
     }
 
     public void abilityFailedNoMana(Player player){
-
+        player.sendMessage(ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) cost));
     }
 
     public void abilityFailedCooldown(Player player){
+        player.sendMessage(ChatColor.RED + "Still on cooldown!");
+    }
 
+    public boolean hasAbility(ItemStack itemStack){
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStack(itemStack);
+        return itemInfo != null && itemInfo.getAbility() == this;
     }
 
     protected abstract void useAbility(Player player);
+
+    public List<String> toList(){
+        List<String> list = new ArrayList<>();
+        list.add(ChatColor.GOLD + "Item Ability: " + name);
+        list.add(ChatColor.GRAY + description);
+        list.add(ChatColor.DARK_GRAY + "Mana Cost: " + ChatColor.DARK_AQUA + (int)cost);
+        double cooldownDouble = (double) cooldown /1000;
+        list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);
+        return list;
+    }
 }

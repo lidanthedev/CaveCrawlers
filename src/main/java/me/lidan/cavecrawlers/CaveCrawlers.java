@@ -2,10 +2,7 @@ package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
-import me.lidan.cavecrawlers.events.AntiBanListener;
-import me.lidan.cavecrawlers.events.DamageEntityListener;
-import me.lidan.cavecrawlers.events.ItemChangeListener;
-import me.lidan.cavecrawlers.events.RemoveArrowsListener;
+import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
@@ -71,6 +68,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
+        registerEvent(new UpdateItemsListener());
     }
 
     public void registerEvent(Listener listener){

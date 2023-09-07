@@ -82,6 +82,25 @@ public class ItemsManager {
         }
     }
 
+    public ItemStack updateItemStack(ItemStack itemStack){
+        if (itemStack == null) {
+            return null;
+        }
+        ItemInfo itemInfo = getItemFromItemStack(itemStack);
+        if (itemInfo != null){
+            return buildItem(itemInfo);
+        }
+        return itemStack;
+    }
+
+    public void updatePlayerInventory(Player player){
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            contents[i] = updateItemStack(contents[i]);
+        }
+        player.getInventory().setContents(contents);
+    }
+
     public static ItemsManager getInstance() {
         if (instance == null){
             instance = new ItemsManager();

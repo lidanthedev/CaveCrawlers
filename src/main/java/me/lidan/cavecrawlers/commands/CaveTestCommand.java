@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.AutoComplete;
@@ -66,16 +67,14 @@ public class CaveTestCommand {
 
     @Subcommand("item update")
     public void itemUpdate(Player sender){
-        ItemStack hand = sender.getInventory().getItemInMainHand();
-        String ID = ItemsManager.getInstance().getIDofItemStack(hand);
-        if (ID == null){
-            sender.sendMessage("This is not a Custom Item!");
-        }
-        else{
-            ItemStack updatedItem = ItemsManager.getInstance().buildItem(ID);
-            sender.getInventory().setItemInMainHand(updatedItem);
-            sender.sendMessage("Updated Item with ID " + ID);
-        }
+        ItemStack hand = sender.getEquipment().getItemInMainHand();;
+        ItemStack updateItemStack = ItemsManager.getInstance().updateItemStack(hand);
+        sender.getEquipment().setItem(EquipmentSlot.HAND, updateItemStack);
+    }
+
+    @Subcommand("item updateInv")
+    public void itemUpdateInv(Player sender){
+        ItemsManager.getInstance().updatePlayerInventory(sender);
     }
 
     @Subcommand("item give")

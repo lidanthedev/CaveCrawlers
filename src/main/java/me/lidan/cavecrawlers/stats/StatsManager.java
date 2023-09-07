@@ -58,6 +58,11 @@ public class StatsManager {
             stats = statsFromEquipment;
         }
         statsMap.put(player.getUniqueId(), stats);
+
+        if (player.isDead()){
+            player.spigot().respawn();
+        }
+
         player.setHealthScale(40);
         double maxHealth = stats.get(StatType.HEALTH).getValue();
         player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);

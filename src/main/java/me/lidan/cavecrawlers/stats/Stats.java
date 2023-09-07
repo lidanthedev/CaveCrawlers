@@ -44,7 +44,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
     }
 
     public void set(StatType type, double amount){
-        get(type).add(amount);
+        get(type).setValue(amount);
     }
 
     public void add(StatType type, double amount){

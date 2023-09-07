@@ -6,8 +6,10 @@ import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -55,14 +57,14 @@ public class ItemsManager {
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
 
-        return ItemBuilder.from(info.getBaseItem()).setName(name).setLore(lore).setNbt("ITEM_ID", info.getID()).build();
+        return ItemBuilder.from(info.getBaseItem()).setName(name).setLore(lore).unbreakable().setNbt("ITEM_ID", info.getID()).build();
     }
 
-    public ItemInfo getItemByID(String ID){
+    public @Nullable ItemInfo getItemByID(String ID){
         return itemsMap.get(ID);
     }
 
-    public ItemInfo getItemFromItemStack(ItemStack itemStack){
+    public @Nullable ItemInfo getItemFromItemStack(ItemStack itemStack){
         String ID = getIDofItemStack(itemStack);
         return getItemByID(ID);
     }
@@ -72,16 +74,13 @@ public class ItemsManager {
         return itemsMap.keySet();
     }
 
-    public String getIDofItemStack(ItemStack itemStack){
-        try{
+    public String getIDofItemStack(ItemStack itemStack) {
+        try {
             return ItemNbt.getString(itemStack, "ITEM_ID");
-        }
-        catch (NullPointerException nullPointerException){
+        } catch (NullPointerException nullPointerException) {
             return "";
         }
     }
-
-
 
     public static ItemsManager getInstance() {
         if (instance == null){

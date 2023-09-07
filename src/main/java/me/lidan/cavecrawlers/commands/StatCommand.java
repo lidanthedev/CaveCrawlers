@@ -68,4 +68,10 @@ public class StatCommand {
         statsManager.applyStats(sender);
         sender.sendMessage("Applied stats!");
     }
+
+    @Subcommand("autoStats")
+    public void autoStats(Player sender, boolean b){
+        statsManager.setStatsAuto(sender, b);
+        sender.sendMessage("set auto stats to " + b);
+    }
 }

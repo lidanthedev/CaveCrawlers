@@ -3,10 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.stats.Stat;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
@@ -49,6 +46,8 @@ public abstract class ItemAbility {
 
         abilityCooldown.startCooldown(player.getUniqueId());
         manaStat.setValue(manaStat.getValue() - cost);
+        String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)cost);
+        ActionBarManager.getInstance().actionBar(player, msg);
         useAbility(player);
     }
 

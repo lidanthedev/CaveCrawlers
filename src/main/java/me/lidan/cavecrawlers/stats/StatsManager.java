@@ -128,6 +128,10 @@ public class StatsManager {
         return null;
     }
 
+    public void loadAllPlayers(){
+        Bukkit.getOnlinePlayers().forEach(this::loadPlayer);
+    }
+
     public void statLoop(){
         Bukkit.getOnlinePlayers().forEach(this::applyStats);
     }

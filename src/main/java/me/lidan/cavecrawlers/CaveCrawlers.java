@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers;
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
+import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
@@ -40,15 +41,18 @@ public final class CaveCrawlers extends JavaPlugin {
         //TODO: register items using a file
         ItemsManager itemsManager = ItemsManager.getInstance();
         itemsManager.registerExampleItems();
+        itemsManager.registerItemsFromConfig();
     }
 
     private void registerAbilities() {
         //example ability
-        AbilityManager.getInstance().registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
+        AbilityManager abilityManager = AbilityManager.getInstance();
+        abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
     }
 
     private static void registerSerializer() {
-        ConfigurationSerialization.registerClass(Stats.class, "stats");
+        ConfigurationSerialization.registerClass(Stats.class);
+        ConfigurationSerialization.registerClass(ItemInfo.class);
     }
 
     public void startTasks(){

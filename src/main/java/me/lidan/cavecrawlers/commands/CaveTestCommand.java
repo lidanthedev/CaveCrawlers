@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -82,6 +83,25 @@ public class CaveTestCommand {
     public void itemGive(Player sender, String ID){
         ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID);
         sender.getInventory().addItem(exampleSword);
+    }
+
+    @Subcommand("item save")
+    @AutoComplete("@itemID *")
+    public void itemSave(Player sender, String ID){
+        ItemsManager.getInstance().saveItemToConfig(ID);
+        sender.sendMessage("Saved Item to Config!");
+    }
+
+    @Subcommand("item saveBase")
+    @AutoComplete("@itemID *")
+    public void itemSaveBase(Player sender, String ID){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        if (hand.getType() == Material.AIR) {
+            sender.sendMessage("ERROR! You can't save AIR!");
+            return;
+        }
+        ItemsManager.getInstance().saveBaseItemToConfig(ID, hand);
+        sender.sendMessage("Saved Item to Config!");
     }
 
 }

@@ -2,10 +2,13 @@ package me.lidan.cavecrawlers.items;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +22,7 @@ import java.util.Set;
 public class ItemsManager {
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
+    private final CustomConfig itemsConfig = new CustomConfig("items");
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
@@ -27,6 +31,34 @@ public class ItemsManager {
     public void registerItem(String ID, ItemInfo info){
         info.setID(ID);
         itemsMap.put(ID, info);
+    }
+
+    public void saveBaseItemToConfig(String ID, ItemStack baseItem){
+        ItemInfo itemByID = getItemByID(ID);
+        itemByID.setBaseItem(baseItem);
+        saveItemToConfig(ID);
+    }
+
+    public void saveItemToConfig(String ID){
+        itemsConfig.set(ID, getItemByID(ID));
+        itemsConfig.save();
+    }
+
+    public void registerItemsFromConfig(){
+        registerItemsFromConfig(itemsConfig);
+    }
+
+    public void registerItemsFromConfig(FileConfiguration configuration){
+        Set<String> keys = configuration.getKeys(false);
+        for (String key : keys) {
+            ItemInfo itemInfo = configuration.getObject(key, ItemInfo.class);
+            if (itemInfo != null) {
+                registerItem(key, itemInfo);
+            }
+            else {
+                CaveCrawlers.getInstance().getLogger().warning("Failed to Load Item: " + key);
+            }
+        }
     }
 
     public void registerExampleItems(){

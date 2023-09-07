@@ -77,4 +77,8 @@ public abstract class ItemAbility {
         list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);
         return list;
     }
+
+    public String getID(){
+        return AbilityManager.getInstance().getIDbyAbility(this);
+    }
 }

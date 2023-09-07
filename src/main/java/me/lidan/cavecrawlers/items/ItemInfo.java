@@ -4,16 +4,21 @@ import lombok.Data;
 import lombok.Setter;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
-public class ItemInfo {
+public class ItemInfo implements ConfigurationSerializable {
     private String name;
     private String description;
     private Stats stats;
@@ -49,7 +54,7 @@ public class ItemInfo {
         list.addAll(stats.toLoreList());
         list.add("");
         if (description != null){
-            list.add(description);
+            list.add(ChatColor.DARK_GRAY + description);
             list.add("");
         }
         if (ability != null){
@@ -58,6 +63,43 @@ public class ItemInfo {
         }
         list.add(rarity.getColor().toString() + ChatColor.BOLD + rarity.name());
         return list;
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("description", description);
+        map.put("stats", stats.serialize());
+        map.put("type", type.name());
+        map.put("baseItem", baseItem);
+        map.put("rarity", rarity.name());
+        map.put("ability", ability != null ? ability.getID(): null);
+        return map;
+    }
+
+    public static ItemInfo deserialize(Map<String, Object> map) {
+
+        String name = (String)map.get("name");
+        String description = (String)map.get("description");
+
+
+        Map<String, Object> statsMap = (Map<String, Object>) map.get("stats");
+        Stats stats = Stats.deserialize(statsMap);
+
+        ItemType type = ItemType.valueOf((String)map.get("type"));
+        Rarity rarity = Rarity.valueOf((String)map.get("rarity"));
+        ItemStack itemStack = (ItemStack) map.get("baseItem");
+
+        ItemAbility ability = null;
+        String abilityID = (String)map.get("ability");
+        if (abilityID != null) {
+            ability = AbilityManager.getInstance().getAbilityByID(abilityID);
+        }
+
+        return new ItemInfo(name, description, stats, type, itemStack, rarity, ability);
+
     }
 
 }

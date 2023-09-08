@@ -23,7 +23,6 @@ import java.util.Set;
 public class ItemsManager {
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
-    private final CustomConfig itemsConfig = new CustomConfig("items");
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
@@ -34,16 +33,8 @@ public class ItemsManager {
         itemsMap.put(ID, info);
     }
 
-    public void saveBaseItemToConfig(String ID, ItemStack baseItem){
-        ItemInfo itemByID = getItemByID(ID);
-        itemByID.setBaseItem(baseItem);
-        saveItemToConfig(ID);
-    }
-
-    @Deprecated
-    public void saveItemToConfig(String ID){
-        itemsConfig.set(ID, getItemByID(ID));
-        itemsConfig.save();
+    public void unregisterItem(String ID) {
+        itemsMap.remove(ID);
     }
 
     public void registerExampleItems(){

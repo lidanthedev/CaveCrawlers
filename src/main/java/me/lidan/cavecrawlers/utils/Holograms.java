@@ -17,7 +17,7 @@ public class Holograms {
     public static void spawnTempArmorStand(Location location, String text, int delay) {
         ArmorStand armorStand = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
 
-        armorStand.addScoreboardTag("damageHolo");
+        armorStand.addScoreboardTag("HologramCaveCrawlers");
         armorStand.setCustomName(text);
         armorStand.setCustomNameVisible(true);
         armorStand.setInvulnerable(true);

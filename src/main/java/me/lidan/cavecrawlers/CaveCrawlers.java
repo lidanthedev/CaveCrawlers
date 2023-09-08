@@ -8,9 +8,11 @@ import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
+import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -76,6 +78,8 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
+        registerEvent(new AntiExplodeListener());
+        PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
     public void startTasks(){
@@ -92,6 +96,17 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
+        killEntities();
+    }
+
+    public void killEntities(){
+        Bukkit.getWorlds().forEach(world -> {
+            world.getEntities().forEach(entity -> {
+                if (entity.getScoreboardTags().contains("HologramCaveCrawlers")){
+                    entity.remove();
+                }
+            });
+        });
     }
 
     public static CaveCrawlers getInstance(){

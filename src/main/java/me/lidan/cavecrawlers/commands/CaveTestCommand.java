@@ -5,10 +5,12 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.JsonMessage;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -75,12 +77,6 @@ public class CaveTestCommand {
         config.load();
     }
 
-    @Subcommand("item test")
-    public void itemTest(Player sender){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem("EXAMPLE_SWORD");
-        sender.getInventory().addItem(exampleSword);
-    }
-
     @Subcommand("item getID")
     public void itemGetID(Player sender){
         ItemStack hand = sender.getInventory().getItemInMainHand();
@@ -103,7 +99,7 @@ public class CaveTestCommand {
     @Subcommand("item give")
     @AutoComplete("@itemID *")
     public void itemGive(Player sender, String ID){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID);
+        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, 1);
         sender.getInventory().addItem(exampleSword);
     }
 
@@ -133,5 +129,35 @@ public class CaveTestCommand {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.removeTag(hand, "ITEM_ID");
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
+    }
+
+    @Subcommand("lores")
+    public void showLore(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null){
+            sender.sendMessage("ERROR! NO META FOUND!");
+            return;
+        }
+        if (!meta.hasLore()){
+            sender.sendMessage("ERROR! NO LORE FOUND!");
+            return;
+        }
+        List<String> lore = meta.getLore();
+        String name = meta.getDisplayName();
+
+        JsonMessage message = new JsonMessage();
+        message.append(name).setClickAsSuggestCmd("/ie rename %s".formatted(name.replaceAll("§", "&"))).save().send(sender);
+        for (int i = 0; i < lore.size(); i++) {
+            message = new JsonMessage();
+            String line = lore.get(i);
+            message.append(line).setClickAsSuggestCmd("/ie lore set %s %s".formatted(i+1 ,line.replaceAll("§", "&"))).save().send(sender);
+        }
+    }
+
+    @Subcommand("packet test")
+    public void packetTest(Player player, int stage){
+        PacketManager packetManager = PacketManager.getInstance();
+        packetManager.setBlockDestroyStage(player, player.getTargetBlock(null, 10).getLocation(), stage);
     }
 }

@@ -23,7 +23,6 @@ import java.util.Set;
 public class ItemsManager {
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
-    private final CustomConfig itemsConfig = new CustomConfig("items");
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
@@ -34,16 +33,8 @@ public class ItemsManager {
         itemsMap.put(ID, info);
     }
 
-    public void saveBaseItemToConfig(String ID, ItemStack baseItem){
-        ItemInfo itemByID = getItemByID(ID);
-        itemByID.setBaseItem(baseItem);
-        saveItemToConfig(ID);
-    }
-
-    @Deprecated
-    public void saveItemToConfig(String ID){
-        itemsConfig.set(ID, getItemByID(ID));
-        itemsConfig.save();
+    public void unregisterItem(String ID) {
+        itemsMap.remove(ID);
     }
 
     public void registerExampleItems(){
@@ -65,11 +56,11 @@ public class ItemsManager {
         registerItem("ERROR_SCYTHE", errorScythe);
     }
 
-    public ItemStack buildItem(String ID){
-        return buildItem(getItemByID(ID));
+    public ItemStack buildItem(String ID, int amount){
+        return buildItem(getItemByID(ID), amount);
     }
 
-    public ItemStack buildItem(ItemInfo info){
+    public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
@@ -81,6 +72,7 @@ public class ItemsManager {
                 .unbreakable()
                 .flags(ItemFlag.HIDE_UNBREAKABLE)
                 .setNbt("ITEM_ID", info.getID())
+                .amount(amount)
                 .build();
     }
 
@@ -116,7 +108,7 @@ public class ItemsManager {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            return buildItem(itemInfo);
+            return buildItem(itemInfo, itemStack.getAmount());
         }
         return itemStack;
     }

@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class StatsManager {
     private final Map<UUID, Stats> statsMap;
-    private final Map<UUID, Boolean> statsAutoMap;
+    private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
 
     public static StatsManager getInstance() {
@@ -29,7 +29,7 @@ public class StatsManager {
 
     public StatsManager() {
         this.statsMap = new HashMap<>();
-        this.statsAutoMap = new HashMap<>();
+        this.statsAdder = new HashMap<>();
     }
 
     public Stats getStats(UUID uuid){
@@ -43,12 +43,8 @@ public class StatsManager {
         return getStats(player.getUniqueId());
     }
 
-    public boolean isStatsAuto(Player player){
-        return statsAutoMap.getOrDefault(player.getUniqueId(), true);
-    }
-
-    public void setStatsAuto(Player player, boolean b){
-        statsAutoMap.put(player.getUniqueId(), b);
+    public Stats getStatsAdder(Player player){
+        return statsAdder.get(player.getUniqueId());
     }
 
     public void loadPlayer(Player player){
@@ -92,13 +88,15 @@ public class StatsManager {
 
     public Stats calculateStats(Player player) {
         Stats stats = getStats(player);
-        if (isStatsAuto(player)){
-            Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
-            double manaAmount = stats.get(StatType.MANA).getValue();
-            statsFromEquipment.set(StatType.MANA, manaAmount);
-            stats = statsFromEquipment;
-        }
+        Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
+        double manaAmount = stats.get(StatType.MANA).getValue();
+        statsFromEquipment.set(StatType.MANA, manaAmount);
+        stats = statsFromEquipment;
         statsMap.put(player.getUniqueId(), stats);
+        if (!statsAdder.containsKey(player.getUniqueId())){
+            statsAdder.put(player.getUniqueId(), new Stats(true));
+        }
+        stats.add(getStatsAdder(player));
         return stats;
     }
 

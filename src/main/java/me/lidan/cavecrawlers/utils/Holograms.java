@@ -20,7 +20,9 @@ public class Holograms {
         armorStand.addScoreboardTag("damageHolo");
         armorStand.setCustomName(text);
         armorStand.setCustomNameVisible(true);
+        armorStand.setInvulnerable(true);
         armorStand.setVisible(false);
+        armorStand.setGravity(false);
 
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }

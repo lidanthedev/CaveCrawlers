@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.stats;
 
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemSlot;
+import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
@@ -105,14 +107,14 @@ public class StatsManager {
         EntityEquipment equipment = player.getEquipment();
         ItemStack[] armor = equipment.getArmorContents();
         for (ItemStack itemStack : armor) {
-            Stats itemStats = getStatsFromItemStack(itemStack);
+            Stats itemStats = getStatsFromItemStack(itemStack, ItemSlot.ARMOR);
             if (itemStats != null) {
                 stats.add(itemStats);
             }
         }
 
         ItemStack hand = equipment.getItemInMainHand();
-        Stats statsFromHand = getStatsFromItemStack(hand);
+        Stats statsFromHand = getStatsFromItemStack(hand, ItemSlot.HAND);
         if (statsFromHand != null)
             stats.add(statsFromHand);
 
@@ -120,9 +122,13 @@ public class StatsManager {
 
     }
 
-    public @Nullable Stats getStatsFromItemStack(ItemStack itemStack){
+    public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot){
         ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
         if (itemInfo != null) {
+            ItemType type = itemInfo.getType();
+            if (type.getSlot() != slot){
+                return null;
+            }
             return itemInfo.getStats();
         }
         return null;

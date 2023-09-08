@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
@@ -16,13 +17,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
+import java.io.File;
+
 public final class CaveCrawlers extends JavaPlugin {
 
+    public File ITEMS_DIR_FILE;
     private CommandHandler commandHandler;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
+        ITEMS_DIR_FILE = new File(getDataFolder(), "items");
         commandHandler = BukkitCommandHandler.create(this);
 
         registerSerializer();
@@ -52,9 +57,9 @@ public final class CaveCrawlers extends JavaPlugin {
 
     private void registerItems() {
         ItemsManager itemsManager = ItemsManager.getInstance();
+        ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsManager.registerExampleItems();
-        itemsManager.registerItemsFromConfig();
-        itemsManager.registerItemsFromFolder();
+        itemsLoader.registerItemsFromFolder(ITEMS_DIR_FILE);
     }
 
     public void registerCommands(){

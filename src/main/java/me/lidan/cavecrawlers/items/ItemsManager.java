@@ -14,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,6 @@ public class ItemsManager {
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final CustomConfig itemsConfig = new CustomConfig("items");
-    private final File ITEMS_DIR_FILE = new File(CaveCrawlers.getInstance().getDataFolder(), "items");
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
@@ -45,38 +43,6 @@ public class ItemsManager {
     public void saveItemToConfig(String ID){
         itemsConfig.set(ID, getItemByID(ID));
         itemsConfig.save();
-    }
-
-    @Deprecated
-    public void registerItemsFromConfig(){
-        registerItemsFromConfig(itemsConfig);
-    }
-
-    public void registerItemsFromFolder() {
-        if (!ITEMS_DIR_FILE.exists()){
-            ITEMS_DIR_FILE.mkdirs();
-        }
-
-        File[] files = ITEMS_DIR_FILE.listFiles();
-
-        // loop through files
-        for(File file : files) {
-            CustomConfig customConfig = new CustomConfig(file);
-            registerItemsFromConfig(customConfig);
-        }
-    }
-
-    public void registerItemsFromConfig(FileConfiguration configuration){
-        Set<String> keys = configuration.getKeys(false);
-        for (String key : keys) {
-            ItemInfo itemInfo = configuration.getObject(key, ItemInfo.class);
-            if (itemInfo != null) {
-                registerItem(key, itemInfo);
-            }
-            else {
-                CaveCrawlers.getInstance().getLogger().warning("Failed to Load Item: " + key);
-            }
-        }
     }
 
     public void registerExampleItems(){
@@ -111,7 +77,11 @@ public class ItemsManager {
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
-        return itemsMap.get(ID);
+        ItemInfo itemInfo = itemsMap.get(ID);
+        if (ID != null && itemInfo == null && !ID.isEmpty()){
+            throw new IllegalArgumentException("Item with ID " + ID + " doesn't exist!");
+        }
+        return itemInfo;
     }
 
     public @Nullable ItemInfo getItemFromItemStack(ItemStack itemStack){

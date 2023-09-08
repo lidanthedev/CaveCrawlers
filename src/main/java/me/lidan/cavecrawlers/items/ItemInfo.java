@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.stats.Stats;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,8 +52,11 @@ public class ItemInfo implements ConfigurationSerializable {
         list.add(rarity.getColor() + name);
         list.add(ChatColor.DARK_GRAY + type.getName());
         list.add("");
-        list.addAll(stats.toLoreList());
-        list.add("");
+        List<String> loreList = stats.toLoreList();
+        if (!loreList.isEmpty()) {
+            list.addAll(loreList);
+            list.add("");
+        }
         if (description != null){
             list.add(ChatColor.DARK_GRAY + description);
             list.add("");

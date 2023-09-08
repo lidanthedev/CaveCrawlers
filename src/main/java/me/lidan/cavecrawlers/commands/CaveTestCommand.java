@@ -1,22 +1,28 @@
 package me.lidan.cavecrawlers.commands;
 
+import dev.triumphteam.gui.components.util.ItemNbt;
+import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
-import java.util.List;
-import java.util.Objects;
+import java.io.File;
+import java.util.*;
 
 @Command({"cavetest", "ct"})
 @CommandPermission("cavecrawlers.test")
@@ -29,6 +35,22 @@ public class CaveTestCommand {
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> ItemsManager.getInstance().getKeys());
+        handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
+            Player player = Bukkit.getPlayer(sender.getName());
+            if (player != null){
+                ItemStack hand = player.getEquipment().getItemInMainHand();
+                ItemMeta meta = hand.getItemMeta();
+                if (!meta.hasDisplayName()){
+                    return Collections.singleton("");
+                }
+                String name = meta.getDisplayName();
+                name = ChatColor.stripColor(name);
+                name = name.toUpperCase(Locale.ROOT);
+                name = name.replaceAll(" ", "_");
+                return Collections.singleton(name);
+            }
+            return Collections.singleton("");
+        });
     }
 
     @Subcommand("config saveStats")
@@ -85,23 +107,31 @@ public class CaveTestCommand {
         sender.getInventory().addItem(exampleSword);
     }
 
-    @Subcommand("item save")
-    @AutoComplete("@itemID *")
-    public void itemSave(Player sender, String ID){
-        ItemsManager.getInstance().saveItemToConfig(ID);
-        sender.sendMessage("Saved Item to Config!");
-    }
-
-    @Subcommand("item saveBase")
-    @AutoComplete("@itemID *")
-    public void itemSaveBase(Player sender, String ID){
+    @Subcommand("item export")
+    @AutoComplete("@handID *")
+    public void itemExport(Player sender, String ID){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
-        if (hand.getType() == Material.AIR) {
-            sender.sendMessage("ERROR! You can't save AIR!");
+
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        String IDofItem = itemsManager.getIDofItemStack(hand);
+        if (IDofItem != null){
+            sender.sendMessage("ERROR! Item already has ID! remove with /ct item remove-id");
             return;
         }
-        ItemsManager.getInstance().saveBaseItemToConfig(ID, hand);
-        sender.sendMessage("Saved Item to Config!");
+
+        ItemExporter exporter = new ItemExporter(hand);
+        ItemInfo itemInfo = exporter.toItemInfo();
+        File file = new File(CaveCrawlers.getInstance().ITEMS_DIR_FILE, ID + ".yml");
+        CustomConfig customConfig = new CustomConfig(file);
+        customConfig.set(ID, itemInfo);
+        customConfig.save();
+        sender.sendMessage("Exported Item with ID " + ID);
     }
 
+    @Subcommand("item remove-id")
+    public void itemRemoveID(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemNbt.removeTag(hand, "ITEM_ID");
+        sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
+    }
 }

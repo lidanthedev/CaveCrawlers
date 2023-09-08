@@ -29,6 +29,7 @@ public final class CaveCrawlers extends JavaPlugin {
         // Plugin startup logic
         ITEMS_DIR_FILE = new File(getDataFolder(), "items");
         commandHandler = BukkitCommandHandler.create(this);
+        long start = System.currentTimeMillis();
 
         registerSerializer();
 
@@ -41,7 +42,8 @@ public final class CaveCrawlers extends JavaPlugin {
 
         StatsManager.getInstance().loadAllPlayers();
 
-        getLogger().info("Loaded CaveCrawlers! Ready to cave!");
+        long diff = System.currentTimeMillis() - start;
+        getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
     private static void registerSerializer() {

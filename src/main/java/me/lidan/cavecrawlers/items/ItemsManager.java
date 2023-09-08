@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +74,14 @@ public class ItemsManager {
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
 
-        return ItemBuilder.from(info.getBaseItem()).setName(name).setLore(lore).unbreakable().setNbt("ITEM_ID", info.getID()).build();
+        return ItemBuilder
+                .from(info.getBaseItem())
+                .setName(name)
+                .setLore(lore)
+                .unbreakable()
+                .flags(ItemFlag.HIDE_UNBREAKABLE)
+                .setNbt("ITEM_ID", info.getID())
+                .build();
     }
 
     public @Nullable ItemInfo getItemByID(String ID){

@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
@@ -152,5 +153,11 @@ public class CaveTestCommand {
             String line = lore.get(i);
             message.append(line).setClickAsSuggestCmd("/ie lore set %s %s".formatted(i+1 ,line.replaceAll("§", "&"))).save().send(sender);
         }
+    }
+
+    @Subcommand("packet test")
+    public void packetTest(Player player, int stage){
+        PacketManager packetManager = PacketManager.getInstance();
+        packetManager.setBlockDestroyStage(player, player.getTargetBlock(null, 10).getLocation(), stage);
     }
 }

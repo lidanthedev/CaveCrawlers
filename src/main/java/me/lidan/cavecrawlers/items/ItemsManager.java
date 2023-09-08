@@ -56,11 +56,11 @@ public class ItemsManager {
         registerItem("ERROR_SCYTHE", errorScythe);
     }
 
-    public ItemStack buildItem(String ID){
-        return buildItem(getItemByID(ID));
+    public ItemStack buildItem(String ID, int amount){
+        return buildItem(getItemByID(ID), amount);
     }
 
-    public ItemStack buildItem(ItemInfo info){
+    public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
@@ -72,6 +72,7 @@ public class ItemsManager {
                 .unbreakable()
                 .flags(ItemFlag.HIDE_UNBREAKABLE)
                 .setNbt("ITEM_ID", info.getID())
+                .amount(amount)
                 .build();
     }
 
@@ -107,7 +108,7 @@ public class ItemsManager {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            return buildItem(itemInfo);
+            return buildItem(itemInfo, itemStack.getAmount());
         }
         return itemStack;
     }

@@ -76,12 +76,6 @@ public class CaveTestCommand {
         config.load();
     }
 
-    @Subcommand("item test")
-    public void itemTest(Player sender){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem("EXAMPLE_SWORD");
-        sender.getInventory().addItem(exampleSword);
-    }
-
     @Subcommand("item getID")
     public void itemGetID(Player sender){
         ItemStack hand = sender.getInventory().getItemInMainHand();
@@ -104,7 +98,7 @@ public class CaveTestCommand {
     @Subcommand("item give")
     @AutoComplete("@itemID *")
     public void itemGive(Player sender, String ID){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID);
+        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, 1);
         sender.getInventory().addItem(exampleSword);
     }
 

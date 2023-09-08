@@ -1,7 +1,8 @@
 package me.lidan.cavecrawlers.stats;
 
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Color;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class Stats implements Iterable<Stat> {
+public class Stats implements Iterable<Stat>, ConfigurationSerializable {
     private final Map<StatType, Stat> stats;
 
     public Stats(List<Stat> statList) {
@@ -28,6 +29,13 @@ public class Stats implements Iterable<Stat> {
         this(new ArrayList<>());
     }
 
+    public Stats(boolean zero){
+        this();
+        if (zero){
+            zero();
+        }
+    }
+
     public Stat get(StatType type){
         if (stats.containsKey(type)){
             return stats.get(type);
@@ -36,7 +44,7 @@ public class Stats implements Iterable<Stat> {
     }
 
     public void set(StatType type, double amount){
-        get(type).add(amount);
+        get(type).setValue(amount);
     }
 
     public void add(StatType type, double amount){
@@ -63,6 +71,12 @@ public class Stats implements Iterable<Stat> {
         }
     }
 
+    public void zero(){
+        for (Stat stat : this) {
+            stat.setValue(0);
+        }
+    }
+
     public void add(Stats stats) {
         for (Stat stat : stats) {
             this.add(stat.getType(), stat.getValue());
@@ -83,16 +97,17 @@ public class Stats implements Iterable<Stat> {
         return str.toString();
     }
 
-    public String toLoreString(){
-        StringBuilder str = new StringBuilder();
+    public List<String> toLoreList(){
+        List<String> lore = new ArrayList<>();
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
-            if (stat.getValue() > 0){
-                str.append(ChatColor.GRAY).append(stat.getType().getName()).append(": ").append(type.getLoreColor()).append(stat.getValue());
-                str.append("\n");
+            double value = stat.getValue();
+            if (value > 0){
+                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
             }
         }
-        return str.toString();
+        return lore;
     }
 
     @Override
@@ -120,5 +135,25 @@ public class Stats implements Iterable<Stat> {
 
     public Stream<Stat> stream() {
         return StreamSupport.stream(spliterator(), false);
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        for (StatType statType : stats.keySet()) {
+            map.put(statType.name(), get(statType).getValue());
+        }
+        return map;
+    }
+
+    public static Stats deserialize(Map<String, Object> map){
+        Stats stats = new Stats();
+        for (String key : map.keySet()) {
+            StatType type = StatType.valueOf(key);
+            Double value = (Double) map.get(key);
+            stats.set(type, value);
+        }
+        return stats;
     }
 }

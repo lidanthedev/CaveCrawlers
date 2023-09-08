@@ -44,6 +44,11 @@ public class Stat {
         multiply(stat.getValue());
     }
 
-
-
+    @Override
+    public String toString() {
+        return "Stat{" +
+                "type=" + type +
+                ", value=" + value +
+                '}';
+    }
 }

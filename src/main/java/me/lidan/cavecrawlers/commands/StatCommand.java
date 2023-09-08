@@ -11,8 +11,10 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.util.List;
+
 @Command({"stats", "stat", "statadmin"})
-@CommandPermission("stats.admin")
+@CommandPermission("cavecrawlers.stats")
 public class StatCommand {
 
     private final StatsManager statsManager;
@@ -36,7 +38,10 @@ public class StatCommand {
             arg = sender;
         }
         Stats stats = statsManager.getStats(arg);
-        sender.sendMessage(stats.toLoreString());
+        List<String> lore = stats.toLoreList();
+        for (String line : lore) {
+            sender.sendMessage(line);
+        }
     }
 
     @Subcommand("add")
@@ -50,7 +55,7 @@ public class StatCommand {
     public void set(Player sender, StatType type, double amount){
         Stats stats = statsManager.getStats(sender);
         stats.get(type).setValue(amount);
-        sender.sendMessage("set stat %s to %s".formatted(type, amount));
+        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
 
     @Subcommand("health")
@@ -62,5 +67,11 @@ public class StatCommand {
     public void apply(Player sender){
         statsManager.applyStats(sender);
         sender.sendMessage("Applied stats!");
+    }
+
+    @Subcommand("autoStats")
+    public void autoStats(Player sender, boolean b){
+        statsManager.setStatsAuto(sender, b);
+        sender.sendMessage("set auto stats to " + b);
     }
 }

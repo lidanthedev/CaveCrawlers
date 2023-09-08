@@ -1,10 +1,17 @@
 package me.lidan.cavecrawlers.events;
 
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.Holograms;
+import me.lidan.cavecrawlers.utils.RandomUtils;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -36,17 +43,24 @@ public class DamageEntityListener implements Listener {
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
         event.setDamage(damage);
-        double finalDamage = event.getFinalDamage();
+        int finalDamage = (int) event.getFinalDamage();
 
         StringBuilder msg = new StringBuilder();
+        String formattedDamage;
         if (crit) {
-            msg.append(ChatColor.WHITE).append("✧").append(finalDamage).append(ChatColor.WHITE).append("✧");
+            msg.append("✧").append(finalDamage).append("✧");
+            formattedDamage = StringUtils.rainbowText(msg.toString());
         } else {
-            msg.append(ChatColor.WHITE).append(finalDamage);
+            msg.append(ChatColor.GRAY).append(finalDamage);
+            formattedDamage = msg.toString();
         }
 
-        player.sendMessage(msg.toString());
-
+        Location hologram = mob.getLocation();
+        double random = RandomUtils.randomDouble(1, 1.5);
+        hologram.add(mob.getLocation().getDirection().multiply(random));
+        hologram.setY(mob.getLocation().getY() + random);
+        hologram.subtract(0, 2, 0);
+        Holograms.spawnTempArmorStand(hologram, formattedDamage, 10);
 
     }
 
@@ -57,8 +71,11 @@ public class DamageEntityListener implements Listener {
         double damageReduction = defense / (defense + 100);
 
         damage = damage * (1 - damageReduction);
-        player.sendMessage("DAMAGED: " + damage + " With RES: " + damageReduction);
 
         event.setDamage(damage);
+
+        Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), bukkitTask -> {
+            ActionBarManager.getInstance().actionBar(player);
+        }, 1L);
     }
 }

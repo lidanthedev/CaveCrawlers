@@ -55,6 +55,8 @@ public class DamageEntityListener implements Listener {
             formattedDamage = msg.toString();
         }
 
+        mob.setMaximumNoDamageTicks(0);
+
         Location hologram = mob.getLocation();
         double random = RandomUtils.randomDouble(1, 1.5);
         hologram.add(mob.getLocation().getDirection().multiply(random));

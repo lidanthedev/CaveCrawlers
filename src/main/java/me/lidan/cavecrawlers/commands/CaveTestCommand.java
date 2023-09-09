@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import de.tr7zw.nbtapi.NBTItem;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemExporter;
@@ -12,11 +13,14 @@ import me.lidan.cavecrawlers.utils.JsonMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
@@ -139,15 +143,13 @@ public class CaveTestCommand {
             sender.sendMessage("ERROR! NO META FOUND!");
             return;
         }
-        if (!meta.hasLore()){
-            sender.sendMessage("ERROR! NO LORE FOUND!");
-            return;
-        }
+
         List<String> lore = meta.getLore();
         String name = meta.getDisplayName();
 
         JsonMessage message = new JsonMessage();
         message.append(name).setClickAsSuggestCmd("/ie rename %s".formatted(name.replaceAll("§", "&"))).save().send(sender);
+        if (!meta.hasLore()) return;
         for (int i = 0; i < lore.size(); i++) {
             message = new JsonMessage();
             String line = lore.get(i);
@@ -159,5 +161,34 @@ public class CaveTestCommand {
     public void packetTest(Player player, int stage){
         PacketManager packetManager = PacketManager.getInstance();
         packetManager.setBlockDestroyStage(player, player.getTargetBlock(null, 10).getLocation(), stage);
+    }
+
+    @Subcommand("nbt set")
+    public void nbtSet(Player sender, String key, String value){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemNbt.setString(hand, key, value);
+        sender.sendMessage("set NBT!");
+    }
+
+    @Subcommand("nbt get")
+    public void nbtGet(Player sender, String key){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        String value = ItemNbt.getString(hand, key);
+        sender.sendMessage("value: " + value);
+    }
+
+    @Subcommand("nbt send")
+    public void nbtSend(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null){
+            sender.sendMessage("ERROR! NO META FOUND!");
+            return;
+        }
+        PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
+        for (NamespacedKey key : dataContainer.getKeys()) {
+            String value = dataContainer.get(key, PersistentDataType.STRING);
+            sender.sendMessage(key + ": " + value);
+        }
     }
 }

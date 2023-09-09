@@ -1,11 +1,10 @@
 package me.lidan.cavecrawlers.events;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
-import me.lidan.cavecrawlers.stats.ActionBarManager;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.stats.*;
+import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.Holograms;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -18,6 +17,10 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class DamageEntityListener implements Listener {
 
@@ -39,6 +42,13 @@ public class DamageEntityListener implements Listener {
     }
 
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
+        mob.setMaximumNoDamageTicks(0);
+        DamageManager damageManager = DamageManager.getInstance();
+        if (!damageManager.canAttack(player, mob)){
+            event.setCancelled(true);
+            return;
+        }
+
         PlayerDamageCalculation calculation = new PlayerDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();

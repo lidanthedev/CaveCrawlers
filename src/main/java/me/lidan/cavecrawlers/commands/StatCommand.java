@@ -46,14 +46,14 @@ public class StatCommand {
 
     @Subcommand("add")
     public void add(Player sender, StatType type, double amount){
-        Stats stats = statsManager.getStats(sender);
+        Stats stats = statsManager.getStatsAdder(sender);
         stats.get(type).add(amount);
         sender.sendMessage("add stat %s to %s".formatted(type, amount));
     }
 
     @Subcommand("set")
     public void set(Player sender, StatType type, double amount){
-        Stats stats = statsManager.getStats(sender);
+        Stats stats = statsManager.getStatsAdder(sender);
         stats.get(type).setValue(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
@@ -67,11 +67,5 @@ public class StatCommand {
     public void apply(Player sender){
         statsManager.applyStats(sender);
         sender.sendMessage("Applied stats!");
-    }
-
-    @Subcommand("autoStats")
-    public void autoStats(Player sender, boolean b){
-        statsManager.setStatsAuto(sender, b);
-        sender.sendMessage("set auto stats to " + b);
     }
 }

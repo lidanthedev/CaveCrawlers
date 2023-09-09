@@ -94,7 +94,14 @@ public class ItemsManager {
         return itemsMap.keySet();
     }
 
-    public String getIDofItemStack(ItemStack itemStack) {
+    public String getIDofItemStackSafe(ItemStack itemStack) {
+        String ID = getIDofItemStack(itemStack);
+        if (ID == null)
+            ID = "";
+        return ID;
+    }
+
+    public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
             return ItemNbt.getString(itemStack, "ITEM_ID");
         } catch (NullPointerException nullPointerException) {

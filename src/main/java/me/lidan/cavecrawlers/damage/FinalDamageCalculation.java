@@ -5,9 +5,9 @@ import org.bukkit.entity.Player;
 
 public class FinalDamageCalculation implements DamageCalculation{
 
-    private double damage;
+    protected double damage;
 
-    private boolean crit;
+    protected boolean crit;
 
     public FinalDamageCalculation(double damage, boolean crit) {
         this.damage = damage;

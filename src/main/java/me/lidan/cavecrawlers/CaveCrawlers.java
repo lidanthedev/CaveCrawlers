@@ -60,7 +60,7 @@ public final class CaveCrawlers extends JavaPlugin {
         //example ability
         AbilityManager abilityManager = AbilityManager.getInstance();
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
-        abilityManager.registerAbility("BOOM_BOOM", new BoomAbility());
+        abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
     }
 
     private void registerItems() {

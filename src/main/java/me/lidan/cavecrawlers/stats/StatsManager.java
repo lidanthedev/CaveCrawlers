@@ -97,6 +97,17 @@ public class StatsManager {
             statsAdder.put(player.getUniqueId(), new Stats(true));
         }
         stats.add(getStatsAdder(player));
+
+        // stat limits
+        Stat speedStat = stats.get(StatType.SPEED);
+        Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
+        if (speedStat.getValue() > 500){
+            speedStat.setValue(500);
+        }
+        if (attackSpeedStat.getValue() > 100){
+            attackSpeedStat.setValue(100);
+        }
+
         return stats;
     }
 

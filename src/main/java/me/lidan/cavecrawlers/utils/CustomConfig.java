@@ -36,7 +36,7 @@ public class CustomConfig extends YamlConfiguration {
         try {
             this.save(file);
         } catch (IOException e) {
-            System.out.println("Couldn't save file");
+            System.out.println("Couldn't save file " + file.getName());
             e.printStackTrace();
         }
     }
@@ -45,6 +45,7 @@ public class CustomConfig extends YamlConfiguration {
         try {
             this.load(file);
         } catch (IOException | InvalidConfigurationException e) {
+            CaveCrawlers.getInstance().getLogger().warning("Failed to load CustomConfig " + file.getName());
             e.printStackTrace();
         }
         return this;

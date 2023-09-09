@@ -132,13 +132,17 @@ public class StatsManager {
     }
 
     public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot){
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
-        if (itemInfo != null) {
-            ItemType type = itemInfo.getType();
-            if (type.getSlot() != slot){
-                return null;
+        try {
+            ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
+            if (itemInfo != null) {
+                ItemType type = itemInfo.getType();
+                if (type.getSlot() != slot){
+                    return null;
+                }
+                return itemInfo.getStats();
             }
-            return itemInfo.getStats();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }

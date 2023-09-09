@@ -54,6 +54,7 @@ public class ItemExporter {
         String typeStr = list.get(1);
         typeStr = ChatColor.stripColor(typeStr);
         typeStr = typeStr.toUpperCase(Locale.ROOT);
+        typeStr = typeStr.replace(' ','_');
         ItemType type = ItemType.valueOf(typeStr);
         Stats stats = toStats(list.subList(3, list.size() - 1));
         ItemStack baseItem = toBaseItem();

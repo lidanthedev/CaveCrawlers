@@ -1,17 +1,20 @@
 package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
+import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
+import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.events.PotionsListener;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
@@ -57,6 +60,7 @@ public final class CaveCrawlers extends JavaPlugin {
         //example ability
         AbilityManager abilityManager = AbilityManager.getInstance();
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
+        abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
     }
 
     private void registerItems() {
@@ -70,6 +74,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.register(new StatCommand());
         commandHandler.register(new CaveTestCommand(commandHandler));
+        commandHandler.register(new PotionCommands());
     }
 
     public void registerEvents(){
@@ -78,7 +83,9 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
+        registerEvent(new PotionsListener());
         registerEvent(new AntiExplodeListener());
+        registerEvent(new AntiPlaceListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

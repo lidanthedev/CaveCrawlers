@@ -10,10 +10,10 @@ import org.bukkit.entity.Player;
 import java.util.Random;
 
 @Getter
-public class PlayerDamageCalculation {
+public class PlayerDamageCalculation implements DamageCalculation {
     private final Player player;
     private final Stats stats;
-    private boolean crit;
+    protected boolean crit;
 
     public PlayerDamageCalculation(Player player) {
         this.player = player;
@@ -33,7 +33,7 @@ public class PlayerDamageCalculation {
         return finalDamage;
     }
 
-    private boolean critRoll(){
+    public boolean critRoll(){
         double critChance = stats.get(StatType.CRIT_CHANCE).getValue();
 
         // Generate random number between 0 and 100

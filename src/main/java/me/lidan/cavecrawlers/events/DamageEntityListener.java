@@ -46,7 +46,6 @@ public class DamageEntityListener implements Listener {
         DamageManager damageManager = DamageManager.getInstance();
         if (!damageManager.canAttack(player, mob)){
             event.setCancelled(true);
-            player.sendMessage("ATTACK CD!");
             return;
         }
 

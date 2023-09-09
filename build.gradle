@@ -34,7 +34,7 @@ dependencies {
     }
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
-    compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api:2.11.3'
+    compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api-plugin:2.11.3'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
 }

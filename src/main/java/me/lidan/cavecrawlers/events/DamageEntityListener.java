@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.events;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.stats.*;
@@ -49,7 +50,7 @@ public class DamageEntityListener implements Listener {
             return;
         }
 
-        PlayerDamageCalculation calculation = new PlayerDamageCalculation(player);
+        DamageCalculation calculation = damageManager.getDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
         event.setDamage(damage);

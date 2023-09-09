@@ -21,6 +21,20 @@ public class DamageManager {
 
     @Getter
     private final Map<UUID, Cooldown<UUID>> attackMap = new HashMap<>();
+    private final Map<UUID, DamageCalculation> damageMap = new HashMap<>();
+
+    public DamageCalculation getDamageCalculation(Player player){
+        if (!damageMap.containsKey(player.getUniqueId())){
+            return new PlayerDamageCalculation(player);
+        }
+        DamageCalculation damageCalculation = damageMap.get(player.getUniqueId());
+        damageMap.remove(player.getUniqueId());
+        return damageCalculation;
+    }
+
+    public void setDamageCalculation(Player player, DamageCalculation calculation){
+        damageMap.put(player.getUniqueId(), calculation);
+    }
 
     public Cooldown<UUID> getAttackCooldown(Player player){
         if (!attackMap.containsKey(player.getUniqueId())){

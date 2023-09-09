@@ -3,16 +3,23 @@ package me.lidan.cavecrawlers.events;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.UUID;
@@ -48,6 +55,11 @@ public class PotionsListener implements Listener {
                         }
                         ChargesAddInteger++;
                         ItemNbt.setString(content, "Charges", ChargesAddInteger.toString());
+                        String a = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)").getName();
+                        a = a.replaceAll("5/", ChargesAddInteger.toString() + "/");
+                        ItemMeta b = content.getItemMeta();
+                        b.setDisplayName(a);
+                        content.setItemMeta(b);
                     }
                 }
             }
@@ -79,8 +91,30 @@ public class PotionsListener implements Listener {
                 }
                 ChargesRemoveNumber--;
                 ItemNbt.setString(hand,"Charges",ChargesRemoveNumber.toString());
-                player.sendMessage(ChargesRemoveNumber.toString());
-                player.launchProjectile(ThrownPotion.class);
+                String a = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)").getName();
+                a = a.replaceAll("5/", ChargesRemoveNumber.toString() + "/");
+                ItemMeta b = hand.getItemMeta();
+                b.setDisplayName(a);
+                hand.setItemMeta(b);
+                hand.getItemMeta().setDisplayName(a);
+                ThrownPotion potion = player.launchProjectile(ThrownPotion.class);
+                potion.setItem(new ItemStack(Material.RED_CONCRETE));
+                potion.addScoreboardTag("DARK_WIZARD'S_POTION_BAG_(EMPTY)");
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (event.getEntity() instanceof ThrownPotion potion) {
+            if (potion.getShooter() instanceof Player p) {
+                if (potion.getScoreboardTags().contains("DARK_WIZARD'S_POTION_BAG_(EMPTY)")) {
+                    for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
+                        if (nearbyEntity instanceof Mob mob) {
+                            mob.damage(1,p);
+                        }
+                    }
+                }
             }
         }
     }

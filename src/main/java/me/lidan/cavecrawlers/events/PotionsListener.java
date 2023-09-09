@@ -2,9 +2,9 @@ package me.lidan.cavecrawlers.events;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.stats.ActionBarManager;
-import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,7 +19,6 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.UUID;
@@ -41,29 +40,37 @@ public class PotionsListener implements Listener {
         scheduler.runTaskTimer(plugin, bukkitTask -> {
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 for (ItemStack content : onlinePlayer.getInventory().getContents()) {
-                    String ID = ItemsManager.getInstance().getIDofItemStack(content);
-                    if (ID != null && ID.contains("DARK_WIZARD")) {
-
-                        String ChargesAddString = ItemNbt.getString(content, "Charges");
-                         if (ChargesAddString == null) {
-                             ItemNbt.setString(content, "Charges", "5");
-                             continue;
-                         }
-                        Integer ChargesAddInteger = Integer.parseInt(ChargesAddString);
-                        if(ChargesAddInteger > 4) {
-                            continue;
-                        }
-                        ChargesAddInteger++;
-                        ItemNbt.setString(content, "Charges", ChargesAddInteger.toString());
-                        String a = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)").getName();
-                        a = a.replaceAll("5/", ChargesAddInteger.toString() + "/");
-                        ItemMeta b = content.getItemMeta();
-                        b.setDisplayName(a);
-                        content.setItemMeta(b);
-                    }
+                    updateWeapon(content);
                 }
             }
         }, 0,60);
+    }
+
+    private static void updateWeapon(ItemStack content) {
+        String ID = ItemsManager.getInstance().getIDofItemStack(content);
+        if (ID != null && ID.contains("DARK_WIZARD")) {
+            String chargesStr = ItemNbt.getString(content, "Charges");
+            if (chargesStr == null) { // Not really needed anymore
+                 ItemNbt.setString(content, "Charges", "5");
+                 return;
+            }
+            int charges = Integer.parseInt(chargesStr);
+            if(charges > 4) {
+                return;
+            }
+            charges++;
+            setDisplayCharges(content, charges);
+        }
+    }
+
+    private static void setDisplayCharges(ItemStack content, int charges) {
+        ItemNbt.setString(content, "Charges", Integer.toString(charges));
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)");
+        String newName = itemInfo.getName();
+        newName = newName.replaceAll("5/", charges + "/");
+        ItemMeta meta = content.getItemMeta();
+        meta.setDisplayName(newName);
+        content.setItemMeta(meta);
     }
 
     @EventHandler
@@ -72,34 +79,26 @@ public class PotionsListener implements Listener {
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (!hand.hasItemMeta()) return;
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-            if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
-                return;
-            }
-            String ID = ItemsManager.getInstance().getIDofItemStack(hand);
-            if (ID != null && ID.contains("DARK_WIZARD")) {
-
-                abilityCooldown.startCooldown(player.getUniqueId());
-                String ChargesRemoveString = ItemNbt.getString(hand,"Charges");
-                if (ChargesRemoveString  == null) {
-                    ChargesRemoveString = "5";
-                    ItemNbt.setString(hand,"Charges",ChargesRemoveString);
+            if (ItemsManager.getInstance().getIDofItemStackSafe(hand).contains("DARK_WIZARD")) {
+                if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
+                    return;
                 }
-                Integer ChargesRemoveNumber = Integer.parseInt(ChargesRemoveString);
-                if (ChargesRemoveNumber < 1) {
+                abilityCooldown.startCooldown(player.getUniqueId());
+                String chargesStr = ItemNbt.getString(hand,"Charges");
+                if (chargesStr  == null) {  // Not really needed anymore
+                    chargesStr = "5";
+                    ItemNbt.setString(hand,"Charges",chargesStr);
+                }
+                int charges = Integer.parseInt(chargesStr);
+                if (charges <= 0) {
                     player.sendMessage("No Charges");
                     return;
                 }
-                ChargesRemoveNumber--;
-                ItemNbt.setString(hand,"Charges",ChargesRemoveNumber.toString());
-                String a = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)").getName();
-                a = a.replaceAll("5/", ChargesRemoveNumber.toString() + "/");
-                ItemMeta b = hand.getItemMeta();
-                b.setDisplayName(a);
-                hand.setItemMeta(b);
-                hand.getItemMeta().setDisplayName(a);
+                charges--;
+                setDisplayCharges(hand, charges);
                 ThrownPotion potion = player.launchProjectile(ThrownPotion.class);
                 potion.setItem(new ItemStack(Material.RED_CONCRETE));
-                potion.addScoreboardTag("DARK_WIZARD'S_POTION_BAG_(EMPTY)");
+                potion.addScoreboardTag("DARK_WIZARD_DAMAGE");
             }
         }
     }
@@ -108,9 +107,11 @@ public class PotionsListener implements Listener {
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntity() instanceof ThrownPotion potion) {
             if (potion.getShooter() instanceof Player p) {
-                if (potion.getScoreboardTags().contains("DARK_WIZARD'S_POTION_BAG_(EMPTY)")) {
+                if (potion.getScoreboardTags().contains("DARK_WIZARD_DAMAGE")) {
+                    DamageManager damageManager = DamageManager.getInstance();
                     for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
                         if (nearbyEntity instanceof Mob mob) {
+                            damageManager.resetAttackCooldownForMob(p, mob);
                             mob.damage(1,p);
                         }
                     }

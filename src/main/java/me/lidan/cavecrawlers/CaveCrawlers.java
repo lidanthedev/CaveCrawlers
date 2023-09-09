@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
+import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -11,6 +12,7 @@ import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.events.Potions;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -68,6 +70,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.register(new StatCommand());
         commandHandler.register(new CaveTestCommand(commandHandler));
+        commandHandler.register(new PotionCommands());
     }
 
     public void registerEvents(){
@@ -76,6 +79,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
+        registerEvent(new Potions());
     }
 
     public void startTasks(){

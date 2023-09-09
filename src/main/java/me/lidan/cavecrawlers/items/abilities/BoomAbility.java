@@ -13,7 +13,7 @@ import java.util.List;
 
 public class BoomAbility extends ItemAbility implements Listener {
     public BoomAbility() {
-        super("BOOM BOOM", "Does BOOM", 0, 50);
+        super("BOOM BOOM", "Does BOOM", 0, 100);
     }
 
     @EventHandler
@@ -35,10 +35,13 @@ public class BoomAbility extends ItemAbility implements Listener {
         FinalDamageCalculation calculation = new FinalDamageCalculation(damage, false);
         for (Entity entity : nearbyEntities) {
             if (entity instanceof Mob mob){
-                damageManager.setDamageCalculation(player, calculation);
-                damageManager.resetAttackCooldownForMob(player, mob);
-                mob.damage(damage, player);
+                calculation.damage(player, mob);
             }
         }
+    }
+
+    @Override
+    public void abilityFailedCooldown(Player player) {
+        // silent cooldown
     }
 }

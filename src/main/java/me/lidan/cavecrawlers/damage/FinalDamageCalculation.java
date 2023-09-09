@@ -1,5 +1,8 @@
 package me.lidan.cavecrawlers.damage;
 
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
+
 public class FinalDamageCalculation implements DamageCalculation{
 
     private double damage;
@@ -25,5 +28,12 @@ public class FinalDamageCalculation implements DamageCalculation{
     @Override
     public boolean isCrit() {
         return crit;
+    }
+
+    public void damage(Player player, Mob mob){
+        DamageManager damageManager = DamageManager.getInstance();
+        damageManager.setDamageCalculation(player, this);
+        damageManager.resetAttackCooldownForMob(player, mob);
+        mob.damage(damage, player);
     }
 }

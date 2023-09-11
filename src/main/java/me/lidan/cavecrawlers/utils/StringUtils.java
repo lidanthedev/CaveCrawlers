@@ -30,16 +30,20 @@ public class StringUtils {
         return converted.toString();
     }
 
-    public static String progressBar(double current, double need, int amount) {
+    public static String progressBar(double current, double max, int length) {
+        return progressBar(current, max, length, "-");
+    }
+
+    public static String progressBar(double current, double max, int length, String icon) {
         StringBuilder progressBar = new StringBuilder();
-        double percent = current / need * 100d;
-        for (int i = 0; i < 20; i++) {
-            if (i < percent / (100d / amount)) {
+        double percent = current / max * 100d;
+        for (int i = 0; i < length; i++) {
+            if (i < percent / (100d / length)) {
                 progressBar.append(ChatColor.GREEN);
             } else {
                 progressBar.append(ChatColor.WHITE);
             }
-            progressBar.append("-");
+            progressBar.append(icon);
         }
         return progressBar.toString();
     }

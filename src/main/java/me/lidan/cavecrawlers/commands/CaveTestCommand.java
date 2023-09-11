@@ -138,6 +138,11 @@ public class CaveTestCommand {
         CustomConfig customConfig = new CustomConfig(file);
         customConfig.set(ID, itemInfo);
         customConfig.save();
+
+        itemsManager.registerItem(ID, itemInfo);
+        ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
+        sender.getInventory().addItem(itemStack);
+
         sender.sendMessage("Exported Item with ID " + ID);
     }
 
@@ -247,5 +252,27 @@ public class CaveTestCommand {
         meta.setLore(lore);
         hand.setItemMeta(meta);
         sender.sendMessage("Item DEPIXEL AUCTION");
+        pixelReformat(sender);
+    }
+
+    @Subcommand("pixel reformat")
+    public void pixelReformat(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null){
+            sender.sendMessage("ERROR! NO META FOUND!");
+            return;
+        }
+        if (!meta.hasLore()) return;
+        List<String> lore = meta.getLore();
+        String lastLine = lore.get(lore.size() - 1);
+        String[] splitLastLine = lastLine.split(" ");
+        lore.add(0, ChatColor.DARK_GRAY + splitLastLine[1]);
+        lore.add(1, "");
+
+        lore.set(lore.size() - 1, splitLastLine[0]);
+
+        meta.setLore(lore);
+        hand.setItemMeta(meta);
     }
 }

@@ -5,6 +5,7 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -13,6 +14,7 @@ import me.lidan.cavecrawlers.utils.JsonMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -37,10 +39,12 @@ public class CaveTestCommand {
 
     private CustomConfig config = new CustomConfig("test");
     private StatsManager statsManager = StatsManager.getInstance();
-    private CommandHandler handler;
+    private final CommandHandler handler;
+    private final CaveCrawlers plugin;
 
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
+        this.plugin = CaveCrawlers.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> ItemsManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
             Player player = Bukkit.getPlayer(sender.getName());
@@ -58,6 +62,14 @@ public class CaveTestCommand {
             }
             return Collections.singleton("");
         });
+    }
+
+    @Subcommand("reload items")
+    public void reloadItems(CommandSender sender){
+        ItemsLoader.delete();
+        ItemsManager.delete();
+        plugin.registerItems();
+        sender.sendMessage("reloaded Items!");
     }
 
     @Subcommand("config saveStats")
@@ -158,6 +170,11 @@ public class CaveTestCommand {
         }
     }
 
+    @Command("lores")
+    public void loresCommand(Player sender){
+        showLore(sender);
+    }
+
     @Subcommand("packet test")
     public void packetTest(Player player, int stage){
         PacketManager packetManager = PacketManager.getInstance();
@@ -193,8 +210,42 @@ public class CaveTestCommand {
         }
     }
 
-    @Subcommand("vector test")
-    public void vectorTest(Player sender){
+    @Subcommand("pixel auction")
+    public void pixelAuction(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null){
+            sender.sendMessage("ERROR! NO META FOUND!");
+            return;
+        }
+        if (!meta.hasLore()) return;
+        List<String> lore = meta.getLore();
+        List<Integer> linesToDelete = new ArrayList<>();
+        int auctionLine = -1;
+        for (int i = 0; i < lore.size(); i++) {
+            String line = lore.get(i);
+            if (line.contains(ChatColor.DARK_GRAY + "[")){
+                linesToDelete.add(i);
+            }
+            if (line.contains("This item can be reforged!")){
+                linesToDelete.add(i);
+            }
+            if (line.contains("-----------")){
+                auctionLine = i;
+            }
+            if (auctionLine != -1){
+                linesToDelete.add(i);
+            }
+        }
 
+        for (int i = linesToDelete.size() - 1; i >= 0; i--) {
+           lore.remove((int) linesToDelete.get(i));
+        }
+
+        lore.forEach(sender::sendMessage);
+
+        meta.setLore(lore);
+        hand.setItemMeta(meta);
+        sender.sendMessage("Item DEPIXEL AUCTION");
     }
 }

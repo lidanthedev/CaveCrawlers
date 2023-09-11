@@ -66,7 +66,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("BASIC_LASER", new LaserAbility("Laser", "Shoot Laser", 10, 100, Particle.END_ROD, 100, 0.1, 16));
     }
 
-    private void registerItems() {
+    public void registerItems() {
         ItemsManager itemsManager = ItemsManager.getInstance();
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsManager.registerExampleItems();

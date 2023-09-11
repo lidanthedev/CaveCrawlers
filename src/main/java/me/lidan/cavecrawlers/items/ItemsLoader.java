@@ -62,6 +62,10 @@ public class ItemsLoader {
         return registeredItems;
     }
 
+    public static void delete(){
+        instance = null;
+    }
+
     public static ItemsLoader getInstance() {
         if (instance == null){
             instance = new ItemsLoader(ItemsManager.getInstance());

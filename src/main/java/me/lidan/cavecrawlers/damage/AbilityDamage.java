@@ -30,7 +30,7 @@ public class AbilityDamage extends FinalDamageCalculation {
         double statScaled = stats.get(statToScale).getValue();
         double abilityDamage = stats.get(StatType.ABILITY_DAMAGE).getValue();
         double critDamage = stats.get(StatType.CRIT_DAMAGE).getValue();
-        double finalAbilityDamage = baseAbilityDamage * (1 + abilityDamage/100);
+        double finalAbilityDamage = baseAbilityDamage + abilityDamage;
 
 
         double damage = finalAbilityDamage * ((1 + statScaled/100) * abilityScaling);

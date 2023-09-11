@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
+import org.bukkit.Particle;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,6 +36,7 @@ public class BoomAbility extends ItemAbility implements Listener {
 
     @Override
     protected void useAbility(Player player) {
+        player.spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
         AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);
         for (Entity entity : nearbyEntities) {

@@ -11,16 +11,17 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
@@ -190,5 +191,10 @@ public class CaveTestCommand {
             String value = dataContainer.get(key, PersistentDataType.STRING);
             sender.sendMessage(key + ": " + value);
         }
+    }
+
+    @Subcommand("vector test")
+    public void vectorTest(Player sender){
+
     }
 }

@@ -236,4 +236,24 @@ public class StringUtils {
     public static <T> String getNumberFormat(Number num) {
         return NumberFormat.getNumberInstance(Locale.US).format(num);
     }
+
+    public static String getShortNumber(double num) {
+        double signum = Math.signum(num);
+        num = Math.abs(num);
+        String output;
+        if (num >= 1_000_000_000_000_000d) {
+            output = Math.round(num * signum / 1000000000000000d * 100d) / 100d + "q";
+        } else if (num >= 1_000_000_000_000d) {
+            output = Math.round(num * signum / 1000000000000d * 100d) / 100d + "t";
+        } else if (num >= 1_000_000_000d) {
+            output = Math.round(num * signum / 1000000000d * 100d) / 100d + "b";
+        } else if (num >= 1_000_000d) {
+            output = Math.round(num * signum / 1000000d * 100d) / 100d + "m";
+        } else if (num >= 1_000d) {
+            output = Math.round(num * signum / 1000d * 100d) / 100d + "k";
+        } else {
+            output = num + "";
+        }
+        return output.replace(".0", "");
+    }
 }

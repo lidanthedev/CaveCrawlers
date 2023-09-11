@@ -55,14 +55,15 @@ public class DamageEntityListener implements Listener {
         boolean crit = calculation.isCrit();
         event.setDamage(damage);
         int finalDamage = (int) event.getFinalDamage();
+        String prettyDamage = StringUtils.getNumberFormat(finalDamage);
 
         StringBuilder msg = new StringBuilder();
         String formattedDamage;
         if (crit) {
-            msg.append("✧").append(finalDamage).append("✧");
+            msg.append("✧").append(prettyDamage).append("✧");
             formattedDamage = StringUtils.rainbowText(msg.toString());
         } else {
-            msg.append(ChatColor.GRAY).append(finalDamage);
+            msg.append(ChatColor.GRAY).append(prettyDamage);
             formattedDamage = msg.toString();
         }
 

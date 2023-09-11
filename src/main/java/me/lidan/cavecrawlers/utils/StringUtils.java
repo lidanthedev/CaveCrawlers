@@ -3,8 +3,10 @@ package me.lidan.cavecrawlers.utils;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class StringUtils {
     public static String setTitleCase(String text) {
@@ -229,5 +231,9 @@ public class StringUtils {
 
     public static List<String> loreBuilder(String lore) {
         return loreBuilder(lore, ChatColor.GRAY, 30);
+    }
+
+    public static <T> String getNumberFormat(Number num) {
+        return NumberFormat.getNumberInstance(Locale.US).format(num);
     }
 }

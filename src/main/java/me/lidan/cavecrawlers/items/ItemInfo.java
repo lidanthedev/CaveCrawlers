@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -58,7 +59,7 @@ public class ItemInfo implements ConfigurationSerializable {
             list.add("");
         }
         if (description != null){
-            list.add(ChatColor.DARK_GRAY + description);
+            list.addAll(StringUtils.loreBuilder(description));
             list.add("");
         }
         if (ability != null){

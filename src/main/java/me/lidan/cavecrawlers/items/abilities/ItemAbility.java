@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -70,7 +71,7 @@ public abstract class ItemAbility {
     public List<String> toList(){
         List<String> list = new ArrayList<>();
         list.add(ChatColor.GOLD + "Item Ability: " + name);
-        list.add(ChatColor.GRAY + description);
+        list.addAll(StringUtils.loreBuilder(description));
         list.add(ChatColor.DARK_GRAY + "Mana Cost: " + ChatColor.DARK_AQUA + (int)cost);
         double cooldownDouble = (double) cooldown /1000;
         list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);

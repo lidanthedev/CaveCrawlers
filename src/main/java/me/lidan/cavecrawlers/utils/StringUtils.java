@@ -3,6 +3,9 @@ package me.lidan.cavecrawlers.utils;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StringUtils {
     public static String setTitleCase(String text) {
         if (text == null || text.isEmpty()) {
@@ -189,5 +192,38 @@ public class StringUtils {
         String strValue = "" + value;
         String[] splitValue = strValue.split("\\.");
         return splitValue[0];
+    }
+
+    public static List<String> loreBuilder(String lore, ChatColor color, int num) {
+        String[] lores = lore.split(" ");
+        int l = 0;
+        int n = 0;
+        ArrayList<String> list = new ArrayList<>();
+        for (String str : lores) {
+            if (str.equals("RESET_LENGTH")) {
+                l = 0;
+            } else if (str.equals("NEW_LINE")) {
+                list.add(color + "");
+                l = 0;
+                n++;
+            } else {
+                l += str.length() + 1;
+                try {
+                    list.set(n, list.get(n) + str + " ");
+                } catch (IndexOutOfBoundsException ex) {
+                    list.add(color + "");
+                    list.set(n, list.get(n) + str + " ");
+                }
+                if (l > num) {
+                    l = 0;
+                    n++;
+                }
+            }
+        }
+        return list;
+    }
+
+    public static List<String> loreBuilder(String lore) {
+        return loreBuilder(lore, ChatColor.GRAY, 30);
     }
 }

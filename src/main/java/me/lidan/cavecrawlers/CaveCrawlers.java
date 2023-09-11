@@ -62,6 +62,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
         abilityManager.registerAbility("BASIC_LASER", new LaserAbility("Laser", "Shoot Laser", 10, 100, Particle.END_ROD, 100, 0.1, 16));
         abilityManager.registerAbility("ZOMBIE_SWORD_HEAL", new InstantHealAbility(70, 4, 5000, 120, 5));
+        abilityManager.registerAbility("TARGET_MOB", new TargetAbility("BATTLE", "makes mobs battle", 0, 100));
     }
 
     public void registerItems() {

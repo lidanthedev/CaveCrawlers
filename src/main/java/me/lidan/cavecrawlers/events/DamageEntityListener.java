@@ -55,21 +55,22 @@ public class DamageEntityListener implements Listener {
         boolean crit = calculation.isCrit();
         event.setDamage(damage);
         int finalDamage = (int) event.getFinalDamage();
+        String prettyDamage = StringUtils.getNumberFormat(finalDamage);
 
         StringBuilder msg = new StringBuilder();
         String formattedDamage;
         if (crit) {
-            msg.append("✧").append(finalDamage).append("✧");
+            msg.append("✧").append(prettyDamage).append("✧");
             formattedDamage = StringUtils.rainbowText(msg.toString());
         } else {
-            msg.append(ChatColor.GRAY).append(finalDamage);
+            msg.append(ChatColor.GRAY).append(prettyDamage);
             formattedDamage = msg.toString();
         }
 
         Location hologram = mob.getLocation();
         double random = RandomUtils.randomDouble(1, 1.5);
         hologram.add(mob.getLocation().getDirection().multiply(random));
-        hologram.setY(mob.getLocation().getY() + random);
+        hologram.setY(mob.getLocation().getY() + random + 1.5);
         hologram.subtract(0, 2, 0);
         Holograms.spawnTempArmorStand(hologram, formattedDamage, 10);
 

@@ -23,6 +23,7 @@ public class Holograms {
         armorStand.setInvulnerable(true);
         armorStand.setVisible(false);
         armorStand.setGravity(false);
+        armorStand.setMarker(true);
 
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }

@@ -128,6 +128,10 @@ public class ItemsManager {
         player.getInventory().setContents(contents);
     }
 
+    public static void delete(){
+        instance = null;
+    }
+
     public static ItemsManager getInstance() {
         if (instance == null){
             instance = new ItemsManager();

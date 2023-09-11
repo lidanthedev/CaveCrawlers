@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -45,14 +46,14 @@ public abstract class ItemAbility {
         }
 
         abilityCooldown.startCooldown(player.getUniqueId());
-        manaStat.setValue(manaStat.getValue() - cost);
-        String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)cost);
+        manaStat.setValue(manaStat.getValue() - getCost());
+        String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
         ActionBarManager.getInstance().actionBar(player, msg);
         useAbility(player);
     }
 
     public void abilityFailedNoMana(Player player){
-        player.sendMessage(ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) cost));
+        player.sendMessage(ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost()));
     }
 
     public void abilityFailedCooldown(Player player){
@@ -69,10 +70,10 @@ public abstract class ItemAbility {
 
     public List<String> toList(){
         List<String> list = new ArrayList<>();
-        list.add(ChatColor.GOLD + "Item Ability: " + name);
-        list.add(ChatColor.GRAY + description);
-        list.add(ChatColor.DARK_GRAY + "Mana Cost: " + ChatColor.DARK_AQUA + (int)cost);
-        double cooldownDouble = (double) cooldown /1000;
+        list.add(ChatColor.GOLD + "Item Ability: " + getName());
+        list.addAll(StringUtils.loreBuilder(getDescription()));
+        list.add(ChatColor.DARK_GRAY + "Mana Cost: " + ChatColor.DARK_AQUA + (int)getCost());
+        double cooldownDouble = (double) getCooldown() /1000;
         list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);
         return list;
     }

@@ -7,15 +7,14 @@ import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.items.abilities.AbilityManager;
-import me.lidan.cavecrawlers.items.abilities.BoomAbility;
-import me.lidan.cavecrawlers.items.abilities.ErrorScytheAbility;
+import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
 import org.bukkit.Bukkit;
+import org.bukkit.Particle;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -61,9 +60,12 @@ public final class CaveCrawlers extends JavaPlugin {
         AbilityManager abilityManager = AbilityManager.getInstance();
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
         abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
+        abilityManager.registerAbility("BASIC_LASER", new LaserAbility("Laser", "Shoot Laser", 10, 100, Particle.END_ROD, 100, 0.1, 16));
+        abilityManager.registerAbility("ZOMBIE_SWORD_HEAL", new InstantHealAbility(70, 4, 5000, 120, 5));
+        abilityManager.registerAbility("TARGET_MOB", new TargetAbility("BATTLE", "makes mobs battle", 0, 100));
     }
 
-    private void registerItems() {
+    public void registerItems() {
         ItemsManager itemsManager = ItemsManager.getInstance();
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsManager.registerExampleItems();

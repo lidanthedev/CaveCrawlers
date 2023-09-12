@@ -13,10 +13,14 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
@@ -24,16 +28,23 @@ import revxrsal.commands.bukkit.BukkitCommandHandler;
 import java.io.File;
 
 public final class CaveCrawlers extends JavaPlugin {
-
+    public static Economy economy = null;
     public File ITEMS_DIR_FILE;
     private CommandHandler commandHandler;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
+        long start = System.currentTimeMillis();
         ITEMS_DIR_FILE = new File(getDataFolder(), "items");
         commandHandler = BukkitCommandHandler.create(this);
-        long start = System.currentTimeMillis();
+        commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+
+        if (!setupEconomy() ) {
+            getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         registerSerializer();
 
@@ -116,6 +127,18 @@ public final class CaveCrawlers extends JavaPlugin {
                 }
             });
         });
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return true;
     }
 
     public static CaveCrawlers getInstance(){

@@ -12,6 +12,7 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
+import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -280,5 +281,26 @@ public class CaveTestCommand {
 
         meta.setLore(lore);
         hand.setItemMeta(meta);
+    }
+
+    @Subcommand("coins set")
+    public void coinsSet(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.setCoins(player, amount);
+    }
+
+    @Subcommand("coins give")
+    public void coinsGive(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.giveCoins(player, amount);
+    }
+
+    @Subcommand("coins take")
+    public void coinsTake(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.takeCoins(player, amount);
+    }
+
+    @Subcommand("coins get")
+    public void coinsGet(CommandSender sender, OfflinePlayer player){
+        double coins = VaultUtils.getCoins(player);
+        sender.sendMessage(player.getName() + " has " + coins);
     }
 }

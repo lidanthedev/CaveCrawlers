@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.commands;
 import de.tr7zw.nbtapi.NBTItem;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
@@ -151,6 +152,11 @@ public class CaveTestCommand {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.removeTag(hand, "ITEM_ID");
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
+    }
+
+    @Subcommand("item browse")
+    public void itemBrowse(Player sender){
+        new ItemsGui(sender).open();
     }
 
     @Subcommand("lores")

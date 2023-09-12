@@ -94,7 +94,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void startTasks(){
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
-        }, 0, 40);
+        }, 0, 20);
     }
 
     public void registerEvent(Listener listener){

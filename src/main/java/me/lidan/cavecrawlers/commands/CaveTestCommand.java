@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.commands;
 import de.tr7zw.nbtapi.NBTItem;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
@@ -11,6 +12,7 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
+import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -153,6 +155,11 @@ public class CaveTestCommand {
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
     }
 
+    @Subcommand("item browse")
+    public void itemBrowse(Player sender){
+        new ItemsGui(sender).open();
+    }
+
     @Subcommand("lores")
     public void showLore(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -274,5 +281,26 @@ public class CaveTestCommand {
 
         meta.setLore(lore);
         hand.setItemMeta(meta);
+    }
+
+    @Subcommand("coins set")
+    public void coinsSet(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.setCoins(player, amount);
+    }
+
+    @Subcommand("coins give")
+    public void coinsGive(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.giveCoins(player, amount);
+    }
+
+    @Subcommand("coins take")
+    public void coinsTake(CommandSender sender, OfflinePlayer player, double amount){
+        VaultUtils.takeCoins(player, amount);
+    }
+
+    @Subcommand("coins get")
+    public void coinsGet(CommandSender sender, OfflinePlayer player){
+        double coins = VaultUtils.getCoins(player);
+        sender.sendMessage(player.getName() + " has " + coins);
     }
 }

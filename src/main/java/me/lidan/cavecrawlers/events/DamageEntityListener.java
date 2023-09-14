@@ -18,6 +18,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class DamageEntityListener implements Listener {
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
         mob.setMaximumNoDamageTicks(0);
         DamageManager damageManager = DamageManager.getInstance();
-        if (!damageManager.canAttack(player, mob)){
+        if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE && !damageManager.canAttack(player, mob)){
             event.setCancelled(true);
             return;
         }

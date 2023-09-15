@@ -62,7 +62,7 @@ public class ItemInfo implements ConfigurationSerializable {
             list.addAll(StringUtils.loreBuilder(description));
             list.add("");
         }
-        if (ability != null && !ability.toList().isEmpty()){
+        if (ability != null && !ability.toList().isEmpty()) {
             list.addAll(ability.toList());
             list.add("");
         }

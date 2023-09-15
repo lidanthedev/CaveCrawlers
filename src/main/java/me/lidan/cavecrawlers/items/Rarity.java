@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Getter
 public enum Rarity {
     NONE(0, ChatColor.DARK_RED),
-    COMMON(1, ChatColor.GRAY),
+    COMMON(1, ChatColor.WHITE),
     UNCOMMON(2, ChatColor.GREEN),
     RARE(3, ChatColor.BLUE),
     EPIC(4, ChatColor.DARK_PURPLE),

@@ -66,7 +66,7 @@ public class ItemsManager {
         List<String> lore = infoList.subList(1, infoList.size());
 
         return ItemBuilder
-                .from(info.getBaseItem())
+                .from(info.getBaseItem().clone())
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()
@@ -126,6 +126,56 @@ public class ItemsManager {
             contents[i] = updateItemStack(contents[i]);
         }
         player.getInventory().setContents(contents);
+    }
+
+    public Map<ItemInfo, Integer> getAllItems(Player player) {
+        Map<ItemInfo, Integer> items = new HashMap<>();
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null) continue;
+            ItemInfo ID = getItemFromItemStack(item);
+            items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
+        }
+        return items;
+    }
+
+    public boolean hasItem(Player player, ItemInfo material, int amount) {
+        Map<ItemInfo, Integer> inventory = getAllItems(player);
+        return inventory.getOrDefault(material, 0) >= amount;
+    }
+
+    public boolean hasItems(Player player, Map<ItemInfo, Integer> items){
+        for (ItemInfo material : items.keySet()) {
+            if (!hasItem(player, material, items.get(material))){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void removeItems(Player player,ItemInfo material, int amount) {
+        for (int i = 0; i < 36; i++) {
+            ItemStack item = player.getInventory().getItem(i);
+
+            if (item == null) continue;
+
+            String ID = getIDofItemStackSafe(item);
+            if (ID.equals(material.getID())) {
+                if (item.getAmount() > amount) {
+                    item.setAmount(item.getAmount() - amount);
+                    player.getInventory().setItem(i, item);
+                    break;
+                } else {
+                    amount -= item.getAmount();
+                    player.getInventory().setItem(i, new ItemStack(Material.AIR));
+                }
+            }
+        }
+    }
+
+    public void removeItems(Player player, Map<ItemInfo, Integer> items) {
+        for (ItemInfo material : items.keySet()) {
+            this.removeItems(player, material, items.get(material));
+        }
     }
 
     public static void delete(){

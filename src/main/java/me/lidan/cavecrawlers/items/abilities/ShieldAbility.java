@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ShieldAbility extends ItemAbility implements Listener {
+    public static final String SHIELD_TAG = "Shield";
     private double baseAbilityDamage;
     private double abilityScaling;
 
@@ -42,15 +43,15 @@ public class ShieldAbility extends ItemAbility implements Listener {
     @Override
     protected void useAbility(Player player) {
         Snowball a = player.launchProjectile(Snowball.class);
-        a.addScoreboardTag("Shield");
+        a.addScoreboardTag(SHIELD_TAG);
     }
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Snowball proj)
-            if (event.getDamager().getScoreboardTags().contains("Shield")) {
+        if (event.getDamager() instanceof Snowball snowball)
+            if (event.getDamager().getScoreboardTags().contains(SHIELD_TAG)) {
                 if (event.getEntity() instanceof Mob mob) {
-                    if (proj.getShooter() instanceof Player player) {
+                    if (snowball.getShooter() instanceof Player player) {
                         event.setCancelled(true);
                         AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, StatType.DEFENSE,false);
                         calculation.damage(player, mob);

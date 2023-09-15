@@ -77,6 +77,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("HURRICANE_SHOT", new MultiShotAbility(5));
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
+        abilityManager.registerAbility("SHIELD_THROW", new ShieldAbility(100, 2));
     }
 
     public void registerItems() {

@@ -4,7 +4,11 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -47,8 +51,8 @@ public class PotionsListener implements Listener {
     }
 
     private static void updateWeapon(ItemStack content) {
-        String ID = ItemsManager.getInstance().getIDofItemStack(content);
-        if (ID != null && ID.contains("DARK_WIZARD")) {
+        ItemInfo ID = ItemsManager.getInstance().getItemFromItemStack(content);
+        if (ID != null && ID.getType() == ItemType.ALCHEMY_BAG) {
             String chargesStr = ItemNbt.getString(content, "Charges");
             if (chargesStr == null) { // Not really needed anymore
                  ItemNbt.setString(content, "Charges", "5");
@@ -65,7 +69,7 @@ public class PotionsListener implements Listener {
 
     private static void setDisplayCharges(ItemStack content, int charges) {
         ItemNbt.setString(content, "Charges", Integer.toString(charges));
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID("DARK_WIZARD'S_POTION_BAG_(EMPTY)");
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(content);
         String newName = itemInfo.getName();
         newName = newName.replaceAll("5/", charges + "/");
         ItemMeta meta = content.getItemMeta();
@@ -79,7 +83,8 @@ public class PotionsListener implements Listener {
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (!hand.hasItemMeta()) return;
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-            if (ItemsManager.getInstance().getIDofItemStackSafe(hand).contains("DARK_WIZARD")) {
+            ItemInfo ID = ItemsManager.getInstance().getItemFromItemStack(hand);
+            if (ID != null && ID.getType() == ItemType.ALCHEMY_BAG) {
                 if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
                     return;
                 }
@@ -97,8 +102,14 @@ public class PotionsListener implements Listener {
                 charges--;
                 setDisplayCharges(hand, charges);
                 ThrownPotion potion = player.launchProjectile(ThrownPotion.class);
-                potion.setItem(new ItemStack(Material.RED_CONCRETE));
-                potion.addScoreboardTag("DARK_WIZARD_DAMAGE");
+                if (hand.getItemMeta().getDisplayName().contains("Damage")) {
+                    potion.setItem(new ItemStack(Material.RED_CONCRETE));
+                    potion.addScoreboardTag("DAMAGE");
+                }
+                else {
+                    potion.setItem(new ItemStack(Material.LIME_CONCRETE));
+                    potion.addScoreboardTag("HEALTH");
+                }
             }
         }
     }
@@ -106,13 +117,23 @@ public class PotionsListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntity() instanceof ThrownPotion potion) {
-            if (potion.getShooter() instanceof Player p) {
-                if (potion.getScoreboardTags().contains("DARK_WIZARD_DAMAGE")) {
+            if (potion.getShooter() instanceof Player shooter) {
+                if (potion.getScoreboardTags().contains("DAMAGE")) {
                     DamageManager damageManager = DamageManager.getInstance();
-                    for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
+                    for (Entity nearbyEntity : potion.getNearbyEntities(4,1,4)) {
                         if (nearbyEntity instanceof Mob mob) {
-                            damageManager.resetAttackCooldownForMob(p, mob);
-                            mob.damage(1,p);
+                            damageManager.resetAttackCooldownForMob(shooter, mob);
+                            mob.damage(1,shooter);
+                        }
+                    }
+                }
+                else if (potion.getScoreboardTags().contains("HEALTH")) {
+                    for (Entity nearbyEntity : potion.getNearbyEntities(5,1,5)) {
+                        if (nearbyEntity instanceof Player player) {
+                            StatsManager statsManager = StatsManager.getInstance();
+                            Stats statsOfShooter = statsManager.getStats(shooter);
+                            double heal = statsOfShooter.get(StatType.HEALTH).getValue() / 10;
+                            StatsManager.healPlayer(player, heal);
                         }
                     }
                 }

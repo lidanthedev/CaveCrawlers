@@ -60,7 +60,6 @@ public class PotionsListener implements Listener {
             }
             int charges = Integer.parseInt(chargesStr);
             if(charges > 4) {
-                System.out.println("ERROR");
                 return;
             }
             charges++;
@@ -118,28 +117,23 @@ public class PotionsListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntity() instanceof ThrownPotion potion) {
-            if (potion.getShooter() instanceof Player p) {
+            if (potion.getShooter() instanceof Player shooter) {
                 if (potion.getScoreboardTags().contains("DAMAGE")) {
                     DamageManager damageManager = DamageManager.getInstance();
                     for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
                         if (nearbyEntity instanceof Mob mob) {
-                            damageManager.resetAttackCooldownForMob(p, mob);
-                            mob.damage(1,p);
+                            damageManager.resetAttackCooldownForMob(shooter, mob);
+                            mob.damage(1,shooter);
                         }
                     }
                 }
                 else if (potion.getScoreboardTags().contains("HEALTH")) {
                     for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
                         if (nearbyEntity instanceof Player player) {
-                            Stats stats = StatsManager.getInstance().getStats(player);
-                            Stats statsOfP = StatsManager.getInstance().getStats(p);
-                            Double heal = statsOfP.get(StatType.HEALTH).getValue();
-                            Double health = stats.get(StatType.HEALTH).getValue();
-                            Double statSupresor = heal+player.getHealth();
-                            if (statSupresor > health) {
-                                statSupresor = health;
-                            }
-                            player.setHealth(statSupresor);
+                            StatsManager statsManager = StatsManager.getInstance();
+                            Stats statsOfShooter = statsManager.getStats(shooter);
+                            double heal = statsOfShooter.get(StatType.HEALTH).getValue() / 10;
+                            StatsManager.healPlayer(player, heal);
                         }
                     }
                 }

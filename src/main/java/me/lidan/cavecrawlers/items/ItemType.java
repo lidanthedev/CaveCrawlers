@@ -5,6 +5,7 @@ import lombok.Getter;
 
 @Getter
 public enum ItemType {
+    SHIELD("Shield", ItemSlot.HAND),
     ALCHEMY_BAG("Alchemy Bag", ItemSlot.HAND),
     MATERIAL("Material", ItemSlot.HAND),
     PICKAXE("Pickaxe", ItemSlot.HAND),

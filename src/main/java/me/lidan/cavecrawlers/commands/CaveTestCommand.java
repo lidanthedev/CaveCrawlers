@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
@@ -302,5 +303,12 @@ public class CaveTestCommand {
     public void coinsGet(CommandSender sender, OfflinePlayer player){
         double coins = VaultUtils.getCoins(player);
         sender.sendMessage(player.getName() + " has " + coins);
+    }
+
+    @Subcommand("shop test")
+    public void shopTest(Player sender){
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        ShopItem shopItem = new ShopItem(itemsManager.getItemByID("ENCHANTED_EMERALD"), 1, 5, Map.of(itemsManager.getItemByID("EMERALD"), 64));
+        shopItem.toList().forEach(sender::sendMessage);
     }
 }

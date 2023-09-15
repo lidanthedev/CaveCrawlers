@@ -3,6 +3,11 @@ package me.lidan.cavecrawlers.utils;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class StringUtils {
     public static String setTitleCase(String text) {
         if (text == null || text.isEmpty()) {
@@ -27,16 +32,20 @@ public class StringUtils {
         return converted.toString();
     }
 
-    public static String progressBar(double current, double need, int amount) {
+    public static String progressBar(double current, double max, int length) {
+        return progressBar(current, max, length, "-");
+    }
+
+    public static String progressBar(double current, double max, int length, String icon) {
         StringBuilder progressBar = new StringBuilder();
-        double percent = current / need * 100d;
-        for (int i = 0; i < 20; i++) {
-            if (i < percent / (100d / amount)) {
+        double percent = current / max * 100d;
+        for (int i = 0; i < length; i++) {
+            if (i < percent / (100d / length)) {
                 progressBar.append(ChatColor.GREEN);
             } else {
                 progressBar.append(ChatColor.WHITE);
             }
-            progressBar.append("-");
+            progressBar.append(icon);
         }
         return progressBar.toString();
     }
@@ -189,5 +198,62 @@ public class StringUtils {
         String strValue = "" + value;
         String[] splitValue = strValue.split("\\.");
         return splitValue[0];
+    }
+
+    public static List<String> loreBuilder(String lore, ChatColor color, int num) {
+        String[] lores = lore.split(" ");
+        int l = 0;
+        int n = 0;
+        ArrayList<String> list = new ArrayList<>();
+        for (String str : lores) {
+            if (str.equals("RESET_LENGTH")) {
+                l = 0;
+            } else if (str.equals("NEW_LINE")) {
+                list.add(color + "");
+                l = 0;
+                n++;
+            } else {
+                l += str.length() + 1;
+                try {
+                    list.set(n, list.get(n) + str + " ");
+                } catch (IndexOutOfBoundsException ex) {
+                    list.add(color + "");
+                    list.set(n, list.get(n) + str + " ");
+                }
+                if (l > num) {
+                    l = 0;
+                    n++;
+                }
+            }
+        }
+        return list;
+    }
+
+    public static List<String> loreBuilder(String lore) {
+        return loreBuilder(lore, ChatColor.GRAY, 30);
+    }
+
+    public static <T> String getNumberFormat(Number num) {
+        return NumberFormat.getNumberInstance(Locale.US).format(num);
+    }
+
+    public static String getShortNumber(double num) {
+        double signum = Math.signum(num);
+        num = Math.abs(num);
+        String output;
+        if (num >= 1_000_000_000_000_000d) {
+            output = Math.round(num * signum / 1000000000000000d * 100d) / 100d + "q";
+        } else if (num >= 1_000_000_000_000d) {
+            output = Math.round(num * signum / 1000000000000d * 100d) / 100d + "t";
+        } else if (num >= 1_000_000_000d) {
+            output = Math.round(num * signum / 1000000000d * 100d) / 100d + "b";
+        } else if (num >= 1_000_000d) {
+            output = Math.round(num * signum / 1000000d * 100d) / 100d + "m";
+        } else if (num >= 1_000d) {
+            output = Math.round(num * signum / 1000d * 100d) / 100d + "k";
+        } else {
+            output = num + "";
+        }
+        return output.replace(".0", "");
     }
 }

@@ -18,6 +18,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class DamageEntityListener implements Listener {
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
         mob.setMaximumNoDamageTicks(0);
         DamageManager damageManager = DamageManager.getInstance();
-        if (!damageManager.canAttack(player, mob)){
+        if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE && !damageManager.canAttack(player, mob)){
             event.setCancelled(true);
             return;
         }
@@ -55,21 +56,22 @@ public class DamageEntityListener implements Listener {
         boolean crit = calculation.isCrit();
         event.setDamage(damage);
         int finalDamage = (int) event.getFinalDamage();
+        String prettyDamage = StringUtils.getNumberFormat(finalDamage);
 
         StringBuilder msg = new StringBuilder();
         String formattedDamage;
         if (crit) {
-            msg.append("✧").append(finalDamage).append("✧");
+            msg.append("✧").append(prettyDamage).append("✧");
             formattedDamage = StringUtils.rainbowText(msg.toString());
         } else {
-            msg.append(ChatColor.GRAY).append(finalDamage);
+            msg.append(ChatColor.GRAY).append(prettyDamage);
             formattedDamage = msg.toString();
         }
 
         Location hologram = mob.getLocation();
         double random = RandomUtils.randomDouble(1, 1.5);
         hologram.add(mob.getLocation().getDirection().multiply(random));
-        hologram.setY(mob.getLocation().getY() + random);
+        hologram.setY(mob.getLocation().getY() + random + 1.5);
         hologram.subtract(0, 2, 0);
         Holograms.spawnTempArmorStand(hologram, formattedDamage, 10);
 

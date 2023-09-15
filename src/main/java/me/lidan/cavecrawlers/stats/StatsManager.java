@@ -63,17 +63,16 @@ public class StatsManager {
         }
 
         player.setHealthScale(40);
-        double maxHealth = stats.get(StatType.HEALTH).getValue();
-        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
 
         // speed
         double speed = stats.get(StatType.SPEED).getValue();
         player.setWalkSpeed((float) (speed/500));
 
         // health regen
+        double maxHealth = stats.get(StatType.HEALTH).getValue();
+        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
         double healthRegen = ((maxHealth * 0.01) + 1.5);
-        double health = player.getHealth();
-        player.setHealth(Math.min(health + healthRegen, maxHealth));
+        healPlayer(player, healthRegen);
         player.setFoodLevel(200);
 
         // mana regen
@@ -84,6 +83,17 @@ public class StatsManager {
         manaStat.setValue(Math.min(mana + manaRegen, intel));
 
         ActionBarManager.getInstance().actionBar(player);
+    }
+
+    public static void healPlayerPercent(Player player, double percent){
+        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        healPlayer(player, maxHealth/100*percent);
+    }
+
+    public static void healPlayer(Player player, double healthRegen) {
+        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        double health = player.getHealth();
+        player.setHealth(Math.min(health + healthRegen, maxHealth));
     }
 
     public Stats calculateStats(Player player) {

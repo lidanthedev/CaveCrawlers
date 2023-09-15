@@ -10,6 +10,7 @@ public enum ItemType {
     PICKAXE("Pickaxe", ItemSlot.HAND),
     SWORD("Sword", ItemSlot.HAND),
     BOW("Bow", ItemSlot.HAND),
+    WAND("Wand", ItemSlot.HAND),
     HELMET("Helmet", ItemSlot.ARMOR),
     CHESTPLATE("Chestplate", ItemSlot.ARMOR),
     LEGGINGS("Leggings", ItemSlot.ARMOR),

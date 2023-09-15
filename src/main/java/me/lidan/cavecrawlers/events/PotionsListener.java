@@ -120,7 +120,7 @@ public class PotionsListener implements Listener {
             if (potion.getShooter() instanceof Player shooter) {
                 if (potion.getScoreboardTags().contains("DAMAGE")) {
                     DamageManager damageManager = DamageManager.getInstance();
-                    for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
+                    for (Entity nearbyEntity : potion.getNearbyEntities(4,1,4)) {
                         if (nearbyEntity instanceof Mob mob) {
                             damageManager.resetAttackCooldownForMob(shooter, mob);
                             mob.damage(1,shooter);
@@ -128,7 +128,7 @@ public class PotionsListener implements Listener {
                     }
                 }
                 else if (potion.getScoreboardTags().contains("HEALTH")) {
-                    for (Entity nearbyEntity : potion.getNearbyEntities(3,1,3)) {
+                    for (Entity nearbyEntity : potion.getNearbyEntities(5,1,5)) {
                         if (nearbyEntity instanceof Player player) {
                             StatsManager statsManager = StatsManager.getInstance();
                             Stats statsOfShooter = statsManager.getStats(shooter);

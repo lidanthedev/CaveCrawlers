@@ -7,20 +7,18 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Data
-public class ShopItem {
+public class ShopItem implements ConfigurationSerializable {
     private final ItemInfo result;
     private final int resultAmount;
     private final double price;
@@ -80,5 +78,42 @@ public class ShopItem {
             }
         }
         return false;
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("result", result.getID());
+        map.put("resultAmount", resultAmount);
+        map.put("price", price);
+
+        Map<String, Integer> itemIDmap = new HashMap<>();
+        for (ItemInfo itemInfo : itemsMap.keySet()) {
+            int amount = itemsMap.get(itemInfo);
+            itemIDmap.put(itemInfo.getID(), amount);
+        }
+        map.put("item-cost",itemIDmap);
+        return map;
+    }
+
+    public static ShopItem deserialize(Map<String, Object> map){
+        String resultId = (String) map.get("result");
+        int resultAmount = (int) map.get("resultAmount");
+
+        ItemInfo result = ItemsManager.getInstance().getItemByID(resultId);
+
+        double price = (double) map.get("price");
+
+        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.get("item-cost");
+        Map<ItemInfo, Integer> itemsMap = new HashMap<>();
+
+        for (String itemId : itemIdMap.keySet()) {
+            ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(itemId);
+            int amount = itemIdMap.get(itemId);
+            itemsMap.put(itemInfo, amount);
+        }
+
+        return new ShopItem(result, resultAmount, price, itemsMap);
     }
 }

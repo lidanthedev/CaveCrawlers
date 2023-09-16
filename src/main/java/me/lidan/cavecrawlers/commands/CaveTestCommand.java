@@ -31,6 +31,7 @@ import org.bukkit.util.Vector;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.AutoComplete;
 import revxrsal.commands.annotation.Command;
+import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
@@ -118,9 +119,16 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item give")
+    @AutoComplete("* @itemID *")
+    public void itemGive(Player sender, Player player, String ID, @Default("1") int amount){
+        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, amount);
+        player.getInventory().addItem(exampleSword);
+    }
+
+    @Subcommand("item get")
     @AutoComplete("@itemID *")
-    public void itemGive(Player sender, String ID){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, 1);
+    public void itemGet(Player sender, String ID, @Default("1") int amount){
+        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, amount);
         sender.getInventory().addItem(exampleSword);
     }
 

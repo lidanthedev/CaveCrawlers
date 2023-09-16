@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -64,6 +65,7 @@ public final class CaveCrawlers extends JavaPlugin {
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
+        ConfigurationSerialization.registerClass(ShopMenu.class);
     }
 
     private void registerAbilities() {

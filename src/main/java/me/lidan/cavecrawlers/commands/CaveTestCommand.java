@@ -318,7 +318,16 @@ public class CaveTestCommand {
     public void shopTest(Player sender){
         ItemsManager itemsManager = ItemsManager.getInstance();
         ShopItem shopItem = new ShopItem(itemsManager.getItemByID("ENCHANTED_EMERALD"), 1, 0, Map.of(itemsManager.getItemByID("EMERALD"), 64));
-        ShopMenu shopMenu = new ShopMenu(sender,"Enchanted Shop", List.of(shopItem));
-        shopMenu.open();
+        ShopMenu shopMenu = new ShopMenu("Enchanted Shop", List.of(shopItem));
+        shopMenu.open(sender);
+
+        config.set("shopMenu", shopMenu);
+        config.save();
+    }
+
+    @Subcommand("shop testConf")
+    public void shopTestConf(Player sender){
+        ShopMenu menu = (ShopMenu) config.get("shopMenu");
+        menu.open(sender);
     }
 }

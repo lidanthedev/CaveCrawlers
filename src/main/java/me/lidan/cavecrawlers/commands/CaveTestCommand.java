@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.commands;
 
-import de.tr7zw.nbtapi.NBTItem;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.gui.ItemsGui;
@@ -9,7 +8,8 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
-import me.lidan.cavecrawlers.shop.ShopItem;
+import me.lidan.cavecrawlers.shop.ShopLoader;
+import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
@@ -18,16 +18,12 @@ import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.RemoteConsoleCommandSender;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Vector;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -39,15 +35,21 @@ import java.util.*;
 @CommandPermission("cavecrawlers.test")
 public class CaveTestCommand {
 
+    private final ShopManager shopManager;
+    private final ItemsManager itemsManager;
+    private final StatsManager statsManager;
     private CustomConfig config = new CustomConfig("test");
-    private StatsManager statsManager = StatsManager.getInstance();
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
 
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
         this.plugin = CaveCrawlers.getInstance();
-        handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> ItemsManager.getInstance().getKeys());
+        this.shopManager = ShopManager.getInstance();
+        this.itemsManager = ItemsManager.getInstance();
+        this.statsManager = StatsManager.getInstance();
+        handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
+        handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
             Player player = Bukkit.getPlayer(sender.getName());
             if (player != null){
@@ -68,10 +70,18 @@ public class CaveTestCommand {
 
     @Subcommand("reload items")
     public void reloadItems(CommandSender sender){
-        ItemsLoader.delete();
-        ItemsManager.delete();
-        plugin.registerItems();
+        ItemsLoader itemsLoader = ItemsLoader.getInstance();
+        itemsLoader.clear();
+        itemsLoader.load();
         sender.sendMessage("reloaded Items!");
+    }
+
+    @Subcommand("reload shops")
+    public void reloadShops(CommandSender sender){
+        ShopLoader shopLoader = ShopLoader.getInstance();
+        shopLoader.clear();
+        shopLoader.load();
+        sender.sendMessage("reloaded Shops!");
     }
 
     @Subcommand("config saveStats")
@@ -99,26 +109,26 @@ public class CaveTestCommand {
     @Subcommand("item getID")
     public void itemGetID(Player sender){
         ItemStack hand = sender.getInventory().getItemInMainHand();
-        String ID = ItemsManager.getInstance().getIDofItemStack(hand);
+        String ID = itemsManager.getIDofItemStack(hand);
         sender.sendMessage(Objects.requireNonNullElse(ID, "This is not a Custom Item!"));
     }
 
     @Subcommand("item update")
     public void itemUpdate(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();;
-        ItemStack updateItemStack = ItemsManager.getInstance().updateItemStack(hand);
+        ItemStack updateItemStack = itemsManager.updateItemStack(hand);
         sender.getEquipment().setItem(EquipmentSlot.HAND, updateItemStack);
     }
 
     @Subcommand("item updateInv")
     public void itemUpdateInv(Player sender){
-        ItemsManager.getInstance().updatePlayerInventory(sender);
+        itemsManager.updatePlayerInventory(sender);
     }
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
     public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, 1);
+        ItemStack exampleSword = itemsManager.buildItem(ID, 1);
         for (int i = 0; i < amount; i++) {
             player.getInventory().addItem(exampleSword);
         }
@@ -135,7 +145,6 @@ public class CaveTestCommand {
     public void itemExport(Player sender, String ID){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
 
-        ItemsManager itemsManager = ItemsManager.getInstance();
         String IDofItem = itemsManager.getIDofItemStack(hand);
         if (IDofItem != null){
             sender.sendMessage("ERROR! Item already has ID! remove with /ct item remove-id");
@@ -313,7 +322,22 @@ public class CaveTestCommand {
     }
 
     @Subcommand("shop open")
+    @AutoComplete("@shopID *")
     public void shopOpen(Player sender, String ID){
+        ShopMenu shopMenu = shopManager.getShop(ID);
+        shopMenu.open(sender);
+    }
 
+    @Subcommand("shop add")
+    @AutoComplete("@shopID @itemID @itemID *")
+    public void shopAdd(CommandSender sender, String shopID, String resultID, String ingredientID, int amount){
+        shopManager.addItemToShop(shopID, resultID, ingredientID, amount);
+        sender.sendMessage("Added item to shop!");
+    }
+
+    @Subcommand("shop create")
+    public void shopCreate(CommandSender sender, String shopID){
+        shopManager.createShop(shopID);
+        sender.sendMessage("Shop Created!");
     }
 }

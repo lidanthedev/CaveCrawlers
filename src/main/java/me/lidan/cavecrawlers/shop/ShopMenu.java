@@ -3,6 +3,8 @@ package me.lidan.cavecrawlers.shop;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import lombok.Data;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -15,14 +17,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Data
 public class ShopMenu implements ConfigurationSerializable {
-    private final String title;
-    private final List<ShopItem> shopItemList;
-    private final Gui gui;
+    private String title;
+    private List<ShopItem> shopItemList;
+    private Gui gui;
 
     public ShopMenu(String title, List<ShopItem> shopItemList) {
         this.title = title;
         this.shopItemList = shopItemList;
+        buildGui();
+    }
+
+    public void buildGui(){
         this.gui = Gui.gui().title(Component.text(this.title)).rows(6).disableAllInteractions().create();
         gui.getFiller().fillBorder(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         for (ShopItem shopItem : this.shopItemList) {

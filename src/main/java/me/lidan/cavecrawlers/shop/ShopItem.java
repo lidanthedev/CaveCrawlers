@@ -11,6 +11,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +32,14 @@ public class ShopItem implements ConfigurationSerializable {
         this.price = price;
         this.itemsMap = itemsMap;
         itemsManager = ItemsManager.getInstance();
+    }
+
+    public ShopItem(ItemInfo result, ItemInfo ingredient, int amount){
+        this(result, 1, 0, Map.of(ingredient, amount));
+    }
+
+    public ShopItem(String resultID, String ingredientID, int amount){
+        this(getItemByID(resultID), getItemByID(ingredientID), amount);
     }
 
     public List<String> toList(){
@@ -101,7 +110,7 @@ public class ShopItem implements ConfigurationSerializable {
         String resultId = (String) map.get("result");
         int resultAmount = (int) map.get("resultAmount");
 
-        ItemInfo result = ItemsManager.getInstance().getItemByID(resultId);
+        ItemInfo result = getItemByID(resultId);
 
         double price = (double) map.get("price");
 
@@ -109,11 +118,16 @@ public class ShopItem implements ConfigurationSerializable {
         Map<ItemInfo, Integer> itemsMap = new HashMap<>();
 
         for (String itemId : itemIdMap.keySet()) {
-            ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(itemId);
+            ItemInfo itemInfo = getItemByID(itemId);
             int amount = itemIdMap.get(itemId);
             itemsMap.put(itemInfo, amount);
         }
 
         return new ShopItem(result, resultAmount, price, itemsMap);
+    }
+
+    @Nullable
+    private static ItemInfo getItemByID(String resultID) {
+        return ItemsManager.getInstance().getItemByID(resultID);
     }
 }

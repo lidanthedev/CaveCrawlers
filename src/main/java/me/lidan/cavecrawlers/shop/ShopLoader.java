@@ -16,6 +16,12 @@ public class ShopLoader extends ConfigLoader<ShopMenu> {
         shopManager.registerMenu(key, value);
     }
 
+    @Override
+    public void clear() {
+        super.clear();
+        shopManager.clear();
+    }
+
     public static ShopLoader getInstance(){
         if (instance == null){
             instance = new ShopLoader();

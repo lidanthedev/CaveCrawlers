@@ -1,9 +1,6 @@
 package me.lidan.cavecrawlers.items;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
-
-import java.io.File;
 
 public class ItemsLoader extends ConfigLoader<ItemInfo> {
     private static ItemsLoader instance;
@@ -19,8 +16,10 @@ public class ItemsLoader extends ConfigLoader<ItemInfo> {
         itemsManager.registerItem(key, value);
     }
 
-    public static void delete(){
-        instance = null;
+    @Override
+    public void clear() {
+        super.clear();
+        itemsManager.clear();
     }
 
     public static ItemsLoader getInstance() {

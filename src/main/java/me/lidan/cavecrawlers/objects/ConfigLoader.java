@@ -77,5 +77,9 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         return registeredItems;
     }
 
+    public void clear(){
+        itemIDFileMap.clear();
+    }
+
     public abstract void register(String key, T value);
 }

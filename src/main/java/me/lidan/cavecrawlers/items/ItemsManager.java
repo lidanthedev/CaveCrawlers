@@ -2,13 +2,10 @@ package me.lidan.cavecrawlers.items;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -35,25 +32,6 @@ public class ItemsManager {
 
     public void unregisterItem(String ID) {
         itemsMap.remove(ID);
-    }
-
-    public void registerExampleItems(){
-        AbilityManager abilityManager = AbilityManager.getInstance();
-        Stats stats = new Stats(true);
-        stats.set(StatType.DAMAGE, 5);
-        stats.set(StatType.STRENGTH, 15);
-        registerItem("EXAMPLE_SWORD", new ItemInfo("Example Sword", stats, ItemType.SWORD, Material.WOODEN_SWORD, Rarity.COMMON));
-
-        stats = new Stats(true);
-        stats.set(StatType.DAMAGE, 5);
-        stats.set(StatType.MINING_SPEED, 50);
-        registerItem("STARTER_PICKAXE", new ItemInfo("Starter Pickaxe", stats, ItemType.PICKAXE, Material.WOODEN_PICKAXE, Rarity.COMMON));
-
-        stats = new Stats(true);
-        stats.set(StatType.DAMAGE, 3500);
-        ItemInfo errorScythe = new ItemInfo("Error Scythe", stats, ItemType.SWORD, Material.DIAMOND_HOE, Rarity.LEGENDARY);
-        errorScythe.setAbility(abilityManager.getAbilityByID("ERROR_SCYTHE_ABILITY"));
-        registerItem("ERROR_SCYTHE", errorScythe);
     }
 
     public ItemStack buildItem(String ID, int amount){
@@ -178,8 +156,8 @@ public class ItemsManager {
         }
     }
 
-    public static void delete(){
-        instance = null;
+    public void clear(){
+        itemsMap.clear();
     }
 
     public static ItemsManager getInstance() {

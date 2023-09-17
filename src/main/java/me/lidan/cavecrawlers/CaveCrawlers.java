@@ -83,9 +83,7 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void registerItems() {
-        ItemsManager itemsManager = ItemsManager.getInstance();
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
-        itemsManager.registerExampleItems();
         itemsLoader.load();
     }
 

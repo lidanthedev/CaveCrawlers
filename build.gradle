@@ -40,6 +40,10 @@ dependencies {
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
 }
 
+compileJava { // Preserve parameter names in the bytecode
+    options.compilerArgs += ["-parameters"]
+}
+
 shadowJar{
     archiveClassifier = null
 }

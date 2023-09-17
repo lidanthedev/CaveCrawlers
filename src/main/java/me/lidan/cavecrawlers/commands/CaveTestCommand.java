@@ -29,10 +29,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import revxrsal.commands.CommandHandler;
-import revxrsal.commands.annotation.AutoComplete;
-import revxrsal.commands.annotation.Command;
-import revxrsal.commands.annotation.Default;
-import revxrsal.commands.annotation.Subcommand;
+import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
@@ -120,16 +117,17 @@ public class CaveTestCommand {
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
-    public void itemGive(Player sender, Player player, String ID, @Default("1") int amount){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, amount);
-        player.getInventory().addItem(exampleSword);
+    public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
+        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, 1);
+        for (int i = 0; i < amount; i++) {
+            player.getInventory().addItem(exampleSword);
+        }
     }
 
     @Subcommand("item get")
     @AutoComplete("@itemID *")
-    public void itemGet(Player sender, String ID, @Default("1") int amount){
-        ItemStack exampleSword = ItemsManager.getInstance().buildItem(ID, amount);
-        sender.getInventory().addItem(exampleSword);
+    public void itemGet(Player sender, @Named("Item ID") String ID, @Default("1") int amount){
+        itemGive(sender, sender, ID, amount);
     }
 
     @Subcommand("item export")
@@ -146,7 +144,7 @@ public class CaveTestCommand {
 
         ItemExporter exporter = new ItemExporter(hand);
         ItemInfo itemInfo = exporter.toItemInfo();
-        File file = new File(ItemsLoader.getInstance().ITEMS_DIR_FILE, ID + ".yml");
+        File file = new File(ItemsLoader.getInstance().getFileDir(), ID + ".yml");
         CustomConfig customConfig = new CustomConfig(file);
         customConfig.set(ID, itemInfo);
         customConfig.save();
@@ -314,20 +312,8 @@ public class CaveTestCommand {
         sender.sendMessage(player.getName() + " has " + coins);
     }
 
-    @Subcommand("shop test")
-    public void shopTest(Player sender){
-        ItemsManager itemsManager = ItemsManager.getInstance();
-        ShopItem shopItem = new ShopItem(itemsManager.getItemByID("ENCHANTED_EMERALD"), 1, 0, Map.of(itemsManager.getItemByID("EMERALD"), 64));
-        ShopMenu shopMenu = new ShopMenu("Enchanted Shop", List.of(shopItem));
-        shopMenu.open(sender);
+    @Subcommand("shop open")
+    public void shopOpen(Player sender, String ID){
 
-        config.set("shopMenu", shopMenu);
-        config.save();
-    }
-
-    @Subcommand("shop testConf")
-    public void shopTestConf(Player sender){
-        ShopMenu menu = (ShopMenu) config.get("shopMenu");
-        menu.open(sender);
     }
 }

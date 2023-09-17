@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -49,6 +50,7 @@ public final class CaveCrawlers extends JavaPlugin {
 
         registerAbilities();
         registerItems();
+        registerShops();
 
         registerCommands();
         registerEvents();
@@ -85,6 +87,11 @@ public final class CaveCrawlers extends JavaPlugin {
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsManager.registerExampleItems();
         itemsLoader.load();
+    }
+
+    public void registerShops(){
+        ShopLoader shopLoader = ShopLoader.getInstance();
+        shopLoader.load();
     }
 
     public void registerCommands(){

@@ -9,6 +9,8 @@ import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.shop.ShopLoader;
+import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -29,14 +31,12 @@ import java.io.File;
 
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
-    public File ITEMS_DIR_FILE;
     private CommandHandler commandHandler;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         long start = System.currentTimeMillis();
-        ITEMS_DIR_FILE = new File(getDataFolder(), "items");
         commandHandler = BukkitCommandHandler.create(this);
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
 
@@ -50,6 +50,7 @@ public final class CaveCrawlers extends JavaPlugin {
 
         registerAbilities();
         registerItems();
+        registerShops();
 
         registerCommands();
         registerEvents();
@@ -64,6 +65,7 @@ public final class CaveCrawlers extends JavaPlugin {
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
+        ConfigurationSerialization.registerClass(ShopMenu.class);
     }
 
     private void registerAbilities() {
@@ -81,10 +83,13 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void registerItems() {
-        ItemsManager itemsManager = ItemsManager.getInstance();
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
-        itemsManager.registerExampleItems();
-        itemsLoader.registerItemsFromFolder(ITEMS_DIR_FILE);
+        itemsLoader.load();
+    }
+
+    public void registerShops(){
+        ShopLoader shopLoader = ShopLoader.getInstance();
+        shopLoader.load();
     }
 
     public void registerCommands(){

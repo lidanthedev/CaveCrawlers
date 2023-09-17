@@ -1,69 +1,25 @@
 package me.lidan.cavecrawlers.items;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.utils.CustomConfig;
-import org.bukkit.configuration.file.FileConfiguration;
+import me.lidan.cavecrawlers.objects.ConfigLoader;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-public class ItemsLoader {
+public class ItemsLoader extends ConfigLoader<ItemInfo> {
     private static ItemsLoader instance;
-    private ItemsManager itemsManager;
-    private Map<String, File> itemIDFileMap;
+    private final ItemsManager itemsManager;
 
     public ItemsLoader(ItemsManager itemsManager) {
+        super(ItemInfo.class, "items");
         this.itemsManager = itemsManager;
-        this.itemIDFileMap = new HashMap<>();
     }
 
-    public void registerItemsFromFolder(File dir) {
-        if (!dir.exists()){
-            dir.mkdirs();
-        }
-
-        File[] files = dir.listFiles();
-
-        // loop through files
-        for(File file : files) {
-            if (file.isDirectory()){
-                registerItemsFromFolder(file);
-            }
-            else{
-                registerItemsFromFile(file);
-            }
-        }
+    @Override
+    public void register(String key, ItemInfo value) {
+        itemsManager.registerItem(key, value);
     }
 
-    private void registerItemsFromFile(File file) {
-        CustomConfig customConfig = new CustomConfig(file);
-        Set<String> registered = registerItemsFromConfig(customConfig);
-        for (String s : registered) {
-            itemIDFileMap.put(s, file);
-        }
-    }
-
-    private Set<String> registerItemsFromConfig(FileConfiguration configuration){
-        Set<String> registeredItems = new HashSet<>();
-        Set<String> keys = configuration.getKeys(false);
-        for (String key : keys) {
-            ItemInfo itemInfo = configuration.getObject(key, ItemInfo.class);
-            if (itemInfo != null) {
-                registeredItems.add(key);
-                itemsManager.registerItem(key, itemInfo);
-            }
-            else {
-                CaveCrawlers.getInstance().getLogger().warning("Failed to Load Item: " + key);
-            }
-        }
-        return registeredItems;
-    }
-
-    public static void delete(){
-        instance = null;
+    @Override
+    public void clear() {
+        super.clear();
+        itemsManager.clear();
     }
 
     public static ItemsLoader getInstance() {

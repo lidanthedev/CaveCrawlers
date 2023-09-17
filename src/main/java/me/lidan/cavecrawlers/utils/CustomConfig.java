@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.utils;
 
+import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -7,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
+@Getter
 public class CustomConfig extends YamlConfiguration {
     private final File file;
 

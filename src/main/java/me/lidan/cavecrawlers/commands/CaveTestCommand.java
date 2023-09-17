@@ -146,7 +146,7 @@ public class CaveTestCommand {
 
         ItemExporter exporter = new ItemExporter(hand);
         ItemInfo itemInfo = exporter.toItemInfo();
-        File file = new File(CaveCrawlers.getInstance().ITEMS_DIR_FILE, ID + ".yml");
+        File file = new File(ItemsLoader.getInstance().ITEMS_DIR_FILE, ID + ".yml");
         CustomConfig customConfig = new CustomConfig(file);
         customConfig.set(ID, itemInfo);
         customConfig.save();

@@ -30,14 +30,12 @@ import java.io.File;
 
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
-    public File ITEMS_DIR_FILE;
     private CommandHandler commandHandler;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         long start = System.currentTimeMillis();
-        ITEMS_DIR_FILE = new File(getDataFolder(), "items");
         commandHandler = BukkitCommandHandler.create(this);
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
 
@@ -86,7 +84,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ItemsManager itemsManager = ItemsManager.getInstance();
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsManager.registerExampleItems();
-        itemsLoader.registerItemsFromFolder(ITEMS_DIR_FILE);
+        itemsLoader.load();
     }
 
     public void registerCommands(){

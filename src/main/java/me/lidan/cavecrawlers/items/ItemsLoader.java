@@ -10,43 +10,22 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class ItemsLoader {
+public class ItemsLoader extends ConfigLoader {
     private static ItemsLoader instance;
-    private ItemsManager itemsManager;
-    private Map<String, File> itemIDFileMap;
+    private final ItemsManager itemsManager;
+    public final File ITEMS_DIR_FILE = new File(CaveCrawlers.getInstance().getDataFolder(), "items");
 
     public ItemsLoader(ItemsManager itemsManager) {
         this.itemsManager = itemsManager;
-        this.itemIDFileMap = new HashMap<>();
     }
 
-    public void registerItemsFromFolder(File dir) {
-        if (!dir.exists()){
-            dir.mkdirs();
-        }
-
-        File[] files = dir.listFiles();
-
-        // loop through files
-        for(File file : files) {
-            if (file.isDirectory()){
-                registerItemsFromFolder(file);
-            }
-            else{
-                registerItemsFromFile(file);
-            }
-        }
+    @Override
+    public void load() {
+        registerItemsFromFolder(ITEMS_DIR_FILE);
     }
 
-    private void registerItemsFromFile(File file) {
-        CustomConfig customConfig = new CustomConfig(file);
-        Set<String> registered = registerItemsFromConfig(customConfig);
-        for (String s : registered) {
-            itemIDFileMap.put(s, file);
-        }
-    }
-
-    private Set<String> registerItemsFromConfig(FileConfiguration configuration){
+    @Override
+    public Set<String> registerItemsFromConfig(FileConfiguration configuration) {
         Set<String> registeredItems = new HashSet<>();
         Set<String> keys = configuration.getKeys(false);
         for (String key : keys) {
@@ -54,8 +33,7 @@ public class ItemsLoader {
             if (itemInfo != null) {
                 registeredItems.add(key);
                 itemsManager.registerItem(key, itemInfo);
-            }
-            else {
+            } else {
                 CaveCrawlers.getInstance().getLogger().warning("Failed to Load Item: " + key);
             }
         }

@@ -18,20 +18,34 @@ repositories {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
     }
-    maven { url = "https://repo.mattstudios.me/artifactory/public/" }
     maven { url = 'https://jitpack.io' }
     maven {
         name = "CodeMC"
         url = uri("https://repo.codemc.io/repository/maven-public/")
     }
+    maven { url "https://repo.dmulloy2.net/repository/public/" }
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT"
-    implementation "dev.triumphteam:triumph-gui:3.1.2"
+    compileOnly 'org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT'
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+    implementation ('dev.triumphteam:triumph-gui:3.1.2') {
+        exclude group: 'com.google.code.gson', module: 'gson'
+    }
     implementation 'com.github.Revxrsal.Lamp:common:3.1.5'
     implementation 'com.github.Revxrsal.Lamp:bukkit:3.1.5'
-    implementation 'com.github.tr7zw:Item-NBT-API:3.8.0'
+    compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api-plugin:2.11.3'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
+    compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+}
+
+compileJava { // Preserve parameter names in the bytecode
+    options.compilerArgs += ["-parameters"]
+}
+
+shadowJar{
+    archiveClassifier = null
 }
 
 def targetJavaVersion = 17
@@ -45,6 +59,7 @@ java {
 }
 
 tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release = targetJavaVersion
     }

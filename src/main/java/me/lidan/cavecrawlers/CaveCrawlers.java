@@ -6,9 +6,9 @@ import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
-import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -18,6 +18,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -27,8 +28,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
-
-import java.io.File;
 
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
@@ -52,6 +51,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerAbilities();
         registerItems();
         registerShops();
+        registerBlocks();
 
         registerCommands();
         registerEvents();
@@ -61,6 +61,13 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerBlocks() {
+        MiningManager miningManager = MiningManager.getInstance();
+        miningManager.registerBlock(Material.STONE, new BlockInfo(15, 1));
+        miningManager.registerBlock(Material.DEEPSLATE, new BlockInfo(30, 3));
+        miningManager.registerBlock(Material.GLASS, new BlockInfo(1000, 6));
     }
 
     private static void registerSerializer() {

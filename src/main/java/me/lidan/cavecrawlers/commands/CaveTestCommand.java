@@ -351,7 +351,7 @@ public class CaveTestCommand {
 
     @Subcommand("mining save")
     public void miningSave(CommandSender sender){
-        config.set("test", new BlockInfo(Material.STONE, 15, 1));
+        config.set("test", new BlockInfo(15, 1));
         config.save();
         sender.sendMessage("saved!");
     }

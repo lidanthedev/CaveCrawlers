@@ -25,7 +25,7 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.SURVIVAL) {
-            player.sendMessage("onBlockBreak");
+            // what to do when a block is broken?
         }
     }
 

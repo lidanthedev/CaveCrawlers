@@ -15,7 +15,6 @@ public class ShopManager {
 
     public void registerMenu(String key, ShopMenu menu) {
         menuMap.put(key, menu);
-        CaveCrawlers.getInstance().getLogger().info("Loaded Shop " + key);
     }
 
     public @Nullable ShopMenu getShop(String ID){

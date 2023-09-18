@@ -57,7 +57,7 @@ public class MiningManager {
         double miningPower = stats.get(StatType.MINING_POWER).getValue();
         BlockInfo blockInfo = getBlockInfo(block.getType());
         if (miningPower < blockInfo.getBlockPower()){
-            if (miningPower != 0) {
+            if (miningPower != 0 && blockInfo != UNBREAKABLE_BLOCK) {
                 player.sendMessage(ChatColor.RED + "Your Mining Power is too low!");
             }
             return;
@@ -67,14 +67,18 @@ public class MiningManager {
     }
 
     public BlockInfo getBlockInfo(Material material) {
-        return blockInfoMap.getOrDefault(material.toString(), UNBREAKABLE_BLOCK);
+        return blockInfoMap.getOrDefault(material, UNBREAKABLE_BLOCK);
+    }
+
+    public void clear(){
+        blockInfoMap.clear();
     }
 
     public static void applySlowDig(Player player) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 100000000, -1, true, false, false), true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, -1, true, false, false), true);
     }
 
-    public static long getTicksToBreak(double miningSpeed, long blockStrength){
+    public static long getTicksToBreak(double miningSpeed, int blockStrength){
         return (long) (1/(miningSpeed/blockStrength/30));
     }
 

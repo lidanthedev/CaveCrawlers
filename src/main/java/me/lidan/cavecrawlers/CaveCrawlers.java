@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
@@ -64,10 +65,7 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     private void registerBlocks() {
-        MiningManager miningManager = MiningManager.getInstance();
-        miningManager.registerBlock(Material.STONE, new BlockInfo(15, 1));
-        miningManager.registerBlock(Material.DEEPSLATE, new BlockInfo(30, 3));
-        miningManager.registerBlock(Material.GLASS, new BlockInfo(1000, 6));
+        BlockLoader.getInstance().load();
     }
 
     private static void registerSerializer() {

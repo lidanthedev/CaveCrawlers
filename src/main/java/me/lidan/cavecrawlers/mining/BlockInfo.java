@@ -9,10 +9,10 @@ import java.util.Map;
 
 @Getter
 public class BlockInfo implements ConfigurationSerializable {
-    private final long blockStrength;
+    private final int blockStrength;
     private final int blockPower;
 
-    public BlockInfo(long blockStrength, int blockPower) {
+    public BlockInfo(int blockStrength, int blockPower) {
         this.blockStrength = blockStrength;
         this.blockPower = blockPower;
     }
@@ -27,7 +27,7 @@ public class BlockInfo implements ConfigurationSerializable {
     }
 
     public static BlockInfo deserialize(Map<String, Object> map) {
-        long blockStrength = (long)map.get("blockStrength");
+        int blockStrength = (int)map.get("blockStrength");
         int blockPower = (int)map.get("blockPower");
 
         return new BlockInfo(blockStrength, blockPower);

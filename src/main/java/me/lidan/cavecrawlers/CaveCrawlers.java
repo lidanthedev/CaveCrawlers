@@ -6,8 +6,10 @@ import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
-import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
+import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.mining.BlockLoader;
+import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -17,6 +19,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -26,8 +29,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
-
-import java.io.File;
 
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
@@ -51,6 +52,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerAbilities();
         registerItems();
         registerShops();
+        registerBlocks();
 
         registerCommands();
         registerEvents();
@@ -62,10 +64,15 @@ public final class CaveCrawlers extends JavaPlugin {
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
+    private void registerBlocks() {
+        BlockLoader.getInstance().load();
+    }
+
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
         ConfigurationSerialization.registerClass(ShopMenu.class);
+        ConfigurationSerialization.registerClass(BlockInfo.class);
     }
 
     private void registerAbilities() {
@@ -108,6 +115,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new PotionsListener(200));
         registerEvent(new AntiExplodeListener());
         registerEvent(new AntiPlaceListener());
+        registerEvent(new MiningListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

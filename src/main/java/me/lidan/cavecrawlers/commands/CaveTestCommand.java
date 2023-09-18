@@ -7,6 +7,9 @@ import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.mining.BlockLoader;
+import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -70,18 +73,26 @@ public class CaveTestCommand {
 
     @Subcommand("reload items")
     public void reloadItems(CommandSender sender){
-        ItemsLoader itemsLoader = ItemsLoader.getInstance();
-        itemsLoader.clear();
-        itemsLoader.load();
+        ItemsLoader loader = ItemsLoader.getInstance();
+        loader.clear();
+        loader.load();
         sender.sendMessage("reloaded Items!");
     }
 
     @Subcommand("reload shops")
     public void reloadShops(CommandSender sender){
-        ShopLoader shopLoader = ShopLoader.getInstance();
-        shopLoader.clear();
-        shopLoader.load();
+        ShopLoader loader = ShopLoader.getInstance();
+        loader.clear();
+        loader.load();
         sender.sendMessage("reloaded Shops!");
+    }
+
+    @Subcommand("reload blocks")
+    public void reloadBlocks(CommandSender sender){
+        BlockLoader loader = BlockLoader.getInstance();
+        loader.clear();
+        loader.load();
+        sender.sendMessage("reloaded Blocks!");
     }
 
     @Subcommand("config saveStats")
@@ -339,5 +350,25 @@ public class CaveTestCommand {
     public void shopCreate(CommandSender sender, String shopID){
         shopManager.createShop(shopID);
         sender.sendMessage("Shop Created!");
+    }
+
+    @Subcommand("mining test")
+    public void miningTest(CommandSender sender, double miningSpeed, int blockStrength){
+        long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);
+        sender.sendMessage("Ticks to break: " + ticksToBreak);
+    }
+
+    @Subcommand("mining save")
+    public void miningSave(CommandSender sender){
+        config.set("test", new BlockInfo(15, 1));
+        config.save();
+        sender.sendMessage("saved!");
+    }
+
+    @Subcommand("mining getMat")
+    public void miningGetMat(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        String mat = hand.getType().name();
+        new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
     }
 }

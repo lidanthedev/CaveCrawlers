@@ -1,0 +1,41 @@
+package me.lidan.cavecrawlers.mining;
+
+import lombok.Getter;
+import org.bukkit.Material;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Getter
+public class BlockInfo implements ConfigurationSerializable {
+    private final Material type;
+    private final long blockStrength;
+    private final int blockPower;
+
+    public BlockInfo(Material type, long blockStrength, int blockPower) {
+        this.type = type;
+        this.blockStrength = blockStrength;
+        this.blockPower = blockPower;
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type.toString());
+        map.put("blockStrength", blockStrength);
+        map.put("blockPower", blockPower);
+        return map;
+    }
+
+    public static BlockInfo deserialize(Map<String, Object> map) {
+        Material type = Material.getMaterial((String)map.get("type"));
+        long blockStrength = (long)map.get("blockStrength");
+        int blockPower = (int)map.get("blockPower");
+
+        return new BlockInfo(type, blockStrength, blockPower);
+    }
+
+}

@@ -7,6 +7,8 @@ import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -339,5 +341,18 @@ public class CaveTestCommand {
     public void shopCreate(CommandSender sender, String shopID){
         shopManager.createShop(shopID);
         sender.sendMessage("Shop Created!");
+    }
+
+    @Subcommand("mining test")
+    public void miningTest(CommandSender sender, double miningSpeed, long blockStrength){
+        long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);
+        sender.sendMessage("Ticks to break: " + ticksToBreak);
+    }
+
+    @Subcommand("mining save")
+    public void miningSave(CommandSender sender){
+        config.set("test", new BlockInfo(Material.STONE, 15, 1));
+        config.save();
+        sender.sendMessage("saved!");
     }
 }

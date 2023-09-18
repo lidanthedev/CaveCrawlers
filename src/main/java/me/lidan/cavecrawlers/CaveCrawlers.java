@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.*;
+import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -66,6 +67,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
         ConfigurationSerialization.registerClass(ShopMenu.class);
+        ConfigurationSerialization.registerClass(BlockInfo.class);
     }
 
     private void registerAbilities() {
@@ -108,6 +110,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new PotionsListener(200));
         registerEvent(new AntiExplodeListener());
         registerEvent(new AntiPlaceListener());
+        registerEvent(new MiningListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

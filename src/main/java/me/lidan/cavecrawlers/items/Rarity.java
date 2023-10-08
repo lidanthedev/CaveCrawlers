@@ -17,7 +17,10 @@ public enum Rarity {
     LEGENDARY(5, ChatColor.GOLD),
     MYTHIC(6, ChatColor.LIGHT_PURPLE),
     DIVINE(7, ChatColor.AQUA),
-    SPECIAL(8, ChatColor.RED);
+    SPECIAL(8, ChatColor.RED),
+    UNIQUE(9, ChatColor.AQUA)
+
+    ;
 
     private final int level;
     private final ChatColor color;

@@ -9,6 +9,12 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum StatType {
+    HEALTH("Health",
+            "❤",
+            ChatColor.RED, 100)
+    ,DEFENSE("Defense",
+            "❈",
+            ChatColor.GREEN),
     DAMAGE("Damage", "❁", ChatColor.RED, 0, ChatColor.RED)
     ,STRENGTH("Strength",
             "❁",ChatColor.RED, 0, ChatColor.RED)
@@ -23,12 +29,7 @@ public enum StatType {
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
             ChatColor.RED, 0, ChatColor.RED)
-    ,HEALTH("Health",
-            "❤",
-            ChatColor.RED, 100)
-    ,DEFENSE("Defense",
-            "❈",
-            ChatColor.GREEN),
+    ,
     INTELLIGENCE("Intelligence",
             "✎",
             ChatColor.AQUA, 100)

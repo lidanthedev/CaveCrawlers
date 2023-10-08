@@ -20,7 +20,7 @@ public enum ItemType {
     LEGGINGS("Leggings", ItemSlot.ARMOR),
     BOOTS("Boots", ItemSlot.ARMOR),
     ARMOR("Armor", ItemSlot.ARMOR),
-    UNIQUE("Unique Item", ItemSlot.HAND),
+    UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
 
     ;
 

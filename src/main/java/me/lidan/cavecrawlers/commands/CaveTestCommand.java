@@ -27,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -56,19 +57,24 @@ public class CaveTestCommand {
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
             Player player = Bukkit.getPlayer(sender.getName());
             if (player != null){
-                ItemStack hand = player.getEquipment().getItemInMainHand();
-                ItemMeta meta = hand.getItemMeta();
-                if (!meta.hasDisplayName()){
-                    return Collections.singleton("");
-                }
-                String name = meta.getDisplayName();
-                name = ChatColor.stripColor(name);
-                name = name.toUpperCase(Locale.ROOT);
-                name = name.replaceAll(" ", "_");
-                return Collections.singleton(name);
+                return getFillID(player);
             }
             return Collections.singleton("");
         });
+    }
+
+    @NotNull
+    private static Set<String> getFillID(Player player) {
+        ItemStack hand = player.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (!meta.hasDisplayName()){
+            return Collections.singleton("");
+        }
+        String name = meta.getDisplayName();
+        name = ChatColor.stripColor(name);
+        name = name.toUpperCase(Locale.ROOT);
+        name = name.replaceAll(" ", "_");
+        return Collections.singleton(name);
     }
 
     @Subcommand("reload items")
@@ -160,6 +166,11 @@ public class CaveTestCommand {
         if (IDofItem != null){
             sender.sendMessage("ERROR! Item already has ID! remove with /ct item remove-id");
             return;
+        }
+
+        if (ID.equals("FILL")){
+            ID = getFillID(sender).iterator().next();
+            sender.sendMessage("Fill: " + ID);
         }
 
         ItemExporter exporter = new ItemExporter(hand);

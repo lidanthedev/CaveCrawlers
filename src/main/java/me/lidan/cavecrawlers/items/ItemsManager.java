@@ -48,7 +48,7 @@ public class ItemsManager {
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()
-                .flags(ItemFlag.HIDE_UNBREAKABLE)
+                .flags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DYE)
                 .setNbt("ITEM_ID", info.getID())
                 .amount(amount)
                 .build();

@@ -133,6 +133,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
+        MiningManager.getInstance().regenBlocks();
         killEntities();
     }
 

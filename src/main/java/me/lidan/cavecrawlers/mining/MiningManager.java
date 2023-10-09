@@ -2,29 +2,38 @@ package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.shop.ShopLoader;
+import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.BukkitUtils;
+import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.RandomUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MiningManager {
 
     private static MiningManager instance;
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningProgress> progressMap = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000);
+    private final Map<Block, Material> brokenBlocks = new HashMap<>();
+    private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
 
     public void registerBlock(Material block, BlockInfo blockInfo){
         if (blockInfo.getBlockPower() < 0){
@@ -77,6 +86,63 @@ public class MiningManager {
         setProgress(player, new MiningProgress(player, block, required));
     }
 
+    public void handleBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        Material originType = block.getType();
+        if (originType == Material.BLACK_WOOL) return;
+        player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
+
+        handleBlockRegen(block, originType);
+        handleHammer(player, block);
+    }
+
+    private void handleBlockRegen(Block block, Material originType) {
+        brokenBlocks.put(block, originType);
+        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
+            block.setType(Material.BLACK_WOOL);
+        }, 1);
+
+        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
+            block.setType(originType);
+            brokenBlocks.remove(block);
+        }, 100);
+    }
+
+    public void regenBlocks(){
+        for (Block block : brokenBlocks.keySet()) {
+            Material material = brokenBlocks.get(block);
+            block.setType(material);
+        }
+        brokenBlocks.clear();
+    }
+
+
+    private void handleHammer(Player player, Block origin) {
+        if (hammerCooldown.getCurrentCooldown(player.getUniqueId()) < 100){
+            return;
+        }
+        hammerCooldown.startCooldown(player.getUniqueId());
+        Stats stats = StatsManager.getInstance().getStats(player);
+        Stat hammer = stats.get(StatType.MINING_HAMMER);
+        double hammerLeft = hammer.getValue();
+        int hammerSize = (int) Math.min((hammerLeft/50)+1, 6);
+        List<Block> blocks = BukkitUtils.loopBlocks(origin.getLocation(), hammerSize);
+        Material originType = origin.getType();
+        for (Block block : blocks) {
+            if (block.getType() == originType){
+                if (hammerLeft <= 1){
+                    return;
+                }
+                if (RandomUtils.chanceOf(hammerLeft)){
+                    player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, SoundCategory.BLOCKS, 0.1f, 1f);
+                    player.breakBlock(block);
+                }
+                hammerLeft /= 2;
+            }
+        }
+    }
+
     public BlockInfo getBlockInfo(Material material) {
         return blockInfoMap.getOrDefault(material, UNBREAKABLE_BLOCK);
     }
@@ -111,7 +177,7 @@ public class MiningManager {
     }
 
     public static MiningManager getInstance() {
-        if (instance == null){
+        if (instance == null) {
             instance = new MiningManager();
         }
         return instance;

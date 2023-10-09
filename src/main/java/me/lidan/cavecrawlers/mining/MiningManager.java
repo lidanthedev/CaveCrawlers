@@ -1,7 +1,8 @@
 package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.shop.ShopLoader;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -31,7 +32,7 @@ public class MiningManager {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningProgress> progressMap = new HashMap<>();
-    private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000);
+    private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, Map.of());
     private final Map<Block, Material> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
 
@@ -90,18 +91,40 @@ public class MiningManager {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         Material originType = block.getType();
-        if (originType == Material.BLACK_WOOL) return;
+        BlockInfo blockInfo = getBlockInfo(originType);
+        event.setCancelled(true);
+        if (blockInfo == UNBREAKABLE_BLOCK){
+            return;
+        }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
-
-        handleBlockRegen(block, originType);
+        event.setDropItems(false);
+        handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
+        handleBlockRegen(block, originType);
+    }
+
+    private void handleBlockDrops(Player player, Map<ItemInfo, Integer> drops){
+        for (ItemInfo itemInfo : drops.keySet()) {
+            int amount = drops.get(itemInfo);
+            handleBlockDrop(player, itemInfo, amount);
+        }
+    }
+
+    private void handleBlockDrop(Player player, ItemInfo itemInfo, int amount){
+        Stats stats = StatsManager.getInstance().getStats(player);
+        double value = stats.get(StatType.MINING_FORTUNE).getValue();
+        int multi = (int) value/100;
+        int remain = (int) (value % 100);
+        if (RandomUtils.chanceOf(remain)){
+            multi++;
+        }
+        amount *= multi;
+        ItemsManager.getInstance().giveItem(player, itemInfo, amount);
     }
 
     private void handleBlockRegen(Block block, Material originType) {
         brokenBlocks.put(block, originType);
-        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            block.setType(Material.BLACK_WOOL);
-        }, 1);
+        block.setType(Material.BLACK_WOOL);
 
         Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
             block.setType(originType);
@@ -130,6 +153,7 @@ public class MiningManager {
         List<Block> blocks = BukkitUtils.loopBlocks(origin.getLocation(), hammerSize);
         Material originType = origin.getType();
         for (Block block : blocks) {
+            if (block == origin) continue;
             if (block.getType() == originType){
                 if (hammerLeft <= 1){
                     return;
@@ -138,7 +162,7 @@ public class MiningManager {
                     player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, SoundCategory.BLOCKS, 0.1f, 1f);
                     player.breakBlock(block);
                 }
-                hammerLeft /= 2;
+                hammerLeft -= 5;
             }
         }
     }

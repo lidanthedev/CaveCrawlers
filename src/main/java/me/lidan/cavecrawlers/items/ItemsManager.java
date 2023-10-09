@@ -5,6 +5,7 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -114,6 +115,46 @@ public class ItemsManager {
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
         }
         return items;
+    }
+
+    public Map<String, Integer> itemMapToStringMap(Map<ItemInfo, Integer> itemsMap){
+        Map<String, Integer> itemIDmap = new HashMap<>();
+        for (ItemInfo itemInfo : itemsMap.keySet()) {
+            int amount = itemsMap.get(itemInfo);
+            itemIDmap.put(itemInfo.getID(), amount);
+        }
+        return itemIDmap;
+    }
+
+    public Map<ItemInfo, Integer> stringMapToItemMap(Map<String, Integer> itemIdMap){
+        Map<ItemInfo, Integer> itemsMap = new HashMap<>();
+
+        for (String itemId : itemIdMap.keySet()) {
+            ItemInfo itemInfo = getItemByID(itemId);
+            int amount = itemIdMap.get(itemId);
+            itemsMap.put(itemInfo, amount);
+        }
+        return itemsMap;
+    }
+
+    public void giveItemStacks(Player player, ItemStack... items){
+        HashMap<Integer, ItemStack> dropItems = player.getInventory().addItem(items);
+        Location location = player.getLocation();
+        for (Integer i : dropItems.keySet()) {
+            ItemStack itemStack = dropItems.get(i);
+            location.getWorld().dropItem(location, itemStack);
+        }
+    }
+
+    public void giveItem(Player player, ItemInfo itemInfo, int amount){
+        giveItemStacks(player, buildItem(itemInfo, amount));
+    }
+
+    public void giveItems(Player player, Map<ItemInfo, Integer> items){
+        for (ItemInfo material : items.keySet()) {
+            int amount = items.get(material);
+            giveItem(player, material, amount);
+        }
     }
 
     public boolean hasItem(Player player, ItemInfo material, int amount) {

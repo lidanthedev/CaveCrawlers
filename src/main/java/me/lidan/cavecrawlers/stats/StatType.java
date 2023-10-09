@@ -49,7 +49,7 @@ public enum StatType {
             "⸕",
             ChatColor.GOLD, 0, ChatColor.GOLD),
     MINING_HAMMER("Hammer",
-            "🔨",
+            "⛏",
             ChatColor.GOLD, 0, ChatColor.GOLD);
     private final String name;
     private final String icon;

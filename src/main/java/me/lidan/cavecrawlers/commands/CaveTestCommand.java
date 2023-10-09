@@ -150,7 +150,7 @@ public class CaveTestCommand {
     public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
         ItemStack exampleSword = itemsManager.buildItem(ID, 1);
         for (int i = 0; i < amount; i++) {
-            player.getInventory().addItem(exampleSword);
+            itemsManager.giveItemStacks(player ,exampleSword);
         }
     }
 
@@ -372,13 +372,6 @@ public class CaveTestCommand {
         sender.sendMessage("Ticks to break: " + ticksToBreak);
     }
 
-    @Subcommand("mining save")
-    public void miningSave(CommandSender sender){
-        config.set("test", new BlockInfo(15, 1));
-        config.save();
-        sender.sendMessage("saved!");
-    }
-
     @Subcommand("mining getMat")
     public void miningGetMat(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -389,7 +382,7 @@ public class CaveTestCommand {
     @Subcommand("mining setHardness")
     public void miningSetHardness(Player sender, int strength, int power){
         Block targetBlock = sender.getTargetBlock(null, 10);
-        BlockInfo blockInfo = new BlockInfo(strength, power);
+        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
         Material type = targetBlock.getType();
         if (type == Material.AIR) return;
         miningManager.setBlockInfo(type.name(), blockInfo);

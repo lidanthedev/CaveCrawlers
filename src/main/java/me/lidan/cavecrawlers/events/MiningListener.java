@@ -27,9 +27,7 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.SURVIVAL) {
-            // what to do when a block is broken?
             miningManager.handleBreak(event);
-            // TODO: add block drop system
         }
     }
 

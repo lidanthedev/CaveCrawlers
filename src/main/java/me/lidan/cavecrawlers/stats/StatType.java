@@ -25,7 +25,7 @@ public enum StatType {
             "☣",
             ChatColor.BLUE, 0, ChatColor.RED),
     ATTACK_SPEED("Attack Speed", "⚔",
-            ChatColor.YELLOW, 0)
+            ChatColor.YELLOW, 0, ChatColor.YELLOW)
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
             ChatColor.RED, 0, ChatColor.RED)

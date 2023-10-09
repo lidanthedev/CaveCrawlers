@@ -20,6 +20,7 @@ import me.lidan.cavecrawlers.utils.JsonMessage;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -42,6 +43,7 @@ public class CaveTestCommand {
     private final ShopManager shopManager;
     private final ItemsManager itemsManager;
     private final StatsManager statsManager;
+    private final MiningManager miningManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -52,6 +54,7 @@ public class CaveTestCommand {
         this.shopManager = ShopManager.getInstance();
         this.itemsManager = ItemsManager.getInstance();
         this.statsManager = StatsManager.getInstance();
+        this.miningManager = MiningManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -381,5 +384,15 @@ public class CaveTestCommand {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String mat = hand.getType().name();
         new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
+    }
+
+    @Subcommand("mining setHardness")
+    public void miningSetHardness(Player sender, int strength, int power){
+        Block targetBlock = sender.getTargetBlock(null, 10);
+        BlockInfo blockInfo = new BlockInfo(strength, power);
+        Material type = targetBlock.getType();
+        if (type == Material.AIR) return;
+        miningManager.setBlockInfo(type.name(), blockInfo);
+        sender.sendMessage(type + " set strength to " + strength + " and power to " + power);
     }
 }

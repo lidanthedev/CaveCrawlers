@@ -1,9 +1,11 @@
 package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -12,6 +14,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +27,14 @@ public class MiningManager {
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000);
 
     public void registerBlock(Material block, BlockInfo blockInfo){
+        if (blockInfo.getBlockPower() < 0){
+            blockInfoMap.remove(block);
+            return;
+        }
+        if (blockInfo.getBlockStrength() < 0){
+            blockInfoMap.remove(block);
+            return;
+        }
         blockInfoMap.put(block, blockInfo);
     }
 
@@ -68,6 +79,23 @@ public class MiningManager {
 
     public BlockInfo getBlockInfo(Material material) {
         return blockInfoMap.getOrDefault(material, UNBREAKABLE_BLOCK);
+    }
+
+    public CustomConfig getConfig(String ID){
+        BlockLoader blockLoader = BlockLoader.getInstance();
+        Map<String, File> idFileMap = blockLoader.getItemIDFileMap();
+        File file = idFileMap.get(ID);
+        if (file == null){
+            file = new File(blockLoader.getFileDir(), ID + ".yml");
+        }
+        return new CustomConfig(file);
+    }
+
+    public void setBlockInfo(String ID, BlockInfo blockInfo){
+        CustomConfig customConfig = getConfig(ID);
+        customConfig.set(ID, blockInfo);
+        customConfig.save();
+        registerBlock(Material.getMaterial(ID), blockInfo);
     }
 
     public void clear(){

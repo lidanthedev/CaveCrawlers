@@ -33,4 +33,6 @@ public class BlockInfo implements ConfigurationSerializable {
         return new BlockInfo(blockStrength, blockPower);
     }
 
+
+
 }

@@ -1,8 +1,11 @@
 package me.lidan.cavecrawlers.shop;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -41,6 +44,25 @@ public class ShopManager {
         config.save();
         registerMenu(shopID, shopMenu);
         return shopMenu;
+    }
+
+    public void addItemToShop(String shopID, ItemStack resultItem, ItemStack ingredient) {
+        addItemToShop(shopID, resultItem, new ItemStack[] {ingredient});
+    }
+
+    public void addItemToShop(String shopID, ItemStack resultItem, ItemStack... ingredients) {
+        ItemsManager itemsManager = ItemsManager.getInstance();
+        ItemInfo resultID = itemsManager.getItemFromItemStackSafe(resultItem);
+
+        Map<ItemInfo, Integer> ingredientsMap = new HashMap<>();
+        for (ItemStack itemStack : ingredients) {
+            if (itemStack != null) {
+                ingredientsMap.put(itemsManager.getItemFromItemStackSafe(itemStack), itemStack.getAmount());
+            }
+        }
+
+        ShopItem shopItem = new ShopItem(resultID, resultItem.getAmount(), 0, ingredientsMap);
+        addItemToShop(shopID, shopItem);
     }
 
     public void addItemToShop(String shopID, String resultID, String ingredientID, int amount) {

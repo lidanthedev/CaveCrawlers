@@ -22,4 +22,10 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
         }
         return instance;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        dropsManager.clear();
+    }
 }

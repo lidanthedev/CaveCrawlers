@@ -15,7 +15,6 @@ public class EntityDeathListener implements Listener {
         if (entity.getKiller() != null){
             Player player = entity.getKiller();
             String name = entity.getName();
-            player.sendMessage(name);
             EntityDrops drops = DropsManager.getInstance().getEntityDrops(name);
             if (drops == null) return;
             drops.roll(player);

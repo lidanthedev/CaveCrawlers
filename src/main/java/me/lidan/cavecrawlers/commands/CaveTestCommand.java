@@ -107,6 +107,14 @@ public class CaveTestCommand {
         sender.sendMessage("reloaded Blocks!");
     }
 
+    @Subcommand("reload drops")
+    public void reloadDrops(CommandSender sender){
+        DropLoader loader = DropLoader.getInstance();
+        loader.clear();
+        loader.load();
+        sender.sendMessage("reloaded Drops!");
+    }
+
     @Subcommand("config saveStats")
     public void saveStats(Player sender){
         config.set("stat", statsManager.getStats(sender));
@@ -399,7 +407,7 @@ public class CaveTestCommand {
 
     @Subcommand("drop test")
     public void dropTest(Player sender){
-        config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true))));
+        config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true)), 1));
         config.save();
     }
 }

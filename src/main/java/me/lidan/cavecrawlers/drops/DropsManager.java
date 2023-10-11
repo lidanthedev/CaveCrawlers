@@ -19,6 +19,10 @@ public class DropsManager {
         return entityDropsMap.get(entityName);
     }
 
+    public void clear(){
+        entityDropsMap.clear();
+    }
+
     public static DropsManager getInstance() {
         if (instance == null){
             instance = new DropsManager();

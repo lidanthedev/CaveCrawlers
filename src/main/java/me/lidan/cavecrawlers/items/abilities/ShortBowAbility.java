@@ -7,11 +7,13 @@ import me.lidan.cavecrawlers.stats.*;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerEvent;
 
 public class ShortBowAbility extends ClickAbility {
     public ShortBowAbility() {
-        super("Short Bow", "Instantly Shoots", 0, 50);
+        super("Short Bow", "Instantly Shoots", 0, 50, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK, Action.LEFT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK, Action.PHYSICAL);
     }
 
     @Override

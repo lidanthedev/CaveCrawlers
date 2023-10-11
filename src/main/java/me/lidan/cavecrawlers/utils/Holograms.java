@@ -1,10 +1,12 @@
 package me.lidan.cavecrawlers.utils;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 
 public class Holograms {
     /**
@@ -28,4 +30,24 @@ public class Holograms {
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }
 
+    public static void showDamageHologram(Mob mob, int finalDamage, boolean crit) {
+        String prettyDamage = StringUtils.getNumberFormat(finalDamage);
+
+        StringBuilder msg = new StringBuilder();
+        String formattedDamage;
+        if (crit) {
+            msg.append("✧").append(prettyDamage).append("✧");
+            formattedDamage = StringUtils.rainbowText(msg.toString());
+        } else {
+            msg.append(ChatColor.GRAY).append(prettyDamage);
+            formattedDamage = msg.toString();
+        }
+
+        Location hologram = mob.getLocation();
+        double random = RandomUtils.randomDouble(1, 1.5);
+        hologram.add(mob.getLocation().getDirection().multiply(random));
+        hologram.setY(mob.getLocation().getY() + random + 1.5);
+        hologram.subtract(0, 2, 0);
+        spawnTempArmorStand(hologram, formattedDamage, 10);
+    }
 }

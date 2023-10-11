@@ -3,13 +3,8 @@ package me.lidan.cavecrawlers.items.abilities;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.WitherSkull;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.player.PlayerEvent;
 
 public class ErrorScytheAbility extends ClickAbility implements Listener {
     public ErrorScytheAbility() {
@@ -17,7 +12,8 @@ public class ErrorScytheAbility extends ClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         if (player.isSneaking()){
             player.launchProjectile(WitherSkull.class);
         }

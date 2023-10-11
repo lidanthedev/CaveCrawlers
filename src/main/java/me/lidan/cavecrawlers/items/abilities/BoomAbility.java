@@ -1,15 +1,10 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import me.lidan.cavecrawlers.damage.AbilityDamage;
-import me.lidan.cavecrawlers.damage.DamageManager;
-import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 
 import java.util.List;
 
@@ -24,7 +19,8 @@ public class BoomAbility extends ClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         player.spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
         AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);

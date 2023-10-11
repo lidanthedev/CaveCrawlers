@@ -7,11 +7,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -32,7 +29,8 @@ public class LaserAbility extends ClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         Location location = player.getEyeLocation();
         Vector vector = location.getDirection();
         World world = location.getWorld();

@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -33,7 +34,8 @@ public abstract class ItemAbility {
         this.abilityCooldown = new Cooldown<>();
     }
 
-    public void activateAbility(Player player){
+    public void activateAbility(PlayerEvent playerEvent){
+        Player player = playerEvent.getPlayer();
         if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
             abilityFailedCooldown(player);
             return;
@@ -49,7 +51,7 @@ public abstract class ItemAbility {
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
         ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(player);
+        useAbility(playerEvent);
     }
 
     public void abilityFailedNoMana(Player player){
@@ -66,7 +68,7 @@ public abstract class ItemAbility {
         return itemInfo != null && itemInfo.getAbility() == this;
     }
 
-    protected abstract void useAbility(Player player);
+    protected abstract void useAbility(PlayerEvent playerEvent);
 
     public List<String> toList(){
         List<String> list = new ArrayList<>();

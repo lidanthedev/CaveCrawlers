@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -75,18 +76,22 @@ public class MultiShotAbility extends ItemAbility implements Listener {
             getAbilityCooldown().startCooldown(player.getUniqueId());
             projectile.remove();
             if (diff >= 200) {
-                double multiplier = (double) diff / maxPowerTime * maxPower;
-                int yaw = 0;
-                for (int i = 0; i < amount; i++) {
-                    Vector vector = BukkitUtils.getVector(player, yaw, 0, multiplier);
-                    Arrow arrow = player.launchProjectile(Arrow.class, vector);
-                    arrow.addScoreboardTag(BOW_TAG);
-                    if (i % 2 == 0) {
-                        yaw = Math.abs(yaw) + yawDiff;
-                    } else {
-                        yaw = -yaw;
-                    }
-                }
+                shoot(player, (double) diff);
+            }
+        }
+    }
+
+    public void shoot(Player player, double diff) {
+        double multiplier = diff / maxPowerTime * maxPower;
+        int yaw = 0;
+        for (int i = 0; i < amount; i++) {
+            Vector vector = BukkitUtils.getVector(player, yaw, 0, multiplier);
+            Arrow arrow = player.launchProjectile(Arrow.class, vector);
+            arrow.addScoreboardTag(BOW_TAG);
+            if (i % 2 == 0) {
+                yaw = Math.abs(yaw) + yawDiff;
+            } else {
+                yaw = -yaw;
             }
         }
     }
@@ -103,7 +108,7 @@ public class MultiShotAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
 
     }
 

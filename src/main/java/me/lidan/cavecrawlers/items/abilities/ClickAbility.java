@@ -34,7 +34,7 @@ public abstract class ClickAbility extends ItemAbility implements Listener {
             Action action = event.getAction();
             for (Action allowedAction : allowedActions) {
                 if (action == allowedAction){
-                    activateAbility(player);
+                    activateAbility(event);
                 }
             }
         }

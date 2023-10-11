@@ -5,11 +5,8 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class InstantHealAbility extends ChargedItemAbility implements Listener {
@@ -44,20 +41,10 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         StatsManager.healPlayer(player, healAmount);
         StatsManager.healPlayerPercent(player, healPercent);
         player.getWorld().spawnParticle(Particle.HEART, player.getEyeLocation(), 1);
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
-        }
     }
 }

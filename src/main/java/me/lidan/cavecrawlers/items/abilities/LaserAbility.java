@@ -7,17 +7,14 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaserAbility extends ItemAbility implements Listener {
+public class LaserAbility extends ClickAbility implements Listener {
     private Particle particle;
     private double baseAbilityDamage;
     private double abilityScaling;
@@ -32,7 +29,8 @@ public class LaserAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         Location location = player.getEyeLocation();
         Vector vector = location.getDirection();
         World world = location.getWorld();
@@ -50,17 +48,6 @@ public class LaserAbility extends ItemAbility implements Listener {
                 }
             }
             world.spawnParticle(particle, newLocation, 1, 0,0,0,0);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
         }
     }
 

@@ -137,6 +137,11 @@ public class StatsManager {
         if (statsFromHand != null)
             stats.add(statsFromHand);
 
+        ItemStack offhand = equipment.getItemInOffHand();
+        Stats statsFromOffHand = getStatsFromItemStack(offhand, ItemSlot.OFF_HAND);
+        if (statsFromOffHand != null)
+            stats.add(statsFromOffHand);
+
         return stats;
 
     }

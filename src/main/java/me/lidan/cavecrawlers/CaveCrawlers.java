@@ -18,10 +18,7 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -29,6 +26,8 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
+
+import java.util.Arrays;
 
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
@@ -40,6 +39,9 @@ public final class CaveCrawlers extends JavaPlugin {
         long start = System.currentTimeMillis();
         commandHandler = BukkitCommandHandler.create(this);
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
+            return Arrays.stream(Sound.values()).map(Enum::name).toList();
+        });
 
         if (!setupEconomy() ) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
@@ -87,6 +89,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
         abilityManager.registerAbility("SHIELD_THROW", new ShieldAbility(100, 2));
+        abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
     }
 
     public void registerItems() {
@@ -133,6 +136,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
+        MiningManager.getInstance().regenBlocks();
         killEntities();
     }
 

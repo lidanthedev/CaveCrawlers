@@ -1,13 +1,21 @@
 package me.lidan.cavecrawlers.damage;
 
 import lombok.Getter;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Cooldown;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +72,25 @@ public class DamageManager {
         cooldown.setCooldown(mob.getUniqueId(), 0L);
     }
 
-    public long calculateAttackSpeed(long attackSpeed){
+    public <T extends Projectile > T launchProjectile(ProjectileSource source, Class<? extends T> projectile, DamageCalculation calculation, Vector velocity){
+        double calculated = calculation.calculate();
+
+        T launchedProjectile = source.launchProjectile(projectile, velocity);
+        launchedProjectile.getPersistentDataContainer().set(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE, calculated);
+        return launchedProjectile;
+    }
+
+    public <T extends Projectile > T launchProjectile(ProjectileSource source, Class<? extends T> projectile, DamageCalculation calculation){
+        double calculated = calculation.calculate();
+
+        T launchedProjectile = source.launchProjectile(projectile);
+        PersistentDataContainer container = launchedProjectile.getPersistentDataContainer();
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE, calculated);
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "crit"), PersistentDataType.BOOLEAN, calculation.isCrit());
+        return launchedProjectile;
+    }
+
+    public static long calculateAttackSpeed(long attackSpeed){
         return (long) (BASE_ATTACK_COOLDOWN - (MINIMUM_ATTACK_COOLDOWN / 100 * attackSpeed));
     }
 

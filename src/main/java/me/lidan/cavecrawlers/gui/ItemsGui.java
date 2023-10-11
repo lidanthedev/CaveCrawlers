@@ -12,6 +12,11 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 public class ItemsGui  {
     private final Player player;
     private final PaginatedGui gui;
@@ -29,7 +34,10 @@ public class ItemsGui  {
         // Next item
         gui.setItem(6, 7, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Next").asGuiItem(event -> gui.next()));
         ItemsManager itemsManager = ItemsManager.getInstance();
-        for (String ID : itemsManager.getKeys()) {
+        Set<String> keys = itemsManager.getKeys();
+        List<String> sortedKeys = new ArrayList<>(keys);
+        Collections.sort(sortedKeys);
+        for (String ID : sortedKeys) {
             ItemStack itemStack = itemsManager.buildItem(ID, 1);
             GuiItem guiItem = ItemBuilder.from(itemStack.clone()).addLore(ChatColor.DARK_GRAY + "ID: " + ID).asGuiItem(event -> {
                 HumanEntity clicked = event.getWhoClicked();

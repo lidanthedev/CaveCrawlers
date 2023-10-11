@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.mining;
 
 import lombok.Getter;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,26 +13,33 @@ import java.util.Map;
 public class BlockInfo implements ConfigurationSerializable {
     private final int blockStrength;
     private final int blockPower;
+    private final Map<ItemInfo, Integer> drops;
 
-    public BlockInfo(int blockStrength, int blockPower) {
+    public BlockInfo(int blockStrength, int blockPower, Map<ItemInfo, Integer> drops) {
         this.blockStrength = blockStrength;
         this.blockPower = blockPower;
+        this.drops = drops;
     }
 
     @NotNull
     @Override
     public Map<String, Object> serialize() {
+        ItemsManager itemsManager = ItemsManager.getInstance();
         Map<String, Object> map = new HashMap<>();
         map.put("blockStrength", blockStrength);
         map.put("blockPower", blockPower);
+        map.put("drops", itemsManager.itemMapToStringMap(drops));
         return map;
     }
 
     public static BlockInfo deserialize(Map<String, Object> map) {
         int blockStrength = (int)map.get("blockStrength");
         int blockPower = (int)map.get("blockPower");
-
-        return new BlockInfo(blockStrength, blockPower);
+        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.getOrDefault("drops", new HashMap<String, Integer>());
+        Map<ItemInfo, Integer> drops = ItemsManager.getInstance().stringMapToItemMap(itemIdMap);
+        return new BlockInfo(blockStrength, blockPower, drops);
     }
+
+
 
 }

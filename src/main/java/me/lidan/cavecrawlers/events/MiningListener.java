@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.events;
 
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -12,6 +13,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 public class MiningListener implements Listener {
 
     private final MiningManager miningManager = MiningManager.getInstance();
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
@@ -25,7 +27,7 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.SURVIVAL) {
-            // what to do when a block is broken?
+            miningManager.handleBreak(event);
         }
     }
 

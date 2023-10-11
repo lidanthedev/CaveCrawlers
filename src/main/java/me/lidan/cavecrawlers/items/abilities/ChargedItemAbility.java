@@ -8,13 +8,14 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public abstract class ChargedItemAbility extends ItemAbility {
+public abstract class ChargedItemAbility extends ClickAbility {
     private final int maxCharges;
     private final long chargeTime;
     private final Map<UUID, Integer> playerCharges = new HashMap<>();
@@ -50,7 +51,8 @@ public abstract class ChargedItemAbility extends ItemAbility {
         playerCharges.put(player.getUniqueId(), charges);
     }
 
-    public void activateAbility(Player player){
+    public void activateAbility(PlayerEvent playerEvent){
+        Player player = playerEvent.getPlayer();
 
         if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < getCooldown()){
             return;
@@ -78,7 +80,7 @@ public abstract class ChargedItemAbility extends ItemAbility {
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(player);
+        useAbility(playerEvent);
     }
 
     public void abilityFailedCooldown(Player player){

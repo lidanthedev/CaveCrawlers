@@ -2,5 +2,6 @@ package me.lidan.cavecrawlers.items;
 
 public enum ItemSlot {
     HAND,
-    ARMOR
+    ARMOR,
+    OFF_HAND
 }

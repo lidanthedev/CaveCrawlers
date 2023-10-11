@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "7.0.0"
     id "io.freefair.lombok" version "8.3"
 }
@@ -48,6 +49,8 @@ shadowJar{
     archiveClassifier = null
 }
 
+jar.enabled = false
+
 def targetJavaVersion = 17
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
@@ -71,5 +74,13 @@ processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
+    }
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+        }
     }
 }

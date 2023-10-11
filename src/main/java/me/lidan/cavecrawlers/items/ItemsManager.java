@@ -5,17 +5,17 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ItemsManager {
     private static ItemsManager instance;
@@ -48,7 +48,7 @@ public class ItemsManager {
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()
-                .flags(ItemFlag.HIDE_UNBREAKABLE)
+                .flags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DYE)
                 .setNbt("ITEM_ID", info.getID())
                 .amount(amount)
                 .build();
@@ -60,6 +60,22 @@ public class ItemsManager {
             throw new IllegalArgumentException("Item with ID " + ID + " doesn't exist!");
         }
         return itemInfo;
+    }
+
+    public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
+        String ID = getIDofItemStack(itemStack);
+        if (ID == null){
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta == null){
+                return null;
+            }
+            String displayName = meta.getDisplayName();
+            displayName = ChatColor.stripColor(displayName);
+            displayName = displayName.toUpperCase(Locale.ROOT);
+            displayName = displayName.replace(" ", "_");
+            ID = displayName;
+        }
+        return getItemByID(ID);
     }
 
     public @Nullable ItemInfo getItemFromItemStack(ItemStack itemStack){
@@ -114,6 +130,46 @@ public class ItemsManager {
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
         }
         return items;
+    }
+
+    public Map<String, Integer> itemMapToStringMap(Map<ItemInfo, Integer> itemsMap){
+        Map<String, Integer> itemIDmap = new HashMap<>();
+        for (ItemInfo itemInfo : itemsMap.keySet()) {
+            int amount = itemsMap.get(itemInfo);
+            itemIDmap.put(itemInfo.getID(), amount);
+        }
+        return itemIDmap;
+    }
+
+    public Map<ItemInfo, Integer> stringMapToItemMap(Map<String, Integer> itemIdMap){
+        Map<ItemInfo, Integer> itemsMap = new HashMap<>();
+
+        for (String itemId : itemIdMap.keySet()) {
+            ItemInfo itemInfo = getItemByID(itemId);
+            int amount = itemIdMap.get(itemId);
+            itemsMap.put(itemInfo, amount);
+        }
+        return itemsMap;
+    }
+
+    public void giveItemStacks(Player player, ItemStack... items){
+        HashMap<Integer, ItemStack> dropItems = player.getInventory().addItem(items);
+        Location location = player.getLocation();
+        for (Integer i : dropItems.keySet()) {
+            ItemStack itemStack = dropItems.get(i);
+            location.getWorld().dropItem(location, itemStack);
+        }
+    }
+
+    public void giveItem(Player player, ItemInfo itemInfo, int amount){
+        giveItemStacks(player, buildItem(itemInfo, amount));
+    }
+
+    public void giveItems(Player player, Map<ItemInfo, Integer> items){
+        for (ItemInfo material : items.keySet()) {
+            int amount = items.get(material);
+            giveItem(player, material, amount);
+        }
     }
 
     public boolean hasItem(Player player, ItemInfo material, int amount) {

@@ -20,6 +20,7 @@ import me.lidan.cavecrawlers.utils.JsonMessage;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -27,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -41,6 +43,7 @@ public class CaveTestCommand {
     private final ShopManager shopManager;
     private final ItemsManager itemsManager;
     private final StatsManager statsManager;
+    private final MiningManager miningManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -51,24 +54,30 @@ public class CaveTestCommand {
         this.shopManager = ShopManager.getInstance();
         this.itemsManager = ItemsManager.getInstance();
         this.statsManager = StatsManager.getInstance();
+        this.miningManager = MiningManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
             Player player = Bukkit.getPlayer(sender.getName());
             if (player != null){
-                ItemStack hand = player.getEquipment().getItemInMainHand();
-                ItemMeta meta = hand.getItemMeta();
-                if (!meta.hasDisplayName()){
-                    return Collections.singleton("");
-                }
-                String name = meta.getDisplayName();
-                name = ChatColor.stripColor(name);
-                name = name.toUpperCase(Locale.ROOT);
-                name = name.replaceAll(" ", "_");
-                return Collections.singleton(name);
+                return getFillID(player);
             }
             return Collections.singleton("");
         });
+    }
+
+    @NotNull
+    private static Set<String> getFillID(Player player) {
+        ItemStack hand = player.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (!meta.hasDisplayName()){
+            return Collections.singleton("");
+        }
+        String name = meta.getDisplayName();
+        name = ChatColor.stripColor(name);
+        name = name.toUpperCase(Locale.ROOT);
+        name = name.replaceAll(" ", "_");
+        return Collections.singleton(name);
     }
 
     @Subcommand("reload items")
@@ -141,7 +150,7 @@ public class CaveTestCommand {
     public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
         ItemStack exampleSword = itemsManager.buildItem(ID, 1);
         for (int i = 0; i < amount; i++) {
-            player.getInventory().addItem(exampleSword);
+            itemsManager.giveItemStacks(player ,exampleSword);
         }
     }
 
@@ -160,6 +169,11 @@ public class CaveTestCommand {
         if (IDofItem != null){
             sender.sendMessage("ERROR! Item already has ID! remove with /ct item remove-id");
             return;
+        }
+
+        if (ID.equals("FILL")){
+            ID = getFillID(sender).iterator().next();
+            sender.sendMessage("Fill: " + ID);
         }
 
         ItemExporter exporter = new ItemExporter(hand);
@@ -358,17 +372,25 @@ public class CaveTestCommand {
         sender.sendMessage("Ticks to break: " + ticksToBreak);
     }
 
-    @Subcommand("mining save")
-    public void miningSave(CommandSender sender){
-        config.set("test", new BlockInfo(15, 1));
-        config.save();
-        sender.sendMessage("saved!");
-    }
-
     @Subcommand("mining getMat")
     public void miningGetMat(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String mat = hand.getType().name();
         new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
+    }
+
+    @Subcommand("mining setHardness")
+    public void miningSetHardness(Player sender, int strength, int power){
+        Block targetBlock = sender.getTargetBlock(null, 10);
+        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
+        Material type = targetBlock.getType();
+        if (type == Material.AIR) return;
+        miningManager.setBlockInfo(type.name(), blockInfo);
+        sender.sendMessage(type + " set strength to " + strength + " and power to " + power);
+    }
+
+    @Subcommand("sound play")
+    public void soundPlay(Player sender, Sound sound, @Default("1") float volume, @Default("1") float pitch){
+        sender.playSound(sender, sound, volume, pitch);
     }
 }

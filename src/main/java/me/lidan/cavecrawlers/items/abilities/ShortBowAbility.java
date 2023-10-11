@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.stats.*;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
@@ -13,6 +14,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShortBowAbility extends ClickAbility {
     public ShortBowAbility() {
@@ -61,5 +65,13 @@ public class ShortBowAbility extends ClickAbility {
     @Override
     public void abilityFailedCooldown(Player player) {
 
+    }
+
+    @Override
+    public List<String> toList(){
+        List<String> list = new ArrayList<>();
+        list.add(ChatColor.GOLD + "Item Ability: " + getName());
+        list.addAll(StringUtils.loreBuilder(getDescription()));
+        return list;
     }
 }

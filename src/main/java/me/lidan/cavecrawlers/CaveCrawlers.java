@@ -3,6 +3,9 @@ package me.lidan.cavecrawlers;
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.StatCommand;
+import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropLoader;
+import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
@@ -55,6 +58,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerItems();
         registerShops();
         registerBlocks();
+        registerDrops();
 
         registerCommands();
         registerEvents();
@@ -66,6 +70,10 @@ public final class CaveCrawlers extends JavaPlugin {
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
+    private void registerDrops() {
+        DropLoader.getInstance().load();
+    }
+
     private void registerBlocks() {
         BlockLoader.getInstance().load();
     }
@@ -75,6 +83,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(ItemInfo.class);
         ConfigurationSerialization.registerClass(ShopMenu.class);
         ConfigurationSerialization.registerClass(BlockInfo.class);
+        ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(EntityDrops.class);
     }
 
     private void registerAbilities() {
@@ -119,6 +129,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiExplodeListener());
         registerEvent(new AntiPlaceListener());
         registerEvent(new MiningListener());
+        registerEvent(new EntityDeathListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

@@ -15,6 +15,9 @@ public enum StatType {
     ,DEFENSE("Defense",
             "❈",
             ChatColor.GREEN),
+    MAGIC_FIND("Magic Find",
+            "✯",
+            ChatColor.AQUA, 0, ChatColor.AQUA),
     DAMAGE("Damage", "❁", ChatColor.RED, 0, ChatColor.RED)
     ,STRENGTH("Strength",
             "❁",ChatColor.RED, 0, ChatColor.RED)

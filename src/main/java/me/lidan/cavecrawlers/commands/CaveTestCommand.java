@@ -388,4 +388,9 @@ public class CaveTestCommand {
         miningManager.setBlockInfo(type.name(), blockInfo);
         sender.sendMessage(type + " set strength to " + strength + " and power to " + power);
     }
+
+    @Subcommand("sound play")
+    public void soundPlay(Player sender, Sound sound, @Default("1") float volume, @Default("1") float pitch){
+        sender.playSound(sender, sound, volume, pitch);
+    }
 }

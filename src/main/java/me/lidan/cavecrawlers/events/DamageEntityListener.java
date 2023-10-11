@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Holograms;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -41,6 +42,7 @@ public class DamageEntityListener implements Listener {
             onPlayerDamageMob(event, player, mob);
             return;
         }
+        player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         PersistentDataContainer container = projectile.getPersistentDataContainer();
         Double calculated = container.get(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE);
         Boolean crit = container.get(new NamespacedKey(CaveCrawlers.getInstance(), "crit"), PersistentDataType.BOOLEAN);

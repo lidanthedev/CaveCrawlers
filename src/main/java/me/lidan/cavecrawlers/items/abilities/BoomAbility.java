@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public class BoomAbility extends ItemAbility implements Listener {
+public class BoomAbility extends ClickAbility implements Listener {
     private double baseAbilityDamage;
     private double abilityScaling;
 
@@ -21,17 +21,6 @@ public class BoomAbility extends ItemAbility implements Listener {
         super("BOOM BOOM", "Does BOOM", 0, 100);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
-        }
     }
 
     @Override

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public abstract class ChargedItemAbility extends ItemAbility {
+public abstract class ChargedItemAbility extends ClickAbility {
     private final int maxCharges;
     private final long chargeTime;
     private final Map<UUID, Integer> playerCharges = new HashMap<>();

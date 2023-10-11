@@ -49,15 +49,4 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
         StatsManager.healPlayerPercent(player, healPercent);
         player.getWorld().spawnParticle(Particle.HEART, player.getEyeLocation(), 1);
     }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
-        }
-    }
 }

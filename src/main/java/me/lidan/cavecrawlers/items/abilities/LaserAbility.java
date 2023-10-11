@@ -17,7 +17,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaserAbility extends ItemAbility implements Listener {
+public class LaserAbility extends ClickAbility implements Listener {
     private Particle particle;
     private double baseAbilityDamage;
     private double abilityScaling;
@@ -50,17 +50,6 @@ public class LaserAbility extends ItemAbility implements Listener {
                 }
             }
             world.spawnParticle(particle, newLocation, 1, 0,0,0,0);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
         }
     }
 

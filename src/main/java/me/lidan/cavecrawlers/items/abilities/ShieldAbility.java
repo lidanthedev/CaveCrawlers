@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShieldAbility extends ItemAbility implements Listener {
+public class ShieldAbility extends ClickAbility implements Listener {
     public static final String SHIELD_TAG = "Shield";
     private double baseAbilityDamage;
     private double abilityScaling;
@@ -27,17 +27,6 @@ public class ShieldAbility extends ItemAbility implements Listener {
         super("Shield Throw", "Shoots snowball that deals damage scaled on defence", 0, 5000);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
-        }
     }
 
     @Override

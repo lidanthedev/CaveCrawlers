@@ -3,6 +3,8 @@ package me.lidan.cavecrawlers;
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.StatCommand;
+import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
@@ -75,6 +77,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(ItemInfo.class);
         ConfigurationSerialization.registerClass(ShopMenu.class);
         ConfigurationSerialization.registerClass(BlockInfo.class);
+        ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(EntityDrops.class);
     }
 
     private void registerAbilities() {

@@ -2,6 +2,9 @@ package me.lidan.cavecrawlers.commands;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropLoader;
+import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -392,5 +395,11 @@ public class CaveTestCommand {
     @Subcommand("sound play")
     public void soundPlay(Player sender, Sound sound, @Default("1") float volume, @Default("1") float pitch){
         sender.playSound(sender, sound, volume, pitch);
+    }
+
+    @Subcommand("drop test")
+    public void dropTest(Player sender){
+        config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true))));
+        config.save();
     }
 }

@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.events.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -57,6 +58,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerItems();
         registerShops();
         registerBlocks();
+        registerDrops();
 
         registerCommands();
         registerEvents();
@@ -66,6 +68,10 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerDrops() {
+        DropLoader.getInstance().load();
     }
 
     private void registerBlocks() {

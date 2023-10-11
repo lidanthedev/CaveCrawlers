@@ -29,6 +29,10 @@ public class Drop implements ConfigurationSerializable {
         this.announce = announce;
     }
 
+    public Drop(String itemID, int amount, double chance, boolean announce){
+        this(ItemsManager.getInstance().getItemByID(itemID), amount, chance, announce);
+    }
+
     public void roll(Player player){
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat magicFind = stats.get(StatType.MAGIC_FIND);
@@ -65,7 +69,7 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public static Drop deserialize(Map<String, Object> map){
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID((String) map.get("itemID"));
+        String itemID = (String) map.get("itemID");
 
         int amount = (int) map.get("amount");
 
@@ -73,6 +77,6 @@ public class Drop implements ConfigurationSerializable {
 
         boolean announce = (boolean) map.get("announce");
 
-        return new Drop(itemInfo, amount, chance, announce);
+        return new Drop(itemID, amount, chance, announce);
     }
 }

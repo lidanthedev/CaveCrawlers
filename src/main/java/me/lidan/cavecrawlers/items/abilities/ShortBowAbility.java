@@ -3,12 +3,15 @@ package me.lidan.cavecrawlers.items.abilities;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
+import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.stats.*;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerEvent;
 
 public class ShortBowAbility extends ClickAbility {
@@ -41,10 +44,17 @@ public class ShortBowAbility extends ClickAbility {
         useAbility(playerEvent);
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityShootBow(EntityShootBowEvent event) {
+        if (hasAbility(event.getBow())){
+            event.setCancelled(true);
+        }
+    }
+
     @Override
     protected void useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
-        DamageCalculation calculation = new FinalDamageCalculation(1000, true);
+        DamageCalculation calculation = new PlayerDamageCalculation(player);
         DamageManager.getInstance().launchProjectile(player, Arrow.class, calculation);
     }
 

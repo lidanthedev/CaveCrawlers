@@ -1,13 +1,11 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import me.lidan.cavecrawlers.utils.BukkitUtils;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerEvent;
@@ -43,46 +41,21 @@ public class MultiShotAbility extends ItemAbility implements Listener {
     }
 
     @EventHandler
-    public void onClick(PlayerInteractEvent e) {
-        ItemStack item = e.getItem();
-
-        if (!hasAbility(item)) return;
-        if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
-        Player player = e.getPlayer();
-
-        getAbilityCooldown().startCooldown(player.getUniqueId());
-    }
-
-    @EventHandler
-    public void onProjectileLaunch(ProjectileLaunchEvent e) {
-        if (e.getEntity().getShooter() instanceof Player player) {
-            if (e.getEntityType() == EntityType.ARROW) {
-                ItemStack item = player.getEquipment().getItemInMainHand();
-                Projectile projectile = e.getEntity();
-                if (hasAbility(item)){
-                    useAbility(player, projectile);
+    public void onEntityShootBow(EntityShootBowEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (hasAbility(event.getBow())) {
+                event.setCancelled(true);
+                Entity entity = event.getProjectile();
+                if (entity instanceof Projectile projectile){
+                    projectile.remove();
+                    shoot(player, event.getForce());
                 }
             }
         }
     }
 
-    private void useAbility(Player player, Projectile projectile) {
-        long diff = getAbilityCooldown().getCurrentCooldown(player.getUniqueId());
-        if (diff > maxPowerTime){
-            diff = maxPowerTime;
-        }
-        if (diff >= 50) {
-            getAbilityCooldown().startCooldown(player.getUniqueId());
-            projectile.remove();
-            if (diff >= 200) {
-                shoot(player, (double) diff);
-            }
-        }
-    }
-
-    public void shoot(Player player, double diff) {
-        double multiplier = diff / maxPowerTime * maxPower;
+    public void shoot(Player player, double force) {
+        double multiplier = force*1000 / maxPowerTime * maxPower;
         int yaw = 0;
         for (int i = 0; i < amount; i++) {
             Vector vector = BukkitUtils.getVector(player, yaw, 0, multiplier);
@@ -92,17 +65,6 @@ public class MultiShotAbility extends ItemAbility implements Listener {
                 yaw = Math.abs(yaw) + yawDiff;
             } else {
                 yaw = -yaw;
-            }
-        }
-    }
-
-    @EventHandler
-    public void onProjectileHit(ProjectileHitEvent e) {
-        if (e.getEntity().getShooter() instanceof Player) {
-            if (e.getEntityType() == EntityType.ARROW) {
-                if (e.getEntity().getScoreboardTags().contains(BOW_TAG)) {
-                    e.getEntity().remove();
-                }
             }
         }
     }

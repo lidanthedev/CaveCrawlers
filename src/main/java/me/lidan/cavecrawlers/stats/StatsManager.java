@@ -117,6 +117,8 @@ public class StatsManager {
         if (attackSpeedStat.getValue() > 100){
             attackSpeedStat.setValue(100);
         }
+        StatsCalculateEvent event = new StatsCalculateEvent(player, stats);
+        Bukkit.getPluginManager().callEvent(event);
 
         return stats;
     }

@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.drops;
 
+import net.md_5.bungee.api.ChatColor;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +11,7 @@ public class DropsManager {
     private final Map<String, EntityDrops> entityDropsMap = new HashMap<>();
 
     public void register(String entityName, EntityDrops entityDrops){
+        entityName = ChatColor.translateAlternateColorCodes('&', entityName);
         entityDropsMap.put(entityName, entityDrops);
     }
 

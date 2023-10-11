@@ -4,10 +4,10 @@ import net.md_5.bungee.api.ChatColor;
 
 public enum DropRarity {
     AUTO(""),
-    RARE(ChatColor.BLUE + "RARE"),
-    VERY_RARE(ChatColor.DARK_PURPLE + "VERY RARE"),
-    CRAZY_RARE(ChatColor.LIGHT_PURPLE + "CRAZY RARE"),
-    INSANE(ChatColor.RED + "INSANE"),
+    RARE(ChatColor.BLUE + ChatColor.BOLD.toString() + "RARE"),
+    VERY_RARE(ChatColor.DARK_PURPLE + ChatColor.BOLD.toString() + "VERY RARE"),
+    CRAZY_RARE(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "CRAZY RARE"),
+    INSANE(ChatColor.RED + ChatColor.BOLD.toString() + "INSANE"),
     ;
 
     private final String message;

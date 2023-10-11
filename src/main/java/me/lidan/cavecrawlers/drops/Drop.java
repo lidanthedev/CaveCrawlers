@@ -45,7 +45,7 @@ public class Drop implements ConfigurationSerializable {
 
     public void sendDropMessage(Player player){
         DropRarity dropRarity = DropRarity.getRarity(chance);
-        String message = dropRarity + itemInfo.getName() + ChatColor.GRAY + "(" + chance + "%)";
+        String message = dropRarity + itemInfo.getName() + ChatColor.GRAY + " (" + chance + "%)";
 
         player.sendMessage(message);
     }

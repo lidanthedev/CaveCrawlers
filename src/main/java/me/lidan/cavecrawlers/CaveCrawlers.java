@@ -20,6 +20,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.events.PotionsListener;
+import me.lidan.cavecrawlers.utils.Cuboid;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -85,6 +86,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(BlockInfo.class);
         ConfigurationSerialization.registerClass(Drop.class);
         ConfigurationSerialization.registerClass(EntityDrops.class);
+        ConfigurationSerialization.registerClass(Cuboid.class);
     }
 
     private void registerAbilities() {

@@ -26,12 +26,7 @@ public class ShopManager {
 
     public CustomConfig getConfig(String ID){
         ShopLoader shopLoader = ShopLoader.getInstance();
-        Map<String, File> idFileMap = shopLoader.getItemIDFileMap();
-        File file = idFileMap.get(ID);
-        if (file == null){
-            file = new File(shopLoader.getFileDir(), ID + ".yml");
-        }
-        return new CustomConfig(file);
+        return shopLoader.getConfig(ID);
     }
 
     public ShopMenu createShop(String shopID){

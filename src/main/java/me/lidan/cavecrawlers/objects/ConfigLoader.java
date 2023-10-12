@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -75,6 +76,15 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             }
         }
         return registeredItems;
+    }
+
+    public CustomConfig getConfig(String ID){
+        Map<String, File> idFileMap = getItemIDFileMap();
+        File file = idFileMap.get(ID);
+        if (file == null){
+            file = new File(getFileDir(), ID + ".yml");
+        }
+        return new CustomConfig(file);
     }
 
     public void clear(){

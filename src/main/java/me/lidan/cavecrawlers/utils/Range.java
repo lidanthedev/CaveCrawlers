@@ -1,8 +1,11 @@
 package me.lidan.cavecrawlers.utils;
 
+import lombok.Getter;
+
+@Getter
 public class Range {
-    private int min;
-    private int max;
+    private final int min;
+    private final int max;
 
     public Range(int min, int max) {
         this.min = min;
@@ -19,6 +22,10 @@ public class Range {
             min = Integer.parseInt(amountStr);
             max = Integer.parseInt(amountStr);
         }
+    }
+
+    public boolean isInRange(int num){
+        return num >= min && num <= max;
     }
 
     @Override

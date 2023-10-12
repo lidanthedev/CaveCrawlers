@@ -77,7 +77,7 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean buy(Player player) {
-        if (VaultUtils.getCoins(player) > price){
+        if (VaultUtils.getCoins(player) >= price){
             if (itemsManager.hasItems(player, itemsMap)){
                 VaultUtils.takeCoins(player, price);
                 itemsManager.removeItems(player, itemsMap);

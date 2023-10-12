@@ -113,7 +113,7 @@ public class MiningManager {
     private void handleBlockDrop(Player player, ItemInfo itemInfo, int amount){
         Stats stats = StatsManager.getInstance().getStats(player);
         double value = stats.get(StatType.MINING_FORTUNE).getValue();
-        int multi = (int) value/100;
+        int multi = 1 + (int) value/100;
         int remain = (int) (value % 100);
         if (RandomUtils.chanceOf(remain)){
             multi++;
@@ -197,6 +197,8 @@ public class MiningManager {
     }
 
     public static long getTicksToBreak(double miningSpeed, int blockStrength){
+        if (miningSpeed == 0)
+            miningSpeed = 1;
         return (long) (1/(miningSpeed/blockStrength/30));
     }
 

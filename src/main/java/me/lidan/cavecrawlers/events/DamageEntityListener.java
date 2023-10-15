@@ -9,6 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -24,6 +26,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 public class DamageEntityListener implements Listener {
+
+    private static final boolean PROJECTILE_DAMAGE_FIX = true;
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -49,8 +54,8 @@ public class DamageEntityListener implements Listener {
         }
         player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         PersistentDataContainer container = projectile.getPersistentDataContainer();
-        Double calculated = container.get(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE);
-        Boolean crit = container.get(new NamespacedKey(CaveCrawlers.getInstance(), "crit"), PersistentDataType.BOOLEAN);
+        Double calculated = container.get(new NamespacedKey(plugin, "calculated"), PersistentDataType.DOUBLE);
+        Boolean crit = container.get(new NamespacedKey(plugin, "crit"), PersistentDataType.BOOLEAN);
         if (calculated == null || crit == null){
             onPlayerDamageMob(event, player, mob);
             return;
@@ -87,6 +92,16 @@ public class DamageEntityListener implements Listener {
 
     private void onPlayerDamaged(EntityDamageByEntityEvent event, Player player) {
         double damage = event.getDamage();
+
+        if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE && PROJECTILE_DAMAGE_FIX){
+            Entity damager = event.getDamager();
+            if (damager instanceof Projectile projectile){
+                if (projectile.getShooter() instanceof Mob mob) {
+                    damage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue();
+                }
+            }
+        }
+
         Stats stats = StatsManager.getInstance().getStats(player);
         double defense = stats.get(StatType.DEFENSE).getValue();
         double damageReduction = defense / (defense + 100);
@@ -95,7 +110,7 @@ public class DamageEntityListener implements Listener {
 
         event.setDamage(damage);
 
-        Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), bukkitTask -> {
+        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
             ActionBarManager.getInstance().actionBar(player);
         }, 1L);
     }

@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Holograms;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
@@ -13,8 +14,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -58,6 +63,13 @@ public class DamageEntityListener implements Listener {
         DamageManager damageManager = DamageManager.getInstance();
         if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE && !damageManager.canAttack(player, mob)){
             event.setCancelled(true);
+            return;
+        }
+        ItemStack hand = player.getEquipment().getItemInMainHand();
+        if (hand.getType() == Material.BOW && event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE){
+            event.setCancelled(true);
+            PlayerInteractEvent interactEvent = new PlayerInteractEvent(player, Action.LEFT_CLICK_AIR, hand, null, null, EquipmentSlot.HAND);
+            Bukkit.getPluginManager().callEvent(interactEvent);
             return;
         }
 

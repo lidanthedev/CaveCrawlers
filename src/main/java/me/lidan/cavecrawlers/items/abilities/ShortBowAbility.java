@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ShortBowAbility extends ClickAbility {
     public ShortBowAbility() {
-        super("Short Bow", "Instantly Shoots", 0, 50, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK, Action.LEFT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK, Action.PHYSICAL);
+        super("Short Bow", "Instantly Shoots", 0, 50, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK, Action.LEFT_CLICK_AIR, Action.LEFT_CLICK_BLOCK);
     }
 
     @Override

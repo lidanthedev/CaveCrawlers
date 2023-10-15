@@ -9,6 +9,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 
 public class Holograms {
+
+    public static final double Y_OFFSET = 2.5;
+
     /**
      * Spawns a temporary armor stand with text at the specified location.
      *
@@ -46,7 +49,7 @@ public class Holograms {
         Location hologram = mob.getLocation();
         double random = RandomUtils.randomDouble(1, 1.5);
         hologram.add(mob.getLocation().getDirection().multiply(random));
-        hologram.setY(mob.getLocation().getY() + random + 1.5);
+        hologram.setY(mob.getLocation().getY() + random + Y_OFFSET);
         hologram.subtract(0, 2, 0);
         spawnTempArmorStand(hologram, formattedDamage, 10);
     }

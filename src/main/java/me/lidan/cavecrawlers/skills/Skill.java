@@ -12,7 +12,7 @@ public class Skill {
     private SkillType type;
     private int level;
     private double xp;
-    private double xpToLevel;
+    private double xpToLevel = 100;
 
     public Skill(SkillType type, int level) {
         this.type = type;
@@ -21,10 +21,13 @@ public class Skill {
 
     public void addXp(double amount){
         xp += amount;
-        if(xp >= xpToLevel){
+        while (xp >= xpToLevel && level < 50){
             level++;
-            xp = 0;
-            xpToLevel = level * 2 + 100; // CHANGE LATER
+            xp -= xpToLevel;
+            if (xp < 0){
+                xp = 0;
+            }
+            xpToLevel = Math.pow(level, 2) + 100; // CHANGE LATER
         }
     }
 
@@ -34,5 +37,13 @@ public class Skill {
             stats.add(statType, level);
         }
         return stats;
+    }
+
+    public void setValue(int amount) {
+        level = amount;
+    }
+
+    public void add(int amount) {
+        level += amount;
     }
 }

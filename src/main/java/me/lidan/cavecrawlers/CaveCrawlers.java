@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers;
 
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.PotionCommands;
+import me.lidan.cavecrawlers.commands.SkillCommand;
 import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
@@ -16,6 +17,7 @@ import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
+import me.lidan.cavecrawlers.skills.SkillType;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -116,9 +118,11 @@ public final class CaveCrawlers extends JavaPlugin {
 
     public void registerCommands(){
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
+        commandHandler.getAutoCompleter().registerParameterSuggestions(SkillType.class, (args, sender, command) -> SkillType.names());
         commandHandler.register(new StatCommand());
         commandHandler.register(new CaveTestCommand(commandHandler));
         commandHandler.register(new PotionCommands());
+        commandHandler.register(new SkillCommand());
     }
 
     public void registerEvents(){

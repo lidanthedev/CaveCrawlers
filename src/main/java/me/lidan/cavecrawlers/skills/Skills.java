@@ -19,7 +19,7 @@ public class Skills {
         }
         for (SkillType type : SkillType.values()) {
             if (!skills.containsKey(type)){
-                skills.put(type, new Skill(type, 1));
+                skills.put(type, new Skill(type, 0));
             }
         }
     }
@@ -28,23 +28,31 @@ public class Skills {
         this(new ArrayList<>());
     }
 
-    public Skill getSkill(SkillType type){
+    public Skill get(SkillType type){
         return skills.get(type);
     }
 
     public void addXp(SkillType type, double amount){
-        getSkill(type).addXp(amount);
+        get(type).addXp(amount);
     }
 
     public void addXp(SkillType type, double amount, double multiplier){
-        getSkill(type).addXp(amount * multiplier);
+        get(type).addXp(amount * multiplier);
     }
 
     public Stats getStats(){
-        Stats stats = new Stats();
+        Stats stats = new Stats(true);
         for (Skill skill : skills.values()) {
             stats.add(skill.getStats());
         }
         return stats;
+    }
+
+    public String toFormatString() {
+        StringBuilder builder = new StringBuilder();
+        for (Skill skill : skills.values()) {
+            builder.append(skill.getType()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
+        }
+        return builder.toString();
     }
 }

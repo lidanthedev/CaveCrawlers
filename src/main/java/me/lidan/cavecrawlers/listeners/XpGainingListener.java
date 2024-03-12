@@ -15,20 +15,16 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemorySection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BrewingStartEvent;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class XpGainingListener implements Listener {
     private static final String DIR_NAME = "skills";
@@ -95,6 +91,7 @@ public class XpGainingListener implements Listener {
         Skill skill = skills.get(skillType);
         skill.addXp(xp);
         String skillName = StringUtils.setTitleCase(skillType.name());
+        skills.tryLevelUp(skillType);
         if (showMessage) {
             String message = ChatColor.DARK_AQUA + "+" + xp + " " + skillName + " (" + Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d + "%)";
             ActionBarManager.getInstance().actionBar(player, message);

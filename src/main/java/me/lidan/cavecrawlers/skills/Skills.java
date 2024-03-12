@@ -1,10 +1,12 @@
 package me.lidan.cavecrawlers.skills;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
-import me.lidan.cavecrawlers.stats.Stat;
-import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -12,6 +14,8 @@ import java.util.*;
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillType, Skill> skills;
+    @Getter @Setter
+    private UUID uuid;
 
     public Skills(List<Skill> skillList){
         this.skills = new HashMap<>();
@@ -39,6 +43,15 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public void addXp(SkillType type, double amount, double multiplier){
         get(type).addXp(amount * multiplier);
+    }
+
+    public void tryLevelUp(SkillType type){
+        Skill skill = get(type);
+        if (skill.levelUp()){
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null)
+                skill.sendLevelUpMessage(player);
+        }
     }
 
     public Stats getStats(){

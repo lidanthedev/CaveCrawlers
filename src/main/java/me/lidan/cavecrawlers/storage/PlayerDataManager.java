@@ -49,6 +49,7 @@ public class PlayerDataManager {
     public PlayerData getPlayerData(UUID uuid){
         if (!uuidPlayerDataMap.containsKey(uuid)){
             PlayerData playerData = loadPlayerData(uuid);
+            playerData.getSkills().setUuid(uuid);
             uuidPlayerDataMap.put(uuid, playerData);
         }
         return uuidPlayerDataMap.get(uuid);

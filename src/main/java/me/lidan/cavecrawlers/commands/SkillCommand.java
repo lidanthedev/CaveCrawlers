@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -68,8 +69,31 @@ public class SkillCommand {
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
 
-    @Subcommand("health")
-    public void health(Player sender){
-        sender.sendMessage("%s/%s".formatted(sender.getHealth(), sender.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+    @Subcommand("test")
+    public void test(Player sender){
+        // save skills to custom config
+        Skills skills = skillsManager.getSkills(sender);
+        CustomConfig config = new CustomConfig("testskill.yml");
+        config.set("skills", skills);
+        config.save();
+        // load skills from custom config
+        Skills loadedSkills = (Skills) config.get("skills");
+        if (loadedSkills == null) {
+            sender.sendMessage("Failed to load skills from config file.");
+            return;
+        }
+        sender.sendMessage(loadedSkills.toFormatString());
+    }
+
+    @Subcommand("testLoad")
+    public void testLoad(Player sender){
+        // load skills from custom config
+        CustomConfig config = new CustomConfig("testskill.yml");
+        Skills loadedSkills = (Skills) config.get("skills");
+        if (loadedSkills == null) {
+            sender.sendMessage("Failed to load skills from config file.");
+            return;
+        }
+        sender.sendMessage(loadedSkills.toFormatString());
     }
 }

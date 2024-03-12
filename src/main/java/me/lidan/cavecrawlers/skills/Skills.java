@@ -3,13 +3,12 @@ package me.lidan.cavecrawlers.skills;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class Skills {
+public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillType, Skill> skills;
 
     public Skills(List<Skill> skillList){
@@ -54,5 +53,35 @@ public class Skills {
             builder.append(skill.getType()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
         }
         return builder.toString();
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        for (SkillType statType : skills.keySet()) {
+            map.put(statType.name(), get(statType));
+        }
+        return map;
+    }
+
+    public static Skills deserialize(Map<String, Object> map){
+        Skills skills = new Skills();
+        for (String key : map.keySet()) {
+            if (key.equals("==")){
+                continue;
+            }
+            Object value = map.get(key);
+            SkillType type = SkillType.valueOf(key);
+            Skill skill = (Skill) value;
+            skills.skills.put(type, skill);
+        }
+        return skills;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Skill> iterator() {
+        return skills.values().iterator();
     }
 }

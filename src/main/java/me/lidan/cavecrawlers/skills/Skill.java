@@ -1,12 +1,9 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Data;
-import lombok.Setter;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -35,6 +32,11 @@ public class Skill implements ConfigurationSerializable {
     public void addXp(double amount){
         xp += amount;
         totalXp += amount;
+        levelUp();
+    }
+
+    private boolean levelUp() {
+        boolean leveled = false;
         while (xp >= xpToLevel && level < 50){
             level++;
             xp -= xpToLevel;
@@ -42,7 +44,9 @@ public class Skill implements ConfigurationSerializable {
                 xp = 0;
             }
             xpToLevel = Math.pow(level, 2) + 100; // CHANGE LATER
+            leveled = true;
         }
+        return leveled;
     }
 
     public Stats getStats(){

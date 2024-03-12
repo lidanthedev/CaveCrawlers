@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StatsManager {
+    public static final int SPEED_LIMIT = 500;
+    public static final int ATTACK_SPEED_LIMIT = 100;
     private final Map<UUID, Stats> statsMap;
     private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
@@ -67,7 +69,7 @@ public class StatsManager {
 
         // speed
         double speed = stats.get(StatType.SPEED).getValue();
-        player.setWalkSpeed((float) (speed/500));
+        player.setWalkSpeed((float) (speed/ SPEED_LIMIT));
 
         // health regen
         double maxHealth = stats.get(StatType.HEALTH).getValue();
@@ -88,7 +90,7 @@ public class StatsManager {
 
     public static void healPlayerPercent(Player player, double percent){
         double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        healPlayer(player, maxHealth/100*percent);
+        healPlayer(player, maxHealth/ ATTACK_SPEED_LIMIT *percent);
     }
 
     public static void healPlayer(Player player, double healthRegen) {
@@ -114,11 +116,11 @@ public class StatsManager {
         // stat limits
         Stat speedStat = stats.get(StatType.SPEED);
         Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
-        if (speedStat.getValue() > 500){
-            speedStat.setValue(500);
+        if (speedStat.getValue() > SPEED_LIMIT){
+            speedStat.setValue(SPEED_LIMIT);
         }
-        if (attackSpeedStat.getValue() > 100){
-            attackSpeedStat.setValue(100);
+        if (attackSpeedStat.getValue() > ATTACK_SPEED_LIMIT){
+            attackSpeedStat.setValue(ATTACK_SPEED_LIMIT);
         }
         StatsCalculateEvent event = new StatsCalculateEvent(player, stats);
         Bukkit.getPluginManager().callEvent(event);

@@ -392,6 +392,13 @@ public class CaveTestCommand {
         new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
     }
 
+    @Subcommand("mining getTargetMat")
+    public void miningGetTargetMat(Player sender){
+        Block targetBlock = sender.getTargetBlock(null, 10);
+        String mat = targetBlock.getType().name();
+        new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
+    }
+
     @Subcommand("mining setHardness")
     public void miningSetHardness(Player sender, int strength, int power){
         Block targetBlock = sender.getTargetBlock(null, 10);

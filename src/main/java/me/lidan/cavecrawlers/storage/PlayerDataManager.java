@@ -28,6 +28,12 @@ public class PlayerDataManager {
         }
     }
 
+    public void saveAll(){
+        for (UUID uuid : uuidPlayerDataMap.keySet()){
+            savePlayerData(uuid);
+        }
+    }
+
     public PlayerData loadPlayerData(UUID player){
         PlayerData playerData = new PlayerData();
         playerData.loadPlayer(player);
@@ -35,7 +41,7 @@ public class PlayerDataManager {
     }
 
     public void savePlayerData(UUID player){
-        PlayerData playerData = new PlayerData();
+        PlayerData playerData = getPlayerData(player);
         playerData.savePlayer(player);
         uuidPlayerDataMap.put(player, playerData);
     }

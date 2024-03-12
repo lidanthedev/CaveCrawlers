@@ -22,6 +22,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.listeners.PotionsListener;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
@@ -136,6 +137,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiPlaceListener());
         registerEvent(new MiningListener());
         registerEvent(new EntityDeathListener());
+        registerEvent(new XpGainingListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
@@ -154,6 +156,7 @@ public final class CaveCrawlers extends JavaPlugin {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
+        PlayerDataManager.getInstance().saveAll();
         killEntities();
     }
 

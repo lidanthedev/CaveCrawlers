@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Subcommand;
 
-import static me.lidan.cavecrawlers.events.PotionsListener.givePot;
+import static me.lidan.cavecrawlers.listeners.PotionsListener.givePot;
 
 @Command({"pot", "potion"})
 public class PotionCommands {

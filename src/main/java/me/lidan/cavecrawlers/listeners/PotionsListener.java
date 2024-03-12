@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.events;
+package me.lidan.cavecrawlers.listeners;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;

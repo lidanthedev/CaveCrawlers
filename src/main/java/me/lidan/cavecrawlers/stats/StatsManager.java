@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -99,6 +100,7 @@ public class StatsManager {
     public Stats calculateStats(Player player) {
         Stats stats = getStats(player);
         Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
+        Stats statsFromSkills = getStatsFromSkills(player);
         double manaAmount = stats.get(StatType.MANA).getValue();
         statsFromEquipment.set(StatType.MANA, manaAmount);
         stats = statsFromEquipment;
@@ -106,6 +108,7 @@ public class StatsManager {
         if (!statsAdder.containsKey(player.getUniqueId())){
             statsAdder.put(player.getUniqueId(), new Stats(true));
         }
+        stats.add(statsFromSkills);
         stats.add(getStatsAdder(player));
 
         // stat limits
@@ -121,6 +124,10 @@ public class StatsManager {
         Bukkit.getPluginManager().callEvent(event);
 
         return stats;
+    }
+
+    private static Stats getStatsFromSkills(Player player) {
+        return SkillsManager.getInstance().getStats(player);
     }
 
     public Stats getStatsFromPlayerEquipment(Player player){

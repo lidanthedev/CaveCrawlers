@@ -4,7 +4,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.skills.SkillsManager;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -127,7 +127,7 @@ public class StatsManager {
     }
 
     private static Stats getStatsFromSkills(Player player) {
-        return SkillsManager.getInstance().getStats(player);
+        return PlayerDataManager.getInstance().getStatsFromSkills(player);
     }
 
     public Stats getStatsFromPlayerEquipment(Player player){

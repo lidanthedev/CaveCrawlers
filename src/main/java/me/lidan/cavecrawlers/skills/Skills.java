@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.skills;
 
+import lombok.ToString;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+@ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillType, Skill> skills;
 

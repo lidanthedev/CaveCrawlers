@@ -18,6 +18,8 @@ import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.storage.PlayerData;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
 import me.lidan.cavecrawlers.utils.VaultUtils;
@@ -409,5 +411,19 @@ public class CaveTestCommand {
     public void dropTest(Player sender){
         config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true)), 1));
         config.save();
+    }
+
+    @Subcommand("data load")
+    public void dataTest(Player sender){
+        PlayerDataManager dataManager = PlayerDataManager.getInstance();
+        PlayerData playerData = dataManager.loadPlayerData(sender.getUniqueId());
+        sender.sendMessage(playerData.toString());
+    }
+
+    @Subcommand("data save")
+    public void dataSave(Player sender){
+        PlayerDataManager dataManager = PlayerDataManager.getInstance();
+        dataManager.savePlayerData(sender.getUniqueId());
+        sender.sendMessage("Saved Player Data!");
     }
 }

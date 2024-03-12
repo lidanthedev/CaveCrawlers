@@ -2,13 +2,10 @@ package me.lidan.cavecrawlers.commands;
 
 import me.lidan.cavecrawlers.skills.SkillType;
 import me.lidan.cavecrawlers.skills.Skills;
-import me.lidan.cavecrawlers.skills.SkillsManager;
-import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Optional;
@@ -21,10 +18,10 @@ import java.util.List;
 @CommandPermission("cavecrawlers.skills")
 public class SkillCommand {
 
-    private final SkillsManager skillsManager;
+    private final PlayerDataManager playerDataManager;
 
     public SkillCommand() {
-        skillsManager = SkillsManager.getInstance();
+        playerDataManager = PlayerDataManager.getInstance();
     }
 
     @Subcommand("list")
@@ -32,7 +29,7 @@ public class SkillCommand {
         if(arg == null) {
             arg = sender;
         }
-        Skills skills = skillsManager.getSkills(arg);
+        Skills skills = playerDataManager.getSkills(arg);
         sender.sendMessage(skills.toFormatString());
     }
 
@@ -41,7 +38,7 @@ public class SkillCommand {
         if(arg == null) {
             arg = sender;
         }
-        Stats stats = skillsManager.getStats(arg);
+        Stats stats = playerDataManager.getStatsFromSkills(arg);
         List<String> lore = stats.toLoreList();
         for (String line : lore) {
             sender.sendMessage(line);
@@ -50,21 +47,21 @@ public class SkillCommand {
 
     @Subcommand("add")
     public void add(Player sender, SkillType type, int amount){
-        Skills skills = skillsManager.getSkills(sender);
+        Skills skills = playerDataManager.getSkills(sender);
         skills.get(type).add(amount);
         sender.sendMessage("add stat %s to %s".formatted(type, amount));
     }
 
     @Subcommand("addxp")
     public void addXp(Player sender, SkillType type, int amount){
-        Skills skills = skillsManager.getSkills(sender);
+        Skills skills = playerDataManager.getSkills(sender);
         skills.addXp(type, amount);
         sender.sendMessage("add xp to %s".formatted(type));
     }
 
     @Subcommand("set")
     public void set(Player sender, SkillType type, int amount){
-        Skills stats = skillsManager.getSkills(sender);
+        Skills stats = playerDataManager.getSkills(sender);
         stats.get(type).setValue(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
@@ -72,7 +69,7 @@ public class SkillCommand {
     @Subcommand("test")
     public void test(Player sender){
         // save skills to custom config
-        Skills skills = skillsManager.getSkills(sender);
+        Skills skills = playerDataManager.getSkills(sender);
         CustomConfig config = new CustomConfig("testskill.yml");
         config.set("skills", skills);
         config.save();

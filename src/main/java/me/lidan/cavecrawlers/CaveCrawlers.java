@@ -19,7 +19,9 @@ import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
+import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillType;
+import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -62,8 +64,9 @@ public final class CaveCrawlers extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("MythicMobs") != null) {
             mythicBukkit = MythicBukkit.inst();
         }
-
         registerSerializer();
+
+        registerConfig();
 
         registerAbilities();
         registerItems();
@@ -79,6 +82,11 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerConfig() {
+        getConfig().options().copyDefaults(true);
+        saveDefaultConfig();
     }
 
     private void registerDrops() {
@@ -97,6 +105,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Drop.class);
         ConfigurationSerialization.registerClass(EntityDrops.class);
         ConfigurationSerialization.registerClass(Cuboid.class);
+        ConfigurationSerialization.registerClass(Skill.class);
+        ConfigurationSerialization.registerClass(Skills.class);
     }
 
     private void registerAbilities() {

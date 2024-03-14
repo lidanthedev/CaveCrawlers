@@ -10,10 +10,13 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Data
 public class Skill implements ConfigurationSerializable {
+    private static final List<Double> xpToLevelList = new ArrayList<>();
     private SkillType type;
     private int level;
     private double xp;
@@ -104,4 +107,6 @@ public class Skill implements ConfigurationSerializable {
                 (double) map.get("totalXp")
         );
     }
+
+
 }

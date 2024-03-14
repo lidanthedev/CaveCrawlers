@@ -12,6 +12,9 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
         name = "papermc-repo"
         url = "https://repo.papermc.io/repository/maven-public/"
     }
@@ -25,6 +28,7 @@ repositories {
         url = uri("https://repo.codemc.io/repository/maven-public/")
     }
     maven { url "https://repo.dmulloy2.net/repository/public/" }
+    maven { url 'https://mvn.lumine.io/repository/maven-public/' }
 }
 
 dependencies {
@@ -39,6 +43,7 @@ dependencies {
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    compileOnly 'io.lumine:Mythic-Dist:5.3.5'
 }
 
 compileJava { // Preserve parameter names in the bytecode
@@ -47,6 +52,7 @@ compileJava { // Preserve parameter names in the bytecode
 
 shadowJar{
     archiveClassifier = null
+    relocate 'revxrsal.commands', 'me.lidan.cavecrawlers.lamp'
 }
 
 jar.enabled = false

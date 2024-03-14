@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.listeners;
 
+import io.lumine.mythic.core.mobs.ActiveMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillType;
@@ -15,11 +16,15 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.BrewEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -30,6 +35,7 @@ public class XpGainingListener implements Listener {
     private static final String DIR_NAME = "skills";
     private File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
     private Map<SkillType, CustomConfig> skillConfigs = new HashMap<>();
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public XpGainingListener() {
         if (!dir.exists()) {
@@ -59,18 +65,6 @@ public class XpGainingListener implements Listener {
         }
     }
 
-    private void tryGiveXp(SkillType skillType, String reason, Material material, Player player) {
-        CustomConfig config = getConfig(skillType);
-        if (!config.contains(reason)){
-            return;
-        }
-        ConfigurationSection map = config.getConfigurationSection(reason);
-        if (map != null && map.contains(material.name())) {
-            double xp = map.getDouble(material.name());
-            giveXp(player, skillType, xp, true);
-        }
-    }
-
     @EventHandler(ignoreCancelled = true)
     public void onBrew(BrewEvent event) {
         Location location = event.getBlock().getLocation();
@@ -84,6 +78,54 @@ public class XpGainingListener implements Listener {
                     }
                     tryGiveXp(SkillType.ALCHEMY, "brew", modifier.getType(), player);
                 });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (event.getEntity().getKiller() == null) {
+            return;
+        }
+        Player player = event.getEntity().getKiller();
+        String reason = "kill";
+        String type = event.getEntityType().name();
+        if (plugin.getMythicBukkit() != null) {
+            ActiveMob activeMob = plugin.getMythicBukkit().getAPIHelper().getMythicMobInstance(event.getEntity());
+            if (activeMob != null) {
+                type = activeMob.getType().getInternalName();
+            }
+        }
+        for (SkillType skillType : skillConfigs.keySet()) {
+            tryGiveXp(skillType, reason, type, player);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerFish(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) {
+            return;
+        }
+        Entity caught = event.getCaught();
+        if (!(caught instanceof Item item)) {
+            return;
+        }
+        Player player = event.getPlayer();
+        tryGiveXp(SkillType.FISHING, "fish", item.getItemStack().getType(), player);
+    }
+
+    private void tryGiveXp(SkillType skillType, String reason, String material, Player player) {
+        CustomConfig config = getConfig(skillType);
+        if (!config.contains(reason)){
+            return;
+        }
+        ConfigurationSection map = config.getConfigurationSection(reason);
+        if (map != null && map.contains(material)) {
+            double xp = map.getDouble(material);
+            giveXp(player, skillType, xp, true);
+        }
+    }
+
+    private void tryGiveXp(SkillType skillType, String reason, Material material, Player player) {
+        tryGiveXp(skillType, reason, material.name(), player);
     }
 
     public void giveXp(Player player, SkillType skillType, double xp, boolean showMessage) {

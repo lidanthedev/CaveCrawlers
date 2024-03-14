@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers;
 
+import io.lumine.mythic.bukkit.MythicBukkit;
+import lombok.Getter;
 import me.lidan.cavecrawlers.commands.CaveTestCommand;
 import me.lidan.cavecrawlers.commands.PotionCommands;
 import me.lidan.cavecrawlers.commands.SkillCommand;
@@ -36,9 +38,11 @@ import revxrsal.commands.bukkit.BukkitCommandHandler;
 
 import java.util.Arrays;
 
+@Getter
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
     private CommandHandler commandHandler;
+    private MythicBukkit mythicBukkit;
 
     @Override
     public void onEnable() {
@@ -54,6 +58,9 @@ public final class CaveCrawlers extends JavaPlugin {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+        if (getServer().getPluginManager().getPlugin("MythicMobs") != null) {
+            mythicBukkit = MythicBukkit.inst();
         }
 
         registerSerializer();

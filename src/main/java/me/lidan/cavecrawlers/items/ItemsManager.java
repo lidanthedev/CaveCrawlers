@@ -109,7 +109,15 @@ public class ItemsManager {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            return buildItem(itemInfo, itemStack.getAmount());
+            ItemStack builtItem = buildItem(itemInfo, itemStack.getAmount());
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (itemMeta == null){
+                return builtItem;
+            }
+            if (itemMeta.hasEnchants()){
+                builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
+            }
+            return builtItem;
         }
         return itemStack;
     }

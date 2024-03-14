@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -16,7 +18,8 @@ import java.util.Map;
 
 @Data
 public class Skill implements ConfigurationSerializable {
-    private static final List<Double> xpToLevelList = new ArrayList<>();
+    @Getter @Setter
+    private static List<Double> xpToLevelList = new ArrayList<>();
     private SkillType type;
     private int level;
     private double xp;
@@ -43,13 +46,13 @@ public class Skill implements ConfigurationSerializable {
 
     public boolean levelUp() {
         boolean leveled = false;
-        while (xp >= xpToLevel && level < 50){
+        while (xp >= xpToLevel && level < xpToLevelList.size()){
             level++;
             xp -= xpToLevel;
             if (xp < 0){
                 xp = 0;
             }
-            xpToLevel = Math.pow(level, 2) + 100; // CHANGE LATER
+            xpToLevel = xpToLevelList.get(level);
             leveled = true;
         }
         return leveled;
@@ -99,14 +102,14 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public static Skill deserialize(Map<String, Object> map) {
-        return new Skill(
+        Skill skill = new Skill(
                 SkillType.valueOf((String) map.get("type")),
-                (int) map.get("level"),
-                (double) map.get("xp"),
-                (double) map.get("xpToLevel"),
+                1,
+                (double) map.get("totalXp"),
+                xpToLevelList.get(0),
                 (double) map.get("totalXp")
         );
+        skill.levelUp();
+        return skill;
     }
-
-
 }

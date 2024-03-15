@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import me.lidan.cavecrawlers.gui.SkillsGui;
 import me.lidan.cavecrawlers.skills.SkillType;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -92,5 +93,10 @@ public class SkillCommand {
             return;
         }
         sender.sendMessage(loadedSkills.toFormatString());
+    }
+
+    @Subcommand("gui")
+    public void openGui(Player sender){
+        new SkillsGui(sender).open();
     }
 }

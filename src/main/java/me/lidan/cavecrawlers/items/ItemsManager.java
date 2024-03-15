@@ -2,12 +2,14 @@ package me.lidan.cavecrawlers.items;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -20,9 +22,11 @@ import java.util.*;
 public class ItemsManager {
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
+    private final ConfigurationSection vanillaConversion;
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
+        vanillaConversion = CaveCrawlers.getInstance().getConfig().getConfigurationSection("vanilla-convert");
     }
 
     public void registerItem(String ID, ItemInfo info){
@@ -97,7 +101,11 @@ public class ItemsManager {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            return ItemNbt.getString(itemStack, "ITEM_ID");
+            String itemId = ItemNbt.getString(itemStack, "ITEM_ID");
+            if (itemId == null){
+                return vanillaConversion.getString(itemStack.getType().name());
+            }
+            return itemId;
         } catch (NullPointerException nullPointerException) {
             return "";
         }

@@ -157,6 +157,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new MiningListener());
         registerEvent(new EntityDeathListener());
         registerEvent(new XpGainingListener());
+        registerEvent(new MenuItemListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

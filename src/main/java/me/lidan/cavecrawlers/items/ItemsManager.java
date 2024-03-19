@@ -44,6 +44,9 @@ public class ItemsManager {
 
     public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
+        if (infoList == null){
+            return ItemBuilder.from(info.getBaseItem().clone()).amount(amount).build();
+        }
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
 
@@ -59,8 +62,20 @@ public class ItemsManager {
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
+        if (ID == null){
+            return null;
+        }
+
+        if (ID.startsWith("VANILLA-")){
+            Material material = Material.getMaterial(ID.replace("VANILLA-", ""));
+            if (material == null){
+                return null;
+            }
+            return new VanillaItemInfo(material);
+        }
+
         ItemInfo itemInfo = itemsMap.get(ID);
-        if (ID != null && itemInfo == null && !ID.isEmpty()){
+        if (itemInfo == null && !ID.isEmpty()){
             throw new IllegalArgumentException("Item with ID " + ID + " doesn't exist!");
         }
         return itemInfo;

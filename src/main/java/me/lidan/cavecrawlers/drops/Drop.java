@@ -65,7 +65,6 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public void drop(Player player){
-        DropRarity dropRarity = DropRarity.getRarity(chance);
         if (announce)
             sendDropMessage(player);
         ItemsManager itemsManager = ItemsManager.getInstance();

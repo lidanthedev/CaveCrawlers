@@ -2,11 +2,11 @@ package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.stats.Stat;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.listeners.XpGainingListener;
+import me.lidan.cavecrawlers.skills.SkillType;
+import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.CustomConfig;
@@ -77,9 +77,23 @@ public class MiningManager {
         double miningSpeed = stats.get(StatType.MINING_SPEED).getValue();
         double miningPower = stats.get(StatType.MINING_POWER).getValue();
         BlockInfo blockInfo = getBlockInfo(block.getType());
+        ItemType brokenByBlockType = blockInfo.getBrokenBy();
+        ItemInfo heldItem = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
+        if (heldItem == null){
+            return;
+        }
+        ItemType heldItemType = heldItem.getType();
+        ActionBarManager actionBarManager = ActionBarManager.getInstance();
+        if (blockInfo == UNBREAKABLE_BLOCK){
+            return;
+        }
+        if (brokenByBlockType != heldItemType){
+            actionBarManager.actionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            return;
+        }
         if (miningPower < blockInfo.getBlockPower()){
-            if (miningPower != 0 && blockInfo != UNBREAKABLE_BLOCK) {
-                player.sendMessage(ChatColor.RED + "Your Mining Power is too low!");
+            if (miningPower != 0) {
+                actionBarManager.actionBar(player, ChatColor.RED + "Your Mining Power is too low!");
             }
             return;
         }
@@ -98,6 +112,8 @@ public class MiningManager {
         }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
         event.setDropItems(false);
+        XpGainingListener xpGainingListener = XpGainingListener.getInstance();
+        xpGainingListener.tryGiveXp("break", originType, player);
         handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
         handleBlockRegen(block, originType);

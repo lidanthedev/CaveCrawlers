@@ -58,6 +58,9 @@ public class MenuItemListener implements Listener {
 //        player.sendMessage("Slot: " + event.getSlot() + " Click: " + event.getClick() + " Type: " + event.getSlotType() + " Action: " + event.getAction() + " Cursor: " + event.getCursor() + " Current: " + event.getCurrentItem() + " Hotbar: " + event.getHotbarButton() + " RawSlot: " + event.getRawSlot() + " View: " + event.getView());
         if (event.getCurrentItem().getItemMeta().getDisplayName().equals(SERVER_GUIDE_NAME)) {
             event.setCancelled(true);
+            if (event.getSlot() != 8){
+                event.setCurrentItem(null);
+            }
         }
     }
 

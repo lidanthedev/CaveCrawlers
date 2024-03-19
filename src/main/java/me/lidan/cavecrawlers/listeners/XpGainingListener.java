@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
+import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillType;
@@ -33,7 +34,9 @@ import java.util.Map;
 
 public class XpGainingListener implements Listener {
     private static final String DIR_NAME = "skills";
+    private static XpGainingListener instance;
     private File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
+    @Getter
     private Map<SkillType, CustomConfig> skillConfigs = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
@@ -45,6 +48,7 @@ public class XpGainingListener implements Listener {
             File file = new File(dir, name + ".yml");
             skillConfigs.put(SkillType.valueOf(name), new CustomConfig(file));
         }
+        instance = this;
     }
 
     public CustomConfig getConfig(SkillType type) {
@@ -60,9 +64,7 @@ public class XpGainingListener implements Listener {
             return;
         }
         String reason = "break";
-        for (SkillType skillType : skillConfigs.keySet()) {
-            tryGiveXp(skillType, reason, material, player);
-        }
+        tryGiveXp(reason, material, player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -76,7 +78,7 @@ public class XpGainingListener implements Listener {
                     if (modifier == null) {
                         return;
                     }
-                    tryGiveXp(SkillType.ALCHEMY, "brew", modifier.getType(), player);
+                    tryGiveXp("brew", modifier.getType(), player);
                 });
     }
 
@@ -94,9 +96,8 @@ public class XpGainingListener implements Listener {
                 type = activeMob.getType().getInternalName();
             }
         }
-        for (SkillType skillType : skillConfigs.keySet()) {
-            tryGiveXp(skillType, reason, type, player);
-        }
+        tryGiveXp(reason, type, player);
+
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -109,10 +110,10 @@ public class XpGainingListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
-        tryGiveXp(SkillType.FISHING, "fish", item.getItemStack().getType(), player);
+        tryGiveXp("fish", item.getItemStack().getType(), player);
     }
 
-    private void tryGiveXp(SkillType skillType, String reason, String material, Player player) {
+    public void tryGiveXp(SkillType skillType, String reason, String material, Player player) {
         CustomConfig config = getConfig(skillType);
         if (!config.contains(reason)){
             return;
@@ -124,8 +125,18 @@ public class XpGainingListener implements Listener {
         }
     }
 
-    private void tryGiveXp(SkillType skillType, String reason, Material material, Player player) {
+    public void tryGiveXp(SkillType skillType, String reason, Material material, Player player) {
         tryGiveXp(skillType, reason, material.name(), player);
+    }
+
+    public void tryGiveXp(String reason, String material, Player player) {
+        for (SkillType skillType : skillConfigs.keySet()) {
+            tryGiveXp(skillType, reason, material, player);
+        }
+    }
+
+    public void tryGiveXp(String reason, Material material, Player player) {
+        tryGiveXp(reason, material.name(), player);
     }
 
     public void giveXp(Player player, SkillType skillType, double xp, boolean showMessage) {
@@ -139,5 +150,12 @@ public class XpGainingListener implements Listener {
             ActionBarManager.getInstance().actionBar(player, message);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }
+    }
+
+    public static XpGainingListener getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("XpGainingListener has not been initialized yet!");
+        }
+        return instance;
     }
 }

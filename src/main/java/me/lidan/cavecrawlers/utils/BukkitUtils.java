@@ -1,8 +1,11 @@
 package me.lidan.cavecrawlers.utils;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -41,5 +44,29 @@ public class BukkitUtils {
             }
         }
         return blocks;
+    }
+
+    public static boolean isSolid(Block b) {
+        Material t = b.getType();
+        return t.isSolid();
+    }
+
+    public static void teleportForward(Player player, double blocks) {
+        int tp = 0;
+        player.teleport(player.getLocation().add(0, 1, 0));
+        Location l = player.getLocation().clone();
+        for (int i = 0; i <= blocks; i++) {
+            l.add(player.getLocation().getDirection().multiply(1)).getBlock();
+            if (!isSolid(l.getBlock()) && !isSolid(l.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
+                tp++;
+            } else {
+                player.sendMessage(ChatColor.RED + "There is a block there!");
+                break;
+            }
+        }
+        if (tp != 0) {
+            l = player.getLocation().clone().add(player.getLocation().getDirection().multiply(tp));
+            player.teleport(l);
+        }
     }
 }

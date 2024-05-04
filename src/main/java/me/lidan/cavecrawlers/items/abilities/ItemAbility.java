@@ -27,10 +27,10 @@ public abstract class ItemAbility {
         this.name = name;
         this.description = description;
         this.cost = cost;
-        this.cooldown = cooldown;
         if (cooldown < 50){
-            throw new IllegalArgumentException("cooldown must be at least 50ms");
+            cooldown = 50;
         }
+        this.cooldown = cooldown;
         this.abilityCooldown = new Cooldown<>();
     }
 

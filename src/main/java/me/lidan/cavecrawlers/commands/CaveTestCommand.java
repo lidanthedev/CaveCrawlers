@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -20,30 +21,29 @@ import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.JsonMessage;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 
 @Command({"cavetest", "ct"})
@@ -443,26 +443,52 @@ public class CaveTestCommand {
     public void killTarget(Player sender, @Default("1") int amount){
         // kill the entity the sender is looking at
         for (int i = 0; i < amount; i++) {
-            Entity entity = getTargetEntity(sender, 20);
+            Entity entity = BukkitUtils.getTargetEntity(sender, 20);
             if (entity != null){
                 entity.remove();
             }
         }
     }
 
-    private static Entity getTargetEntity(LivingEntity sender, int range) {
-        Location location = sender.getEyeLocation();
-        Vector vector = location.getDirection();
-        World world = location.getWorld();
-        for (int i = 0; i < range; i++) {
-            Vector newVector = vector.clone().multiply(i);
-            Location newLocation = location.clone().add(newVector);
-            for (Entity entity : world.getNearbyEntities(newLocation, 0.5, 1, 0.5)) {
-                if (entity != sender){
-                    return entity;
-                }
-            }
-        }
-        return null;
+    @Subcommand("test refAbility")
+    public void testRefAbility(Player sender) throws NoSuchFieldException, IllegalAccessException {
+        BoomAbility boomAbility = new BoomAbility(100, 100);
+        Field baseAbilityDamage = boomAbility.getClass().getDeclaredField("cost");
+        baseAbilityDamage.setAccessible(true);
+        baseAbilityDamage.set(boomAbility, 20.0);
+        plugin.getLogger().info("Ability reflected: " + boomAbility);
     }
+
+    @Subcommand("test griffinGrass")
+    public void testGriffinGrass(Player sender){
+        Location pos1 = new Location(sender.getWorld(), -88,88,148);
+        Location pos2 = new Location(sender.getWorld(), 230,88,-152);
+
+        Block block = BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> {
+            if (res.getType() == Material.GRASS_BLOCK && res.getRelative(BlockFace.UP).getType() == Material.AIR && res.getRelative(BlockFace.UP, 2).getType() == Material.AIR){
+                return false;
+            }
+            return true;
+        });
+
+        sender.teleport(block.getLocation().add(0.5, 2, 0.5));
+
+        sender.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
+
+        sender.sendMessage("Got: " + block.getLocation() + " With block: " + block.getType());
+    }
+
+    @Subcommand("test griffinCrash")
+    public void testGriffinCrash(Player sender){
+        Location pos1 = new Location(sender.getWorld(), -88,88,148);
+
+        Block block = BukkitUtils.getRandomBlockFilter(pos1,pos1, res -> true);
+
+        sender.teleport(block.getLocation().add(0.5, 2, 0.5));
+
+        sender.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
+
+        sender.sendMessage("Got: " + block.getLocation() + " With block: " + block.getType());
+    }
+
 }

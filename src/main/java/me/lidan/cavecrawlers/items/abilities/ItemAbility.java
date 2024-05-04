@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import lombok.Getter;
+import lombok.ToString;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.*;
@@ -16,7 +17,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public abstract class ItemAbility {
+@ToString
+public abstract class ItemAbility implements Cloneable {
     private final String name;
     private final String description;
     private final double cost;
@@ -82,5 +84,14 @@ public abstract class ItemAbility {
 
     public String getID(){
         return AbilityManager.getInstance().getIDbyAbility(this);
+    }
+
+    @Override
+    public ItemAbility clone() {
+        try {
+            return (ItemAbility) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

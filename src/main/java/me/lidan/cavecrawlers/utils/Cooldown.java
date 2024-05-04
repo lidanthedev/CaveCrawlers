@@ -1,8 +1,11 @@
 package me.lidan.cavecrawlers.utils;
 
+import lombok.ToString;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@ToString
 public class Cooldown<T> {
     private final Map<T, Long> cooldowns = new HashMap<>();
 

@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
@@ -8,6 +9,7 @@ import org.bukkit.event.player.PlayerEvent;
 
 import java.util.List;
 
+@ToString
 public class BoomAbility extends ClickAbility implements Listener {
     private double baseAbilityDamage;
     private double abilityScaling;

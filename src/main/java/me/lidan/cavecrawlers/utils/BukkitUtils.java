@@ -3,15 +3,22 @@ package me.lidan.cavecrawlers.utils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class BukkitUtils {
+
+    public static final int MAX_RETRIES = 100_000;
+
     public static Vector getVector(Entity player, double yawDegrees, double pitchDegrees, double multiplayer) {
         Vector vector = new Vector();
 
@@ -68,5 +75,55 @@ public class BukkitUtils {
             l = player.getLocation().clone().add(player.getLocation().getDirection().multiply(tp));
             player.teleport(l);
         }
+    }
+
+    public static Entity getTargetEntity(LivingEntity sender, int range) {
+        Location location = sender.getEyeLocation();
+        Vector vector = location.getDirection();
+        World world = location.getWorld();
+        for (int i = 0; i < range; i++) {
+            Vector newVector = vector.clone().multiply(i);
+            Location newLocation = location.clone().add(newVector);
+            for (Entity entity : world.getNearbyEntities(newLocation, 0.5, 1, 0.5)) {
+                if (entity != sender){
+                    return entity;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static Block getRandomBlockFilter(Location pos1, Location pos2, Predicate<Block> filter){
+        Block block = null;
+        int c = 0;
+        if (pos1.getWorld() != pos2.getWorld()){
+            throw new IllegalArgumentException("pos1 and pos2 World is not the Sane");
+        }
+
+        do {
+            block = getRandomBlock(pos1, pos2);
+            c++;
+            if (c > MAX_RETRIES){
+                throw new RuntimeException("Max Attempts Reached");
+            }
+        } while (filter.test(block));
+
+        return block;
+    }
+
+    @NotNull
+    public static Block getRandomBlock(Location pos1, Location pos2) {
+        Block block;
+        if (pos1.getWorld() == null){
+            throw new IllegalArgumentException("world is null");
+        }
+
+        int x = new Range(pos1.getBlockX(), pos2.getBlockX()).getRandom();
+        int y = new Range(pos1.getBlockY(), pos2.getBlockY()).getRandom();
+        int z = new Range(pos1.getBlockZ(), pos2.getBlockZ()).getRandom();
+
+        Location res = new Location(pos1.getWorld(), x, y, z);
+        block = pos1.getWorld().getBlockAt(res);
+        return block;
     }
 }

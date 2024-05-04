@@ -24,6 +24,10 @@ public class Range {
         }
     }
 
+    public int getRandom(){
+        return RandomUtils.randomInt(min, max);
+    }
+
     public boolean isInRange(int num){
         return num >= min && num <= max;
     }

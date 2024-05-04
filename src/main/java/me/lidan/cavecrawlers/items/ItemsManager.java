@@ -122,7 +122,7 @@ public class ItemsManager {
             }
             return itemId;
         } catch (NullPointerException nullPointerException) {
-            return "";
+            return null;
         }
     }
 

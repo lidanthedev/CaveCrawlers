@@ -27,12 +27,17 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
@@ -432,5 +437,32 @@ public class CaveTestCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.savePlayerData(sender.getUniqueId());
         sender.sendMessage("Saved Player Data!");
+    }
+
+    @Subcommand("kill target")
+    public void killTarget(Player sender, @Default("1") int amount){
+        // kill the entity the sender is looking at
+        for (int i = 0; i < amount; i++) {
+            Entity entity = getTargetEntity(sender, 20);
+            if (entity != null){
+                entity.remove();
+            }
+        }
+    }
+
+    private static Entity getTargetEntity(LivingEntity sender, int range) {
+        Location location = sender.getEyeLocation();
+        Vector vector = location.getDirection();
+        World world = location.getWorld();
+        for (int i = 0; i < range; i++) {
+            Vector newVector = vector.clone().multiply(i);
+            Location newLocation = location.clone().add(newVector);
+            for (Entity entity : world.getNearbyEntities(newLocation, 0.5, 1, 0.5)) {
+                if (entity != sender){
+                    return entity;
+                }
+            }
+        }
+        return null;
     }
 }

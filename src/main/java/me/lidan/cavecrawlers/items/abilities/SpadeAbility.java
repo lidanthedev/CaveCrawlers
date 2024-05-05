@@ -30,13 +30,11 @@ public class SpadeAbility extends ClickAbility{
             }
             else{
                 Block block = griffinManager.getGriffinBlock(event.getPlayer().getUniqueId());
-                BukkitUtils.getLineBetweenTwoPoints(player.getLocation(), block.getLocation(), 1, loc -> {
+                BukkitUtils.getLineBetweenTwoPoints(player.getEyeLocation(), block.getLocation(), 1, loc -> {
                     player.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
                 });
                 player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
             }
         }
-
-
     }
 }

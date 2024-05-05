@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class BukkitUtils {
@@ -75,6 +76,22 @@ public class BukkitUtils {
             l = player.getLocation().clone().add(player.getLocation().getDirection().multiply(tp));
             player.teleport(l);
         }
+    }
+
+    public static void getLineBetweenTwoPoints(Location point1, Location point2, double space, Consumer<Location> consumer) {
+        double distance = point1.distance(point2);
+        Vector p1 = point1.toVector();
+        Vector p2 = point2.toVector();
+        Vector vector = p2.clone().subtract(p1).normalize().multiply(space);
+        for (double i = 0; i < distance; i += space) {
+            Location loc = p1.clone().add(vector.clone().multiply(i)).toLocation(point1.getWorld());
+            consumer.accept(loc);
+        }
+    }
+
+    public static void getLineWithVector(Location start, Vector vector, double space, Consumer<Location> consumer) {
+        Location finish = start.clone().add(vector);
+        getLineBetweenTwoPoints(start, finish, space, consumer);
     }
 
     public static Entity getTargetEntity(LivingEntity sender, int range) {

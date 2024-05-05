@@ -125,6 +125,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));
+        abilityManager.registerAbility("SPADE", new SpadeAbility());
     }
 
     public void registerItems() {

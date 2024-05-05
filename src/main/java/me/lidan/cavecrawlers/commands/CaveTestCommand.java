@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -54,6 +55,7 @@ public class CaveTestCommand {
     private final ItemsManager itemsManager;
     private final StatsManager statsManager;
     private final MiningManager miningManager;
+    private final GriffinManager griffinManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -65,6 +67,7 @@ public class CaveTestCommand {
         this.itemsManager = ItemsManager.getInstance();
         this.statsManager = StatsManager.getInstance();
         this.miningManager = MiningManager.getInstance();
+        this.griffinManager = GriffinManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -461,15 +464,7 @@ public class CaveTestCommand {
 
     @Subcommand("test griffinGrass")
     public void testGriffinGrass(Player sender){
-        Location pos1 = new Location(sender.getWorld(), -88,88,148);
-        Location pos2 = new Location(sender.getWorld(), 230,88,-152);
-
-        Block block = BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> {
-            if (res.getType() == Material.GRASS_BLOCK && res.getRelative(BlockFace.UP).getType() == Material.AIR && res.getRelative(BlockFace.UP, 2).getType() == Material.AIR){
-                return false;
-            }
-            return true;
-        });
+        Block block = griffinManager.generateGriffinLocation();
 
         sender.teleport(block.getLocation().add(0.5, 2, 0.5));
 
@@ -489,6 +484,16 @@ public class CaveTestCommand {
         sender.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
 
         sender.sendMessage("Got: " + block.getLocation() + " With block: " + block.getType());
+    }
+
+    @Subcommand("test line")
+    public void testLine(Player sender){
+        Location pos1 = sender.getEyeLocation();
+        Location pos2 = pos1.clone().add(pos1.getDirection().multiply(50));
+
+        BukkitUtils.getLineBetweenTwoPoints(pos1, pos2, 0.5, loc -> {
+            sender.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
+        });
     }
 
 }

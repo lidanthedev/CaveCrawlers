@@ -15,6 +15,7 @@ import java.util.UUID;
 
 @Data
 public class GriffinManager {
+    public static final int MAX_DISTANCE = 200;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private World world;
@@ -23,22 +24,29 @@ public class GriffinManager {
         world = Bukkit.getWorld("eagleisland");
     }
 
-    public Block getGriffinBlock(UUID player) {
-        if (!griffinMap.containsKey(player)) {
-            griffinMap.put(player, generateGriffinLocation());
+    public Block getGriffinBlock(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        if (!griffinMap.containsKey(playerUUID)) {
+            griffinMap.put(playerUUID, generateGriffinLocation(player));
         }
-        return griffinMap.get(player);
+        return griffinMap.get(playerUUID);
     }
 
-    public void setGriffinBlock(UUID player, Block location) {
-        griffinMap.put(player, location);
+    public void setGriffinBlock(Player player, Block location) {
+        griffinMap.put(player.getUniqueId(), location);
     }
 
-    public Block generateGriffinLocation() {
+    public Block generateGriffinLocation(Player player) {
         Location pos1 = new Location(world, -88,88,148);
         Location pos2 = new Location(world, 230,88,-152);
 
-        return BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> res.getType() != Material.GRASS_BLOCK || res.getRelative(BlockFace.UP).getType() != Material.AIR || res.getRelative(BlockFace.UP, 2).getType() != Material.AIR);
+        int distanceSquared = MAX_DISTANCE * MAX_DISTANCE;
+
+        return BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> {
+            if (player.getLocation().distanceSquared(res.getLocation()) >= distanceSquared) return true;
+
+            return res.getType() != Material.GRASS_BLOCK || res.getRelative(BlockFace.UP).getType() != Material.AIR || res.getRelative(BlockFace.UP, 2).getType() != Material.AIR;
+        });
     }
 
     public void handleGriffinBreak(Player player){

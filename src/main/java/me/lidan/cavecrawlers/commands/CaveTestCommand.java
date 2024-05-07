@@ -464,7 +464,7 @@ public class CaveTestCommand {
 
     @Subcommand("test griffinGrass")
     public void testGriffinGrass(Player sender){
-        Block block = griffinManager.generateGriffinLocation();
+        Block block = griffinManager.generateGriffinLocation(sender);
 
         sender.teleport(block.getLocation().add(0.5, 2, 0.5));
 

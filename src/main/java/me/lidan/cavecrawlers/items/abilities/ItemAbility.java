@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -17,12 +19,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
+@Setter
 @ToString
 public abstract class ItemAbility implements Cloneable {
-    private final String name;
-    private final String description;
-    private final double cost;
-    private final long cooldown;
+    private String name;
+    private String description;
+    private double cost;
+    private long cooldown;
     private final Cooldown<UUID> abilityCooldown;
 
     public ItemAbility(String name, String description, double cost, long cooldown) {
@@ -80,6 +83,24 @@ public abstract class ItemAbility implements Cloneable {
         double cooldownDouble = (double) getCooldown() /1000;
         list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);
         return list;
+    }
+
+    public ItemAbility buildAbilityWithSettings(JsonObject map){
+        ItemAbility ability = clone();
+        if (map.has("name")){
+            ability.name = map.get("name").getAsString();
+        }
+        if (map.has("description")){
+            ability.description = map.get("description").getAsString();
+        }
+        if (map.has("cost")){
+            ability.cost = map.get("cost").getAsDouble();
+        }
+        if (map.has("cooldown")){
+            ability.cooldown = map.get("cooldown").getAsLong();
+        }
+
+        return ability;
     }
 
     public String getID(){

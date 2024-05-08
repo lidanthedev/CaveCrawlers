@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import lombok.ToString;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,9 +10,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 
-@ToString
+@ToString(callSuper = true)
 public abstract class ClickAbility extends ItemAbility implements Listener {
 
     private Action[] allowedActions;
@@ -22,6 +23,22 @@ public abstract class ClickAbility extends ItemAbility implements Listener {
     public ClickAbility(String name, String description, double cost, long cooldown, Action... allowedActions) {
         super(name, description, cost, cooldown);
         this.allowedActions = allowedActions;
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        ClickAbility ability = (ClickAbility) super.buildAbilityWithSettings(map);
+        if (map.has("allowedActions")) {
+            JsonArray actions = map.get("allowedActions").getAsJsonArray();
+            if (actions != null) {
+                Action[] allowedActions = new Action[actions.size()];
+                for (int i = 0; i < actions.size(); i++) {
+                    allowedActions[i] = Action.valueOf(actions.get(i).getAsString());
+                }
+                ability.setAllowedActions(allowedActions);
+            }
+        }
+        return ability;
     }
 
     public void setAllowedActions(Action... allowedActions){

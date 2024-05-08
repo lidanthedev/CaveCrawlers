@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -49,6 +50,24 @@ public class LaserAbility extends ClickAbility implements Listener {
             }
             world.spawnParticle(particle, newLocation, 1, 0,0,0,0);
         }
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        LaserAbility ability = (LaserAbility) this.clone();
+        if (map.has("particle")) {
+            ability.particle = Particle.valueOf(map.get("particle").getAsString());
+        }
+        if (map.has("baseAbilityDamage")) {
+            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
+        }
+        if (map.has("abilityScaling")) {
+            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        if (map.has("range")) {
+            ability.range = map.get("range").getAsInt();
+        }
+        return ability;
     }
 
     @Override

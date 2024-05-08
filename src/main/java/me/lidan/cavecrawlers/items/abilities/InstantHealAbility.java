@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
@@ -38,6 +39,19 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
 
 
         return "Heals you for " + health.getColor() + description;
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        InstantHealAbility ability = (InstantHealAbility) this.clone();
+        if (map.has("healAmount")) {
+            ability.healAmount = map.get("healAmount").getAsDouble();
+        }
+        if (map.has("healPercent")) {
+            ability.healPercent = map.get("healPercent").getAsDouble();
+        }
+        ability.setDescription(getDescription(ability.healAmount, ability.healPercent));
+        return ability;
     }
 
     @Override

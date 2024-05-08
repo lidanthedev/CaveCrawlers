@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import org.bukkit.Particle;
@@ -31,6 +32,18 @@ public class BoomAbility extends ClickAbility implements Listener {
                 calculation.damage(player, mob);
             }
         }
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        BoomAbility ability = (BoomAbility) super.buildAbilityWithSettings(map);
+        if (map.has("baseAbilityDamage")) {
+            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
+        }
+        if (map.has("abilityScaling")) {
+            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        return ability;
     }
 
     @Override

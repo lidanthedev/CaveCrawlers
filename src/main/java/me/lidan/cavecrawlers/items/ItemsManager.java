@@ -76,14 +76,14 @@ public class ItemsManager {
 
         ItemInfo itemInfo = itemsMap.get(ID);
         if (itemInfo == null && !ID.isEmpty()){
-            throw new IllegalArgumentException("Item with ID " + ID + " doesn't exist!");
+            return null;
         }
         return itemInfo;
     }
 
     public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
         String ID = getIDofItemStack(itemStack);
-        if (ID == null){
+        if (ID == null && itemStack != null){
             ItemMeta meta = itemStack.getItemMeta();
             if (meta == null){
                 return null;

@@ -1,5 +1,8 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
@@ -11,7 +14,9 @@ import me.lidan.cavecrawlers.items.ItemExporter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
+import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -39,12 +44,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.*;
 
 @Command({"cavetest", "ct"})
@@ -56,6 +65,7 @@ public class CaveTestCommand {
     private final StatsManager statsManager;
     private final MiningManager miningManager;
     private final GriffinManager griffinManager;
+    private final AbilityManager abilityManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -68,6 +78,7 @@ public class CaveTestCommand {
         this.statsManager = StatsManager.getInstance();
         this.miningManager = MiningManager.getInstance();
         this.griffinManager = GriffinManager.getInstance();
+        this.abilityManager = AbilityManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -494,6 +505,17 @@ public class CaveTestCommand {
         BukkitUtils.getLineBetweenTwoPoints(pos1, pos2, 0.5, loc -> {
             sender.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
         });
+    }
+
+    @Subcommand("ability test")
+    public void abilityTest(Player sender) throws ParseException {
+        SpadeAbility ability = new SpadeAbility();
+        JSONParser parser = new JSONParser();
+        String data = "{\"name\": \"Test\", \"cooldown\": 1000}";
+        JSONObject jo = (JSONObject) parser.parse(data);
+        plugin.getLogger().info("Map: " + jo);
+        SpadeAbility newAbility = (SpadeAbility) ability.buildAbilityWithSettings(jo);
+        plugin.getLogger().info("New Ability: " + newAbility);
     }
 
 }

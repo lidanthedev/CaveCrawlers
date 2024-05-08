@@ -14,15 +14,16 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Getter
 @ToString
 public abstract class ItemAbility implements Cloneable {
-    private final String name;
-    private final String description;
-    private final double cost;
-    private final long cooldown;
+    private String name;
+    private String description;
+    private double cost;
+    private long cooldown;
     private final Cooldown<UUID> abilityCooldown;
 
     public ItemAbility(String name, String description, double cost, long cooldown) {
@@ -80,6 +81,21 @@ public abstract class ItemAbility implements Cloneable {
         double cooldownDouble = (double) getCooldown() /1000;
         list.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + cooldownDouble);
         return list;
+    }
+
+    public ItemAbility buildAbilityWithSettings(Map<String, Object> map){
+        ItemAbility ability = clone();
+        String name = (String) map.getOrDefault("name", this.name);
+        String description = (String) map.getOrDefault("description", this.description);
+        double cost = (double) map.getOrDefault("cost", this.cost);
+        long cooldown = (long) map.getOrDefault("cooldown", this.cooldown);
+
+        ability.name = name;
+        ability.description = description;
+        ability.cost = cost;
+        ability.cooldown = cooldown;
+
+        return ability;
     }
 
     public String getID(){

@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -14,7 +15,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -83,17 +83,20 @@ public abstract class ItemAbility implements Cloneable {
         return list;
     }
 
-    public ItemAbility buildAbilityWithSettings(Map<String, Object> map){
+    public ItemAbility buildAbilityWithSettings(JsonObject map){
         ItemAbility ability = clone();
-        String name = (String) map.getOrDefault("name", this.name);
-        String description = (String) map.getOrDefault("description", this.description);
-        double cost = (double) map.getOrDefault("cost", this.cost);
-        long cooldown = (long) map.getOrDefault("cooldown", this.cooldown);
-
-        ability.name = name;
-        ability.description = description;
-        ability.cost = cost;
-        ability.cooldown = cooldown;
+        if (map.has("name")){
+            ability.name = map.get("name").getAsString();
+        }
+        if (map.has("description")){
+            ability.description = map.get("description").getAsString();
+        }
+        if (map.has("cost")){
+            ability.cost = map.get("cost").getAsDouble();
+        }
+        if (map.has("cooldown")){
+            ability.cooldown = map.get("cooldown").getAsLong();
+        }
 
         return ability;
     }

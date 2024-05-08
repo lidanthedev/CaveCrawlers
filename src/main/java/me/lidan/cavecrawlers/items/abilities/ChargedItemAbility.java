@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.*;
@@ -16,8 +17,8 @@ import java.util.UUID;
 
 @Getter
 public abstract class ChargedItemAbility extends ClickAbility {
-    private final int maxCharges;
-    private final long chargeTime;
+    private int maxCharges;
+    private long chargeTime;
     private final Map<UUID, Integer> playerCharges = new HashMap<>();
     private final Cooldown<UUID> chargeCooldown = new Cooldown<>();
 
@@ -81,6 +82,18 @@ public abstract class ChargedItemAbility extends ClickAbility {
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().actionBar(player, msg);
         useAbility(playerEvent);
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        ChargedItemAbility ability = (ChargedItemAbility) super.buildAbilityWithSettings(map);
+        if (map.has("maxCharges")) {
+            ability.maxCharges = map.get("maxCharges").getAsInt();
+        }
+        if (map.has("chargeTime")) {
+            ability.chargeTime = map.get("chargeTime").getAsLong();
+        }
+        return ability;
     }
 
     public void abilityFailedCooldown(Player player){

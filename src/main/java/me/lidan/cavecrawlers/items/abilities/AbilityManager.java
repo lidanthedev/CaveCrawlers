@@ -1,7 +1,13 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.event.Listener;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -10,9 +16,13 @@ import java.util.Map;
 public class AbilityManager {
     private static AbilityManager instance;
     private final Map<String, ItemAbility> abilityMap;
+    private final JSONParser parser = new JSONParser();
+    private final CaveCrawlers plugin;
+
 
     public AbilityManager() {
         this.abilityMap = new HashMap<>();
+        this.plugin = CaveCrawlers.getInstance();
     }
 
     /**
@@ -28,7 +38,36 @@ public class AbilityManager {
     }
 
     public @Nullable ItemAbility getAbilityByID(String ID){
-        return abilityMap.get(ID);
+        if (ID == null){
+            return null;
+        }
+        if (abilityMap.containsKey(ID)){
+            return abilityMap.get(ID);
+        }
+        if (ID.contains("{")){
+            String IDWithoutSettings = ID.substring(0, ID.indexOf("{"));
+            String settings = ID.substring(ID.indexOf("{"));
+            if (abilityMap.containsKey(IDWithoutSettings)){
+                ItemAbility ability = abilityMap.get(IDWithoutSettings);
+                JsonObject jo;
+                try {
+                    jo = (JsonObject) JsonParser.parseString(settings);
+                } catch (JsonSyntaxException e) {
+                    plugin.getLogger().warning("Failed to parse settings for ability: " + ID);
+                    e.printStackTrace();
+                    return null;
+                }
+                plugin.getLogger().info("Building " + IDWithoutSettings + " using settings: " + jo.toString());
+                ItemAbility itemAbility = ability.buildAbilityWithSettings(jo);
+                if (itemAbility == null){
+                    plugin.getLogger().warning("Failed to build ability with settings for ability: " + ID + " Using Default");
+                    return abilityMap.get(IDWithoutSettings);
+                }
+                abilityMap.put(ID, itemAbility);
+                return itemAbility;
+            }
+        }
+        return null;
     }
 
     public @Nullable String getIDbyAbility(ItemAbility ability){

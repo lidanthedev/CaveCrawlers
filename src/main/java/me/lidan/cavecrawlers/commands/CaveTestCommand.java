@@ -508,14 +508,13 @@ public class CaveTestCommand {
     }
 
     @Subcommand("ability test")
-    public void abilityTest(Player sender) throws ParseException {
-        SpadeAbility ability = new SpadeAbility();
-        JSONParser parser = new JSONParser();
-        String data = "{\"name\": \"Test\", \"cooldown\": 1000}";
-        JSONObject jo = (JSONObject) parser.parse(data);
-        plugin.getLogger().info("Map: " + jo);
-        SpadeAbility newAbility = (SpadeAbility) ability.buildAbilityWithSettings(jo);
-        plugin.getLogger().info("New Ability: " + newAbility);
+    public void abilityTest(Player sender, String data) throws ParseException {
+        SpadeAbility ability = (SpadeAbility) abilityManager.getAbilityByID(data);
+        if (ability == null){
+            sender.sendMessage("Ability not found!");
+            return;
+        }
+        plugin.getLogger().info("Ability: " + ability);
     }
 
 }

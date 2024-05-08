@@ -2,10 +2,7 @@ package me.lidan.cavecrawlers;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
-import me.lidan.cavecrawlers.commands.CaveTestCommand;
-import me.lidan.cavecrawlers.commands.PotionCommands;
-import me.lidan.cavecrawlers.commands.SkillCommand;
-import me.lidan.cavecrawlers.commands.StatCommand;
+import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -145,6 +142,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.register(new CaveTestCommand(commandHandler));
         commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
+        commandHandler.register(new GriffinCommand());
     }
 
     public void registerEvents(){

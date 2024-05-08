@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Data
 public class GriffinManager {
-    public static final int MAX_DISTANCE = 200;
+    public static final int MAX_DISTANCE = 100;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private World world;
@@ -27,7 +27,13 @@ public class GriffinManager {
     public Block getGriffinBlock(Player player) {
         UUID playerUUID = player.getUniqueId();
         if (!griffinMap.containsKey(playerUUID)) {
-            griffinMap.put(playerUUID, generateGriffinLocation(player));
+            try{
+                Block block = generateGriffinLocation(player);
+                griffinMap.put(playerUUID, block);
+            }
+            catch (IllegalArgumentException e){
+                return null;
+            }
         }
         return griffinMap.get(playerUUID);
     }
@@ -37,10 +43,18 @@ public class GriffinManager {
     }
 
     public Block generateGriffinLocation(Player player) {
+        return generateGriffinLocation(player, MAX_DISTANCE);
+    }
+
+    public Block generateGriffinLocation(Player player, int distance) {
         Location pos1 = new Location(world, -88,88,148);
         Location pos2 = new Location(world, 230,88,-152);
 
-        int distanceSquared = MAX_DISTANCE * MAX_DISTANCE;
+        if (player.getWorld() != world){
+            throw new IllegalArgumentException("Player is not in the correct world");
+        }
+
+        int distanceSquared = distance * distance;
 
         return BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> {
             if (player.getLocation().distanceSquared(res.getLocation()) >= distanceSquared) return true;

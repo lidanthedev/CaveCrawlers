@@ -1,7 +1,15 @@
 package me.lidan.cavecrawlers.griffin;
 
+import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Data;
+import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
+import me.lidan.cavecrawlers.utils.RandomUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,9 +27,11 @@ public class GriffinManager {
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private World world;
+    private final CaveCrawlers plugin;
 
     private GriffinManager() {
         world = Bukkit.getWorld("eagleisland");
+        plugin = CaveCrawlers.getInstance();
     }
 
     public Block getGriffinBlock(Player player) {
@@ -48,7 +58,7 @@ public class GriffinManager {
 
     public Block generateGriffinLocation(Player player, int distance) {
         Location pos1 = new Location(world, -88,88,148);
-        Location pos2 = new Location(world, 230,88,-152);
+        Location pos2 = new Location(world, 230,64,-152);
 
         if (player.getWorld() != world){
             throw new IllegalArgumentException("Player is not in the correct world");
@@ -63,15 +73,36 @@ public class GriffinManager {
         });
     }
 
-    public void handleGriffinBreak(Player player){
+    public void handleGriffinBreak(Player player, Block block){
         griffinMap.remove(player.getUniqueId());
-        player.sendMessage("Griffin!!!");
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(player.getInventory().getItemInMainHand());
+        if (itemInfo == null){
+            return;
+        }
+        if (!(itemInfo.getAbility() instanceof SpadeAbility)){
+            return;
+        }
+        Rarity rarity = itemInfo.getRarity();
+        if (rarity == Rarity.COMMON){
+            Location loc = block.getLocation().add(0,2,0);
+            try {
+                if (RandomUtils.chanceOf(50)) {
+                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
+                }
+                else{
+                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
+                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
+                }
+            } catch (InvalidMobTypeException e) {
+                plugin.getLogger().severe("Failed to spawn mobs");
+            }
+        }
     }
 
     public void handleGriffinClick(Player player, Block block){
         if (getGriffinBlock(player).equals(block)){
             player.sendBlockChange(block.getLocation(), block.getBlockData());
-            handleGriffinBreak(player);
+            handleGriffinBreak(player, block);
         }
     }
 

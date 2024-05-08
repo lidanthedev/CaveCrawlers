@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
+@Setter
 @ToString
 public abstract class ItemAbility implements Cloneable {
     private String name;

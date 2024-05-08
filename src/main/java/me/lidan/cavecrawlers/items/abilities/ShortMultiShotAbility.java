@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
@@ -57,5 +58,20 @@ public class ShortMultiShotAbility extends ShortBowAbility {
                 yaw = -yaw;
             }
         }
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        ShortMultiShotAbility ability = (ShortMultiShotAbility) this.clone();
+        if (map.has("maxPowerTime")) {
+            ability.maxPowerTime = map.get("maxPowerTime").getAsLong();
+        }
+        if (map.has("maxPower")) {
+            ability.maxPower = map.get("maxPower").getAsDouble();
+        }
+        if (map.has("yawDiff")) {
+            ability.yawDiff = map.get("yawDiff").getAsInt();
+        }
+        return ability;
     }
 }

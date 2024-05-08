@@ -60,11 +60,13 @@ public abstract class ItemAbility implements Cloneable {
     }
 
     public void abilityFailedNoMana(Player player){
-        player.sendMessage(ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost()));
+        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
+        ActionBarManager.getInstance().actionBar(player, msg);
     }
 
     public void abilityFailedCooldown(Player player){
-        player.sendMessage(ChatColor.RED + "Still on cooldown!");
+        String msg = ChatColor.RED + "Still on cooldown!";
+        ActionBarManager.getInstance().actionBar(player, msg);
     }
 
     public boolean hasAbility(ItemStack itemStack){

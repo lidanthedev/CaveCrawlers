@@ -14,27 +14,18 @@ public class SpadeAbility extends ClickAbility{
     GriffinManager griffinManager = GriffinManager.getInstance();
 
     public SpadeAbility() {
-        super("Spade", "Line to gold", 20, 500, Action.LEFT_CLICK_BLOCK, Action.RIGHT_CLICK_BLOCK, Action.RIGHT_CLICK_AIR);
+        super("Spade", "Line to gold", 20, 500);
     }
 
     @Override
     protected void useAbility(PlayerEvent playerEvent) {
         if (playerEvent instanceof PlayerInteractEvent event){
             Player player = event.getPlayer();
-            if (event.getAction() == Action.LEFT_CLICK_BLOCK){
-                Block eventBlock = event.getClickedBlock();
-                if (griffinManager.getGriffinBlock(player).equals(eventBlock)){
-                    player.sendBlockChange(eventBlock.getLocation(), eventBlock.getBlockData());
-                    griffinManager.handleGriffinBreak(player);
-                }
-            }
-            else{
-                Block block = griffinManager.getGriffinBlock(event.getPlayer());
-                BukkitUtils.getLineBetweenTwoPoints(player.getEyeLocation(), block.getLocation(), 1, loc -> {
-                    player.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
-                });
-                player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
-            }
+            Block block = griffinManager.getGriffinBlock(event.getPlayer());
+            BukkitUtils.getLineBetweenTwoPoints(player.getEyeLocation(), block.getLocation(), 1, loc -> {
+                player.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
+            });
+            player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
         }
     }
 }

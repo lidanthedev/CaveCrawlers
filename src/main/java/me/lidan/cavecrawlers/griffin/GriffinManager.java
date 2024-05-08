@@ -54,6 +54,13 @@ public class GriffinManager {
         player.sendMessage("Griffin!!!");
     }
 
+    public void handleGriffinClick(Player player, Block block){
+        if (getGriffinBlock(player).equals(block)){
+            player.sendBlockChange(block.getLocation(), block.getBlockData());
+            handleGriffinBreak(player);
+        }
+    }
+
     public static GriffinManager getInstance() {
         if (instance == null) {
             instance = new GriffinManager();

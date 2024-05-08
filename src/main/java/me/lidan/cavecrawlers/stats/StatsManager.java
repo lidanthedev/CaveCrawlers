@@ -159,7 +159,7 @@ public class StatsManager {
 
     public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot){
         try {
-            ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
+            ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(itemStack);
             if (itemInfo != null) {
                 ItemType type = itemInfo.getType();
                 if (type.getSlot() != slot){
@@ -167,7 +167,9 @@ public class StatsManager {
                 }
                 return itemInfo.getStats();
             }
-        } catch (Exception e) {
+        }
+        catch (IllegalArgumentException ignored){}
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;

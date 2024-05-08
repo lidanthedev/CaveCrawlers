@@ -51,7 +51,7 @@ public class PotionsListener implements Listener {
     }
 
     private static void updateWeapon(ItemStack content) {
-        ItemInfo ID = ItemsManager.getInstance().getItemFromItemStack(content);
+        ItemInfo ID = ItemsManager.getInstance().getItemFromItemStackSafe(content);
         if (ID != null && ID.getType() == ItemType.ALCHEMY_BAG) {
             String chargesStr = ItemNbt.getString(content, "Charges");
             if (chargesStr == null) { // Not really needed anymore

@@ -63,7 +63,7 @@ public class AbilityManager {
                     plugin.getLogger().warning("Failed to build ability with settings for ability: " + ID + " Using Default");
                     return abilityMap.get(IDWithoutSettings);
                 }
-                abilityMap.put(ID, itemAbility);
+                registerAbility(ID, itemAbility);
                 return itemAbility;
             }
         }

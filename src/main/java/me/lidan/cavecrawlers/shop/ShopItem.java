@@ -20,10 +20,10 @@ import java.util.Map;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
-    private final ItemInfo result;
-    private final int resultAmount;
-    private final double price;
-    private final Map<ItemInfo, Integer> itemsMap;
+    private ItemInfo result;
+    private int resultAmount;
+    private double price;
+    private Map<ItemInfo, Integer> itemsMap;
     private ItemsManager itemsManager;
 
     public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> itemsMap) {
@@ -54,7 +54,7 @@ public class ShopItem implements ConfigurationSerializable {
         }
         for (ItemInfo itemInfo : itemsMap.keySet()) {
             int amount = itemsMap.get(itemInfo);
-            String name = itemInfo.getName();
+            String name = itemInfo.getFormattedName();
             list.add(formatName(name, amount));
         }
         list.add("");
@@ -71,7 +71,7 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     @NotNull
-    private String formatName(String name, int amount) {
+    public String formatName(String name, int amount) {
         name += " " + ChatColor.DARK_GRAY + "x" + amount;
         return name;
     }

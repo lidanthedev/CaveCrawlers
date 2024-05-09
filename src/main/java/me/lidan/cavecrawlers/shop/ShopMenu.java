@@ -5,11 +5,14 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import lombok.Data;
 import lombok.Getter;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.utils.JsonMessage;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ public class ShopMenu implements ConfigurationSerializable {
     private String title;
     private List<ShopItem> shopItemList;
     private Gui gui;
+    private String id;
 
     public ShopMenu(String title, List<ShopItem> shopItemList) {
         this.title = title;
@@ -32,9 +36,27 @@ public class ShopMenu implements ConfigurationSerializable {
     public void buildGui(){
         this.gui = Gui.gui().title(Component.text(this.title)).rows(6).disableAllInteractions().create();
         gui.getFiller().fillBorder(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
-        for (ShopItem shopItem : this.shopItemList) {
+        for (int i = 0; i < shopItemList.size(); i++) {
+            ShopItem shopItem = shopItemList.get(i);
+            int slotId = i;
             GuiItem guiItem = ItemBuilder.from(shopItem.toItem()).asGuiItem(event -> {
                 if (event.getWhoClicked() instanceof Player player) {
+                    if (event.getAction() == InventoryAction.CLONE_STACK && player.hasPermission("cavecrawlers.admin")){
+                        JsonMessage message = new JsonMessage();
+                        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
+                        for (ItemInfo itemInfo : itemsMap.keySet()) {
+                            int amount = itemsMap.get(itemInfo);
+                            String suggestion = "/ct shop update " + id + " " + slotId + " " + itemInfo.getID() + " " + amount;
+                            String msg = shopItem.formatName(itemInfo.getFormattedName(), amount) + ChatColor.GOLD + ChatColor.BOLD + " CLICK TO EDIT\n";
+                            message.append(msg).setHoverAsTooltip("Edit").setClickAsSuggestCmd(suggestion).save();
+                        }
+                        String suggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
+                        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + "Click to set Coins").setHoverAsTooltip("Set Coins").setClickAsSuggestCmd(suggestion).save();
+                        suggestion = "/ct shop update " + id + " " + slotId + " ";
+                        message.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " Click to add new ingredient").setHoverAsTooltip("Add").setClickAsSuggestCmd(suggestion).save();
+                        message.send(player);
+                        return;
+                    }
                     boolean buy = shopItem.buy(player);
                     if (!buy) {
                         player.sendMessage(ChatColor.RED + "You don't have the items!");

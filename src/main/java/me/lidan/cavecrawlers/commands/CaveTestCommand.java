@@ -398,6 +398,34 @@ public class CaveTestCommand {
         sender.sendMessage("Shop Created!");
     }
 
+    @Subcommand("shop update")
+    @AutoComplete("@shopID * @itemID *")
+    public void shopUpdate(CommandSender sender, String shopID, int slotID, String ingredientID, int amount){
+        shopManager.updateShop(shopID, slotID, ingredientID, amount);
+        sender.sendMessage("Updated shop!");
+    }
+
+    @Subcommand("shop updateCoins")
+    @AutoComplete("@shopID *")
+    public void shopUpdateCoins(CommandSender sender, String shopID, int slotID, double coins){
+        shopManager.updateShopCoins(shopID, slotID, coins);
+        sender.sendMessage("Updated shop!");
+    }
+
+    @Subcommand("shop remove")
+    @AutoComplete("@shopID *")
+    public void shopRemove(CommandSender sender, String shopID, int slotID){
+        shopManager.removeShop(shopID, slotID);
+        sender.sendMessage("Removed slot from shop!");
+    }
+
+    @Subcommand("shop delete")
+    @AutoComplete("@shopID")
+    public void shopDelete(CommandSender sender, String shopID){
+        shopManager.deleteShop(shopID);
+        sender.sendMessage("Deleted shop!");
+    }
+
     @Subcommand("mining test")
     public void miningTest(CommandSender sender, double miningSpeed, int blockStrength){
         long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);

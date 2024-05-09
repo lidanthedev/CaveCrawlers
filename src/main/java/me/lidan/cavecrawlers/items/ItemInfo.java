@@ -75,6 +75,10 @@ public class ItemInfo implements ConfigurationSerializable {
         return AbilityManager.getInstance().getAbilityByID(abilityID);
     }
 
+    public String getFormattedName(){
+        return rarity.getColor() + name;
+    }
+
     @NotNull
     @Override
     public Map<String, Object> serialize() {

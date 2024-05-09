@@ -1,14 +1,11 @@
 package me.lidan.cavecrawlers.shop;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 
 public class ShopManager {
@@ -17,6 +14,7 @@ public class ShopManager {
     private final Map<String, ShopMenu> menuMap = new HashMap<>();
 
     public void registerMenu(String key, ShopMenu menu) {
+        menu.setId(key);
         menuMap.put(key, menu);
     }
 
@@ -34,6 +32,7 @@ public class ShopManager {
         title = title.replaceAll("_"," ");
 
         ShopMenu shopMenu = new ShopMenu(title, new ArrayList<>());
+        shopMenu.setId(shopID);
         CustomConfig config = getConfig(shopID);
         config.set(shopID, shopMenu);
         config.save();
@@ -89,5 +88,58 @@ public class ShopManager {
             instance = new ShopManager();
         }
         return instance;
+    }
+
+    public void updateShop(String shopID, int slotID, String ingredientID, int amount) {
+        ShopMenu shopMenu = getShop(shopID);
+        assert shopMenu != null;
+        ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
+        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(ingredientID);
+        if (amount == 0){
+            itemsMap.remove(itemInfo);
+        }
+        else {
+            itemsMap.put(itemInfo, amount);
+        }
+        shopMenu.buildGui();
+
+        CustomConfig shopConfig = getConfig(shopID);
+        shopConfig.set(shopID, shopMenu);
+        shopConfig.save();
+    }
+
+    public void updateShopCoins(String shopID, int slotID, double coins) {
+        ShopMenu shopMenu = getShop(shopID);
+        assert shopMenu != null;
+        ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
+        shopItem.setPrice(coins);
+        shopMenu.buildGui();
+
+        CustomConfig shopConfig = getConfig(shopID);
+        shopConfig.set(shopID, shopMenu);
+        shopConfig.save();
+    }
+
+    public void removeShop(String shopID, int slotID) {
+        ShopMenu shopMenu = getShop(shopID);
+        assert shopMenu != null;
+        List<ShopItem> shopItemList = shopMenu.getShopItemList();
+        shopItemList.remove(slotID);
+        shopMenu.buildGui();
+
+        CustomConfig shopConfig = getConfig(shopID);
+        shopConfig.set(shopID, shopMenu);
+        shopConfig.save();
+    }
+
+    public void deleteShop(String shopID){
+        ShopMenu shopMenu = getShop(shopID);
+        assert shopMenu != null;
+        menuMap.remove(shopID);
+
+        CustomConfig shopConfig = getConfig(shopID);
+        shopConfig.set(shopID, null);
+        shopConfig.save();
     }
 }

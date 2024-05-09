@@ -42,19 +42,7 @@ public class ShopMenu implements ConfigurationSerializable {
             GuiItem guiItem = ItemBuilder.from(shopItem.toItem()).asGuiItem(event -> {
                 if (event.getWhoClicked() instanceof Player player) {
                     if (event.getAction() == InventoryAction.CLONE_STACK && player.hasPermission("cavecrawlers.admin")){
-                        JsonMessage message = new JsonMessage();
-                        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
-                        for (ItemInfo itemInfo : itemsMap.keySet()) {
-                            int amount = itemsMap.get(itemInfo);
-                            String suggestion = "/ct shop update " + id + " " + slotId + " " + itemInfo.getID() + " " + amount;
-                            String msg = shopItem.formatName(itemInfo.getFormattedName(), amount) + ChatColor.GOLD + ChatColor.BOLD + " CLICK TO EDIT\n";
-                            message.append(msg).setHoverAsTooltip("Edit").setClickAsSuggestCmd(suggestion).save();
-                        }
-                        String suggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
-                        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + "Click to set Coins").setHoverAsTooltip("Set Coins").setClickAsSuggestCmd(suggestion).save();
-                        suggestion = "/ct shop update " + id + " " + slotId + " ";
-                        message.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " Click to add new ingredient").setHoverAsTooltip("Add").setClickAsSuggestCmd(suggestion).save();
-                        message.send(player);
+                        shopEditor(player, shopItem, slotId);
                         return;
                     }
                     boolean buy = shopItem.buy(player);
@@ -65,6 +53,26 @@ public class ShopMenu implements ConfigurationSerializable {
             });
             gui.addItem(guiItem);
         }
+    }
+
+    public void shopEditor(Player player, ShopItem shopItem, int slotId) {
+        JsonMessage message = new JsonMessage();
+        String s = "Editing item: %s\n".formatted(shopItem.formatName(shopItem.getResult().getFormattedName(), shopItem.getResultAmount()));
+        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + s).save();
+        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
+        for (ItemInfo itemInfo : itemsMap.keySet()) {
+            int amount = itemsMap.get(itemInfo);
+            String suggestion = "/ct shop update " + id + " " + slotId + " " + itemInfo.getID() + " " + amount;
+            String msg = shopItem.formatName(itemInfo.getFormattedName(), amount) + ChatColor.GOLD + ChatColor.BOLD + " CLICK TO EDIT\n";
+            message.append(msg).setHoverAsTooltip("Edit").setClickAsSuggestCmd(suggestion).save();
+        }
+        String suggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
+        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + "Set Coins").setHoverAsTooltip("Set Coins").setClickAsSuggestCmd(suggestion).save();
+        suggestion = "/ct shop update " + id + " " + slotId + " ";
+        message.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " New ingredient").setHoverAsTooltip("Add").setClickAsSuggestCmd(suggestion).save();
+        suggestion = "/ct shop remove " + id + " " + slotId;
+        message.append(ChatColor.RED.toString() + ChatColor.BOLD + " Remove item").setHoverAsTooltip("Remove").setClickAsSuggestCmd(suggestion).save();
+        message.send(player);
     }
 
     public void open(Player player){

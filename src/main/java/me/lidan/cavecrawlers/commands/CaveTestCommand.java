@@ -21,6 +21,7 @@ import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -424,6 +425,15 @@ public class CaveTestCommand {
     public void shopDelete(CommandSender sender, String shopID){
         shopManager.deleteShop(shopID);
         sender.sendMessage("Deleted shop!");
+    }
+
+    @Subcommand("shop edit")
+    @AutoComplete("@shopID *")
+    public void shopEdit(Player sender, String shopID, int slotID){
+        ShopMenu shopMenu = shopManager.getShop(shopID);
+        assert shopMenu != null;
+        ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
+        shopMenu.shopEditor(sender, shopItem, slotID);
     }
 
     @Subcommand("mining test")

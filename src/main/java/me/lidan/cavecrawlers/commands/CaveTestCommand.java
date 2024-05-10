@@ -233,6 +233,7 @@ public class CaveTestCommand {
         new ItemsGui(sender).open();
     }
 
+    // TODO: add these commands
     // item create <id> <material> - create item with Id and material
     //
     //you must hold an item with an already existing id to edit

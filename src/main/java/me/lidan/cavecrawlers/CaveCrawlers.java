@@ -55,6 +55,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
             return Arrays.stream(Sound.values()).map(Enum::name).toList();
         });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
+            return Arrays.stream(Material.values()).map(Enum::name).toList();
+        });
 
         if (!setupEconomy() ) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));

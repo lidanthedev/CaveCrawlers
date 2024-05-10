@@ -10,12 +10,10 @@ import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
-import me.lidan.cavecrawlers.items.ItemExporter;
-import me.lidan.cavecrawlers.items.ItemInfo;
-import me.lidan.cavecrawlers.items.ItemsLoader;
-import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
+import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -25,13 +23,12 @@ import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
+import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
-import me.lidan.cavecrawlers.utils.BukkitUtils;
-import me.lidan.cavecrawlers.utils.CustomConfig;
-import me.lidan.cavecrawlers.utils.JsonMessage;
-import me.lidan.cavecrawlers.utils.VaultUtils;
+import me.lidan.cavecrawlers.utils.*;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -89,6 +86,7 @@ public class CaveTestCommand {
             }
             return Collections.singleton("");
         });
+        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
     }
 
     @NotNull
@@ -193,7 +191,7 @@ public class CaveTestCommand {
         itemGive(sender, sender, ID, amount);
     }
 
-    @Subcommand("item export")
+    @Subcommand("item import")
     @AutoComplete("@handID *")
     public void itemExport(Player sender, String ID){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -233,6 +231,61 @@ public class CaveTestCommand {
     @Subcommand("item browse")
     public void itemBrowse(Player sender){
         new ItemsGui(sender).open();
+    }
+
+    // item create <id> <material> - create item with Id and material
+    //
+    //you must hold an item with an already existing id to edit
+    //item edit stat <stat> <number> - edit held item's stat
+    //item edit ability <ability> - edit held item's  ability
+    //item edit name <name> - edit held item's name
+    //item edit description <description> - edit held item's description
+    //item edit type <type> - edit held item's type
+    //item edit rarity <rarity> - edit held item's rarity
+    //item edit baseItem <material> - edit held item's base item
+
+    @Subcommand("item create")
+    public void itemCreate(Player sender, String ID, Material material){
+        if (itemsManager.getItemByID(ID) != null){
+            sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
+            return;
+        }
+
+        String name = ID.replace("_"," ");
+        name = StringUtils.setTitleCase(name);
+        Stats stats = new Stats(true);
+        ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
+        itemsManager.registerItem(ID, itemInfo);
+        sender.sendMessage("Created Item!");
+    }
+
+    @Subcommand("item edit stat")
+    public void itemEditStat(Player sender, StatType stat, double number){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.getStats().set(stat, number);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Stat!");
+    }
+
+    @Subcommand("item edit ability")
+    @AutoComplete("@abilityID")
+    public void itemEditAbility(Player sender, String abilityId){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setAbilityID(abilityId);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Ability!");
     }
 
     @Subcommand("lores")

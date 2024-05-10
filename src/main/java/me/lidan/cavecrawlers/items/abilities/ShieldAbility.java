@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -95,5 +96,17 @@ public class ShieldAbility extends ClickAbility implements Listener {
     @Override
     public List<String> toList() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        ShieldAbility ability = (ShieldAbility) clone();
+        if (map.has("baseAbilityDamage")){
+            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
+        }
+        if (map.has("abilityScaling")){
+            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        return ability;
     }
 }

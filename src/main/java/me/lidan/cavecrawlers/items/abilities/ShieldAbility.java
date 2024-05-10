@@ -100,7 +100,7 @@ public class ShieldAbility extends ClickAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ShieldAbility ability = (ShieldAbility) clone();
+        ShieldAbility ability = (ShieldAbility) super.buildAbilityWithSettings(map);
         if (map.has("baseAbilityDamage")){
             ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
         }

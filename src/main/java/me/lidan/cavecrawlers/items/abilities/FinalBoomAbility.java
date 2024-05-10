@@ -32,7 +32,7 @@ public class FinalBoomAbility extends ClickAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        FinalBoomAbility ability = (FinalBoomAbility) this.clone();
+        FinalBoomAbility ability = (FinalBoomAbility) super.buildAbilityWithSettings(map);
         if (map.has("damage")) {
             ability.damage = map.get("damage").getAsInt();
         }

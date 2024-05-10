@@ -43,7 +43,7 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        InstantHealAbility ability = (InstantHealAbility) this.clone();
+        InstantHealAbility ability = (InstantHealAbility) super.buildAbilityWithSettings(map);
         if (map.has("healAmount")) {
             ability.healAmount = map.get("healAmount").getAsDouble();
         }

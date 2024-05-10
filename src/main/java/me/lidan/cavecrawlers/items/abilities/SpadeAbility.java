@@ -37,7 +37,7 @@ public class SpadeAbility extends ClickAbility{
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        SpadeAbility ability = (SpadeAbility) this.clone();
+        SpadeAbility ability = (SpadeAbility) super.buildAbilityWithSettings(map);
         if (map.has("range")) {
             ability.range = map.get("range").getAsInt();
         }

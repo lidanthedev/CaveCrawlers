@@ -24,7 +24,7 @@ public class TransmissionAbility extends ClickAbility{
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        TransmissionAbility ability = (TransmissionAbility) this.clone();
+        TransmissionAbility ability = (TransmissionAbility) super.buildAbilityWithSettings(map);
         if (map.has("blocks")) {
             ability.blocks = map.get("blocks").getAsDouble();
         }

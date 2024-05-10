@@ -72,7 +72,7 @@ public class MultiShotAbility extends ItemAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        MultiShotAbility ability = (MultiShotAbility) this.clone();
+        MultiShotAbility ability = (MultiShotAbility) super.buildAbilityWithSettings(map);
         if (map.has("amount")) {
             ability.amount = map.get("amount").getAsInt();
         }

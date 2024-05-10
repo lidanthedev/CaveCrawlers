@@ -54,7 +54,7 @@ public class LaserAbility extends ClickAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        LaserAbility ability = (LaserAbility) this.clone();
+        LaserAbility ability = (LaserAbility) super.buildAbilityWithSettings(map);
         if (map.has("particle")) {
             ability.particle = Particle.valueOf(map.get("particle").getAsString());
         }

@@ -62,7 +62,7 @@ public class ShortMultiShotAbility extends ShortBowAbility {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ShortMultiShotAbility ability = (ShortMultiShotAbility) this.clone();
+        ShortMultiShotAbility ability = (ShortMultiShotAbility) super.buildAbilityWithSettings(map);
         if (map.has("maxPowerTime")) {
             ability.maxPowerTime = map.get("maxPowerTime").getAsLong();
         }

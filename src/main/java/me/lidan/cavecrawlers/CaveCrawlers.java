@@ -2,7 +2,10 @@ package me.lidan.cavecrawlers;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
-import me.lidan.cavecrawlers.commands.*;
+import me.lidan.cavecrawlers.commands.CaveTestCommand;
+import me.lidan.cavecrawlers.commands.PotionCommands;
+import me.lidan.cavecrawlers.commands.SkillCommand;
+import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -118,11 +121,12 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("HURRICANE_SHOT", new MultiShotAbility(5));
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
-        abilityManager.registerAbility("SHIELD_THROW", new ShieldAbility(100, 2));
+        abilityManager.registerAbility("SHIELD_THROW", new ShieldAbility(10000, 2));
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));
         abilityManager.registerAbility("SPADE", new SpadeAbility());
+        abilityManager.registerAbility("GOLDEN_LASER", new GoldenLaserAbility());
     }
 
     public void registerItems() {
@@ -142,7 +146,6 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.register(new CaveTestCommand(commandHandler));
         commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
-        commandHandler.register(new GriffinCommand());
     }
 
     public void registerEvents(){
@@ -158,6 +161,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new EntityDeathListener());
         registerEvent(new XpGainingListener());
         registerEvent(new MenuItemListener());
+        registerEvent(new EntityChangeBlockListener());
         registerEvent(new GriffinListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }

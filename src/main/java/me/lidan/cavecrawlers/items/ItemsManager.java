@@ -152,7 +152,9 @@ public class ItemsManager {
                     continue;
                 }
                 String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-                builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                if (value != null) {
+                    builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                }
             }
             return builtItem;
         }

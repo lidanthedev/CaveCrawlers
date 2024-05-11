@@ -224,7 +224,7 @@ public class CaveTestCommand {
     @Subcommand("item remove-id")
     public void itemRemoveID(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
-        ItemNbt.removeTag(hand, "ITEM_ID");
+        ItemNbt.removeTag(hand, ItemsManager.ITEM_ID);
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
     }
 

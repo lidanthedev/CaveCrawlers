@@ -10,20 +10,24 @@ import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class ItemsManager {
+    public static final String ITEM_ID = "ITEM_ID";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final ConfigurationSection vanillaConversion;
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
@@ -57,7 +61,7 @@ public class ItemsManager {
                 .setLore(lore)
                 .unbreakable()
                 .flags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DYE)
-                .setNbt("ITEM_ID", info.getID())
+                .setNbt(ITEM_ID, info.getID())
                 .amount(amount)
                 .build();
     }
@@ -117,7 +121,7 @@ public class ItemsManager {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            String itemId = ItemNbt.getString(itemStack, "ITEM_ID");
+            String itemId = ItemNbt.getString(itemStack, ITEM_ID);
             if (itemId == null){
                 return vanillaConversion.getString(itemStack.getType().name());
             }
@@ -140,6 +144,15 @@ public class ItemsManager {
             }
             if (itemMeta.hasEnchants()){
                 builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
+            }
+
+            // preserve the custom nbt
+            for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)){
+                    continue;
+                }
+                String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
             }
             return builtItem;
         }

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.event.Listener;
 import org.json.simple.JSONObject;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 public class AbilityManager {
     private static AbilityManager instance;
+    @Getter
     private final Map<String, ItemAbility> abilityMap;
     private final JSONParser parser = new JSONParser();
     private final CaveCrawlers plugin;

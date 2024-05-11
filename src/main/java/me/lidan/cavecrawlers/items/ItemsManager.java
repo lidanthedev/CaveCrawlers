@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -245,6 +246,14 @@ public class ItemsManager {
 
     public void clear(){
         itemsMap.clear();
+    }
+
+    public void setItem(String Id, ItemInfo itemInfo){
+        ItemsLoader loader = ItemsLoader.getInstance();
+        CustomConfig config = loader.getConfig(Id);
+        config.set(Id, itemInfo);
+        config.save();
+        registerItem(Id, itemInfo);
     }
 
     public static ItemsManager getInstance() {

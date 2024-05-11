@@ -84,18 +84,9 @@ public class ShieldAbility extends ClickAbility implements Listener {
         block.setDropItem(false);
     }
 
-    @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-    }
-
     @Override
     public void abilityFailedCooldown(Player player) {
         // silent cooldown
-    }
-
-    @Override
-    public List<String> toList() {
-        return new ArrayList<>();
     }
 
     @Override

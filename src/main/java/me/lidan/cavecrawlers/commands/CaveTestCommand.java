@@ -289,6 +289,76 @@ public class CaveTestCommand {
         sender.sendMessage("Updated Ability!");
     }
 
+    @Subcommand("item edit name")
+    public void itemEditName(Player sender, String name){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setName(name);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Name!");
+    }
+
+    @Subcommand("item edit description")
+    public void itemEditDescription(Player sender, String description){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setDescription(description);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Description!");
+    }
+
+    @Subcommand("item edit type")
+    public void itemEditType(Player sender, ItemType type){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setType(type);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Type!");
+    }
+
+    @Subcommand("item edit rarity")
+    public void itemEditRarity(Player sender, Rarity rarity){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setRarity(rarity);
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Rarity!");
+    }
+
+    @Subcommand("item edit baseItem")
+    public void itemEditBaseItem(Player sender, Material material){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setBaseItem(new ItemStack(material));
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Base Item!");
+    }
+
     @Subcommand("lores")
     public void showLore(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();

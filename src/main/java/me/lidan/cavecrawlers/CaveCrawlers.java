@@ -9,6 +9,8 @@ import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.items.ItemType;
+import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
@@ -57,6 +59,12 @@ public final class CaveCrawlers extends JavaPlugin {
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
             return Arrays.stream(Material.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
+            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
+            return Arrays.stream(Rarity.values()).map(Enum::name).toList();
         });
 
         if (!setupEconomy() ) {

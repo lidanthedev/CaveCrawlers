@@ -49,7 +49,7 @@ public class ShopMenu implements ConfigurationSerializable {
                         shopEditor(player, shopItem, slotId);
                         return;
                     }
-                    if (event.isRightClick() && player.hasPermission("cavecrawlers.portableshop.craft")){
+                    if (event.isRightClick() && player.hasPermission("cavecrawlers.portableshop.auto")){
                         portableShopCraft(player, shopItem, slotId);
                         return;
                     }

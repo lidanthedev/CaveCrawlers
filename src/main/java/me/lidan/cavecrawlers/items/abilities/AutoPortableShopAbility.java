@@ -37,7 +37,7 @@ public class AutoPortableShopAbility extends PortableShopAbility {
     }
 
     public void tryToBuyAutomatically(Player player) {
-        if (!player.hasPermission("cavecrawlers.portableshop.craft")) {
+        if (!player.hasPermission("cavecrawlers.portableshop.auto")) {
             return;
         }
 

@@ -5,10 +5,10 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import lombok.Data;
-import lombok.Getter;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
+import me.lidan.cavecrawlers.items.abilities.AutoPortableShopAbility;
 import me.lidan.cavecrawlers.utils.JsonMessage;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
@@ -63,10 +63,6 @@ public class ShopMenu implements ConfigurationSerializable {
         }
     }
 
-    private void portableShopCraft(Player player, ShopItem shopItem, int slotId) {
-
-    }
-
     public void shopEditor(Player player, ShopItem shopItem, int slotId) {
         JsonMessage message = new JsonMessage();
         String s = "Editing item: %s\n".formatted(shopItem.formatName(shopItem.getResult().getFormattedName(), shopItem.getResultAmount()));
@@ -85,6 +81,7 @@ public class ShopMenu implements ConfigurationSerializable {
         suggestion = "/ct shop remove " + id + " " + slotId;
         message.append(ChatColor.RED.toString() + ChatColor.BOLD + " Remove item").setHoverAsTooltip("Remove").setClickAsSuggestCmd(suggestion).save();
         message.send(player);
+        player.closeInventory();
     }
 
     public void open(Player player){
@@ -99,8 +96,24 @@ public class ShopMenu implements ConfigurationSerializable {
             return;
         }
         if (itemInfo.getAbility() instanceof PortableShopAbility portableShopAbility){
-            ItemNbt.setString(itemStack, PortableShopAbility.PORTABLE_SHOP, id);
+            ItemNbt.setString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID, id);
+            if (ItemNbt.getString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM) != null){
+                ItemNbt.removeTag(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM);
+            }
             player.sendMessage("Portable shop set to " + title);
+        }
+    }
+
+    private void portableShopCraft(Player player, ShopItem shopItem, int slotId) {
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(itemStack);
+        if (itemInfo == null){
+            return;
+        }
+        if (itemInfo.getAbility() instanceof AutoPortableShopAbility portableShopAbility){
+            ItemNbt.setString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM, String.valueOf(slotId));
+            player.sendMessage("Portable shop item set to " + shopItem.getResult().getFormattedName());
+            player.closeInventory();
         }
     }
 

@@ -77,16 +77,18 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean buy(Player player) {
-        if (VaultUtils.getCoins(player) >= price){
-            if (itemsManager.hasItems(player, itemsMap)){
-                VaultUtils.takeCoins(player, price);
-                itemsManager.removeItems(player, itemsMap);
-                ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-                player.getInventory().addItem(itemStack);
-                return true;
-            }
+        if (canBuy(player)){
+            VaultUtils.takeCoins(player, price);
+            itemsManager.removeItems(player, itemsMap);
+            ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
+            player.getInventory().addItem(itemStack);
+            return true;
         }
         return false;
+    }
+
+    public boolean canBuy(Player player) {
+        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, itemsMap);
     }
 
     @NotNull

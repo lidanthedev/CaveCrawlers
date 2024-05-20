@@ -37,6 +37,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
@@ -182,6 +184,9 @@ public final class CaveCrawlers extends JavaPlugin {
     public void startTasks(){
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
+            });
         }, 0, 20);
     }
 

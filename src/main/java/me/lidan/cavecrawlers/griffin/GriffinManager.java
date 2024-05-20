@@ -10,20 +10,30 @@ import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.RandomUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import me.lidan.cavecrawlers.utils.Range;
+import me.lidan.cavecrawlers.utils.VaultUtils;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
 public class GriffinManager {
     public static final int MAX_DISTANCE = 100;
+    public static final Map<Rarity, Integer> RARITY_MOB_CHANCE = Map.of(Rarity.COMMON, 10,
+            Rarity.UNCOMMON, 20,
+            Rarity.RARE, 30,
+            Rarity.EPIC, 40,
+            Rarity.LEGENDARY, 50);
+    public static final Map<Rarity, Range> RARITY_RANGE_MAP = Map.of(Rarity.COMMON, new Range(1000, 5000),
+            Rarity.UNCOMMON, new Range(5000, 10000),
+            Rarity.RARE, new Range(10000, 20000),
+            Rarity.EPIC, new Range(20000, 50000),
+            Rarity.LEGENDARY, new Range(50000, 100000));
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private World world;
@@ -82,20 +92,30 @@ public class GriffinManager {
         if (!(itemInfo.getAbility() instanceof SpadeAbility)){
             return;
         }
+        Location loc = block.getLocation().add(0,2,0);
         Rarity rarity = itemInfo.getRarity();
-        if (rarity == Rarity.COMMON){
-            Location loc = block.getLocation().add(0,2,0);
-            try {
-                if (RandomUtils.chanceOf(50)) {
-                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
+
+        if (RandomUtils.chanceOf(RARITY_MOB_CHANCE.get(rarity))){
+            if (rarity == Rarity.COMMON){
+                try {
+                    if (RandomUtils.chanceOf(50)) {
+                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
+                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
+                    }
+                    else{
+                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
+                    }
+                } catch (InvalidMobTypeException e) {
+                    plugin.getLogger().severe("Failed to spawn mobs");
                 }
-                else{
-                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
-                    plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
-                }
-            } catch (InvalidMobTypeException e) {
-                plugin.getLogger().severe("Failed to spawn mobs");
             }
+        }
+        else{
+            int amount = RARITY_RANGE_MAP.get(rarity).getRandom();
+            VaultUtils.giveCoins(player, amount);
+            String message = ChatColor.GOLD + ChatColor.BOLD.toString() + "GRIFFIN!" + ChatColor.GOLD + " you got %s coins!".formatted(amount);
+            player.sendMessage(message);
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
         }
     }
 

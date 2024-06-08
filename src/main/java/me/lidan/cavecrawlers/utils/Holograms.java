@@ -20,15 +20,15 @@ public class Holograms {
      * @param delay The delay in ticks before the armor stand is removed.
      */
     public static void spawnTempArmorStand(Location location, String text, int delay) {
-        ArmorStand armorStand = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
-
-        armorStand.addScoreboardTag("HologramCaveCrawlers");
-        armorStand.setCustomName(text);
-        armorStand.setCustomNameVisible(true);
-        armorStand.setInvulnerable(true);
-        armorStand.setVisible(false);
-        armorStand.setGravity(false);
-        armorStand.setMarker(true);
+        ArmorStand armorStand = location.getWorld().spawn(location, ArmorStand.class, stand -> {
+            stand.addScoreboardTag("HologramCaveCrawlers");
+            stand.setCustomName(text);
+            stand.setCustomNameVisible(true);
+            stand.setInvulnerable(true);
+            stand.setVisible(false);
+            stand.setGravity(false);
+            stand.setMarker(true);
+        });
 
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }

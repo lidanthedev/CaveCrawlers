@@ -15,9 +15,18 @@ public enum StatType {
     ,DEFENSE("Defense",
             "❈",
             ChatColor.GREEN),
+    MANA("Mana",
+            "✎",
+            ChatColor.AQUA, 100),
+    INTELLIGENCE("Intelligence",
+            "✎",
+            ChatColor.AQUA, 100),
     MAGIC_FIND("Magic Find",
             "✯",
             ChatColor.AQUA, 0, ChatColor.AQUA),
+    SPEED("Speed",
+            "✦",
+            ChatColor.WHITE, 100),
     DAMAGE("Damage", "❁", ChatColor.RED, 0, ChatColor.RED)
     ,STRENGTH("Strength",
             "❁",ChatColor.RED, 0, ChatColor.RED)
@@ -32,16 +41,6 @@ public enum StatType {
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
             ChatColor.RED, 0, ChatColor.RED)
-    ,
-    INTELLIGENCE("Intelligence",
-            "✎",
-            ChatColor.AQUA, 100)
-    ,SPEED("Speed",
-            "✦",
-            ChatColor.WHITE, 100)
-    ,MANA("Mana",
-            "✎",
-            ChatColor.AQUA, 100)
     ,MINING_SPEED("Mining Speed",
             "⸕",
             ChatColor.GOLD, 0, ChatColor.GOLD)

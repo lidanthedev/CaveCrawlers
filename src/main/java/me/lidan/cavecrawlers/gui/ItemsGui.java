@@ -21,7 +21,7 @@ public class ItemsGui  {
     private final Player player;
     private final PaginatedGui gui;
 
-    public ItemsGui(Player player) {
+    public ItemsGui(Player player, String query) {
         this.player = player;
         this.gui = Gui.paginated()
                 .title(Component.text(ChatColor.BLUE + "Items Browser!"))
@@ -39,11 +39,13 @@ public class ItemsGui  {
         Collections.sort(sortedKeys);
         for (String ID : sortedKeys) {
             ItemStack itemStack = itemsManager.buildItem(ID, 1);
-            GuiItem guiItem = ItemBuilder.from(itemStack.clone()).addLore(ChatColor.DARK_GRAY + "ID: " + ID).asGuiItem(event -> {
-                HumanEntity clicked = event.getWhoClicked();
-                clicked.getInventory().addItem(itemStack);
-            });
-            gui.addItem(guiItem);
+            if ((itemStack.hasItemMeta() && itemStack.getItemMeta().getDisplayName().contains(query)) || ID.contains(query)) {
+                GuiItem guiItem = ItemBuilder.from(itemStack.clone()).addLore(ChatColor.DARK_GRAY + "ID: " + ID).asGuiItem(event -> {
+                    HumanEntity clicked = event.getWhoClicked();
+                    clicked.getInventory().addItem(itemStack);
+                });
+                gui.addItem(guiItem);
+            }
         }
         gui.getFiller().fillBottom(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
     }

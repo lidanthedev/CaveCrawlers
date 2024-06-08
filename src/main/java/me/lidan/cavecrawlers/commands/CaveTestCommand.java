@@ -230,8 +230,8 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item browse")
-    public void itemBrowse(Player sender){
-        new ItemsGui(sender).open();
+    public void itemBrowse(Player sender, @Default("") String query){
+        new ItemsGui(sender, query).open();
     }
 
     // TODO: add these commands

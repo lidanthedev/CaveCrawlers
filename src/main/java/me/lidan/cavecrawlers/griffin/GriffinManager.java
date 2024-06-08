@@ -99,8 +99,7 @@ public class GriffinManager {
             if (rarity == Rarity.COMMON){
                 try {
                     if (RandomUtils.chanceOf(50)) {
-                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
-                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes11", loc);
+                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes1", loc);
                     }
                     else{
                         plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);

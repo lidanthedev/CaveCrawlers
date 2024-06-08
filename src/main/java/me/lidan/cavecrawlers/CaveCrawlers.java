@@ -142,6 +142,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("GOLDEN_LASER", new GoldenLaserAbility());
         abilityManager.registerAbility("PORTABLE_SHOP", new PortableShopAbility());
         abilityManager.registerAbility("SUPER_PORTABLE_SHOP", new AutoPortableShopAbility());
+        abilityManager.registerAbility("FREEZE", new FreezeAbility());
     }
 
     public void registerItems() {

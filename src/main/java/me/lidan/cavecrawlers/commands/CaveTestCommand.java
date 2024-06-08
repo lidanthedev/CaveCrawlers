@@ -1,8 +1,5 @@
 package me.lidan.cavecrawlers.commands;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
@@ -13,7 +10,6 @@ import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
-import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -32,7 +28,6 @@ import me.lidan.cavecrawlers.utils.*;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -42,8 +37,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
@@ -51,7 +44,6 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.*;
 
 @Command({"cavetest", "ct"})
@@ -193,12 +185,15 @@ public class CaveTestCommand {
 
     @Subcommand("item import")
     @AutoComplete("@handID *")
-    public void itemExport(Player sender, String ID){
+    public void itemImport(Player sender, String ID){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
 
-        String IDofItem = itemsManager.getIDofItemStack(hand);
-        if (IDofItem != null){
-            sender.sendMessage("ERROR! Item already has ID! remove with /ct item remove-id");
+        ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (oldInfo != null){
+            sender.sendMessage("ERROR! Item already has ID! Changing base item instead");
+            sender.sendMessage("Don't want that? remove with the ID /ct item remove-id");
+            oldInfo.setBaseItem(hand);
+            itemsManager.setItem(oldInfo.getID(), oldInfo);
             return;
         }
 
@@ -207,14 +202,20 @@ public class CaveTestCommand {
             sender.sendMessage("Fill: " + ID);
         }
 
-        ItemExporter exporter = new ItemExporter(hand);
-        ItemInfo itemInfo = exporter.toItemInfo();
-        File file = new File(ItemsLoader.getInstance().getFileDir(), ID + ".yml");
-        CustomConfig customConfig = new CustomConfig(file);
-        customConfig.set(ID, itemInfo);
-        customConfig.save();
+        ItemInfo itemInfo;
+        try {
+            ItemExporter exporter = new ItemExporter(hand);
+            itemInfo = exporter.toItemInfo();
+        }
+        catch (Exception error){
+            sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
+            String name = ID.replace("_"," ");
+            name = StringUtils.setTitleCase(name);
+            Stats stats = new Stats(true);
+            itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, hand, Rarity.COMMON);
+        }
 
-        itemsManager.registerItem(ID, itemInfo);
+        itemsManager.setItem(ID, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
 
@@ -256,7 +257,9 @@ public class CaveTestCommand {
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats(true);
         ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
-        itemsManager.registerItem(ID, itemInfo);
+        itemsManager.setItem(ID, itemInfo);
+        ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
+        sender.getInventory().addItem(itemStack);
         sender.sendMessage("Created Item!");
     }
 

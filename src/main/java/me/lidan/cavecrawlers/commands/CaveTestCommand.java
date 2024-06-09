@@ -269,6 +269,21 @@ public class CaveTestCommand {
         sender.sendMessage("Created Item!");
     }
 
+    @Subcommand("item clone")
+    @AutoComplete("@itemID *")
+    public void itemClone(Player sender, String originId, String Id){
+        ItemInfo itemInfo = itemsManager.getItemByID(originId);
+        if (itemInfo == null){
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+
+        itemsManager.setItem(Id, itemInfo);
+        ItemStack itemStack = itemsManager.buildItem(Id, 1);
+        sender.getInventory().addItem(itemStack);
+        sender.sendMessage("Cloned Item!");
+    }
+
     @Subcommand("item edit stat")
     public void itemEditStat(Player sender, StatType stat, double number){
         ItemStack hand = sender.getEquipment().getItemInMainHand();

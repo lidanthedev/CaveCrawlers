@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
+import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -15,14 +16,12 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaserAbility extends ClickAbility implements Listener {
+public class LaserAbility extends ScalingClickAbility implements Listener {
     private Particle particle;
-    private double baseAbilityDamage;
-    private double abilityScaling;
     private int range;
 
     public LaserAbility(String name, String description, double cost, long cooldown, Particle particle, double baseAbilityDamage, double abilityScaling, int range) {
-        super(name, description, cost, cooldown);
+        super(name, description, cost, cooldown, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
         this.particle = particle;
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;

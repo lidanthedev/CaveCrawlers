@@ -10,6 +10,7 @@ public enum ItemType {
     MATERIAL("Material", ItemSlot.HAND),
     PICKAXE("Pickaxe", ItemSlot.HAND),
     DRILL("Drill", ItemSlot.HAND),
+    WEAPON("Weapon", ItemSlot.HAND),
     SWORD("Sword", ItemSlot.HAND),
     BOW("Bow", ItemSlot.HAND),
     WAND("Wand", ItemSlot.HAND),
@@ -21,6 +22,7 @@ public enum ItemType {
     BOOTS("Boots", ItemSlot.ARMOR),
     ARMOR("Armor", ItemSlot.ARMOR),
     UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
+    OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
 
     ;
 

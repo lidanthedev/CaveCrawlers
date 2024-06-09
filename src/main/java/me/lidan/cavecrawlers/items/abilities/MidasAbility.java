@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
+import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -14,15 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MidasAbility extends ClickAbility implements Listener {
+public class MidasAbility extends ScalingClickAbility implements Listener {
     public static final String SHIELD_TAG = "Shield";
-    private StatType statToScale;
     private Material material;
-    private double baseAbilityDamage;
-    private double abilityScaling;
 
     public MidasAbility(double baseAbilityDamage, double abilityScaling) {
-        super("Blocks Throw", "Cast a wave of blocks in the direction you are facing! Dealing damage.", 0, 10);
+        super("Blocks Throw", "Cast a wave of blocks in the direction you are facing! Dealing damage.", 0, 10, StatType.DEFENSE, baseAbilityDamage, abilityScaling);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
         material = Material.GOLD_BLOCK;
@@ -41,6 +39,7 @@ public class MidasAbility extends ClickAbility implements Listener {
         AtomicInteger i = new AtomicInteger(0);
         Location locS = loc;
         List<Mob> hitEntityList = new ArrayList<>();
+        AbilityDamage calculation = getDamageCalculation(player);
         Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), bukkitTask -> {
             i.set(i.get()+1);
             Vector newVector = vector.clone().multiply(i.get());
@@ -65,7 +64,6 @@ public class MidasAbility extends ClickAbility implements Listener {
                 if (entity instanceof Mob mob){
                     if (!hitEntityList.contains(mob)) {
                         hitEntityList.add(mob);
-                        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale,false);
                         calculation.damage(player, mob);
                         mob.setVelocity(new Vector(0,0.5,0));
                     }
@@ -93,17 +91,8 @@ public class MidasAbility extends ClickAbility implements Listener {
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
         MidasAbility ability = (MidasAbility) super.buildAbilityWithSettings(map);
-        if (map.has("baseAbilityDamage")){
-            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
-        }
-        if (map.has("abilityScaling")){
-            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
-        }
         if (map.has("material")){
             ability.material = Material.valueOf(map.get("material").getAsString());
-        }
-        if (map.has("statToScale")){
-            ability.statToScale = StatType.valueOf(map.get("statToScale").getAsString());
         }
         return ability;
     }

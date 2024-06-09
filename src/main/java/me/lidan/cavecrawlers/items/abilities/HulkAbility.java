@@ -14,20 +14,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
-public class HulkAbility extends ClickAbility{
+public class HulkAbility extends ScalingClickAbility{
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private Particle particle;
-    private StatType statToScale;
-    private double baseAbilityDamage;
-    private double abilityScaling;
     private double powerY;
     private double radius;
 
     public HulkAbility(StatType statToScale, double baseAbilityDamage, double abilityScaling, double powerY, double radius) {
-        super("Hulk Smash", "Jump up and Smash down", 10, 1000);
-        this.statToScale = statToScale;
-        this.baseAbilityDamage = baseAbilityDamage;
-        this.abilityScaling = abilityScaling;
+        super("Hulk Smash", "Jump up and Smash down", 10, 1000, statToScale, baseAbilityDamage, abilityScaling);
         this.powerY = powerY;
         this.radius = radius;
         particle = Particle.EXPLOSION_HUGE;

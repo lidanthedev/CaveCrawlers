@@ -7,6 +7,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -142,5 +143,23 @@ public class BukkitUtils {
         Location res = new Location(pos1.getWorld(), x, y, z);
         block = pos1.getWorld().getBlockAt(res);
         return block;
+    }
+
+    public static <T extends Entity> List<T> getNearbyEntities(Location target, int radius, Class<? extends Entity> clazz) {
+        List<T> entities = new ArrayList<>();
+        for (Entity entity : target.getWorld().getNearbyEntities(target, radius, radius, radius)) {
+            if (clazz.isInstance(entity)){
+                entities.add((T) entity);
+            }
+        }
+        return entities;
+    }
+
+    public static List<LivingEntity> getNearbyEntities(Location target, int radius) {
+        return getNearbyEntities(target, radius, LivingEntity.class);
+    }
+
+    public static List<Mob> getNearbyMobs(Location target, int radius) {
+        return getNearbyEntities(target, radius, Mob.class);
     }
 }

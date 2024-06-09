@@ -28,7 +28,7 @@ public class SpadeAbility extends ClickAbility{
                 block = griffinManager.generateGriffinLocation(player, range);
                 griffinManager.setGriffinBlock(player, block);
             }
-            BukkitUtils.getLineBetweenTwoPoints(player.getEyeLocation(), block.getLocation(), 1, loc -> {
+            BukkitUtils.getLineBetweenTwoPoints(player.getEyeLocation(), block.getLocation().add(0.5,0.5,0.5), 1, loc -> {
                 player.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
             });
             player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());

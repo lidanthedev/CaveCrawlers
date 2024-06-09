@@ -104,28 +104,6 @@ public class GriffinManager {
         if (rarity == null) return;
 
         grffinDropsMap.get(rarity).drop(player, loc);
-
-//        if (RandomUtils.chanceOf(RARITY_MOB_CHANCE.get(rarity))){
-//            if (rarity == Rarity.COMMON){
-//                try {
-//                    if (RandomUtils.chanceOf(50)) {
-//                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes1", loc);
-//                    }
-//                    else{
-//                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
-//                    }
-//                } catch (InvalidMobTypeException e) {
-//                    plugin.getLogger().severe("Failed to spawn mobs");
-//                }
-//            }
-//        }
-//        else{
-//            int amount = RARITY_RANGE_MAP.get(rarity).getRandom();
-//            VaultUtils.giveCoins(player, amount);
-//            String message = ChatColor.GOLD + ChatColor.BOLD.toString() + "GRIFFIN!" + ChatColor.GOLD + " you got %s coins!".formatted(amount);
-//            player.sendMessage(message);
-//            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-//        }
     }
 
     public void handleGriffinClick(Player player, Block block){

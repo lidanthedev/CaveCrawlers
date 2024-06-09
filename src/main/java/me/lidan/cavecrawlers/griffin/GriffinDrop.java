@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.griffin;
 
 import lombok.Data;
 import lombok.ToString;
+import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -64,14 +65,16 @@ public class GriffinDrop implements ConfigurationSerializable {
     }
 
     private void giveItem(Player player) {
+        int amount = 1;
+        String itemID = value;
         if (value.contains(" ")){
             String[] split = value.split(" ");
+            itemID = split[0];
             Range range = new Range(split[1]);
-            itemsManager.giveItem(player, itemsManager.getItemByID(split[0]), range.getRandom());
+            amount = range.getRandom();
         }
-        else{
-            itemsManager.giveItem(player, itemsManager.getItemByID(value), 1);
-        }
+        Drop drop = new Drop(itemID, amount, chance * 100, true);
+        drop.drop(player);
     }
 
     @NotNull

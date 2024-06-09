@@ -59,6 +59,7 @@ public class Drop implements ConfigurationSerializable {
         if (chance != newDropChance) {
             chanceStr += ChatColor.AQUA + " -> " + newDropChance + "%";
         }
+        player.playSound(player, dropRarity.getSound(), 0.5f, 1);
         String message = dropRarity + itemInfo.getName() + chanceStr;
 
         player.sendMessage(message);

@@ -6,26 +6,27 @@ import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ShieldAbility extends ClickAbility implements Listener {
+public class MidasAbility extends ClickAbility implements Listener {
     public static final String SHIELD_TAG = "Shield";
+    private StatType statToScale;
+    private Material material;
     private double baseAbilityDamage;
     private double abilityScaling;
 
-    public ShieldAbility(double baseAbilityDamage, double abilityScaling) {
-        super("Shield Throw", "Cast a wave of molten gold in the direction you are facing! Dealing damage based on defense", 0, 10);
+    public MidasAbility(double baseAbilityDamage, double abilityScaling) {
+        super("Blocks Throw", "Cast a wave of blocks in the direction you are facing! Dealing damage.", 0, 10);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
+        material = Material.GOLD_BLOCK;
+        statToScale = StatType.DEFENSE;
     }
 
     @Override
@@ -64,7 +65,7 @@ public class ShieldAbility extends ClickAbility implements Listener {
                 if (entity instanceof Mob mob){
                     if (!hitEntityList.contains(mob)) {
                         hitEntityList.add(mob);
-                        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, StatType.DEFENSE,false);
+                        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale,false);
                         calculation.damage(player, mob);
                         mob.setVelocity(new Vector(0,0.5,0));
                     }
@@ -79,7 +80,7 @@ public class ShieldAbility extends ClickAbility implements Listener {
     public void summonFallingBlock(Location loc) {
         World world = loc.getWorld();
         world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0,0,0,0);
-        FallingBlock block = world.spawnFallingBlock(loc, Material.GOLD_BLOCK, (byte) 0);
+        FallingBlock block = world.spawnFallingBlock(loc, material, (byte) 0);
         block.setVelocity(new Vector(0,0.3,0));
         block.setDropItem(false);
     }
@@ -91,12 +92,18 @@ public class ShieldAbility extends ClickAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ShieldAbility ability = (ShieldAbility) super.buildAbilityWithSettings(map);
+        MidasAbility ability = (MidasAbility) super.buildAbilityWithSettings(map);
         if (map.has("baseAbilityDamage")){
             ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
         }
         if (map.has("abilityScaling")){
             ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        if (map.has("material")){
+            ability.material = Material.valueOf(map.get("material").getAsString());
+        }
+        if (map.has("statToScale")){
+            ability.statToScale = StatType.valueOf(map.get("statToScale").getAsString());
         }
         return ability;
     }

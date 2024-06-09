@@ -5,11 +5,15 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.griffin.GriffinDrop;
+import me.lidan.cavecrawlers.griffin.GriffinDrops;
+import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
+import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -672,14 +676,22 @@ public class CaveTestCommand {
         });
     }
 
-    @Subcommand("ability test")
-    public void abilityTest(Player sender, String data) throws ParseException {
-        SpadeAbility ability = (SpadeAbility) abilityManager.getAbilityByID(data);
+    @Subcommand("test ability")
+    public void testAbility(Player sender, String data) throws ParseException {
+        ItemAbility ability = abilityManager.getAbilityByID(data);
         if (ability == null){
             sender.sendMessage("Ability not found!");
             return;
         }
         plugin.getLogger().info("Ability: " + ability);
+    }
+
+    @Subcommand("test griffinConf")
+    public void testGriffinConfig(Player sender){
+        GriffinDrops drops = new GriffinDrops(List.of(new GriffinDrop("mob", 0.5, "MinosHunter1"), new GriffinDrop("mob", 0.3, "SiameseLynxes1"), new GriffinDrop("coins", 0.2, "1000-5000")));
+        CustomConfig customConfig = GriffinLoader.getInstance().getConfig("COMMON");
+        customConfig.set("COMMON", drops);
+        customConfig.save();
     }
 
 }

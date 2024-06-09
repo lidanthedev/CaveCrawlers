@@ -9,6 +9,9 @@ import me.lidan.cavecrawlers.commands.StatCommand;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.griffin.GriffinDrop;
+import me.lidan.cavecrawlers.griffin.GriffinDrops;
+import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.listeners.*;
@@ -86,6 +89,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerShops();
         registerBlocks();
         registerDrops();
+        registerGriffin();
 
         registerCommands();
         registerEvents();
@@ -111,6 +115,10 @@ public final class CaveCrawlers extends JavaPlugin {
         BlockLoader.getInstance().load();
     }
 
+    private void registerGriffin() {
+        GriffinLoader.getInstance().load();
+    }
+
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
@@ -121,6 +129,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Cuboid.class);
         ConfigurationSerialization.registerClass(Skill.class);
         ConfigurationSerialization.registerClass(Skills.class);
+        ConfigurationSerialization.registerClass(GriffinDrop.class);
+        ConfigurationSerialization.registerClass(GriffinDrops.class);
     }
 
     private void registerAbilities() {
@@ -134,7 +144,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("HURRICANE_SHOT", new MultiShotAbility(5));
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
-        abilityManager.registerAbility("SHIELD_THROW", new ShieldAbility(10000, 2));
+        abilityManager.registerAbility("SHIELD_THROW", new MidasAbility(10000, 2));
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));

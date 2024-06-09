@@ -34,6 +34,7 @@ public class GriffinManager {
             Rarity.RARE, new Range(10000, 20000),
             Rarity.EPIC, new Range(20000, 50000),
             Rarity.LEGENDARY, new Range(50000, 100000));
+    public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private World world;
@@ -42,6 +43,11 @@ public class GriffinManager {
     private GriffinManager() {
         world = Bukkit.getWorld("eagleisland");
         plugin = CaveCrawlers.getInstance();
+    }
+
+    public void registerDrop(String name, GriffinDrops drops){
+        grffinDropsMap.put(Rarity.valueOf(name), drops);
+        plugin.getLogger().info("Registered griffin drop for %s as %s".formatted(name, drops));
     }
 
     public Block getGriffinBlock(Player player) {
@@ -95,27 +101,31 @@ public class GriffinManager {
         Location loc = block.getLocation().add(0,2,0);
         Rarity rarity = itemInfo.getRarity();
 
-        if (RandomUtils.chanceOf(RARITY_MOB_CHANCE.get(rarity))){
-            if (rarity == Rarity.COMMON){
-                try {
-                    if (RandomUtils.chanceOf(50)) {
-                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes1", loc);
-                    }
-                    else{
-                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
-                    }
-                } catch (InvalidMobTypeException e) {
-                    plugin.getLogger().severe("Failed to spawn mobs");
-                }
-            }
-        }
-        else{
-            int amount = RARITY_RANGE_MAP.get(rarity).getRandom();
-            VaultUtils.giveCoins(player, amount);
-            String message = ChatColor.GOLD + ChatColor.BOLD.toString() + "GRIFFIN!" + ChatColor.GOLD + " you got %s coins!".formatted(amount);
-            player.sendMessage(message);
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-        }
+        if (rarity == null) return;
+
+        grffinDropsMap.get(rarity).drop(player, loc);
+
+//        if (RandomUtils.chanceOf(RARITY_MOB_CHANCE.get(rarity))){
+//            if (rarity == Rarity.COMMON){
+//                try {
+//                    if (RandomUtils.chanceOf(50)) {
+//                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("SiameseLynxes1", loc);
+//                    }
+//                    else{
+//                        plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("MinosHunter1", loc);
+//                    }
+//                } catch (InvalidMobTypeException e) {
+//                    plugin.getLogger().severe("Failed to spawn mobs");
+//                }
+//            }
+//        }
+//        else{
+//            int amount = RARITY_RANGE_MAP.get(rarity).getRandom();
+//            VaultUtils.giveCoins(player, amount);
+//            String message = ChatColor.GOLD + ChatColor.BOLD.toString() + "GRIFFIN!" + ChatColor.GOLD + " you got %s coins!".formatted(amount);
+//            player.sendMessage(message);
+//            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+//        }
     }
 
     public void handleGriffinClick(Player player, Block block){
@@ -130,5 +140,13 @@ public class GriffinManager {
             instance = new GriffinManager();
         }
         return instance;
+    }
+
+    public void spawnMob(String mob, Location location) {
+        try {
+            plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
+        } catch (InvalidMobTypeException e) {
+            plugin.getLogger().severe("Failed to spawn mobs");
+        }
     }
 }

@@ -153,6 +153,9 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("PORTABLE_SHOP", new PortableShopAbility());
         abilityManager.registerAbility("SUPER_PORTABLE_SHOP", new AutoPortableShopAbility());
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
+        abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
+        abilityManager.registerAbility("HULK", new HulkAbility());
+        abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
     }
 
     public void registerItems() {

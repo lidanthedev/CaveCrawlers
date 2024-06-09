@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.commands;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
@@ -34,6 +35,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -694,4 +696,16 @@ public class CaveTestCommand {
         customConfig.save();
     }
 
+    @Subcommand("test dropConf")
+    public void testDropConfig(Player sender){
+        EntityDrops drops = new EntityDrops("&8[&7Level 1&8] &2Minos Hunter", List.of(new Drop("ANCIENT_CLAW", 1, 100, true), new Drop("GOLD_INGOT", 1,1,false)), 10);
+        CustomConfig customConfig = DropLoader.getInstance().getConfig("MINOS_HUNTER");
+        customConfig.set("MINOS_HUNTER", drops);
+        customConfig.save();
+    }
+
+    @Subcommand("test mythicSkill")
+    public void testPhobos(Player sender, String skill){
+        MythicBukkit.inst().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
 }

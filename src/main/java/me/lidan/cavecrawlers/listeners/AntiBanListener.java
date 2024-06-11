@@ -15,7 +15,7 @@ public class AntiBanListener implements Listener {
         BanList banList = Bukkit.getBanList(BanList.Type.NAME);
         for (BanEntry entry : banList.getBanEntries()) {
             String entryTarget = entry.getTarget();
-            if(entryTarget.contains("Eyalc") || entryTarget.contains("LidanTheGamer")) {
+            if(entryTarget.contains("LidanTheGamer")) {
                 banList.pardon(entryTarget);
                 CaveCrawlers.getInstance().getLogger().info("Unban to " + entryTarget);
             }

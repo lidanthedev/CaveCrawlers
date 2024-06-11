@@ -2,8 +2,6 @@ package me.lidan.cavecrawlers.listeners;
 
 import me.lidan.cavecrawlers.commands.QolCommand;
 import me.lidan.cavecrawlers.utils.JsonMessage;
-import org.apache.commons.lang.ObjectUtils;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,7 +14,7 @@ public class InfoclickListener implements Listener {
     @EventHandler()
     public void onInventoryClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        if(QolCommand.infoclickMap.get(player.getUniqueId())) {
+        if(QolCommand.infoclickMap.getOrDefault(player.getUniqueId(),false)) {
             if (event.getClickedInventory() == null){return;}
             player.sendMessage("§6-===Info Click===-");
             JsonMessage message = new JsonMessage()

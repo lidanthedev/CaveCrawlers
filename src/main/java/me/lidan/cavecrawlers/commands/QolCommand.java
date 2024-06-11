@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.commands;
 
+import me.lidan.cavecrawlers.CaveCrawlers;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -47,6 +49,20 @@ public class QolCommand {
         }
         infoclickMap.put(sender.getUniqueId(), true);
         sender.sendMessage("§4Info click enable");
+    }
+
+
+    /**
+     * this command can a player and right after it unban him
+     * must have permission essentials for ban
+     * @param sender the players that run the command
+     * @param target the first arg of the command and also who gets the ban
+     */
+    @Command({"speedban","sban","quickban","banspeed","banquick"})
+    @CommandPermission("essentials.ban")
+    public void speedban(Player sender,Player target){
+        sender.performCommand("ban %s".formatted(target.getName()));
+        Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), () -> sender.performCommand("unban %s".formatted(target.getName())),2L);
     }
 
 

@@ -94,7 +94,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         StringBuilder str = new StringBuilder();
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
-            str.append(stat.getType().getFormatName()).append(": ").append(stat.getValue());
+            str.append(stat.getType().getFormatName()).append(": ").append(Math.round(stat.getValue() * 100.0f) / 100.0f);
             str.append("\n");
         }
         return str.toString();

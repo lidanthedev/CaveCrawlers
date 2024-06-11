@@ -34,8 +34,7 @@ public class MenuItemListener implements Listener {
         }
         String displayName = event.getItem().getItemMeta().getDisplayName();
         if (displayName.equals(SERVER_GUIDE_NAME)) {
-            String command = "deluxemenu open serverguide_menu " + player.getName();
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            player.performCommand("menu");
         }
     }
 

@@ -76,7 +76,7 @@ public enum StatType {
     }
 
     public String getFormatName(){
-        return color + icon + name;
+        return color + icon + " " + name;
     }
 
     public String getColoredName(){

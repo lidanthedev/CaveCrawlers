@@ -1,41 +1,27 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
+import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
-import me.lidan.cavecrawlers.damage.DamageManager;
-import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
+import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 
 import java.util.List;
 
-public class BoomAbility extends ItemAbility implements Listener {
-    private double baseAbilityDamage;
-    private double abilityScaling;
-
+@ToString
+public class BoomAbility extends ScalingClickAbility implements Listener {
     public BoomAbility(double baseAbilityDamage, double abilityScaling) {
-        super("BOOM BOOM", "Does BOOM", 0, 100);
+        super("BOOM BOOM", "Does BOOM", 0, 100, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
     }
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
-        }
-    }
-
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         player.spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
         AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);

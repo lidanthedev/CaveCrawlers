@@ -9,6 +9,24 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum StatType {
+    HEALTH("Health",
+            "❤",
+            ChatColor.RED, 100)
+    ,DEFENSE("Defense",
+            "❈",
+            ChatColor.GREEN),
+    MANA("Mana",
+            "✎",
+            ChatColor.AQUA, 100),
+    INTELLIGENCE("Intelligence",
+            "✎",
+            ChatColor.AQUA, 100),
+    MAGIC_FIND("Magic Find",
+            "✯",
+            ChatColor.AQUA, 0, ChatColor.AQUA),
+    SPEED("Speed",
+            "✦",
+            ChatColor.WHITE, 100),
     DAMAGE("Damage", "❁", ChatColor.RED, 0, ChatColor.RED)
     ,STRENGTH("Strength",
             "❁",ChatColor.RED, 0, ChatColor.RED)
@@ -19,25 +37,10 @@ public enum StatType {
             "☣",
             ChatColor.BLUE, 0, ChatColor.RED),
     ATTACK_SPEED("Attack Speed", "⚔",
-            ChatColor.YELLOW, 0)
+            ChatColor.YELLOW, 0, ChatColor.YELLOW)
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
             ChatColor.RED, 0, ChatColor.RED)
-    ,HEALTH("Health",
-            "❤",
-            ChatColor.RED, 100)
-    ,DEFENSE("Defense",
-            "❈",
-            ChatColor.GREEN),
-    INTELLIGENCE("Intelligence",
-            "✎",
-            ChatColor.AQUA, 100)
-    ,SPEED("Speed",
-            "✦",
-            ChatColor.WHITE, 100)
-    ,MANA("Mana",
-            "✎",
-            ChatColor.AQUA, 100)
     ,MINING_SPEED("Mining Speed",
             "⸕",
             ChatColor.GOLD, 0, ChatColor.GOLD)
@@ -48,7 +51,7 @@ public enum StatType {
             "⸕",
             ChatColor.GOLD, 0, ChatColor.GOLD),
     MINING_HAMMER("Hammer",
-            "🔨",
+            "⛏",
             ChatColor.GOLD, 0, ChatColor.GOLD);
     private final String name;
     private final String icon;

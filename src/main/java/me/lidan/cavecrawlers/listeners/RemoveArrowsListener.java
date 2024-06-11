@@ -1,6 +1,5 @@
-package me.lidan.cavecrawlers.events;
+package me.lidan.cavecrawlers.listeners;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;

@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.*;
@@ -8,15 +9,16 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public abstract class ChargedItemAbility extends ItemAbility {
-    private final int maxCharges;
-    private final long chargeTime;
+public abstract class ChargedItemAbility extends ClickAbility {
+    private int maxCharges;
+    private long chargeTime;
     private final Map<UUID, Integer> playerCharges = new HashMap<>();
     private final Cooldown<UUID> chargeCooldown = new Cooldown<>();
 
@@ -50,7 +52,8 @@ public abstract class ChargedItemAbility extends ItemAbility {
         playerCharges.put(player.getUniqueId(), charges);
     }
 
-    public void activateAbility(Player player){
+    public void activateAbility(PlayerEvent playerEvent){
+        Player player = playerEvent.getPlayer();
 
         if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < getCooldown()){
             return;
@@ -78,7 +81,19 @@ public abstract class ChargedItemAbility extends ItemAbility {
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(player);
+        useAbility(playerEvent);
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        ChargedItemAbility ability = (ChargedItemAbility) super.buildAbilityWithSettings(map);
+        if (map.has("maxCharges")) {
+            ability.maxCharges = map.get("maxCharges").getAsInt();
+        }
+        if (map.has("chargeTime")) {
+            ability.chargeTime = map.get("chargeTime").getAsLong();
+        }
+        return ability;
     }
 
     public void abilityFailedCooldown(Player player){

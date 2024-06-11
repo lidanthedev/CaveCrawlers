@@ -2,27 +2,36 @@ package me.lidan.cavecrawlers.items;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.utils.CustomConfig;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ItemsManager {
+    public static final String ITEM_ID = "ITEM_ID";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
+    private final ConfigurationSection vanillaConversion;
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public ItemsManager() {
         itemsMap = new HashMap<>();
+        vanillaConversion = CaveCrawlers.getInstance().getConfig().getConfigurationSection("vanilla-convert");
     }
 
     public void registerItem(String ID, ItemInfo info){
@@ -40,6 +49,9 @@ public class ItemsManager {
 
     public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
+        if (infoList == null){
+            return ItemBuilder.from(info.getBaseItem().clone()).amount(amount).build();
+        }
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
 
@@ -48,18 +60,46 @@ public class ItemsManager {
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()
-                .flags(ItemFlag.HIDE_UNBREAKABLE)
-                .setNbt("ITEM_ID", info.getID())
+                .flags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DYE)
+                .setNbt(ITEM_ID, info.getID())
                 .amount(amount)
                 .build();
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
+        if (ID == null){
+            return null;
+        }
+
+        if (ID.startsWith("VANILLA-")){
+            Material material = Material.getMaterial(ID.replace("VANILLA-", ""));
+            if (material == null){
+                return null;
+            }
+            return new VanillaItemInfo(material);
+        }
+
         ItemInfo itemInfo = itemsMap.get(ID);
-        if (ID != null && itemInfo == null && !ID.isEmpty()){
-            throw new IllegalArgumentException("Item with ID " + ID + " doesn't exist!");
+        if (itemInfo == null && !ID.isEmpty()){
+            return null;
         }
         return itemInfo;
+    }
+
+    public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
+        String ID = getIDofItemStack(itemStack);
+        if (ID == null && itemStack != null){
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta == null){
+                return null;
+            }
+            String displayName = meta.getDisplayName();
+            displayName = ChatColor.stripColor(displayName);
+            displayName = displayName.toUpperCase(Locale.ROOT);
+            displayName = displayName.replace(" ", "_");
+            ID = displayName;
+        }
+        return getItemByID(ID);
     }
 
     public @Nullable ItemInfo getItemFromItemStack(ItemStack itemStack){
@@ -81,9 +121,13 @@ public class ItemsManager {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            return ItemNbt.getString(itemStack, "ITEM_ID");
+            String itemId = ItemNbt.getString(itemStack, ITEM_ID);
+            if (itemId == null){
+                return vanillaConversion.getString(itemStack.getType().name());
+            }
+            return itemId;
         } catch (NullPointerException nullPointerException) {
-            return "";
+            return null;
         }
     }
 
@@ -93,7 +137,26 @@ public class ItemsManager {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            return buildItem(itemInfo, itemStack.getAmount());
+            ItemStack builtItem = buildItem(itemInfo, itemStack.getAmount());
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (itemMeta == null){
+                return builtItem;
+            }
+            if (itemMeta.hasEnchants()){
+                builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
+            }
+
+            // preserve the custom nbt
+            for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)){
+                    continue;
+                }
+                String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                if (value != null) {
+                    builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                }
+            }
+            return builtItem;
         }
         return itemStack;
     }
@@ -114,6 +177,46 @@ public class ItemsManager {
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
         }
         return items;
+    }
+
+    public Map<String, Integer> itemMapToStringMap(Map<ItemInfo, Integer> itemsMap){
+        Map<String, Integer> itemIDmap = new HashMap<>();
+        for (ItemInfo itemInfo : itemsMap.keySet()) {
+            int amount = itemsMap.get(itemInfo);
+            itemIDmap.put(itemInfo.getID(), amount);
+        }
+        return itemIDmap;
+    }
+
+    public Map<ItemInfo, Integer> stringMapToItemMap(Map<String, Integer> itemIdMap){
+        Map<ItemInfo, Integer> itemsMap = new HashMap<>();
+
+        for (String itemId : itemIdMap.keySet()) {
+            ItemInfo itemInfo = getItemByID(itemId);
+            int amount = itemIdMap.get(itemId);
+            itemsMap.put(itemInfo, amount);
+        }
+        return itemsMap;
+    }
+
+    public void giveItemStacks(Player player, ItemStack... items){
+        HashMap<Integer, ItemStack> dropItems = player.getInventory().addItem(items);
+        Location location = player.getLocation();
+        for (Integer i : dropItems.keySet()) {
+            ItemStack itemStack = dropItems.get(i);
+            location.getWorld().dropItem(location, itemStack);
+        }
+    }
+
+    public void giveItem(Player player, ItemInfo itemInfo, int amount){
+        giveItemStacks(player, buildItem(itemInfo, amount));
+    }
+
+    public void giveItems(Player player, Map<ItemInfo, Integer> items){
+        for (ItemInfo material : items.keySet()) {
+            int amount = items.get(material);
+            giveItem(player, material, amount);
+        }
     }
 
     public boolean hasItem(Player player, ItemInfo material, int amount) {
@@ -158,6 +261,14 @@ public class ItemsManager {
 
     public void clear(){
         itemsMap.clear();
+    }
+
+    public void setItem(String Id, ItemInfo itemInfo){
+        ItemsLoader loader = ItemsLoader.getInstance();
+        CustomConfig config = loader.getConfig(Id);
+        config.set(Id, itemInfo);
+        config.save();
+        registerItem(Id, itemInfo);
     }
 
     public static ItemsManager getInstance() {

@@ -55,13 +55,28 @@ public class ItemExporter {
         typeStr = ChatColor.stripColor(typeStr);
         typeStr = typeStr.toUpperCase(Locale.ROOT);
         typeStr = typeStr.replace(' ','_');
-        ItemType type = ItemType.valueOf(typeStr);
+        ItemType type = getItemType(typeStr);
         Stats stats = toStats(list.subList(3, list.size() - 1));
         ItemStack baseItem = toBaseItem();
         String rarityLine = list.get(list.size() - 1);
         rarityLine = ChatColor.stripColor(rarityLine);
         Rarity rarity = Rarity.valueOf(rarityLine);
         return new ItemInfo(name, stats, type, baseItem, rarity);
+    }
+
+    public ItemType getItemType(String typeStr){
+        try{
+            return ItemType.valueOf(typeStr);
+        }
+        catch (IllegalArgumentException e){
+            for (ItemType value : ItemType.values()) {
+                String typeName = value.getName().toUpperCase(Locale.ROOT);
+                if (typeStr.equals(typeName)){
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Item type " + typeStr + " doesn't exist!");
+        }
     }
 
     public Stats toStats(List<String> statLines) {
@@ -72,7 +87,9 @@ public class ItemExporter {
             String[] args = line.split(": \\+");
             for (StatType statType : StatType.values()) {
                 String statTypeLine = statType.getName();
-                if (args[0].equals(statTypeLine)){
+                String statLineOnLore = args[0];
+                statLineOnLore = statLineOnLore.replace("Defence", "Defense");
+                if (statLineOnLore.equals(statTypeLine)){
                     double value = Double.parseDouble(args[1]);
                     stats.set(statType, value);
                 }

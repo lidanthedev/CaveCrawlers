@@ -27,7 +27,7 @@ public class ItemInfo implements ConfigurationSerializable {
     private ItemType type;
     private ItemStack baseItem;
     private Rarity rarity;
-    private ItemAbility ability;
+    private String abilityID;
     private String ID;
 
     public ItemInfo(String name,  Stats stats, ItemType type, Material material, Rarity rarity) {
@@ -38,14 +38,14 @@ public class ItemInfo implements ConfigurationSerializable {
         this(name, null, stats, type, baseItem, rarity, null);
     }
 
-    public ItemInfo(String name, String description, Stats stats, ItemType type, ItemStack baseItem, Rarity rarity, ItemAbility ability) {
+    public ItemInfo(String name, String description, Stats stats, ItemType type, ItemStack baseItem, Rarity rarity, String abilityID) {
         this.name = name;
         this.description = description;
         this.stats = stats;
         this.type = type;
         this.baseItem = baseItem;
         this.rarity = rarity;
-        this.ability = ability;
+        this.abilityID = abilityID;
     }
 
     public List<String> toList(){
@@ -62,12 +62,21 @@ public class ItemInfo implements ConfigurationSerializable {
             list.addAll(StringUtils.loreBuilder(description));
             list.add("");
         }
+        ItemAbility ability = getAbility();
         if (ability != null && !ability.toList().isEmpty()) {
             list.addAll(ability.toList());
             list.add("");
         }
         list.add(rarity.getColor().toString() + ChatColor.BOLD + rarity.name());
         return list;
+    }
+
+    public ItemAbility getAbility(){
+        return AbilityManager.getInstance().getAbilityByID(abilityID);
+    }
+
+    public String getFormattedName(){
+        return rarity.getColor() + name;
     }
 
     @NotNull
@@ -80,7 +89,7 @@ public class ItemInfo implements ConfigurationSerializable {
         map.put("type", type.name());
         map.put("baseItem", baseItem);
         map.put("rarity", rarity.name());
-        map.put("ability", ability != null ? ability.getID(): null);
+        map.put("ability", abilityID);
         return map;
     }
 
@@ -99,11 +108,8 @@ public class ItemInfo implements ConfigurationSerializable {
 
         ItemAbility ability = null;
         String abilityID = (String)map.get("ability");
-        if (abilityID != null) {
-            ability = AbilityManager.getInstance().getAbilityByID(abilityID);
-        }
 
-        return new ItemInfo(name, description, stats, type, itemStack, rarity, ability);
+        return new ItemInfo(name, description, stats, type, itemStack, rarity, abilityID);
 
     }
 

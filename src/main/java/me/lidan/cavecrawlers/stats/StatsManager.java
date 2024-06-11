@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -16,6 +17,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class StatsManager {
+    public static final int SPEED_LIMIT = 500;
+    public static final int ATTACK_SPEED_LIMIT = 100;
     private final Map<UUID, Stats> statsMap;
     private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
@@ -66,7 +69,7 @@ public class StatsManager {
 
         // speed
         double speed = stats.get(StatType.SPEED).getValue();
-        player.setWalkSpeed((float) (speed/500));
+        player.setWalkSpeed((float) (speed/ SPEED_LIMIT));
 
         // health regen
         double maxHealth = stats.get(StatType.HEALTH).getValue();
@@ -87,7 +90,7 @@ public class StatsManager {
 
     public static void healPlayerPercent(Player player, double percent){
         double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        healPlayer(player, maxHealth/100*percent);
+        healPlayer(player, maxHealth/ ATTACK_SPEED_LIMIT *percent);
     }
 
     public static void healPlayer(Player player, double healthRegen) {
@@ -99,6 +102,7 @@ public class StatsManager {
     public Stats calculateStats(Player player) {
         Stats stats = getStats(player);
         Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
+        Stats statsFromSkills = getStatsFromSkills(player);
         double manaAmount = stats.get(StatType.MANA).getValue();
         statsFromEquipment.set(StatType.MANA, manaAmount);
         stats = statsFromEquipment;
@@ -106,19 +110,26 @@ public class StatsManager {
         if (!statsAdder.containsKey(player.getUniqueId())){
             statsAdder.put(player.getUniqueId(), new Stats(true));
         }
+        stats.add(statsFromSkills);
         stats.add(getStatsAdder(player));
 
         // stat limits
         Stat speedStat = stats.get(StatType.SPEED);
         Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
-        if (speedStat.getValue() > 500){
-            speedStat.setValue(500);
+        if (speedStat.getValue() > SPEED_LIMIT){
+            speedStat.setValue(SPEED_LIMIT);
         }
-        if (attackSpeedStat.getValue() > 100){
-            attackSpeedStat.setValue(100);
+        if (attackSpeedStat.getValue() > ATTACK_SPEED_LIMIT){
+            attackSpeedStat.setValue(ATTACK_SPEED_LIMIT);
         }
+        StatsCalculateEvent event = new StatsCalculateEvent(player, stats);
+        Bukkit.getPluginManager().callEvent(event);
 
         return stats;
+    }
+
+    private static Stats getStatsFromSkills(Player player) {
+        return PlayerDataManager.getInstance().getStatsFromSkills(player);
     }
 
     public Stats getStatsFromPlayerEquipment(Player player){
@@ -137,13 +148,18 @@ public class StatsManager {
         if (statsFromHand != null)
             stats.add(statsFromHand);
 
+        ItemStack offhand = equipment.getItemInOffHand();
+        Stats statsFromOffHand = getStatsFromItemStack(offhand, ItemSlot.OFF_HAND);
+        if (statsFromOffHand != null)
+            stats.add(statsFromOffHand);
+
         return stats;
 
     }
 
     public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot){
         try {
-            ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
+            ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(itemStack);
             if (itemInfo != null) {
                 ItemType type = itemInfo.getType();
                 if (type.getSlot() != slot){
@@ -151,7 +167,9 @@ public class StatsManager {
                 }
                 return itemInfo.getStats();
             }
-        } catch (Exception e) {
+        }
+        catch (IllegalArgumentException ignored){}
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;

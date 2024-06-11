@@ -1,6 +1,9 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.*;
@@ -8,6 +11,7 @@ import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -15,25 +19,28 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public abstract class ItemAbility {
-    private final String name;
-    private final String description;
-    private final double cost;
-    private final long cooldown;
+@Setter
+@ToString
+public abstract class ItemAbility implements Cloneable {
+    private String name;
+    private String description;
+    private double cost;
+    private long cooldown;
     private final Cooldown<UUID> abilityCooldown;
 
     public ItemAbility(String name, String description, double cost, long cooldown) {
         this.name = name;
         this.description = description;
         this.cost = cost;
-        this.cooldown = cooldown;
         if (cooldown < 50){
-            throw new IllegalArgumentException("cooldown must be at least 50ms");
+            cooldown = 50;
         }
+        this.cooldown = cooldown;
         this.abilityCooldown = new Cooldown<>();
     }
 
-    public void activateAbility(Player player){
+    public void activateAbility(PlayerEvent playerEvent){
+        Player player = playerEvent.getPlayer();
         if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
             abilityFailedCooldown(player);
             return;
@@ -49,15 +56,17 @@ public abstract class ItemAbility {
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
         ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(player);
+        useAbility(playerEvent);
     }
 
     public void abilityFailedNoMana(Player player){
-        player.sendMessage(ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost()));
+        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
+        ActionBarManager.getInstance().actionBar(player, msg);
     }
 
     public void abilityFailedCooldown(Player player){
-        player.sendMessage(ChatColor.RED + "Still on cooldown!");
+        String msg = ChatColor.RED + "Still on cooldown!";
+        ActionBarManager.getInstance().actionBar(player, msg);
     }
 
     public boolean hasAbility(ItemStack itemStack){
@@ -66,7 +75,7 @@ public abstract class ItemAbility {
         return itemInfo != null && itemInfo.getAbility() == this;
     }
 
-    protected abstract void useAbility(Player player);
+    protected abstract void useAbility(PlayerEvent playerEvent);
 
     public List<String> toList(){
         List<String> list = new ArrayList<>();
@@ -78,7 +87,34 @@ public abstract class ItemAbility {
         return list;
     }
 
+    public ItemAbility buildAbilityWithSettings(JsonObject map){
+        ItemAbility ability = clone();
+        if (map.has("name")){
+            ability.name = map.get("name").getAsString();
+        }
+        if (map.has("description")){
+            ability.description = map.get("description").getAsString();
+        }
+        if (map.has("cost")){
+            ability.cost = map.get("cost").getAsDouble();
+        }
+        if (map.has("cooldown")){
+            ability.cooldown = map.get("cooldown").getAsLong();
+        }
+
+        return ability;
+    }
+
     public String getID(){
         return AbilityManager.getInstance().getIDbyAbility(this);
+    }
+
+    @Override
+    public ItemAbility clone() {
+        try {
+            return (ItemAbility) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

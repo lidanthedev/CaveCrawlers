@@ -1,30 +1,27 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
+import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class LaserAbility extends ItemAbility implements Listener {
+public class LaserAbility extends ScalingClickAbility implements Listener {
     private Particle particle;
-    private double baseAbilityDamage;
-    private double abilityScaling;
     private int range;
 
     public LaserAbility(String name, String description, double cost, long cooldown, Particle particle, double baseAbilityDamage, double abilityScaling, int range) {
-        super(name, description, cost, cooldown);
+        super(name, description, cost, cooldown, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
         this.particle = particle;
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
@@ -32,7 +29,8 @@ public class LaserAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(Player player) {
+    protected void useAbility(PlayerEvent playerEvent) {
+        Player player = playerEvent.getPlayer();
         Location location = player.getEyeLocation();
         Vector vector = location.getDirection();
         World world = location.getWorld();
@@ -53,15 +51,22 @@ public class LaserAbility extends ItemAbility implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack hand = player.getInventory().getItemInMainHand();
-        if (hasAbility(hand)){
-            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK){
-                activateAbility(player);
-            }
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        LaserAbility ability = (LaserAbility) super.buildAbilityWithSettings(map);
+        if (map.has("particle")) {
+            ability.particle = Particle.valueOf(map.get("particle").getAsString());
         }
+        if (map.has("baseAbilityDamage")) {
+            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
+        }
+        if (map.has("abilityScaling")) {
+            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        if (map.has("range")) {
+            ability.range = map.get("range").getAsInt();
+        }
+        return ability;
     }
 
     @Override

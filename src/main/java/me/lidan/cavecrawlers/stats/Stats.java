@@ -48,6 +48,9 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
     }
 
     public void add(StatType type, double amount){
+        if (type == StatType.MANA){
+            type = StatType.INTELLIGENCE;
+        }
         get(type).add(amount);
     }
 

@@ -1,6 +1,5 @@
-package me.lidan.cavecrawlers.events;
+package me.lidan.cavecrawlers.listeners;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockExplodeEvent;

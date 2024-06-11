@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.events;
+package me.lidan.cavecrawlers.listeners;
 
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.stats.StatsManager;

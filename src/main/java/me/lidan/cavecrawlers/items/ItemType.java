@@ -5,17 +5,26 @@ import lombok.Getter;
 
 @Getter
 public enum ItemType {
-    SHIELD("Shield", ItemSlot.HAND),
+    SHIELD("Shield", ItemSlot.OFF_HAND),
     ALCHEMY_BAG("Alchemy Bag", ItemSlot.HAND),
     MATERIAL("Material", ItemSlot.HAND),
     PICKAXE("Pickaxe", ItemSlot.HAND),
+    DRILL("Drill", ItemSlot.HAND),
+    WEAPON("Weapon", ItemSlot.HAND),
     SWORD("Sword", ItemSlot.HAND),
     BOW("Bow", ItemSlot.HAND),
     WAND("Wand", ItemSlot.HAND),
+    AXE("Axe", ItemSlot.HAND),
+    TALISMAN("Talisman", ItemSlot.OFF_HAND),
     HELMET("Helmet", ItemSlot.ARMOR),
     CHESTPLATE("Chestplate", ItemSlot.ARMOR),
     LEGGINGS("Leggings", ItemSlot.ARMOR),
-    BOOTS("Boots", ItemSlot.ARMOR);
+    BOOTS("Boots", ItemSlot.ARMOR),
+    ARMOR("Armor", ItemSlot.ARMOR),
+    UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
+    OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
+
+    ;
 
     private final String name;
     private final ItemSlot slot;

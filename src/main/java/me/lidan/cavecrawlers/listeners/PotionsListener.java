@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.events;
+package me.lidan.cavecrawlers.listeners;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
@@ -51,7 +51,7 @@ public class PotionsListener implements Listener {
     }
 
     private static void updateWeapon(ItemStack content) {
-        ItemInfo ID = ItemsManager.getInstance().getItemFromItemStack(content);
+        ItemInfo ID = ItemsManager.getInstance().getItemFromItemStackSafe(content);
         if (ID != null && ID.getType() == ItemType.ALCHEMY_BAG) {
             String chargesStr = ItemNbt.getString(content, "Charges");
             if (chargesStr == null) { // Not really needed anymore

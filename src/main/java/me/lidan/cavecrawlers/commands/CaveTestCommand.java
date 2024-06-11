@@ -52,6 +52,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import static org.bukkit.Bukkit.getConsoleSender;
+
 @Command({"cavetest", "ct"})
 @CommandPermission("cavecrawlers.test")
 public class CaveTestCommand {
@@ -132,6 +134,13 @@ public class CaveTestCommand {
         loader.load();
         sender.sendMessage("reloaded Drops!");
     }
+
+    @Subcommand("reload plugin")
+    public void ReloadPlugin(CommandSender sender){
+        Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
+        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+    }
+
 
     @Subcommand("config saveStats")
     public void saveStats(Player sender){

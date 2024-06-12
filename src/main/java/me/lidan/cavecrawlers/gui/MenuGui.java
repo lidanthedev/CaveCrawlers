@@ -4,6 +4,8 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class MenuGui {
@@ -30,6 +32,7 @@ public class MenuGui {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(SPAWN_COMMAND);
         })));
+        gui.getFiller().fill(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
     }
 
     public void open(){

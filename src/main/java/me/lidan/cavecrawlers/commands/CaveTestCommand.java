@@ -11,6 +11,8 @@ import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
+import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.gui.SkillsGui;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
@@ -46,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
@@ -542,6 +545,15 @@ public class CaveTestCommand {
         ShopMenu shopMenu = shopManager.getShop(ID);
         shopMenu.open(sender);
     }
+
+    @Subcommand("playerviewer")
+    public void PlayerViewerOpen(Player sender, @Optional Player arg){
+        if(arg == null) {
+            arg = sender;
+        }
+        new PlayerViewer(arg).open(sender);
+    }
+
 
     @Subcommand("shop add")
     @AutoComplete("@shopID @itemID @itemID *")

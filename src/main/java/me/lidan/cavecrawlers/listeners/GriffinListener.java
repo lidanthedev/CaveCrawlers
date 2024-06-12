@@ -52,6 +52,7 @@ public class GriffinListener implements Listener {
             if (level > rarity.getLevel()){
                 player.sendMessage(ChatColor.RED + "You are under-leveled to fight this mob!");
                 player.sendMessage(ChatColor.RED + "Use your spade to update your level!");
+                player.sendMessage(ChatColor.RED + "You are level " + rarity.getLevel() + " and this mob is level " + level);
                 event.setCancelled(true);
             }
         }

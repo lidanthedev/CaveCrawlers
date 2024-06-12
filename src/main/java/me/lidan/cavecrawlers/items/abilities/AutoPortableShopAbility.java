@@ -18,7 +18,7 @@ public class AutoPortableShopAbility extends PortableShopAbility {
     public static final String PORTABLE_SHOP_ITEM = "slotId";
 
     public AutoPortableShopAbility() {
-        super("Auto Portable Shop", "Open a portable shop allowing you to select items to buy automatically", 0, 1000);
+        super("Auto Portable Shop", "Open a portable shop. allowing you to select items to buy automatically by right clicking Requires Rank", 0, 1000);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

@@ -16,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 public class MenuItemListener implements Listener {
 
     public static final String SERVER_GUIDE_NAME = "§6Server Guide §7(Right Click)";
+    public static final String MENU = "menu";
+
     ItemStack item;
 
     public MenuItemListener() {
@@ -34,8 +36,7 @@ public class MenuItemListener implements Listener {
         }
         String displayName = event.getItem().getItemMeta().getDisplayName();
         if (displayName.equals(SERVER_GUIDE_NAME)) {
-            String command = "deluxemenu open serverguide_menu " + player.getName();
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            player.performCommand(MENU);
         }
     }
 

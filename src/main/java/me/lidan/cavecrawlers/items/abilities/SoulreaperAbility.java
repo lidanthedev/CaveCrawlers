@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -35,7 +36,7 @@ public class SoulreaperAbility extends ScalingClickAbility implements Listener {
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 5));
 //        player.sendMessage("ERROR Absorption");
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
-        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);
+        AbilityDamage calculation = getDamageCalculation(player);
         for (Entity entity : nearbyEntities) {
             if (entity instanceof Mob mob){
                 calculation.damage(player, mob);
@@ -43,6 +44,16 @@ public class SoulreaperAbility extends ScalingClickAbility implements Listener {
 
         }
     }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        SoulreaperAbility ability = (SoulreaperAbility) super.buildAbilityWithSettings(map);
+        if (map.has("blocks")) {
+            ability.blocks = map.get("blocks").getAsDouble();
+        }
+
+        return ability;
+        }
 
     @Override
     public void abilityFailedCooldown(Player player) {

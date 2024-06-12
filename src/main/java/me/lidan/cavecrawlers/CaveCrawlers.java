@@ -13,6 +13,7 @@ import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.items.ItemType;
+import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.items.ItemInfo;

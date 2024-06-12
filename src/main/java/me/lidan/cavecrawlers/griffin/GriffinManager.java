@@ -23,17 +23,19 @@ import java.util.UUID;
 
 @Data
 public class GriffinManager {
-    public static final int MAX_DISTANCE = 100;
+    public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, Integer> RARITY_MOB_CHANCE = Map.of(Rarity.COMMON, 10,
             Rarity.UNCOMMON, 20,
             Rarity.RARE, 30,
             Rarity.EPIC, 40,
-            Rarity.LEGENDARY, 50);
+            Rarity.LEGENDARY, 50,
+            Rarity.MYTHIC, 60);
     public static final Map<Rarity, Range> RARITY_RANGE_MAP = Map.of(Rarity.COMMON, new Range(1000, 5000),
             Rarity.UNCOMMON, new Range(5000, 10000),
             Rarity.RARE, new Range(10000, 20000),
             Rarity.EPIC, new Range(20000, 50000),
-            Rarity.LEGENDARY, new Range(50000, 100000));
+            Rarity.LEGENDARY, new Range(50000, 100000),
+            Rarity.MYTHIC, new Range(60000, 110000));
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();

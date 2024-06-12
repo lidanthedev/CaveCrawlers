@@ -2,8 +2,6 @@ package me.lidan.cavecrawlers;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
-import me.clip.placeholderapi.PlaceholderAPI;
-import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
@@ -11,7 +9,6 @@ import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
-import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.listeners.*;
@@ -161,7 +158,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("HULK", new HulkAbility());
         abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
         abilityManager.registerAbility("LIGHTNING", new LightningRodAbility());
-        abilityManager.registerAbility("REAPER_IMPACT", new SoulreaperAbility(1000, 5, 10));
+        abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
     }
 
     public void registerItems() {

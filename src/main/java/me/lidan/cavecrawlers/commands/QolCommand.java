@@ -20,7 +20,7 @@ public class QolCommand {
      */
     @Command({"opme","deopme"})
     @CommandPermission("minecraft.command.op")
-    public void opme(Player sender){
+    public void opMe(Player sender){
         if(sender.isOp()){
             sender.setOp(false);
             sender.sendMessage("§4§lYou are now NOT OP");
@@ -40,8 +40,8 @@ public class QolCommand {
      * @param sender the players that run the command
      */
     @Command({"infoclick","clickinfo"})
-    @CommandPermission("CaveCrawles.admin.infoclick")
-    public void infoclick(Player sender){
+    @CommandPermission("cavecrawlers.admin.infoclick")
+    public void infoClick(Player sender){
         if(infoclickMap.get(sender.getUniqueId()) != null){
             infoclickMap.remove(sender.getUniqueId());
             sender.sendMessage("§4Info click disable");
@@ -60,10 +60,8 @@ public class QolCommand {
      */
     @Command({"speedban","sban","quickban","banspeed","banquick"})
     @CommandPermission("essentials.ban")
-    public void speedban(Player sender,Player target){
+    public void quickBan(Player sender, Player target){
         sender.performCommand("ban %s".formatted(target.getName()));
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), () -> sender.performCommand("unban %s".formatted(target.getName())),2L);
     }
-
-
 }

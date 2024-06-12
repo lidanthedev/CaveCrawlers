@@ -18,9 +18,9 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.List;
 
 @ToString
-public class SoulreaperAbility extends ScalingClickAbility implements Listener {
+public class SoulReaperAbility extends ScalingClickAbility implements Listener {
     private double blocks;
-    public SoulreaperAbility(double baseAbilityDamage, double abilityScaling, double blocks) {
+    public SoulReaperAbility(double baseAbilityDamage, double abilityScaling, double blocks) {
         super("Reaper Impact",  "§fTeleport §a10 blocks §fahead §fof you. §fimplode dealing §c10,000 §c❁ §cDamage §fto nearby enemies §fand granting an §6❤ Absorption §fshield for §e5 §fseconds.", 250, 100, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
@@ -47,7 +47,7 @@ public class SoulreaperAbility extends ScalingClickAbility implements Listener {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        SoulreaperAbility ability = (SoulreaperAbility) super.buildAbilityWithSettings(map);
+        SoulReaperAbility ability = (SoulReaperAbility) super.buildAbilityWithSettings(map);
         if (map.has("blocks")) {
             ability.blocks = map.get("blocks").getAsDouble();
         }

@@ -48,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
@@ -537,8 +538,11 @@ public class CaveTestCommand {
     }
 
     @Subcommand("playerviewer")
-    public void PlayerViewerOpen(Player sender){
-        new PlayerViewer(sender).open();
+    public void PlayerViewerOpen(Player sender, @Optional Player arg){
+        if(arg == null) {
+            arg = sender;
+        }
+        new PlayerViewer(arg).open(sender);
     }
 
 

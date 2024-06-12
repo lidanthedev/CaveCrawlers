@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
@@ -62,14 +63,14 @@ public class PlayerViewer {
             gui.setItem(11, guiMainHand);
         }
         // Bank
-        gui.setItem(15, ItemBuilder.from(Material.GOLD_BLOCK).setName("Money: " + VaultUtils.getCoins(player)).asGuiItem());
+        gui.setItem(15, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GOLD + "Money: " + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());
         // glass
         gui.getFiller().fill(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         gui.disableAllInteractions();
     }
 
-    public void open() {
-        gui.open(player);
+    public void open(Player viewer) {
+        gui.open(viewer);
     }
 }
 

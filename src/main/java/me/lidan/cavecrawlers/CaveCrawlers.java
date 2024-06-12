@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers;
 
+import dev.triumphteam.gui.guis.BaseGui;
+import dev.triumphteam.gui.guis.Gui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import me.lidan.cavecrawlers.commands.*;
@@ -229,9 +231,18 @@ public final class CaveCrawlers extends JavaPlugin {
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
         killEntities();
+        closeAllGuis();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             caveCrawlersExpansion.unregister();
         }
+    }
+
+    private void closeAllGuis() {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGui) {
+                player.closeInventory();
+            }
+        });
     }
 
     public void killEntities(){

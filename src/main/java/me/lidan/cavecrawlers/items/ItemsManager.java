@@ -171,7 +171,7 @@ public class ItemsManager {
 
     public Map<ItemInfo, Integer> getAllItems(Player player) {
         Map<ItemInfo, Integer> items = new HashMap<>();
-        for (ItemStack item : player.getInventory().getContents()) {
+        for (ItemStack item : player.getInventory().getStorageContents()) {
             if (item == null) continue;
             ItemInfo ID = getItemFromItemStack(item);
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());

@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class RightClickPlayerViewer implements Listener {
 
+    private static final String COMMAND = "ct playerviewer ";
+
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
@@ -18,7 +20,8 @@ public class RightClickPlayerViewer implements Listener {
         if (item.getType().isAir()) {
             Player clickedPlayer = Bukkit.getPlayer(event.getRightClicked().getName());
             if (clickedPlayer != null && clickedPlayer.isOnline()) {
-                player.performCommand("ct playerviewer " + clickedPlayer.getName());
+                player.performCommand(COMMAND + clickedPlayer.getName());
+
             }
         }
     }

@@ -11,6 +11,8 @@ import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
+import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.gui.SkillsGui;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
@@ -533,6 +535,12 @@ public class CaveTestCommand {
         ShopMenu shopMenu = shopManager.getShop(ID);
         shopMenu.open(sender);
     }
+
+    @Subcommand("playerviewer")
+    public void PlayerViewerOpen(Player sender){
+        new PlayerViewer(sender).open();
+    }
+
 
     @Subcommand("shop add")
     @AutoComplete("@shopID @itemID @itemID *")

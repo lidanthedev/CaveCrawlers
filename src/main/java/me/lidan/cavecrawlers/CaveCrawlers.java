@@ -2,6 +2,8 @@ package me.lidan.cavecrawlers;
 
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import me.clip.placeholderapi.PlaceholderAPI;
+import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
@@ -19,6 +21,7 @@ import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -50,6 +53,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
     private CommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
+    private CaveCrawlersExpansion caveCrawlersExpansion;
 
     @Override
     public void onEnable() {
@@ -91,6 +95,8 @@ public final class CaveCrawlers extends JavaPlugin {
 
         registerCommands();
         registerEvents();
+        registerPlaceholders();
+
         startTasks();
 
         StatsManager.getInstance().loadAllPlayers();
@@ -199,6 +205,13 @@ public final class CaveCrawlers extends JavaPlugin {
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
+    public void registerPlaceholders() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            caveCrawlersExpansion = new CaveCrawlersExpansion(this);
+            caveCrawlersExpansion.register();
+        }
+    }
+
     public void startTasks(){
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
@@ -219,6 +232,9 @@ public final class CaveCrawlers extends JavaPlugin {
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
         killEntities();
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            caveCrawlersExpansion.unregister();
+        }
     }
 
     public void killEntities(){

@@ -4,11 +4,14 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -17,10 +20,10 @@ import java.util.*;
 public class EarthShooterAbility extends ClickAbility {
     private static final int RADIUS = 5;
 
-    private final Map<UUID, List<FallingBlock>> playersBlocks = new HashMap<>();
+    private final Map<UUID, List<ArmorStand>> playersBlocks = new HashMap<>();
 
     public EarthShooterAbility() {
-        super("Earth Shooter", "Takes the blocks around you shoots them towards your enemies!", 350, 1500, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
+        super("Earth Shooter", "Takes the blocks around you shoots them towards your enemies!", 350, 1500, Action.values());
     }
 
     @Override
@@ -30,43 +33,62 @@ public class EarthShooterAbility extends ClickAbility {
         if (!(event instanceof PlayerInteractEvent e)) {
             return;
         }
-//        if (playersBlocks.containsKey(player.getUniqueId()) && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) {
-//            List<FallingBlock> fallingBlocks = playersBlocks.get(player.getUniqueId());
-//
-//            for (FallingBlock fallingBlock : fallingBlocks) {
-//                fallingBlock.setVelocity(player.getLocation().getDirection().subtract(new Vector(0, 0.5, 0)));
-//            }
-//
-//            playersBlocks.remove(player.getUniqueId());
-        if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+
+        if (playersBlocks.containsKey(player.getUniqueId()) && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) {
+            List<ArmorStand> armorStands = playersBlocks.get(player.getUniqueId());
+
+            for (ArmorStand armorStand : armorStands) {
+                armorStand.setVelocity(player.getLocation().getDirection().subtract(new Vector(0, 0.5, 0)));
+            }
+
+            playersBlocks.remove(player.getUniqueId());
+        }else if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block lowestBlock = getLowestBlock(player.getLocation());
             List<Block> blocks = BukkitUtils.loopBlocks(lowestBlock.getLocation(), RADIUS);
 
-            List<FallingBlock> fallingBlocks = new ArrayList<>();
+            List<ArmorStand> armorStands = new ArrayList<>();
             for (Block block : blocks) {
-                FallingBlock fallingBlock = player.getWorld().spawnFallingBlock(block.getLocation().add(0, 1, 0), block.getBlockData());
-//                fallingBlock.setGravity(false);
-                fallingBlock.setDropItem(false);
+                if (block.getY() != lowestBlock.getY()) continue;
 
-//                fallingBlock.setVelocity(new Vector(0, 1, 0)); // (player.getLocation().getY() - lowestBlock.getY()) * 0.5
+                ArmorStand armorStand = player.getWorld().spawn(block.getLocation().add(0, 2, 0), ArmorStand.class);
+                armorStand.setInvulnerable(true);
+                armorStand.setVisible(true);
+                armorStand.addScoreboardTag("EarthShooter");
 
-                fallingBlocks.add(fallingBlock);
+                ItemStack head = new ItemStack(block.getType());
+                head.setData(block.getState().getData());
+                armorStand.getEquipment().setHelmet(head);
+
+                armorStand.setVelocity(new Vector(0, 1, 0));
+
+                armorStands.add(armorStand);
             }
-            playersBlocks.put(player.getUniqueId(), fallingBlocks);
+            playersBlocks.put(player.getUniqueId(), armorStands);
 
-//            long time = System.currentTimeMillis();
-//
-//            new BukkitRunnable() {
-//                @Override
-//                public void run() {
-//                    if (System.currentTimeMillis() - time >= 5000) {
-//                        this.cancel();
-//                        return;
-//                    }
-//
-//                    player.sendMessage(fallingBlocks.get(0).getVelocity() + "");
-//                }
-//            }.runTaskTimer(CaveCrawlers.getInstance(), 0, 2L);
+            long started = System.currentTimeMillis();
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (armorStands.size() == 0 || System.currentTimeMillis() - started >= 10_000) {
+                        this.cancel();
+                        return;
+                    }
+
+                    if (armorStands.get(0).getVelocity().getY() < 0) {
+                        armorStands.parallelStream().forEach(a -> a.setGravity(false));
+                    }
+                }
+            }.runTaskTimer(CaveCrawlers.getInstance(), 0L, 1L);
+        }
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof ArmorStand armorStand && event.getCause() == EntityDamageEvent.DamageCause.FALL) {
+            if (!armorStand.getScoreboardTags().contains("EarthShooter")) return;
+
+            armorStand.remove();
+            event.setCancelled(true);
         }
     }
 

@@ -157,6 +157,10 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("HULK", new HulkAbility());
         abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
         abilityManager.registerAbility("LIGHTNING", new LightningRodAbility());
+        abilityManager.registerAbility("SPIRIT_SPECTRE", new SpiritSpectreAbility());
+        abilityManager.registerAbility("ETHER_TRANSMISSION", new EtherTransmissionAbility(12));
+        abilityManager.registerAbility("FIRE_SPIRAL", new FireSpiralAbility());
+        abilityManager.registerAbility("EARTH_SHOOTER", new EarthShooterAbility());
     }
 
     public void registerItems() {

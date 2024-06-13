@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers;
 
 import dev.triumphteam.gui.guis.BaseGui;
-import dev.triumphteam.gui.guis.Gui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import me.lidan.cavecrawlers.commands.*;
@@ -181,7 +180,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
         commandHandler.register(new QolCommand());
-        commandHandler.register(new MenuCommand());
+        commandHandler.register(new MenuCommands());
         commandHandler.register(new SellCommand());
     }
 

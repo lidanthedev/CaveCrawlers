@@ -12,12 +12,10 @@ import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
-import me.lidan.cavecrawlers.gui.SkillsGui;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
-import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -37,7 +35,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -51,7 +48,6 @@ import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -547,13 +543,12 @@ public class CaveTestCommand {
     }
 
     @Subcommand("playerviewer")
-    public void PlayerViewerOpen(Player sender, @Optional Player arg){
+    public void playerViewerOpen(Player sender, @Optional Player arg){
         if(arg == null) {
             arg = sender;
         }
         new PlayerViewer(arg).open(sender);
     }
-
 
     @Subcommand("shop add")
     @AutoComplete("@shopID @itemID @itemID *")

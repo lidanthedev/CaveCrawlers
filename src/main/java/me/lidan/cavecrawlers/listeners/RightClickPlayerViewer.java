@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class RightClickPlayerViewer implements Listener {
 
-    public static final String COMMAND = "ct playerviewer ";
+    public static final String COMMAND = "profile ";
 
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {

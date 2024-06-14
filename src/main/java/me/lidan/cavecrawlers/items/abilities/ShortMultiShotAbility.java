@@ -6,12 +6,7 @@ import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
@@ -40,8 +35,9 @@ public class ShortMultiShotAbility extends ShortBowAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         shoot(playerEvent.getPlayer(), 1);
+        return true;
     }
 
     public void shoot(Player player, double force) {

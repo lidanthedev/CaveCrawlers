@@ -52,11 +52,13 @@ public abstract class ItemAbility implements Cloneable {
             return;
         }
 
-        abilityCooldown.startCooldown(player.getUniqueId());
-        manaStat.setValue(manaStat.getValue() - getCost());
-        String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
-        ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(playerEvent);
+        boolean success = useAbility(playerEvent);
+        if (success) {
+            abilityCooldown.startCooldown(player.getUniqueId());
+            manaStat.setValue(manaStat.getValue() - getCost());
+            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
+            ActionBarManager.getInstance().actionBar(player, msg);
+        }
     }
 
     public void abilityFailedNoMana(Player player){
@@ -76,7 +78,7 @@ public abstract class ItemAbility implements Cloneable {
         return itemInfo != null && itemInfo.getAbility() == this;
     }
 
-    protected abstract void useAbility(PlayerEvent playerEvent);
+    protected abstract boolean useAbility(PlayerEvent playerEvent);
 
     public List<String> toList(){
         List<String> list = new ArrayList<>();

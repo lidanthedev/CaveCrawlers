@@ -28,11 +28,11 @@ public class EarthShooterAbility extends ClickAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
 
         if (!(event instanceof PlayerInteractEvent e)) {
-            return;
+            return false;
         }
 
         if (playersBlocks.containsKey(player.getUniqueId()) && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) {
@@ -70,7 +70,7 @@ public class EarthShooterAbility extends ClickAbility {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (armorStands.size() == 0 || System.currentTimeMillis() - started >= 10_000) {
+                    if (armorStands.isEmpty() || System.currentTimeMillis() - started >= 10_000) {
                         this.cancel();
                         return;
                     }
@@ -81,6 +81,7 @@ public class EarthShooterAbility extends ClickAbility {
                 }
             }.runTaskTimer(CaveCrawlers.getInstance(), 0L, 1L);
         }
+        return true;
     }
 
     @EventHandler

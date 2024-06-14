@@ -3,7 +3,6 @@ package me.lidan.cavecrawlers.items.abilities;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
-import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
@@ -28,7 +27,7 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         Location loc =  player.getLocation();
         Vector vector = loc.clone().getDirection();
@@ -73,6 +72,7 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
                 bukkitTask.cancel();
             }
         }, 0, 3L);
+        return true;
     }
 
     public void summonFallingBlock(Location loc) {

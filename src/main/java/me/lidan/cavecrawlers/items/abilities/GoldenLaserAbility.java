@@ -14,7 +14,7 @@ public class GoldenLaserAbility extends ClickAbility implements Listener  {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
         Location loc = player.getLocation();
         Vector vector = loc.clone().getDirection();
@@ -24,5 +24,6 @@ public class GoldenLaserAbility extends ClickAbility implements Listener  {
             loc = loc.multiply(0.1);
             world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0);
         }
+        return true;
     }
 }

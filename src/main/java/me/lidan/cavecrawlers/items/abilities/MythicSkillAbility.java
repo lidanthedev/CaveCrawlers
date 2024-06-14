@@ -16,9 +16,9 @@ public class MythicSkillAbility extends ClickAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
-        mythicBukkit.getAPIHelper().castSkill(player, mythicSkill, player.getLocation());
+        return mythicBukkit.getAPIHelper().castSkill(player, mythicSkill, player.getLocation());
     }
 
     @Override

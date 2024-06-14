@@ -5,13 +5,8 @@ import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 
@@ -89,8 +84,8 @@ public class MultiShotAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
-
+    protected boolean useAbility(PlayerEvent playerEvent) {
+        return true;
     }
 
     @Override

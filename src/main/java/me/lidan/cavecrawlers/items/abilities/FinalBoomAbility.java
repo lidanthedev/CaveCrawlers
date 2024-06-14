@@ -19,7 +19,7 @@ public class FinalBoomAbility extends ClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
         FinalDamageCalculation calculation = new FinalDamageCalculation(damage, false);
@@ -28,6 +28,7 @@ public class FinalBoomAbility extends ClickAbility implements Listener {
                 calculation.damage(player, mob);
             }
         }
+        return true;
     }
 
     @Override

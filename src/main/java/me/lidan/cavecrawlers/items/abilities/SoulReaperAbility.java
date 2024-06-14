@@ -28,7 +28,7 @@ public class SoulReaperAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
         BukkitUtils.teleportForward(player, blocks);
@@ -41,8 +41,8 @@ public class SoulReaperAbility extends ScalingClickAbility implements Listener {
             if (entity instanceof Mob mob){
                 calculation.damage(player, mob);
             }
-
         }
+        return true;
     }
 
     @Override

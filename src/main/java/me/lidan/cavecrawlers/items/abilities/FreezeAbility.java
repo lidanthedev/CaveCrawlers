@@ -10,9 +10,10 @@ public class FreezeAbility extends PotionAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         super.useAbility(playerEvent);
         Player player = playerEvent.getPlayer();
         player.getWorld().spawnParticle(org.bukkit.Particle.SNOWBALL, player.getLocation(), 100, 5, 5, 5);
+        return true;
     }
 }

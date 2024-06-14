@@ -6,13 +6,11 @@ import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.entity.Bat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 public class SpiritSpectreAbility extends ScalingClickAbility {
 
@@ -25,7 +23,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
 
         Bat bat = player.getWorld().spawn(player.getLocation().add(0, 0.5, 0), Bat.class);
@@ -62,6 +60,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
                 lastLocation = bat.getLocation();
             }
         }.runTaskTimer(CaveCrawlers.getInstance(), 0, PERIOD);
+        return true;
     }
 
     @Override

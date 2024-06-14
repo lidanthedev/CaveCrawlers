@@ -16,7 +16,7 @@ public class EtherTransmissionAbility extends TransmissionAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
 
         if (player.isSneaking()) {
@@ -36,13 +36,16 @@ public class EtherTransmissionAbility extends TransmissionAbility {
                     b1.getWorld().spawnParticle(particle, l, 500, 0.1, 0.1, 0.1);
                 } else {
                     player.sendMessage(ChatColor.RED + "There is a block there!");
+                    return false;
                 }
             } else {
                 player.sendMessage(ChatColor.RED + "No blocks found!");
+                return false;
             }
         } else {
             super.useAbility(event);
         }
+        return true;
     }
 
     @Override

@@ -22,7 +22,7 @@ public class FireSpiralAbility extends ScalingClickAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
 
         Location newLocation = player.getEyeLocation();
@@ -46,6 +46,7 @@ public class FireSpiralAbility extends ScalingClickAbility {
                 angle += radiansPerSecond * period;
             }
         }.runTaskTimer(CaveCrawlers.getInstance(), 0, (long) (period * 20));
+        return true;
     }
 
     @Override

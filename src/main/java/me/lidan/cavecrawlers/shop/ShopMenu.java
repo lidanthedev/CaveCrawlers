@@ -55,7 +55,7 @@ public class ShopMenu implements ConfigurationSerializable {
                     }
                     boolean buy = shopItem.buy(player);
                     if (!buy) {
-                        player.sendMessage(ChatColor.RED + "You don't have the items!");
+                        player.sendMessage(ChatColor.RED + "You don't have the items or coins!");
                     }
                 }
             });

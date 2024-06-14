@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.objects;
 import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Data
 public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     public static boolean usePlaceholderAPI = false;
+    private static CustomConfig config = new CustomConfig("messages");
     private String message = "";
     private TitleOptions titleOptions;
     private String actionbar = "";
@@ -107,5 +109,13 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    public static ConfigMessage getMessage(String key, ConfigMessage defaultMessage){
+        return config.getSerializable(key, ConfigMessage.class, defaultMessage);
+    }
+
+    public static ConfigMessage getMessage(String key, String defaultMessage){
+        return getMessage(key, new ConfigMessage(defaultMessage));
     }
 }

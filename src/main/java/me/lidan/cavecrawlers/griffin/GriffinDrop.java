@@ -4,12 +4,11 @@ import lombok.Data;
 import lombok.ToString;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,7 @@ import java.util.Map;
 @Data
 @ToString(exclude = {"itemsManager", "griffinManager"})
 public class GriffinDrop implements ConfigurationSerializable {
+    private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessage("griffin_coins_message", "&e&lGRIFFIN! you got %amount% coins!");
     private final ItemsManager itemsManager;
     private final GriffinManager griffinManager;
     private String type;
@@ -55,9 +55,8 @@ public class GriffinDrop implements ConfigurationSerializable {
         Range range = new Range(value);
         int amount = range.getRandom();
         VaultUtils.giveCoins(player, amount);
-        String message = ChatColor.GOLD + ChatColor.BOLD.toString() + "GRIFFIN!" + ChatColor.GOLD + " you got %s coins!".formatted(StringUtils.getNumberFormat(amount));
-        player.sendMessage(message);
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+        Map<String, String> placeholders = Map.of("amount", StringUtils.getNumberFormat(amount));
+        COINS_MESSAGE.sendMessage(player, placeholders);
     }
 
     private void giveMob(Player player, Location location) {

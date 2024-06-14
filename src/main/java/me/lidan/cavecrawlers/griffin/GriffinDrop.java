@@ -43,7 +43,7 @@ public class GriffinDrop implements ConfigurationSerializable {
                 giveItem(player);
                 break;
             case "mob":
-                giveMob(location);
+                giveMob(player, location);
                 break;
             case "coins":
                 giveCoins(player);
@@ -60,8 +60,8 @@ public class GriffinDrop implements ConfigurationSerializable {
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
     }
 
-    private void giveMob(Location location) {
-        griffinManager.spawnMob(value, location);
+    private void giveMob(Player player, Location location) {
+        griffinManager.spawnMob(value, location, player);
     }
 
     private void giveItem(Player player) {

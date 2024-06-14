@@ -9,6 +9,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 public class AntiStupidStuffListener implements Listener {
 
@@ -36,5 +37,10 @@ public class AntiStupidStuffListener implements Listener {
         player.sendMessage("§cYou can't drop items!");
         player.sendMessage("§cUse /trade to trade items with other players!");
         player.sendMessage("§cUse /trash get rid off items!");
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
+        event.setCancelled(true);
     }
 }

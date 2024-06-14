@@ -90,7 +90,7 @@ public class StatsManager {
 
     public static void healPlayerPercent(Player player, double percent){
         double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        healPlayer(player, maxHealth/ ATTACK_SPEED_LIMIT *percent);
+        healPlayer(player, maxHealth / 100 *percent);
     }
 
     public static void healPlayer(Player player, double healthRegen) {

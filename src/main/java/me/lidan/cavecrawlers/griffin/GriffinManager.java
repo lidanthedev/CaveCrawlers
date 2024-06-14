@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.griffin;
 
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
-import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Data;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -9,14 +8,12 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
-import me.lidan.cavecrawlers.utils.RandomUtils;
-import me.lidan.cavecrawlers.utils.Range;
-import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -28,9 +25,11 @@ public class GriffinManager {
     public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     public static final String WORLD_NAME = "eagleisland";
+    public static final int DEFUALT_PROTECTION_TIME = 5000;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
+    private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
     private final CaveCrawlers plugin;
 
@@ -128,9 +127,11 @@ public class GriffinManager {
         return instance;
     }
 
-    public void spawnMob(String mob, Location location) {
+    public void spawnMob(String mob, Location location, Player player) {
         try {
-            plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
+            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
+            if (entity instanceof LivingEntity livingEntity)
+                griffinProtectionMap.put(entity.getUniqueId(), new GriffinProtection(System.currentTimeMillis(), (long) livingEntity.getHealth() + DEFUALT_PROTECTION_TIME, player.getUniqueId()));
         } catch (InvalidMobTypeException e) {
             plugin.getLogger().severe("Failed to spawn mobs");
         }

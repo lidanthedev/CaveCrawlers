@@ -66,7 +66,7 @@ public class BukkitUtils {
         Location l = player.getLocation().clone();
         for (int i = 0; i <= blocks; i++) {
             l.add(player.getLocation().getDirection().multiply(1)).getBlock();
-            if (!isSolid(l.getBlock()) && !isSolid(l.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
+            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
                 tp++;
             } else {
                 player.sendMessage(ChatColor.RED + "There is a block there!");

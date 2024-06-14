@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -44,7 +43,7 @@ public class TargetAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         if (playerEvent instanceof PlayerInteractAtEntityEvent interactAtEntityEvent){
             if (interactAtEntityEvent.getRightClicked() instanceof Mob mob){
@@ -67,5 +66,6 @@ public class TargetAbility extends ItemAbility implements Listener {
                 }
             }
         }
+        return true;
     }
 }

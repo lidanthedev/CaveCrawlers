@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -20,7 +19,7 @@ public class BoomAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         player.spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
@@ -30,6 +29,7 @@ public class BoomAbility extends ScalingClickAbility implements Listener {
                 calculation.damage(player, mob);
             }
         }
+        return true;
     }
 
     @Override

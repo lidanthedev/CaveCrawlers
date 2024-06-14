@@ -19,11 +19,11 @@ public class SpadeAbility extends ClickAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         if (playerEvent instanceof PlayerInteractEvent event){
             Player player = event.getPlayer();
             Block block = griffinManager.getGriffinBlock(event.getPlayer());
-            if (block == null) return;
+            if (block == null) return false;
             if (player.getLocation().distance(block.getLocation()) > range){
                 block = griffinManager.generateGriffinLocation(player, range);
                 griffinManager.setGriffinBlock(player, block);
@@ -33,6 +33,7 @@ public class SpadeAbility extends ClickAbility{
             });
             player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
         }
+        return true;
     }
 
     @Override

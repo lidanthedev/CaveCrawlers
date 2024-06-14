@@ -17,7 +17,7 @@ public class LightningRodAbility extends ScalingClickAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         AbilityDamage calculation = getDamageCalculation(player);
 
@@ -26,6 +26,7 @@ public class LightningRodAbility extends ScalingClickAbility {
         BukkitUtils.getNearbyMobs(target, radius).forEach(entity -> {
             calculation.damage(player, entity);
         });
+        return true;
     }
 
     @Override

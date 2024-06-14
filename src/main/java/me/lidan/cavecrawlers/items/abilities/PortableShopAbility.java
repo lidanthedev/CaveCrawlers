@@ -19,23 +19,24 @@ public class PortableShopAbility extends ClickAbility {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
         String shopId = ItemNbt.getString(item, PORTABLE_SHOP_ID);
         if (!player.hasPermission("cavecrawlers.portableshop")) {
             player.sendMessage("You don't have permission to use this item");
-            return;
+            return false;
         }
         if (shopId == null) {
             player.sendMessage("No shop set");
-            return;
+            return false;
         }
         ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
         if (shopMenu == null) {
             player.sendMessage("Shop not found");
-            return;
+            return false;
         }
         shopMenu.getGui().open(player);
+        return true;
     }
 }

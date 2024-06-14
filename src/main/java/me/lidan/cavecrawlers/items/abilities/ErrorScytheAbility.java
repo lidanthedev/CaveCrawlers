@@ -12,7 +12,7 @@ public class ErrorScytheAbility extends ClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         if (player.isSneaking()){
             player.launchProjectile(WitherSkull.class);
@@ -20,6 +20,7 @@ public class ErrorScytheAbility extends ClickAbility implements Listener {
         else{
             player.launchProjectile(Arrow.class);
         }
+        return true;
     }
 
 

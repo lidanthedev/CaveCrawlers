@@ -29,7 +29,7 @@ public class LaserAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         Location location = player.getEyeLocation();
         Vector vector = location.getDirection();
@@ -49,6 +49,7 @@ public class LaserAbility extends ScalingClickAbility implements Listener {
             }
             world.spawnParticle(particle, newLocation, 1, 0,0,0,0);
         }
+        return true;
     }
 
     @Override

@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Particle;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
@@ -55,10 +56,15 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
+        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        if (player.getHealth() >= maxHealth){
+            return false;
+        }
         StatsManager.healPlayer(player, healAmount);
         StatsManager.healPlayerPercent(player, healPercent);
         player.getWorld().spawnParticle(Particle.HEART, player.getEyeLocation(), 1);
+        return true;
     }
 }

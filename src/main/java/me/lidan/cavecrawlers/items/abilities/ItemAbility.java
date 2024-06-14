@@ -68,7 +68,7 @@ public abstract class ItemAbility implements Cloneable {
 
     public void abilityFailedCooldown(Player player){
         double diff = (cooldown - abilityCooldown.getCurrentCooldown(player.getUniqueId()))/1000.0;
-        String msg = ChatColor.RED + "Still on cooldown! (%ss)".formatted(diff);
+        String msg = ChatColor.RED + "Still on cooldown! (%ss Left)".formatted(diff);
         ActionBarManager.getInstance().actionBar(player, msg);
     }
 

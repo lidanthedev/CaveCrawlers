@@ -155,7 +155,7 @@ public class CaveTestCommand {
 
     @Subcommand("config saveConfMsg")
     public void saveConfigMessage(Player sender){
-        config.set("conf-msg", new ConfigMessage("error"));
+        config.set("conf-msg", new ConfigMessage("error %player_name%", "Cool %player_name%", Sound.BLOCK_ANVIL_DESTROY));
         sender.sendMessage("Saved Config Message!");
         config.save();
     }

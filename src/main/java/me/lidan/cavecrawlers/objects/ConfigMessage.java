@@ -2,36 +2,41 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @Data
 public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     public static boolean usePlaceholderAPI = false;
     private String message = "";
-    private String title = "";
-    private String subtitle = "";
-    private String sound = "";
-    private int duration = 100;
+    private TitleOptions titleOptions;
+    private String actionbar = "";
+    private SoundOptions sound;
 
-    public ConfigMessage(String message, String title, String subtitle, String sound, int duration) {
+    public ConfigMessage(String message, TitleOptions titleOptions, String actionbar, SoundOptions sound) {
         this.message = message;
-        this.title = title;
-        this.subtitle = subtitle;
+        this.titleOptions = titleOptions;
+        this.actionbar = actionbar;
         this.sound = sound;
-        this.duration = duration;
     }
 
-    public ConfigMessage(String message, String title, String sound) {
-        this.message = message;
-        this.title = title;
-        this.sound = sound;
+    public ConfigMessage(String message, String title, String subtitle, SoundOptions sound, int duration, String actionbar) {
+        this(message, new TitleOptions(title, subtitle, 0, duration, 0), actionbar, sound);
+    }
+
+    public ConfigMessage(String message, String title, SoundOptions sound) {
+        this(message, title, "", sound, 20, "");
+    }
+
+    public ConfigMessage(String message, String title, Sound sound) {
+        this(message, title, new SoundOptions(sound, 1, 1));
     }
 
     public ConfigMessage(String message) {
@@ -39,14 +44,15 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     }
 
     private void sendMessageInternal(Player player){
-        if (!Objects.equals(message, ""))
+        if (message != null && !message.isEmpty())
             player.sendMessage(message);
-        if (!Objects.equals(title, "") || !Objects.equals(subtitle, ""))
-            player.sendTitle(title, subtitle, 0, duration, 0);
-        if (!Objects.equals(sound, ""))
-            player.playSound(player.getLocation(), sound, 1, 1);
+        if (titleOptions != null)
+            player.sendTitle(titleOptions.getTitle(), titleOptions.getSubtitle(), titleOptions.getFadeIn(), titleOptions.getStay(), titleOptions.getFadeOut());
+        if (actionbar != null && !actionbar.isEmpty())
+            ActionBarManager.getInstance().actionBar(player, actionbar);
+        if (sound != null)
+            player.playSound(player.getLocation(), sound.getSound(), sound.getVolume(), sound.getPitch());
     }
-
 
     public void sendMessage(Player player) {
         sendMessage(player, new HashMap<>());
@@ -61,11 +67,15 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         for (String key : placeholders.keySet()) {
             key = key.replaceAll("%", "");
             copy.message = copy.message.replace("%" + key + "%", placeholders.get(key));
-            copy.title = copy.title.replace("%" + key + "%", placeholders.get(key));
-            copy.subtitle = copy.subtitle.replace("%" + key + "%", placeholders.get(key));
+            copy.actionbar = copy.actionbar.replace("%" + key + "%", placeholders.get(key));
+            if(copy.titleOptions != null)
+                copy.titleOptions = copy.titleOptions.replace("%" + key + "%", placeholders.get(key));
         }
         if (usePlaceholderAPI){
             copy.message = PlaceholderAPI.setPlaceholders(player, copy.message);
+            if(copy.titleOptions != null)
+                copy.titleOptions = copy.titleOptions.setPlaceholders(player);
+            copy.actionbar = PlaceholderAPI.setPlaceholders(player, copy.actionbar);
         }
         return copy;
     }
@@ -75,16 +85,19 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         map.put("message", message);
-        map.put("title", title);
-        map.put("subtitle", subtitle);
+        map.put("title", titleOptions);
+        map.put("actionbar", actionbar);
         map.put("sound", sound);
-        map.put("duration", duration);
         return map;
     }
 
     public static ConfigMessage deserialize(Map<String, Object> map){
         String message = ChatColor.translateAlternateColorCodes('&', map.get("message").toString());
-        return new ConfigMessage(message, map.get("title").toString(), map.get("subtitle").toString(), map.get("sound").toString(), Integer.parseInt(map.get("duration").toString()));
+        TitleOptions titleOptions = map.containsKey("title") ? (TitleOptions) map.get("title") : null;
+        String actionbar = map.containsKey("actionbar") ? map.get("actionbar").toString() : "";
+        SoundOptions sound = map.containsKey("sound") ? (SoundOptions) map.get("sound") : null;
+        actionbar = ChatColor.translateAlternateColorCodes('&', actionbar);
+        return new ConfigMessage(message, titleOptions, actionbar, sound);
     }
 
     @Override

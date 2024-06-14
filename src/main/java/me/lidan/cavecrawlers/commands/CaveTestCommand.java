@@ -19,6 +19,7 @@ import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
@@ -150,6 +151,19 @@ public class CaveTestCommand {
         config.set("stat", statsManager.getStats(sender));
         sender.sendMessage("set stat to your stats!");
         config.save();
+    }
+
+    @Subcommand("config saveConfMsg")
+    public void saveConfigMessage(Player sender){
+        config.set("conf-msg", new ConfigMessage("error"));
+        sender.sendMessage("Saved Config Message!");
+        config.save();
+    }
+
+    @Subcommand("config sendConfMsg")
+    public void sendConfigMessage(Player sender){
+        ConfigMessage message = (ConfigMessage) config.get("conf-msg");
+        message.sendMessage(sender);
     }
 
     @Subcommand("config send")

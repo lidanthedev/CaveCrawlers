@@ -80,7 +80,7 @@ public class GriffinListener implements Listener {
         GriffinProtection griffinProtection = griffinManager.getGriffinProtectionMap().get(mob.getUniqueId());
         long currentTime = System.currentTimeMillis();
         if (griffinProtection != null && !griffinProtection.isSummoner(player.getUniqueId()) && griffinProtection.isProtected(currentTime)){
-            player.sendTitle(ChatColor.RED + "This mob is protected!", ChatColor.RED + "You can't attack it for %sms!".formatted(griffinProtection.getRemainingProtectionTime(currentTime)), 5, 20, 5);
+            player.sendTitle(ChatColor.RED + "This mob is protected!", ChatColor.RED + "You can't attack it for %ss!".formatted(griffinProtection.getRemainingProtectionTime(currentTime)/1000.0), 5, 20, 5);
             event.setDamage(0);
             event.setCancelled(true);
             mob.setTarget(null);

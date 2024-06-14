@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerEvent;
 
 public class EtherTransmissionAbility extends TransmissionAbility {
 
+    private Particle particle = Particle.PORTAL;
     private int maxDistance = 60;
 
     public EtherTransmissionAbility(double blocks) {
@@ -32,7 +33,7 @@ public class EtherTransmissionAbility extends TransmissionAbility {
                 if (b1.getType() == Material.AIR && b2.getType() == Material.AIR) {
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                     player.teleport(l);
-                    b1.getWorld().spawnParticle(Particle.PORTAL, l, 500, 0.1, 0.1, 0.1);
+                    b1.getWorld().spawnParticle(particle, l, 500, 0.1, 0.1, 0.1);
                 } else {
                     player.sendMessage(ChatColor.RED + "There is a block there!");
                 }
@@ -49,6 +50,9 @@ public class EtherTransmissionAbility extends TransmissionAbility {
         EtherTransmissionAbility ability = (EtherTransmissionAbility) super.buildAbilityWithSettings(map);
         if (map.has("maxDistance")) {
             ability.maxDistance = map.get("maxDistance").getAsInt();
+        }
+        if (map.has("particle")) {
+            ability.particle = Particle.valueOf(map.get("particle").getAsString());
         }
         return ability;
     }

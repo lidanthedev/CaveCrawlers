@@ -13,6 +13,18 @@ public abstract class ScalingClickAbility extends ClickAbility{
     protected double abilityScaling;
     protected boolean crit;
 
+    public ScalingClickAbility(String name, String description, double cost, long cooldown) {
+        this(name, description, cost, cooldown, 100, 10);
+    }
+
+    public ScalingClickAbility(String name, String description, double cost, long cooldown, StatType statToScale) {
+        this(name, description, cost, cooldown, statToScale, 100, 10);
+    }
+
+    public ScalingClickAbility(String name, String description, double cost, long cooldown, double baseAbilityDamage, double abilityScaling) {
+        this(name, description, cost, cooldown, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
+    }
+
     public ScalingClickAbility(String name, String description, double cost, long cooldown, StatType statToScale, double baseAbilityDamage, double abilityScaling) {
         this(name, description, cost, cooldown, statToScale, baseAbilityDamage, abilityScaling, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
     }
@@ -40,6 +52,9 @@ public abstract class ScalingClickAbility extends ClickAbility{
         }
         if (map.has("abilityScaling")) {
             ability.abilityScaling = map.get("abilityScaling").getAsDouble();
+        }
+        if (map.has("crit")) {
+            ability.crit = map.get("crit").getAsBoolean();
         }
         return ability;
     }

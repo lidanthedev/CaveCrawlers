@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.Location;
@@ -18,7 +19,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public class EarthShooterAbility extends ClickAbility {
-    private static final int RADIUS = 5;
+    private int radius = 5;
 
     private final Map<UUID, List<ArmorStand>> playersBlocks = new HashMap<>();
 
@@ -44,7 +45,7 @@ public class EarthShooterAbility extends ClickAbility {
             playersBlocks.remove(player.getUniqueId());
         }else if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block lowestBlock = getLowestBlock(player.getLocation());
-            List<Block> blocks = BukkitUtils.loopBlocks(lowestBlock.getLocation(), RADIUS);
+            List<Block> blocks = BukkitUtils.loopBlocks(lowestBlock.getLocation(), radius);
 
             List<ArmorStand> armorStands = new ArrayList<>();
             for (Block block : blocks) {
@@ -100,5 +101,14 @@ public class EarthShooterAbility extends ClickAbility {
             }
         }
         return location.getBlock();
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        EarthShooterAbility ability = (EarthShooterAbility) super.buildAbilityWithSettings(map);
+        if (map.has("radius")) {
+            ability.radius = map.get("radius").getAsInt();
+        }
+        return ability;
     }
 }

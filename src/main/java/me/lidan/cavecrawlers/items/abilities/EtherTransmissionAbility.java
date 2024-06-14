@@ -1,11 +1,15 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.google.gson.JsonObject;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 
 public class EtherTransmissionAbility extends TransmissionAbility {
+
+    private int maxDistance = 60;
+
     public EtherTransmissionAbility(double blocks) {
         super(blocks);
     }
@@ -15,7 +19,7 @@ public class EtherTransmissionAbility extends TransmissionAbility {
         Player player = event.getPlayer();
 
         if (player.isSneaking()) {
-            Block b = player.getTargetBlock(null, 61);
+            Block b = player.getTargetBlock(null, maxDistance);
             Block b1 = b.getLocation().add(0, 1, 0).getBlock();
             Block b2 = b.getLocation().add(0, 2, 0).getBlock();
             float yaw = player.getLocation().getYaw();
@@ -38,5 +42,14 @@ public class EtherTransmissionAbility extends TransmissionAbility {
         } else {
             super.useAbility(event);
         }
+    }
+
+    @Override
+    public ItemAbility buildAbilityWithSettings(JsonObject map) {
+        EtherTransmissionAbility ability = (EtherTransmissionAbility) super.buildAbilityWithSettings(map);
+        if (map.has("maxDistance")) {
+            ability.maxDistance = map.get("maxDistance").getAsInt();
+        }
+        return ability;
     }
 }

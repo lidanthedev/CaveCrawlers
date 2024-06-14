@@ -106,10 +106,6 @@ public final class CaveCrawlers extends JavaPlugin {
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
-    private void registerPerks() {
-        PerksLoader.getInstance().load();
-    }
-
     private void registerConfig() {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
@@ -126,6 +122,10 @@ public final class CaveCrawlers extends JavaPlugin {
 
     private void registerGriffin() {
         GriffinLoader.getInstance().load();
+    }
+
+    private void registerPerks() {
+        PerksLoader.getInstance().load();
     }
 
     private static void registerSerializer() {

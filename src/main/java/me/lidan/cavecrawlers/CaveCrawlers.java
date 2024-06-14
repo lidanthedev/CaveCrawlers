@@ -1,11 +1,9 @@
 package me.lidan.cavecrawlers;
 
+import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
-import me.lidan.cavecrawlers.commands.CaveTestCommand;
-import me.lidan.cavecrawlers.commands.PotionCommands;
-import me.lidan.cavecrawlers.commands.SkillCommand;
-import me.lidan.cavecrawlers.commands.StatCommand;
+import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -21,7 +19,10 @@ import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.perks.Perk;
+import me.lidan.cavecrawlers.perks.PerksLoader;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -52,6 +53,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
     private CommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
+    private CaveCrawlersExpansion caveCrawlersExpansion;
 
     @Override
     public void onEnable() {
@@ -90,9 +92,12 @@ public final class CaveCrawlers extends JavaPlugin {
         registerBlocks();
         registerDrops();
         registerGriffin();
+        registerPerks();
 
         registerCommands();
         registerEvents();
+        registerPlaceholders();
+
         startTasks();
 
         StatsManager.getInstance().loadAllPlayers();
@@ -119,6 +124,10 @@ public final class CaveCrawlers extends JavaPlugin {
         GriffinLoader.getInstance().load();
     }
 
+    private void registerPerks() {
+        PerksLoader.getInstance().load();
+    }
+
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
@@ -131,6 +140,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Skills.class);
         ConfigurationSerialization.registerClass(GriffinDrop.class);
         ConfigurationSerialization.registerClass(GriffinDrops.class);
+        ConfigurationSerialization.registerClass(Perk.class);
     }
 
     private void registerAbilities() {
@@ -161,6 +171,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("ETHER_TRANSMISSION", new EtherTransmissionAbility(12));
         abilityManager.registerAbility("FIRE_SPIRAL", new FireSpiralAbility());
         abilityManager.registerAbility("EARTH_SHOOTER", new EarthShooterAbility());
+        abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
     }
 
     public void registerItems() {
@@ -180,6 +191,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.register(new CaveTestCommand(commandHandler));
         commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
+        commandHandler.register(new QolCommand());
+        commandHandler.register(new MenuCommands());
+        commandHandler.register(new SellCommand());
     }
 
     public void registerEvents(){
@@ -197,7 +211,19 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new MenuItemListener());
         registerEvent(new EntityChangeBlockListener());
         registerEvent(new GriffinListener());
+        registerEvent(new WorldChangeListener());
+        registerEvent(new InfoclickListener());
+        registerEvent(new RightClickPlayerViewer());
+        registerEvent(new AntiStupidStuffListener());
+        registerEvent(new PerksListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
+    }
+
+    public void registerPlaceholders() {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            caveCrawlersExpansion = new CaveCrawlersExpansion(this);
+            caveCrawlersExpansion.register();
+        }
     }
 
     public void startTasks(){
@@ -220,6 +246,18 @@ public final class CaveCrawlers extends JavaPlugin {
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
         killEntities();
+        closeAllGuis();
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            caveCrawlersExpansion.unregister();
+        }
+    }
+
+    private void closeAllGuis() {
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGui) {
+                player.closeInventory();
+            }
+        });
     }
 
     public void killEntities(){

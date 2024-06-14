@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
@@ -24,6 +23,7 @@ public class SpadeAbility extends ClickAbility{
         if (playerEvent instanceof PlayerInteractEvent event){
             Player player = event.getPlayer();
             Block block = griffinManager.getGriffinBlock(event.getPlayer());
+            if (block == null) return;
             if (player.getLocation().distance(block.getLocation()) > range){
                 block = griffinManager.generateGriffinLocation(player, range);
                 griffinManager.setGriffinBlock(player, block);

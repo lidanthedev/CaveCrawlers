@@ -20,6 +20,8 @@ import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.perks.Perk;
+import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -63,6 +65,7 @@ public class CaveTestCommand {
     private final MiningManager miningManager;
     private final GriffinManager griffinManager;
     private final AbilityManager abilityManager;
+    private final PerksManager perksManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -76,6 +79,7 @@ public class CaveTestCommand {
         this.miningManager = MiningManager.getInstance();
         this.griffinManager = GriffinManager.getInstance();
         this.abilityManager = AbilityManager.getInstance();
+        this.perksManager = PerksManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -738,5 +742,11 @@ public class CaveTestCommand {
     @Subcommand("test mythicSkill")
     public void testPhobos(Player sender, String skill){
         MythicBukkit.inst().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("test perks")
+    public void testPerks(Player sender){
+        Map<String, Perk> perks = perksManager.getPerks(sender);
+        sender.sendMessage("Perks: " + perks);
     }
 }

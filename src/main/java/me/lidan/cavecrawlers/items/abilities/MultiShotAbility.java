@@ -1,6 +1,9 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
+import me.lidan.cavecrawlers.damage.DamageCalculation;
+import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -55,7 +58,8 @@ public class MultiShotAbility extends ItemAbility implements Listener {
         int yaw = 0;
         for (int i = 0; i < amount; i++) {
             Vector vector = BukkitUtils.getVector(player, yaw, 0, multiplier);
-            Arrow arrow = player.launchProjectile(Arrow.class, vector);
+            DamageCalculation calculation = new PlayerDamageCalculation(player);
+            Arrow arrow = DamageManager.getInstance().launchProjectile(player, Arrow.class, calculation, vector);
             arrow.addScoreboardTag(BOW_TAG);
             if (i % 2 == 0) {
                 yaw = Math.abs(yaw) + yawDiff;

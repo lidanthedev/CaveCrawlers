@@ -25,10 +25,13 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DamageEntityListener implements Listener {
 
     private static final boolean PROJECTILE_DAMAGE_FIX = true;
+    private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -46,6 +49,17 @@ public class DamageEntityListener implements Listener {
                 }
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDamage(EntityDamageEvent event) {
+        double damage = event.getDamage();
+        if (event.getEntity() instanceof Player player) {
+            if (event.getCause() == EntityDamageEvent.DamageCause.VOID){
+                damage = 1000000000;
+            }
+        }
+        event.setDamage(damage);
     }
 
     private void onPlayerDamageMobProjectile(EntityDamageByEntityEvent event, Projectile projectile, Player player, Mob mob){
@@ -95,8 +109,8 @@ public class DamageEntityListener implements Listener {
         double damage = event.getDamage();
 
         if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE && PROJECTILE_DAMAGE_FIX){
-            Entity damager = event.getDamager();
-            if (damager instanceof Projectile projectile){
+            Entity attacker = event.getDamager();
+            if (attacker instanceof Projectile projectile){
                 if (projectile.getShooter() instanceof Mob mob) {
                     damage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue();
                 }

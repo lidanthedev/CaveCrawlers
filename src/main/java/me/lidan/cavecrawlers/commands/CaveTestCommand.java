@@ -11,15 +11,17 @@ import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
+import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
-import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.perks.Perk;
+import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -35,7 +37,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -46,11 +47,13 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import static org.bukkit.Bukkit.getConsoleSender;
 
 @Command({"cavetest", "ct"})
 @CommandPermission("cavecrawlers.test")
@@ -62,6 +65,7 @@ public class CaveTestCommand {
     private final MiningManager miningManager;
     private final GriffinManager griffinManager;
     private final AbilityManager abilityManager;
+    private final PerksManager perksManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -75,6 +79,7 @@ public class CaveTestCommand {
         this.miningManager = MiningManager.getInstance();
         this.griffinManager = GriffinManager.getInstance();
         this.abilityManager = AbilityManager.getInstance();
+        this.perksManager = PerksManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -132,6 +137,13 @@ public class CaveTestCommand {
         loader.load();
         sender.sendMessage("reloaded Drops!");
     }
+
+    @Subcommand("reload plugin")
+    public void ReloadPlugin(CommandSender sender){
+        Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
+        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+    }
+
 
     @Subcommand("config saveStats")
     public void saveStats(Player sender){
@@ -534,6 +546,14 @@ public class CaveTestCommand {
         shopMenu.open(sender);
     }
 
+    @Subcommand("playerviewer")
+    public void playerViewerOpen(Player sender, @Optional Player arg){
+        if(arg == null) {
+            arg = sender;
+        }
+        new PlayerViewer(arg).open(sender);
+    }
+
     @Subcommand("shop add")
     @AutoComplete("@shopID @itemID @itemID *")
     public void shopAdd(CommandSender sender, String shopID, String resultID, String ingredientID, int amount){
@@ -722,5 +742,11 @@ public class CaveTestCommand {
     @Subcommand("test mythicSkill")
     public void testPhobos(Player sender, String skill){
         MythicBukkit.inst().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("test perks")
+    public void testPerks(Player sender){
+        Map<String, Perk> perks = perksManager.getPerks(sender);
+        sender.sendMessage("Perks: " + perks);
     }
 }

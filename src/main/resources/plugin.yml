@@ -6,3 +6,4 @@ depend:
   - Vault
 softdepend:
   - MythicMobs
+  - PlaceholderAPI

@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -170,10 +171,15 @@ public class ItemsManager {
     }
 
     public Map<ItemInfo, Integer> getAllItems(Player player) {
+        return getAllItems(player.getInventory());
+    }
+
+    public Map<ItemInfo, Integer> getAllItems(Inventory inventory) {
         Map<ItemInfo, Integer> items = new HashMap<>();
-        for (ItemStack item : player.getInventory().getContents()) {
+        for (ItemStack item : inventory.getStorageContents()) {
             if (item == null) continue;
             ItemInfo ID = getItemFromItemStack(item);
+            if (ID == null) continue;
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
         }
         return items;

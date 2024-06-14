@@ -12,9 +12,11 @@ import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.VaultUtils;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -23,35 +25,40 @@ import java.util.UUID;
 
 @Data
 public class GriffinManager {
-    public static final int MAX_DISTANCE = 100;
-    public static final Map<Rarity, Integer> RARITY_MOB_CHANCE = Map.of(Rarity.COMMON, 10,
-            Rarity.UNCOMMON, 20,
-            Rarity.RARE, 30,
-            Rarity.EPIC, 40,
-            Rarity.LEGENDARY, 50);
-    public static final Map<Rarity, Range> RARITY_RANGE_MAP = Map.of(Rarity.COMMON, new Range(1000, 5000),
-            Rarity.UNCOMMON, new Range(5000, 10000),
-            Rarity.RARE, new Range(10000, 20000),
-            Rarity.EPIC, new Range(20000, 50000),
-            Rarity.LEGENDARY, new Range(50000, 100000));
+    public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
+    public static final String WORLD_NAME = "eagleisland";
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
+    private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private World world;
     private final CaveCrawlers plugin;
 
     private GriffinManager() {
-        world = Bukkit.getWorld("eagleisland");
+        world = Bukkit.getWorld(WORLD_NAME);
         plugin = CaveCrawlers.getInstance();
     }
 
     public void registerDrop(String name, GriffinDrops drops){
         grffinDropsMap.put(Rarity.valueOf(name), drops);
-        plugin.getLogger().info("Registered griffin drop for %s as %s".formatted(name, drops));
     }
 
     public Block getGriffinBlock(Player player) {
         UUID playerUUID = player.getUniqueId();
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(player.getInventory().getItemInMainHand());
+        if (itemInfo == null){
+            return null;
+        }
+        if (!(itemInfo.getAbility() instanceof SpadeAbility)){
+            return null;
+        }
+        Rarity rarity = itemInfo.getRarity();
+        if (rarity == null){
+            return null;
+        }
+        if (rarity.getLevel() > rarityMap.getOrDefault(playerUUID, Rarity.COMMON).getLevel()){
+            rarityMap.put(playerUUID, rarity);
+        }
         if (!griffinMap.containsKey(playerUUID)) {
             try{
                 Block block = generateGriffinLocation(player);
@@ -98,8 +105,9 @@ public class GriffinManager {
         if (!(itemInfo.getAbility() instanceof SpadeAbility)){
             return;
         }
-        Location loc = block.getLocation().add(0,2,0);
         Rarity rarity = itemInfo.getRarity();
+        Location loc = block.getLocation().add(0,2,0);
+
 
         if (rarity == null) return;
 
@@ -126,5 +134,21 @@ public class GriffinManager {
         } catch (InvalidMobTypeException e) {
             plugin.getLogger().severe("Failed to spawn mobs");
         }
+    }
+
+    public boolean isGriffinMob(Entity victim) {
+        String name = ChatColor.stripColor(victim.getName());
+        return name.contains("[Level ") && name.contains("]");
+    }
+
+    public int getGriffinMobLevel(String name) {
+        // griffin mob name appear in this format: [Level 1] Minos Hunter
+        name = org.bukkit.ChatColor.stripColor(name);
+        String[] split = name.split(" ");
+        if (split.length < 2){
+            return 0;
+        }
+        String level = split[1].split("]")[0];
+        return Integer.parseInt(level);
     }
 }

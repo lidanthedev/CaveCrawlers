@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PerksManager {
-    private static final Logger log = LoggerFactory.getLogger(PerksManager.class);
     private static PerksManager instance;
     private final Map<String, Perk> perks = new HashMap<>();
 
@@ -19,7 +18,6 @@ public class PerksManager {
 
     public void register(String key, Perk value) {
         perks.put(key, value);
-        log.info("Registered perk {} as {}", key, value);
     }
 
     public Map<String, Perk> getPerks(Player player) {

@@ -17,7 +17,8 @@ import org.bukkit.util.Vector;
 public class SpiritSpectreAbility extends ScalingClickAbility {
 
     private static final long PERIOD = 1;
-    private int radius = 3;
+    public static final String TAG = "Spirit_Sceptre";
+    private int radius = 5;
 
     public SpiritSpectreAbility() {
         super("Spirit Spectre", "Shoots a guided spirit bat, following your aim and exploding for " + ChatColor.RED + "2,000 " + ChatColor.GRAY + "damage.", 250, 0);
@@ -31,7 +32,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
         bat.setGravity(false);
         bat.setInvulnerable(true);
         bat.setAwake(true);
-        bat.addScoreboardTag("Spirit_Sceptre");
+        bat.addScoreboardTag(TAG);
 
         AbilityDamage calculation = getDamageCalculation(player);
 
@@ -49,6 +50,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
                     player.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, bat.getLocation(), 10, 0, 0, 0, 3);
 
                     BukkitUtils.getNearbyMobs(bat.getLocation(), radius).forEach(mob -> {
+                        if (mob.getScoreboardTags().contains(TAG)) return;
                         calculation.damage(player, mob);
                     });
 

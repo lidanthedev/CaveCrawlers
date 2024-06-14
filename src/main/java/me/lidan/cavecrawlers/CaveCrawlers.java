@@ -21,6 +21,8 @@ import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.packets.PacketManager;
+import me.lidan.cavecrawlers.perks.Perk;
+import me.lidan.cavecrawlers.perks.PerksLoader;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -90,6 +92,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerBlocks();
         registerDrops();
         registerGriffin();
+        registerPerks();
 
         registerCommands();
         registerEvents();
@@ -121,6 +124,10 @@ public final class CaveCrawlers extends JavaPlugin {
         GriffinLoader.getInstance().load();
     }
 
+    private void registerPerks() {
+        PerksLoader.getInstance().load();
+    }
+
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
@@ -133,6 +140,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Skills.class);
         ConfigurationSerialization.registerClass(GriffinDrop.class);
         ConfigurationSerialization.registerClass(GriffinDrops.class);
+        ConfigurationSerialization.registerClass(Perk.class);
     }
 
     private void registerAbilities() {
@@ -202,6 +210,8 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new WorldChangeListener());
         registerEvent(new InfoclickListener());
         registerEvent(new RightClickPlayerViewer());
+        registerEvent(new AntiStupidStuffListener());
+        registerEvent(new PerksListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

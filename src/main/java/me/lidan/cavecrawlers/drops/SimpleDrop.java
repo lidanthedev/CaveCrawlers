@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public class SimpleDrop implements ConfigurationSerializable {
     private final ItemInfo itemInfo;
     private final int minAmount;
@@ -60,7 +61,7 @@ public class SimpleDrop implements ConfigurationSerializable {
             chanceStr += ChatColor.AQUA + " -> " + newDropChance + "%";
         }
         player.playSound(player, dropRarity.getSound(), 0.5f, 1);
-        String message = dropRarity + itemInfo.getName() + chanceStr;
+        String message = dropRarity + " " + itemInfo.getName() + chanceStr;
 
         player.sendMessage(message);
     }

@@ -127,14 +127,20 @@ public class GriffinManager {
         return instance;
     }
 
-    public void spawnMob(String mob, Location location, Player player) {
+    public Entity spawnMob(String mob, Location location, Player player) {
         try {
             Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
-            if (entity instanceof LivingEntity livingEntity)
-                griffinProtectionMap.put(entity.getUniqueId(), new GriffinProtection(System.currentTimeMillis(), (long) livingEntity.getHealth() + DEFUALT_PROTECTION_TIME, player.getUniqueId()));
+            protectMobForPlayer(player, entity);
+            return entity;
         } catch (InvalidMobTypeException e) {
             plugin.getLogger().severe("Failed to spawn mobs");
         }
+        return null;
+    }
+
+    public void protectMobForPlayer(Player player, Entity entity) {
+        if (entity instanceof LivingEntity livingEntity)
+            griffinProtectionMap.put(entity.getUniqueId(), new GriffinProtection(System.currentTimeMillis(), (long) livingEntity.getHealth() + DEFUALT_PROTECTION_TIME, player.getUniqueId()));
     }
 
     public boolean isGriffinMob(Entity victim) {

@@ -653,12 +653,6 @@ public class CaveTestCommand {
         sender.playSound(sender, sound, volume, pitch);
     }
 
-    @Subcommand("drop test")
-    public void dropTest(Player sender){
-        config.set("testDrop", new EntityDrops("&aSlime", List.of(new SimpleDrop("SLIMEBALL", 1, 100, true)), 1));
-        config.save();
-    }
-
     @Subcommand("data load")
     public void dataTest(Player sender){
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
@@ -742,14 +736,6 @@ public class CaveTestCommand {
         GriffinDrops drops = new GriffinDrops(List.of(new GriffinDrop("mob", 0.5, "MinosHunter1"), new GriffinDrop("mob", 0.3, "SiameseLynxes1"), new GriffinDrop("coins", 0.2, "1000-5000")));
         CustomConfig customConfig = GriffinLoader.getInstance().getConfig("COMMON");
         customConfig.set("COMMON", drops);
-        customConfig.save();
-    }
-
-    @Subcommand("test dropConf")
-    public void testDropConfig(Player sender){
-        EntityDrops drops = new EntityDrops("&8[&7Level 1&8] &2Minos Hunter", List.of(new SimpleDrop("ANCIENT_CLAW", 1, 100, true), new SimpleDrop("GOLD_INGOT", 1,1,false)), 10);
-        CustomConfig customConfig = DropLoader.getInstance().getConfig("MINOS_HUNTER");
-        customConfig.set("MINOS_HUNTER", drops);
         customConfig.save();
     }
 

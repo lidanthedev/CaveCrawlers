@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.griffin;
 
 import lombok.*;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
@@ -10,69 +11,51 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-@ToString(exclude = {"itemsManager", "griffinManager"})
+@ToString(exclude = {"griffinManager"})
 public class GriffinDrop extends Drop implements ConfigurationSerializable {
-    private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_coins_message", "&e&lGRIFFIN! you got %amount% coins!");
-    private final ItemsManager itemsManager = ItemsManager.getInstance();
+    private static final Logger log = LoggerFactory.getLogger(GriffinDrop.class);
+    private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_coins_message", "&e&lGRIFFIN! You got %amount% coins!");
+    private final ConfigMessage MOB_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_mobs_message", "&c&lGRIFFIN! &cYou found %name%!");
     private final GriffinManager griffinManager = GriffinManager.getInstance();
 
     public GriffinDrop(String type, double chance, String value, ConfigMessage announce) {
         super(type, chance, value, announce);
+        if (announce == null) {
+            if (this.type == DropType.COINS) {
+                this.announce = COINS_MESSAGE;
+            }
+            else if (this.type == DropType.MOB) {
+                this.announce = MOB_MESSAGE;
+            }
+            else if (this.type == DropType.ITEM) {
+                this.announce = Drop.RARE_DROP_MESSAGE;
+            }
+        }
     }
 
     public GriffinDrop(String type, double chance, String value) {
         this(type, chance, value, null);
     }
 
-    public void drop(Player player){
-        drop(player, player.getLocation());
-    }
 
-    public void drop(Player player, Location location){
-        switch (type){
-            case "item":
-                giveItem(player);
-                break;
-            case "mob":
-                giveMob(player, location);
-                break;
-            case "coins":
-                giveCoins(player);
-                break;
+    @Override
+    protected Entity giveMob(Player player, Location location) {
+        Entity entity = super.giveMob(player, location);
+        if (entity != null) {
+            griffinManager.protectMobForPlayer(player, entity);
         }
-    }
-
-    private void giveCoins(Player player) {
-        Range range = new Range(value);
-        int amount = range.getRandom();
-        VaultUtils.giveCoins(player, amount);
-        Map<String, String> placeholders = Map.of("amount", StringUtils.getNumberFormat(amount));
-        COINS_MESSAGE.sendMessage(player, placeholders);
-    }
-
-    private void giveMob(Player player, Location location) {
-        griffinManager.spawnMob(value, location, player);
-    }
-
-    private void giveItem(Player player) {
-        int amount = 1;
-        String itemID = value;
-        if (value.contains(" ")){
-            String[] split = value.split(" ");
-            itemID = split[0];
-            Range range = new Range(split[1]);
-            amount = range.getRandom();
-        }
-        SimpleDrop drop = new SimpleDrop(itemID, amount, chance * 100, true);
-        drop.drop(player);
+        return entity;
     }
 
     @NotNull

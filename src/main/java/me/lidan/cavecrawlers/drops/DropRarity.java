@@ -23,15 +23,15 @@ public enum DropRarity {
 
     @Override
     public String toString() {
-        return message + " DROP! ";
+        return message + " DROP!";
     }
 
-    public static DropRarity getRarity(double chances) {
-        if (chances <= 0.01)
+    public static DropRarity getRarity(double chanceInPercents) {
+        if (chanceInPercents <= 0.01)
             return DropRarity.INSANE;
-        else if (chances <= 0.2)
+        else if (chanceInPercents <= 0.2)
             return DropRarity.CRAZY_RARE;
-        else if (chances <= 1)
+        else if (chanceInPercents <= 1)
             return DropRarity.VERY_RARE;
         return DropRarity.RARE;
     }

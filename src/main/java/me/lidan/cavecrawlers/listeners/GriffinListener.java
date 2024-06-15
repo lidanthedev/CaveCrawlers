@@ -28,8 +28,8 @@ import java.util.UUID;
 
 public class GriffinListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(GriffinListener.class);
-    private final ConfigMessage GRIFFIN_PROTECTED = ConfigMessage.getMessage("griffin_protected", "Mob Protected for %time%");
-    private final ConfigMessage GRIFFIN_UNDER_LEVELED = ConfigMessage.getMessage("griffin_under_leveled", "This mob is level %griffin_level%. You are level %player_griffin_level%. Use your spade to update your level!");
+    private final ConfigMessage GRIFFIN_PROTECTED = ConfigMessage.getMessageOrDefault("griffin_protected", "Mob Protected for %time%");
+    private final ConfigMessage GRIFFIN_UNDER_LEVELED = ConfigMessage.getMessageOrDefault("griffin_under_leveled", "This mob is level %griffin_level%. You are level %player_griffin_level%. Use your spade to update your level!");
     private final GriffinManager griffinManager = GriffinManager.getInstance();
 
     @EventHandler(ignoreCancelled = true)

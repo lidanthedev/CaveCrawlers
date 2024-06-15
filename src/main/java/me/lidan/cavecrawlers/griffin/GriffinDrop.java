@@ -18,7 +18,7 @@ import java.util.Map;
 @Data
 @ToString(exclude = {"itemsManager", "griffinManager"})
 public class GriffinDrop implements ConfigurationSerializable {
-    private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessage("griffin_coins_message", "&e&lGRIFFIN! you got %amount% coins!");
+    private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_coins_message", "&e&lGRIFFIN! you got %amount% coins!");
     private final ItemsManager itemsManager;
     private final GriffinManager griffinManager;
     private String type;

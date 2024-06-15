@@ -25,8 +25,7 @@ public class TitleOptions implements ConfigurationSerializable {
         this.fadeOut = fadeOut;
     }
 
-    public TitleOptions replace(@NotNull  CharSequence target,
-                                @NotNull  CharSequence replacement){
+    public TitleOptions replace(@NotNull CharSequence target, @NotNull CharSequence replacement) {
         return new TitleOptions(title.replace(target, replacement), subtitle.replace(target, replacement), fadeIn, stay, fadeOut);
     }
 

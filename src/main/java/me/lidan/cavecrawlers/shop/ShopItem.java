@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
-    private final ConfigMessage BUY_ITEM_MESSAGE = ConfigMessage.getMessage("buy_item", "&eYou bought %formatted_name%&e for &6%price% coins");
+    private final ConfigMessage BUY_ITEM_MESSAGE = ConfigMessage.getMessageOrDefault("buy_item", "&eYou bought %formatted_name%&e for &6%price% coins");
     private ItemInfo result;
     private int resultAmount;
     private double price;

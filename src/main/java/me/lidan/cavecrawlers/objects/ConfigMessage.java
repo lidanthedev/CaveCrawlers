@@ -42,7 +42,7 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     }
 
     public ConfigMessage(String message) {
-        this.message = message;
+        this(message, "", (SoundOptions) null);
     }
 
     private void sendMessageInternal(Player player){
@@ -111,11 +111,11 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         }
     }
 
-    public static ConfigMessage getMessage(String key, ConfigMessage defaultMessage){
+    public static ConfigMessage getMessageOrDefault(String key, ConfigMessage defaultMessage){
         return config.getSerializable(key, ConfigMessage.class, defaultMessage);
     }
 
-    public static ConfigMessage getMessage(String key, String defaultMessage){
-        return getMessage(key, new ConfigMessage(defaultMessage));
+    public static ConfigMessage getMessageOrDefault(String key, String defaultMessage){
+        return getMessageOrDefault(key, new ConfigMessage(defaultMessage));
     }
 }

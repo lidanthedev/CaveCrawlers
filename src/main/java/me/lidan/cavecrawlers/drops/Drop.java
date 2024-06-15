@@ -172,7 +172,7 @@ public class Drop implements ConfigurationSerializable {
         amount = getNewAmount(player, amount);
         VaultUtils.giveCoins(player, amount);
         if (announce != null) {
-            Map<String, String> placeholders = Map.of("amount", StringUtils.getNumberFormat(amount));
+            placeholders.put("amount", StringUtils.getNumberFormat(amount));
             announce.sendMessage(player, placeholders);
         }
     }

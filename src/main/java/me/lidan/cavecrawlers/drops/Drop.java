@@ -50,9 +50,16 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public void roll(Player player) {
-        if (Math.random() * 100 <= chance) {
+        log.debug("Rolling drop for player {} with chance {}", player.getName(), chance);
+        if (rollChance(player)) {
+            log.debug("Drop succeeded");
             drop(player);
         }
+    }
+
+    public boolean rollChance(Player player) {
+        // TODO: Implement magic find
+        return Math.random() * 100 <= chance;
     }
 
     public void drop(Player player){

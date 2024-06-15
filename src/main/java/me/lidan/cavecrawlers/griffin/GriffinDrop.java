@@ -1,8 +1,8 @@
 package me.lidan.cavecrawlers.griffin;
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.Range;
@@ -15,22 +15,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 @ToString(exclude = {"itemsManager", "griffinManager"})
-public class GriffinDrop implements ConfigurationSerializable {
+public class GriffinDrop extends Drop implements ConfigurationSerializable {
     private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_coins_message", "&e&lGRIFFIN! you got %amount% coins!");
-    private final ItemsManager itemsManager;
-    private final GriffinManager griffinManager;
-    private String type;
-    private double chance;
-    private String value;
+    private final ItemsManager itemsManager = ItemsManager.getInstance();
+    private final GriffinManager griffinManager = GriffinManager.getInstance();
+
+    public GriffinDrop(String type, double chance, String value, ConfigMessage announce) {
+        super(type, chance, value, announce);
+    }
 
     public GriffinDrop(String type, double chance, String value) {
-        this.type = type;
-        this.chance = chance;
-        this.value = value;
-        itemsManager = ItemsManager.getInstance();
-        griffinManager = GriffinManager.getInstance();
+        this(type, chance, value, null);
     }
 
     public void drop(Player player){
@@ -72,7 +71,7 @@ public class GriffinDrop implements ConfigurationSerializable {
             Range range = new Range(split[1]);
             amount = range.getRandom();
         }
-        Drop drop = new Drop(itemID, amount, chance * 100, true);
+        SimpleDrop drop = new SimpleDrop(itemID, amount, chance * 100, true);
         drop.drop(player);
     }
 
@@ -83,6 +82,6 @@ public class GriffinDrop implements ConfigurationSerializable {
     }
 
     public static GriffinDrop deserialize(Map<String, Object> map) {
-        return new GriffinDrop((String) map.get("type"), (double) map.get("chance"), (String) map.get("value"));
+        return new GriffinDrop((String) map.get("type"), (double) map.get("chance"), (String) map.get("value"), ConfigMessage.getMessage((String) map.get("announce")));
     }
 }

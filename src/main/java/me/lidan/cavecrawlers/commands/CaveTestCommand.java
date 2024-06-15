@@ -3,7 +3,7 @@ package me.lidan.cavecrawlers.commands;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
@@ -655,7 +655,7 @@ public class CaveTestCommand {
 
     @Subcommand("drop test")
     public void dropTest(Player sender){
-        config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true)), 1));
+        config.set("testDrop", new EntityDrops("&aSlime", List.of(new SimpleDrop("SLIMEBALL", 1, 100, true)), 1));
         config.save();
     }
 
@@ -747,7 +747,7 @@ public class CaveTestCommand {
 
     @Subcommand("test dropConf")
     public void testDropConfig(Player sender){
-        EntityDrops drops = new EntityDrops("&8[&7Level 1&8] &2Minos Hunter", List.of(new Drop("ANCIENT_CLAW", 1, 100, true), new Drop("GOLD_INGOT", 1,1,false)), 10);
+        EntityDrops drops = new EntityDrops("&8[&7Level 1&8] &2Minos Hunter", List.of(new SimpleDrop("ANCIENT_CLAW", 1, 100, true), new SimpleDrop("GOLD_INGOT", 1,1,false)), 10);
         CustomConfig customConfig = DropLoader.getInstance().getConfig("MINOS_HUNTER");
         customConfig.set("MINOS_HUNTER", drops);
         customConfig.save();

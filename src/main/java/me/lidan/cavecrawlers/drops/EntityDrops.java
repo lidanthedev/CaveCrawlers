@@ -12,10 +12,10 @@ import java.util.Map;
 @Getter
 public class EntityDrops implements ConfigurationSerializable {
     private final String entityName;
-    private final List<Drop> dropList;
+    private final List<SimpleDrop> dropList;
     private final int xp;
 
-    public EntityDrops(String entityName, List<Drop> dropList, int xp) {
+    public EntityDrops(String entityName, List<SimpleDrop> dropList, int xp) {
         this.entityName = entityName;
         this.dropList = dropList;
         this.xp = xp;
@@ -23,7 +23,7 @@ public class EntityDrops implements ConfigurationSerializable {
 
     public void roll(Player player){
         player.giveExp(xp);
-        for (Drop drop : dropList) {
+        for (SimpleDrop drop : dropList) {
             drop.roll(player);
         }
     }
@@ -34,7 +34,7 @@ public class EntityDrops implements ConfigurationSerializable {
         Map<String, Object> map = new HashMap<>();
         map.put("entityName", entityName);
         map.put("xp", xp);
-        map.put("drops", dropList.stream().map(Drop::serialize).toList());
+        map.put("drops", dropList.stream().map(SimpleDrop::serialize).toList());
         return map;
     }
 
@@ -44,8 +44,8 @@ public class EntityDrops implements ConfigurationSerializable {
 
         List<Map<String, Object>> dropsList = (List<Map<String, Object>>) map.get("drops");
 
-        List<Drop> drops = dropsList.stream()
-                .map(Drop::deserialize)
+        List<SimpleDrop> drops = dropsList.stream()
+                .map(SimpleDrop::deserialize)
                 .toList();
 
         return new EntityDrops(entityName, drops, xp);

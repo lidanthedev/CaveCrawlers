@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import lombok.Data;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
+    private final ConfigMessage BUY_ITEM_MESSAGE = ConfigMessage.getMessageOrDefault("buy_item", "&eYou bought %formatted_name%&e for &6%price% coins");
     private ItemInfo result;
     private int resultAmount;
     private double price;
@@ -82,6 +84,13 @@ public class ShopItem implements ConfigurationSerializable {
             itemsManager.removeItems(player, itemsMap);
             ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
             player.getInventory().addItem(itemStack);
+            Map<String, String> placeholders = Map.of(
+                    "item", result.getFormattedName(),
+                    "amount", String.valueOf(resultAmount),
+                    "price", StringUtils.getNumberFormat(price),
+                    "formatted_name", formatName(result.getFormattedName(), resultAmount)
+            );
+            BUY_ITEM_MESSAGE.sendMessage(player, placeholders);
             return true;
         }
         return false;
@@ -98,7 +107,6 @@ public class ShopItem implements ConfigurationSerializable {
         map.put("result", result.getID());
         map.put("resultAmount", resultAmount);
         map.put("price", price);
-
         map.put("item-cost", itemsManager.itemMapToStringMap(itemsMap));
         return map;
     }

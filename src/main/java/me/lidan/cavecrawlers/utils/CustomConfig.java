@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 @Getter
 public class CustomConfig extends YamlConfiguration {
     private final File file;
+    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(CustomConfig.class);
 
     public CustomConfig(File file) {
         this.file = file;
@@ -19,7 +21,7 @@ public class CustomConfig extends YamlConfiguration {
     }
 
     public CustomConfig(String name){
-        this(new File(CaveCrawlers.getInstance().getDataFolder(), name + (name.contains(".yml") ? "" : ".yml")));
+        this(new File(plugin.getDataFolder(), name + (name.contains(".yml") ? "" : ".yml")));
     }
 
     public void setup(){
@@ -27,7 +29,7 @@ public class CustomConfig extends YamlConfiguration {
             try {
                 file.createNewFile();
             } catch (IOException e) {
-                CaveCrawlers.getInstance().getLogger().warning("Could not create " + file.getName());
+                plugin.getLogger().warning("Could not create " + file.getName());
                 e.printStackTrace();
             }
         }
@@ -47,7 +49,7 @@ public class CustomConfig extends YamlConfiguration {
         try {
             this.load(file);
         } catch (IOException | InvalidConfigurationException e) {
-            CaveCrawlers.getInstance().getLogger().warning("Failed to load CustomConfig " + file.getName());
+            plugin.getLogger().warning("Failed to load CustomConfig " + file.getName());
             e.printStackTrace();
         }
         return this;

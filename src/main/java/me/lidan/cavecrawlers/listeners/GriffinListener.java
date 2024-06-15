@@ -7,29 +7,30 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class GriffinListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(GriffinListener.class);
-    GriffinManager griffinManager = GriffinManager.getInstance();
+    private final ConfigMessage GRIFFIN_PROTECTED = ConfigMessage.getMessageOrDefault("griffin_protected", "Mob Protected for %time%");
+    private final ConfigMessage GRIFFIN_UNDER_LEVELED = ConfigMessage.getMessageOrDefault("griffin_under_leveled", "This mob is level %griffin_level%. You are level %player_griffin_level%. Use your spade to update your level!");
+    private final GriffinManager griffinManager = GriffinManager.getInstance();
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
@@ -70,7 +71,10 @@ public class GriffinListener implements Listener {
         Rarity rarity = griffinManager.getRarityMap().getOrDefault(player.getUniqueId(), Rarity.COMMON);
         int level = griffinManager.getGriffinMobLevel(mob.getName());
         if (level > rarity.getLevel()){
-            player.sendTitle(ChatColor.RED + "This mob is level " + level, ChatColor.RED + "You are level " + rarity.getLevel() + ". Use your spade to update your level!", 5, 20, 5);
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("griffin_level", String.valueOf(level));
+            placeholders.put("player_griffin_level", String.valueOf(rarity.getLevel()));
+            GRIFFIN_UNDER_LEVELED.sendMessage(player, placeholders);
             event.setDamage(0);
             event.setCancelled(true);
             mob.setTarget(null);
@@ -80,7 +84,10 @@ public class GriffinListener implements Listener {
         GriffinProtection griffinProtection = griffinManager.getGriffinProtectionMap().get(mob.getUniqueId());
         long currentTime = System.currentTimeMillis();
         if (griffinProtection != null && !griffinProtection.isSummoner(player.getUniqueId()) && griffinProtection.isProtected(currentTime)){
-            player.sendTitle(ChatColor.RED + "This mob is protected!", ChatColor.RED + "You can't attack it for %sms!".formatted(griffinProtection.getRemainingProtectionTime(currentTime)), 5, 20, 5);
+            double diff = griffinProtection.getRemainingProtectionTime(currentTime) / 1000.0;
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("time", String.valueOf(diff));
+            GRIFFIN_PROTECTED.sendMessage(player, placeholders);
             event.setDamage(0);
             event.setCancelled(true);
             mob.setTarget(null);

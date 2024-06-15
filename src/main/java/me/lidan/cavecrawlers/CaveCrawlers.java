@@ -20,6 +20,9 @@ import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
+import me.lidan.cavecrawlers.objects.SoundOptions;
+import me.lidan.cavecrawlers.objects.TitleOptions;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksLoader;
@@ -141,6 +144,9 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(GriffinDrop.class);
         ConfigurationSerialization.registerClass(GriffinDrops.class);
         ConfigurationSerialization.registerClass(Perk.class);
+        ConfigurationSerialization.registerClass(ConfigMessage.class);
+        ConfigurationSerialization.registerClass(SoundOptions.class);
+        ConfigurationSerialization.registerClass(TitleOptions.class);
     }
 
     private void registerAbilities() {
@@ -223,6 +229,7 @@ public final class CaveCrawlers extends JavaPlugin {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             caveCrawlersExpansion = new CaveCrawlersExpansion(this);
             caveCrawlersExpansion.register();
+            ConfigMessage.usePlaceholderAPI = true;
         }
     }
 

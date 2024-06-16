@@ -25,7 +25,7 @@ public class GriffinManager {
     public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     public static final String WORLD_NAME = "eagleisland";
-    public static final int DEFUALT_PROTECTION_TIME = 5000;
+    public static final int DEFAULT_PROTECTION_TIME = 5000;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
@@ -140,7 +140,7 @@ public class GriffinManager {
 
     public void protectMobForPlayer(Player player, Entity entity) {
         if (entity instanceof LivingEntity livingEntity)
-            griffinProtectionMap.put(entity.getUniqueId(), new GriffinProtection(System.currentTimeMillis(), (long) livingEntity.getHealth() + DEFUALT_PROTECTION_TIME, player.getUniqueId()));
+            griffinProtectionMap.put(entity.getUniqueId(), new GriffinProtection(System.currentTimeMillis(), (long) livingEntity.getHealth() + DEFAULT_PROTECTION_TIME, player.getUniqueId()));
     }
 
     public boolean isGriffinMob(Entity victim) {

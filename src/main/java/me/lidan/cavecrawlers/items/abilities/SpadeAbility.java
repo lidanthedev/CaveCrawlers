@@ -15,13 +15,17 @@ public class SpadeAbility extends ClickAbility{
     private int range = 100;
 
     public SpadeAbility() {
-        super("Spade", "Line to gold", 20, 500);
+        super("Spade", "Make a line of flames to a treasure", 20, 500);
     }
 
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
         if (playerEvent instanceof PlayerInteractEvent event){
             Player player = event.getPlayer();
+            if (player.getWorld() != griffinManager.getWorld()){
+                player.sendMessage("§cERROR! You can only use this ability in the griffin world");
+                return false;
+            }
             Block block = griffinManager.getGriffinBlock(event.getPlayer());
             if (block == null) return false;
             if (player.getLocation().distance(block.getLocation()) > range){

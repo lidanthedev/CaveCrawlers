@@ -23,7 +23,7 @@ public class GriffinDrops implements ConfigurationSerializable {
 
     public void drop(Player player, Location location){
         for (GriffinDrop drop : drops){
-            if (Math.random() < drop.getChance()){
+            if (drop.rollChance(player)){
                 drop.drop(player, location);
                 return;
             }

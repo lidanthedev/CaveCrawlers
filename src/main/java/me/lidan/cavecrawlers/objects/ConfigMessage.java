@@ -9,6 +9,7 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +24,9 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     private SoundOptions sound;
 
     public ConfigMessage(String message, TitleOptions titleOptions, String actionbar, SoundOptions sound) {
-        this.message = message;
+        this.message = ChatColor.translateAlternateColorCodes('&', message);
+        this.actionbar = ChatColor.translateAlternateColorCodes('&', actionbar);
         this.titleOptions = titleOptions;
-        this.actionbar = actionbar;
         this.sound = sound;
     }
 
@@ -109,6 +110,13 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
+    }
+
+    public static @Nullable ConfigMessage getMessage(String key){
+        if (key == null){
+            return null;
+        }
+        return config.getSerializable(key, ConfigMessage.class);
     }
 
     public static ConfigMessage getMessageOrDefault(String key, ConfigMessage defaultMessage){

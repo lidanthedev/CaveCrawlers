@@ -3,7 +3,7 @@ package me.lidan.cavecrawlers.commands;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
@@ -202,7 +202,7 @@ public class CaveTestCommand {
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
-    public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
+    public void itemGive(CommandSender sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
         ItemStack exampleSword = itemsManager.buildItem(ID, 1);
         for (int i = 0; i < amount; i++) {
             itemsManager.giveItemStacks(player ,exampleSword);
@@ -653,12 +653,6 @@ public class CaveTestCommand {
         sender.playSound(sender, sound, volume, pitch);
     }
 
-    @Subcommand("drop test")
-    public void dropTest(Player sender){
-        config.set("testDrop", new EntityDrops("&aSlime", List.of(new Drop("SLIMEBALL", 1, 100, true)), 1));
-        config.save();
-    }
-
     @Subcommand("data load")
     public void dataTest(Player sender){
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
@@ -742,14 +736,6 @@ public class CaveTestCommand {
         GriffinDrops drops = new GriffinDrops(List.of(new GriffinDrop("mob", 0.5, "MinosHunter1"), new GriffinDrop("mob", 0.3, "SiameseLynxes1"), new GriffinDrop("coins", 0.2, "1000-5000")));
         CustomConfig customConfig = GriffinLoader.getInstance().getConfig("COMMON");
         customConfig.set("COMMON", drops);
-        customConfig.save();
-    }
-
-    @Subcommand("test dropConf")
-    public void testDropConfig(Player sender){
-        EntityDrops drops = new EntityDrops("&8[&7Level 1&8] &2Minos Hunter", List.of(new Drop("ANCIENT_CLAW", 1, 100, true), new Drop("GOLD_INGOT", 1,1,false)), 10);
-        CustomConfig customConfig = DropLoader.getInstance().getConfig("MINOS_HUNTER");
-        customConfig.set("MINOS_HUNTER", drops);
         customConfig.save();
     }
 

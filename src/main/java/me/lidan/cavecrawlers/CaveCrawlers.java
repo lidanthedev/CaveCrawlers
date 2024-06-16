@@ -5,6 +5,7 @@ import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
@@ -136,7 +137,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(ItemInfo.class);
         ConfigurationSerialization.registerClass(ShopMenu.class);
         ConfigurationSerialization.registerClass(BlockInfo.class);
-        ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(SimpleDrop.class);
         ConfigurationSerialization.registerClass(EntityDrops.class);
         ConfigurationSerialization.registerClass(Cuboid.class);
         ConfigurationSerialization.registerClass(Skill.class);
@@ -147,6 +148,7 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(ConfigMessage.class);
         ConfigurationSerialization.registerClass(SoundOptions.class);
         ConfigurationSerialization.registerClass(TitleOptions.class);
+        ConfigurationSerialization.registerClass(Drop.class);
     }
 
     private void registerAbilities() {

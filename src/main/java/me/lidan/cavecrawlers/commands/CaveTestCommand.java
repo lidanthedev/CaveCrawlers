@@ -202,7 +202,7 @@ public class CaveTestCommand {
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
-    public void itemGive(Player sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
+    public void itemGive(CommandSender sender, Player player, @Named("Item ID") String ID, @Default("1") int amount){
         ItemStack exampleSword = itemsManager.buildItem(ID, 1);
         for (int i = 0; i < amount; i++) {
             itemsManager.giveItemStacks(player ,exampleSword);

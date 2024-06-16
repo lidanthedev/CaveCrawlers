@@ -4,6 +4,8 @@ import lombok.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.SimpleDrop;
+import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.entities.LootShareEntityData;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.Range;
@@ -12,6 +14,7 @@ import me.lidan.cavecrawlers.utils.VaultUtils;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -22,12 +25,14 @@ import java.util.Map;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-@ToString(exclude = {"griffinManager"})
+@ToString(callSuper = true)
 public class GriffinDrop extends Drop implements ConfigurationSerializable {
     private static final Logger log = LoggerFactory.getLogger(GriffinDrop.class);
+    private static final GriffinManager griffinManager = GriffinManager.getInstance();
+    private static final EntityManager entityManager = EntityManager.getInstance();
+    public static final int DAMAGE_THRESHOLD_PERCENT = 10;
     private final ConfigMessage COINS_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_coins_message", "&e&lGRIFFIN! You got %amount% coins!");
     private final ConfigMessage MOB_MESSAGE = ConfigMessage.getMessageOrDefault("griffin_mobs_message", "&c&lGRIFFIN! &cYou found %name%!");
-    private final GriffinManager griffinManager = GriffinManager.getInstance();
 
     public GriffinDrop(String type, double chance, String value, ConfigMessage announce) {
         super(type, chance, value, announce);
@@ -52,8 +57,8 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
     @Override
     protected Entity giveMob(Player player, Location location) {
         Entity entity = super.giveMob(player, location);
-        if (entity != null) {
-            griffinManager.protectMobForPlayer(player, entity);
+        if (entity instanceof LivingEntity livingEntity) {
+            entityManager.setEntityData(livingEntity.getUniqueId(), new LootShareEntityData(livingEntity, DAMAGE_THRESHOLD_PERCENT, player.getUniqueId()));
         }
         return entity;
     }

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.listeners;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Holograms;
 import org.bukkit.Bukkit;
@@ -32,7 +33,8 @@ public class DamageEntityListener implements Listener {
 
     private static final boolean PROJECTILE_DAMAGE_FIX = true;
     private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
-    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final EntityManager entityManager = EntityManager.getInstance();
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -54,11 +56,10 @@ public class DamageEntityListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         double damage = event.getDamage();
-        if (event.getEntity() instanceof Player player) {
-            if (event.getCause() == EntityDamageEvent.DamageCause.VOID){
-                damage = 1000000000;
-            }
+        if (event.getCause() == EntityDamageEvent.DamageCause.VOID){
+            damage = 1000000000;
         }
+
         event.setDamage(damage);
     }
 
@@ -75,7 +76,7 @@ public class DamageEntityListener implements Listener {
             onPlayerDamageMob(event, player, mob);
             return;
         }
-        damageMobAfterCalculation(event, mob, calculated, crit);
+        damageMobAfterCalculation(event, player, mob, calculated, crit);
     }
 
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
@@ -96,12 +97,13 @@ public class DamageEntityListener implements Listener {
         DamageCalculation calculation = damageManager.getDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
-        damageMobAfterCalculation(event, mob, damage, crit);
+        damageMobAfterCalculation(event, player, mob, damage, crit);
     }
 
-    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Mob mob, double damage, boolean crit) {
+    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Player player, Mob mob, double damage, boolean crit) {
         event.setDamage(damage);
         int finalDamage = (int) event.getFinalDamage();
+        entityManager.addDamage(player.getUniqueId(), mob, finalDamage);
         Holograms.showDamageHologram(mob, finalDamage, crit);
     }
 

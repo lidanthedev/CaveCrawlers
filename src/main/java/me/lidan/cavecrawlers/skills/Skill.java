@@ -59,6 +59,7 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public Stats getStats(){
+        if (level <= 1) return new Stats(true);
         Stats stats = new Stats(true);
         for (StatType statType : type.getStatType()) {
             stats.add(statType, level);

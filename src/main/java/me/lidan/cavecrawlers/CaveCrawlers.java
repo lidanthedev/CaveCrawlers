@@ -224,6 +224,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RightClickPlayerViewer());
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
+        registerEvent(new FirstJoinListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

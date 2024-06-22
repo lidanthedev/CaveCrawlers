@@ -46,13 +46,6 @@ public class SkillCommand {
         }
     }
 
-    @Subcommand("add")
-    public void add(Player sender, SkillType type, int amount){
-        Skills skills = playerDataManager.getSkills(sender);
-        skills.get(type).add(amount);
-        sender.sendMessage("add stat %s to %s".formatted(type, amount));
-    }
-
     @Subcommand("addxp")
     public void addXp(Player sender, SkillType type, int amount){
         Skills skills = playerDataManager.getSkills(sender);
@@ -63,7 +56,7 @@ public class SkillCommand {
     @Subcommand("set")
     public void set(Player sender, SkillType type, int amount){
         Skills stats = playerDataManager.getSkills(sender);
-        stats.get(type).setValue(amount);
+        stats.get(type).setLevel(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
     }
 

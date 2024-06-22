@@ -40,19 +40,19 @@ public enum StatType {
             ChatColor.YELLOW, 0, ChatColor.YELLOW)
     ,ABILITY_DAMAGE("Ability Damage",
             "๑",
-            ChatColor.RED, 0, ChatColor.RED)
-    ,MINING_SPEED("Mining Speed",
-            "⸕",
-            ChatColor.GOLD, 0, ChatColor.GOLD)
-    ,MINING_FORTUNE("Mining Fortune",
-            "☘",
-            ChatColor.GOLD, 0, ChatColor.GOLD),
-    MINING_POWER("Mining Power",
-            "⸕",
-            ChatColor.GOLD, 0, ChatColor.GOLD),
-    MINING_HAMMER("Hammer",
-            "⛏",
-            ChatColor.GOLD, 0, ChatColor.GOLD);
+            ChatColor.RED, 0, ChatColor.RED);
+//    ,MINING_SPEED("Mining Speed",
+//            "⸕",
+//            ChatColor.GOLD, 0, ChatColor.GOLD)
+//    ,MINING_FORTUNE("Mining Fortune",
+//            "☘",
+//            ChatColor.GOLD, 0, ChatColor.GOLD),
+//    MINING_POWER("Mining Power",
+//            "⸕",
+//            ChatColor.GOLD, 0, ChatColor.GOLD),
+//    MINING_HAMMER("Hammer",
+//            "⛏",
+//            ChatColor.GOLD, 0, ChatColor.GOLD);
     private final String name;
     private final String icon;
     private final ChatColor color;

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import me.lidan.cavecrawlers.Dragons.DragonLoader;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.SimpleDrop;
@@ -18,8 +19,6 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
-import me.lidan.cavecrawlers.mining.BlockLoader;
-import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.objects.SoundOptions;
@@ -55,6 +54,7 @@ import java.util.Arrays;
 @Getter
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
+    public static CaveCrawlers plugin;
     private CommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
@@ -93,9 +93,10 @@ public final class CaveCrawlers extends JavaPlugin {
         registerAbilities();
         registerItems();
         registerShops();
-        registerBlocks();
+//        registerBlocks();
         registerDrops();
         registerGriffin();
+        registerDragons();
         registerPerks();
 
         registerCommands();
@@ -120,12 +121,15 @@ public final class CaveCrawlers extends JavaPlugin {
         DropLoader.getInstance().load();
     }
 
-    private void registerBlocks() {
-        BlockLoader.getInstance().load();
-    }
+//    private void registerBlocks() {
+//        BlockLoader.getInstance().load();
+//    }
 
     private void registerGriffin() {
         GriffinLoader.getInstance().load();
+    }
+    private void registerDragons() {
+        DragonLoader.getInstance().load();
     }
 
     private void registerPerks() {
@@ -180,6 +184,8 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("FIRE_SPIRAL", new FireSpiralAbility());
         abilityManager.registerAbility("EARTH_SHOOTER", new EarthShooterAbility());
         abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
+        abilityManager.registerAbility("SUPERIOR_BLOOD", new FullSuperiorAbility());
+        abilityManager.registerAbility("YOUNG_BLOOD", new FullYoungAbility());
     }
 
     public void registerItems() {
@@ -224,6 +230,8 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RightClickPlayerViewer());
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
+        registerEvent(new FullSuperiorAbility());
+        registerEvent(new FullYoungAbility());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
@@ -252,7 +260,7 @@ public final class CaveCrawlers extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
-        MiningManager.getInstance().regenBlocks();
+//        MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
         killEntities();
         closeAllGuis();

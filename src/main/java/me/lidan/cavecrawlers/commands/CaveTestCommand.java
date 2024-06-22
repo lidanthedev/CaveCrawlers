@@ -17,7 +17,7 @@ import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.mining.BlockInfo;
-import me.lidan.cavecrawlers.mining.BlockLoader;
+//import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.packets.PacketManager;
@@ -63,7 +63,7 @@ public class CaveTestCommand {
     private final ShopManager shopManager;
     private final ItemsManager itemsManager;
     private final StatsManager statsManager;
-    private final MiningManager miningManager;
+//    private final MiningManager miningManager;
     private final GriffinManager griffinManager;
     private final AbilityManager abilityManager;
     private final PerksManager perksManager;
@@ -77,7 +77,7 @@ public class CaveTestCommand {
         this.shopManager = ShopManager.getInstance();
         this.itemsManager = ItemsManager.getInstance();
         this.statsManager = StatsManager.getInstance();
-        this.miningManager = MiningManager.getInstance();
+//        this.miningManager = MiningManager.getInstance();
         this.griffinManager = GriffinManager.getInstance();
         this.abilityManager = AbilityManager.getInstance();
         this.perksManager = PerksManager.getInstance();
@@ -123,13 +123,13 @@ public class CaveTestCommand {
         sender.sendMessage("reloaded Shops!");
     }
 
-    @Subcommand("reload blocks")
-    public void reloadBlocks(CommandSender sender){
-        BlockLoader loader = BlockLoader.getInstance();
-        loader.clear();
-        loader.load();
-        sender.sendMessage("reloaded Blocks!");
-    }
+//    @Subcommand("reload blocks")
+//    public void reloadBlocks(CommandSender sender){
+//        BlockLoader loader = BlockLoader.getInstance();
+//        loader.clear();
+//        loader.load();
+//        sender.sendMessage("reloaded Blocks!");
+//    }
 
     @Subcommand("reload drops")
     public void reloadDrops(CommandSender sender){
@@ -500,7 +500,7 @@ public class CaveTestCommand {
         }
 
         for (int i = linesToDelete.size() - 1; i >= 0; i--) {
-           lore.remove((int) linesToDelete.get(i));
+            lore.remove((int) linesToDelete.get(i));
         }
 
         lore.forEach(sender::sendMessage);
@@ -618,11 +618,11 @@ public class CaveTestCommand {
         shopMenu.shopEditor(sender, shopItem, slotID);
     }
 
-    @Subcommand("mining test")
-    public void miningTest(CommandSender sender, double miningSpeed, int blockStrength){
-        long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);
-        sender.sendMessage("Ticks to break: " + ticksToBreak);
-    }
+//    @Subcommand("mining test")
+//    public void miningTest(CommandSender sender, double miningSpeed, int blockStrength){
+//        long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);
+//        sender.sendMessage("Ticks to break: " + ticksToBreak);
+//    }
 
     @Subcommand("mining getMat")
     public void miningGetMat(Player sender){
@@ -638,15 +638,15 @@ public class CaveTestCommand {
         new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
     }
 
-    @Subcommand("mining setHardness")
-    public void miningSetHardness(Player sender, int strength, int power){
-        Block targetBlock = sender.getTargetBlock(null, 10);
-        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
-        Material type = targetBlock.getType();
-        if (type == Material.AIR) return;
-        miningManager.setBlockInfo(type.name(), blockInfo);
-        sender.sendMessage(type + " set strength to " + strength + " and power to " + power);
-    }
+//    @Subcommand("mining setHardness")
+//    public void miningSetHardness(Player sender, int strength, int power){
+//        Block targetBlock = sender.getTargetBlock(null, 10);
+//        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
+//        Material type = targetBlock.getType();
+//        if (type == Material.AIR) return;
+//        miningManager.setBlockInfo(type.name(), blockInfo);
+//        sender.sendMessage(type + " set strength to " + strength + " and power to " + power);
+//    }
 
     @Subcommand("sound play")
     public void soundPlay(Player sender, Sound sound, @Default("1") float volume, @Default("1") float pitch){

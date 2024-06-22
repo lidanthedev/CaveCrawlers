@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class MenuItemListener implements Listener {
 
@@ -66,7 +67,11 @@ public class MenuItemListener implements Listener {
     }
 
     public void putMenuInHotbar(Player player) {
-        player.getInventory().setItem(8, item);
+        PlayerInventory playerInventory = player.getInventory();
+        if (playerInventory.getItem(8) != null) {
+            return;
+        }
+        playerInventory.setItem(8, item);
     }
 
     public void playersTick() {

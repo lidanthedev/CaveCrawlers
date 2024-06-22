@@ -152,6 +152,7 @@ public class Drop implements ConfigurationSerializable {
 
     protected Entity giveMob(Player player, Location location) {
         try {
+            location = location.clone().add(0.5, 0, 0.5);
             Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
 
             if (announce != null) {

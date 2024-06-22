@@ -79,8 +79,8 @@ public class GriffinManager {
     }
 
     public Block generateGriffinLocation(Player player, int distance) {
-        Location pos1 = new Location(world, -88,88,148);
-        Location pos2 = new Location(world, 230,64,-152);
+        Location pos1 = new Location(world, -75,100,95);
+        Location pos2 = new Location(world, 149,64,-94);
 
         if (player.getWorld() != world){
             throw new IllegalArgumentException("Player is not in the correct world");

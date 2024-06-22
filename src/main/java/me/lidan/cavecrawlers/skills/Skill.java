@@ -44,6 +44,11 @@ public class Skill implements ConfigurationSerializable {
         totalXp += amount;
     }
 
+    public void setXp(double xp) {
+        this.totalXp = xp - this.xp + totalXp;
+        this.xp = xp;
+    }
+
     public boolean levelUp() {
         boolean leveled = false;
         while (xp >= xpToLevel && level < xpToLevelList.size()){
@@ -64,14 +69,6 @@ public class Skill implements ConfigurationSerializable {
             stats.add(statType, level);
         }
         return stats;
-    }
-
-    public void setValue(int amount) {
-        level = amount;
-    }
-
-    public void add(int amount) {
-        level += amount;
     }
 
     public void sendLevelUpMessage(Player player){
@@ -104,7 +101,7 @@ public class Skill implements ConfigurationSerializable {
     public static Skill deserialize(Map<String, Object> map) {
         Skill skill = new Skill(
                 SkillType.valueOf((String) map.get("type")),
-                1,
+                0,
                 (double) map.get("totalXp"),
                 xpToLevelList.get(0),
                 (double) map.get("totalXp")

@@ -3,6 +3,8 @@ package me.lidan.cavecrawlers.commands;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import io.lumine.mythic.core.mobs.MobExecutor;
 import io.lumine.mythic.core.skills.SkillExecutor;
+import io.lumine.mythic.core.spawning.spawners.MythicSpawner;
+import io.lumine.mythic.core.spawning.spawners.SpawnerManager;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
@@ -760,7 +762,18 @@ public class CaveTestCommand {
 
     @Subcommand("mythic addSpawner")
     @AutoComplete("@mobID")
-    public void mythicAddSpawner(Player sender, String skill){
-        plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    public void mythicAddSpawner(Player sender, String mobId){
+        SpawnerManager spawnerManager = plugin.getMythicBukkit().getSpawnerManager();
+        int count = 0;
+        Collection<MythicSpawner> spawners = spawnerManager.getSpawners();
+        for (MythicSpawner spawner : spawners) {
+            if (spawner.getTypeName().equals(mobId)){
+                count++;
+            }
+        }
+        String spawnerNewName = mobId + "S" + (count+1);
+        MythicSpawner spawner = spawnerManager.createSpawner(spawnerNewName, sender.getLocation(), mobId);
+        spawner.setWarmupSeconds(10);
+        sender.sendMessage("Added Spawner: " + spawnerNewName);
     }
 }

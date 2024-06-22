@@ -9,13 +9,19 @@ import java.util.UUID;
 
 public class DialogueQuest extends Quest{
     String[] dialogues;
-    Long ticks;
+    long ticks;
 
-    public DialogueQuest(String[] dialogues, Long ticks){
+    public DialogueQuest(String[] dialogues, long ticks){
+        if(dialogues == null){
+            throw new IllegalArgumentException("Dialogues array cannot be null");
+        }
         this.dialogues = dialogues;
         this.ticks = ticks;
     }
-    public DialogueQuest(String dialogue, Long ticks){
+    public DialogueQuest(String dialogue, long ticks){
+        if(dialogue == null){
+            throw new IllegalArgumentException("Dialogues array cannot be null");
+        }
         this(new String[]{dialogue}, ticks);
     }
     public DialogueQuest(String[] dialogues){

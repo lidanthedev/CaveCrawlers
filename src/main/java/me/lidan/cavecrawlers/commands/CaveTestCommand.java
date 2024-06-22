@@ -1,11 +1,10 @@
 package me.lidan.cavecrawlers.commands;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
-import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.mobs.MobExecutor;
+import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
-import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
@@ -37,6 +36,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -90,6 +90,13 @@ public class CaveTestCommand {
             }
             return Collections.singleton("");
         });
+        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+        if (plugin.getMythicBukkit() != null) {
+            MobExecutor mobExecutor = plugin.getMythicBukkit().getMobManager();
+            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> mobExecutor.getMobNames());
+            SkillExecutor skillExecutor = plugin.getMythicBukkit().getSkillManager();
+            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> skillExecutor.getSkillNames());
+        }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
     }
 
@@ -739,14 +746,21 @@ public class CaveTestCommand {
         customConfig.save();
     }
 
-    @Subcommand("test mythicSkill")
-    public void testPhobos(Player sender, String skill){
-        MythicBukkit.inst().getAPIHelper().castSkill(sender, skill, sender.getLocation());
-    }
-
     @Subcommand("test perks")
     public void testPerks(Player sender){
         Map<String, Perk> perks = perksManager.getPerks(sender);
         sender.sendMessage("Perks: " + perks);
+    }
+
+    @Subcommand("mythic skill")
+    @AutoComplete("@skillID")
+    public void mythicSkill(Player sender, String skill){
+        plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("mythic addSpawner")
+    @AutoComplete("@mobID")
+    public void mythicAddSpawner(Player sender, String skill){
+        plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 }

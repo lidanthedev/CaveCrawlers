@@ -762,7 +762,7 @@ public class CaveTestCommand {
 
     @Subcommand("mythic addSpawner")
     @AutoComplete("@mobID")
-    public void mythicAddSpawner(Player sender, String mobId){
+    public void mythicAddSpawner(Player sender, String mobId, @Default("10") int warmUp){
         SpawnerManager spawnerManager = plugin.getMythicBukkit().getSpawnerManager();
         int count = 0;
         Collection<MythicSpawner> spawners = spawnerManager.getSpawners();
@@ -773,7 +773,7 @@ public class CaveTestCommand {
         }
         String spawnerNewName = mobId + "S" + (count+1);
         MythicSpawner spawner = spawnerManager.createSpawner(spawnerNewName, sender.getLocation(), mobId);
-        spawner.setWarmupSeconds(10);
+        spawner.setWarmupSeconds(warmUp);
         sender.sendMessage("Added Spawner: " + spawnerNewName);
     }
 }

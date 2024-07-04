@@ -21,11 +21,11 @@ public class MenuGui {
         this.player = player;
         Stats stats = StatsManager.getInstance().getStats(player);
         String[] statsMessage = stats.toFormatString().split("\n");
-        this.gui = new Gui(3, "§7Menu");
+        this.gui = new Gui(6, "§bSkyBlock Menu");
 
         gui.disableAllInteractions();
-        gui.setItem(14, ItemBuilder.skull().owner(player).setName("§f%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
-        gui.setItem(12, ItemBuilder.skull().texture(AFK_SKULL_TEXTURE).setName("§5Zealot Kill Counter").asGuiItem((event -> {
+        gui.setItem(13, ItemBuilder.skull().owner(player).setName("§f%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
+        gui.setItem(19, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aYour Skills").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(ZEALOT_COUNT_COMMAND);
         })));

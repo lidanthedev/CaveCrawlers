@@ -28,30 +28,22 @@ public class PlayerViewer {
         // Helmet
         ItemStack helmet = player.getInventory().getHelmet();
         if (helmet != null) {
-            helmet = helmet.clone(); /// Lidan = Scammer
-            GuiItem guiHelmet = new GuiItem(helmet);
-            gui.setItem(10, guiHelmet);
+            gui.setItem(10, ItemBuilder.from(helmet.clone()).asGuiItem());
         }
         // Chestplate
         ItemStack chestplate = player.getInventory().getChestplate();
         if (chestplate != null) {
-            chestplate = chestplate.clone();
-            GuiItem guiChestplate = new GuiItem(chestplate);
-            gui.setItem(19, guiChestplate);
+            gui.setItem(19, ItemBuilder.from(chestplate.clone()).asGuiItem());
         }
         // Leggings
         ItemStack leggings = player.getInventory().getLeggings();
         if (leggings != null) {
-            leggings = leggings.clone();
-            GuiItem guiLeggings = new GuiItem(leggings);
-            gui.setItem(28, guiLeggings);
+            gui.setItem(28, ItemBuilder.from(leggings.clone()).asGuiItem());
         }
         // Boots
         ItemStack boots = player.getInventory().getBoots();
         if (boots != null) {
-            boots = boots.clone();
-            GuiItem guiBoots = new GuiItem(boots);
-            gui.setItem(37, guiBoots);
+            gui.setItem(37, ItemBuilder.from(boots.clone()).asGuiItem());
         }
         // Player Head
         Stats stats = StatsManager.getInstance().getStats(player);
@@ -61,9 +53,7 @@ public class PlayerViewer {
         // mainHand
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         if (mainHand != null) {
-            mainHand = mainHand.clone();
-            GuiItem guiMainHand = new GuiItem(mainHand);
-            gui.setItem(11, guiMainHand);
+            gui.setItem(1, ItemBuilder.from(mainHand.clone()).asGuiItem());
         }
         // Bank
         gui.setItem(15, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GOLD + "Money: " + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());

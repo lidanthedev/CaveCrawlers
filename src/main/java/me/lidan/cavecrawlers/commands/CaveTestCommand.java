@@ -1,10 +1,13 @@
 package me.lidan.cavecrawlers.commands;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
+import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.core.mobs.MobExecutor;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.DropLoader;
+import me.lidan.cavecrawlers.entities.BossEntityData;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
@@ -38,6 +41,7 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -67,6 +71,7 @@ public class CaveTestCommand {
     private final GriffinManager griffinManager;
     private final AbilityManager abilityManager;
     private final PerksManager perksManager;
+    private final EntityManager entityManager;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
@@ -81,6 +86,7 @@ public class CaveTestCommand {
         this.griffinManager = GriffinManager.getInstance();
         this.abilityManager = AbilityManager.getInstance();
         this.perksManager = PerksManager.getInstance();
+        this.entityManager = EntityManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -750,6 +756,14 @@ public class CaveTestCommand {
     public void testPerks(Player sender){
         Map<String, Perk> perks = perksManager.getPerks(sender);
         sender.sendMessage("Perks: " + perks);
+    }
+
+    @Subcommand("test bossSpawn")
+    public void testBossSpawn(Player sender) throws InvalidMobTypeException {
+        Location location = sender.getLocation();
+        Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("TestBoss", sender.getLocation());
+        if (!(entity instanceof LivingEntity livingEntity)) return;
+        entityManager.setEntityData(livingEntity.getUniqueId(), new BossEntityData(livingEntity));
     }
 
     @Subcommand("mythic skill")

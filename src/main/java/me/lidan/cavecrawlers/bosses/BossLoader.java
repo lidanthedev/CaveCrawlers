@@ -11,7 +11,7 @@ public class BossLoader extends ConfigLoader<BossDrops> {
 
     @Override
     public void register(String key, BossDrops value) {
-
+        BossManager.getInstance().registerEntityDrops(value.getEntityName(), value);
     }
 
     public static BossLoader getInstance() {

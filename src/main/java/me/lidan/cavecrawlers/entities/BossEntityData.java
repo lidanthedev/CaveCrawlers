@@ -5,6 +5,8 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -20,6 +22,7 @@ public class BossEntityData extends EntityData {
     private static final Logger log = LoggerFactory.getLogger(BossEntityData.class);
     protected final Map<UUID, Integer> points = new HashMap<>();
     protected int[] bonusPoints = {300, 250, 200, 150, 100};
+    protected long startTime = System.currentTimeMillis();
 
     public BossEntityData(LivingEntity entity) {
         super(entity);
@@ -49,13 +52,41 @@ public class BossEntityData extends EntityData {
         for (int i = 0; i < Math.min(bonusPoints.length, sortedDamage.size()); i++) {
             addPoints(sortedDamage.get(i).getKey(), bonusPoints[i]);
         }
-        log.info("BOSS DEAD: {}", name);
+        Map<String, String> placeholders = new HashMap<>();
+
+        for (int i = 0; i < 3; i++) {
+            int placement = i + 1;
+            placeholders.put("leaderboard_" + placement + "_name", "N/A");
+            placeholders.put("leaderboard_" + placement + "_points", "N/A");
+            placeholders.put("leaderboard_" + placement + "_damage", "N/A");
+        }
+
         for (int i = 0; i < sortedDamage.size(); i++) {
             Player player = Bukkit.getPlayer(sortedDamage.get(i).getKey());
             if (player == null) continue;
             int playerPoints = getPoints(player.getUniqueId());
-            log.info("#{} {} Dealt {} damage (points {})", i+1, player.getName(), sortedDamage.get(i).getValue(), playerPoints);
+            Double damage = sortedDamage.get(i).getValue();
+            int placement = i + 1;
+            log.info("#{} {} Dealt {} damage (points {})", placement, player.getName(), damage, playerPoints);
             drops.drop(player, playerPoints);
+            placeholders.put("leaderboard_" + placement + "_name", player.getDisplayName());
+            placeholders.put("leaderboard_" + placement + "_points", String.valueOf(playerPoints));
+            placeholders.put("leaderboard_" + placement + "_damage", StringUtils.getNumberFormat(damage));
+        }
+        placeholders.put("boss_name", name);
+        placeholders.put("boss_time", String.valueOf((System.currentTimeMillis() - startTime) / 1000));
+        Player killer = event.getEntity().getKiller();
+        if (killer != null) {
+            placeholders.put("attacker", killer.getDisplayName());
+        }
+        else{
+            placeholders.put("attacker", "N/A");
+        }
+        ConfigMessage announce = drops.getAnnounce();
+        if (announce == null) return;
+        for (Player player : entity.getWorld().getPlayers()) {
+            placeholders.put("player_damage", StringUtils.getNumberFormat(damageMap.getOrDefault(player.getUniqueId(), 0.0)));
+            announce.sendMessage(player, placeholders);
         }
     }
 }

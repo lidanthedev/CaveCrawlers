@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.bosses;
 import lombok.Getter;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
@@ -17,10 +18,12 @@ import java.util.Map;
 public class BossDrops implements ConfigurationSerializable {
     private final List<BossDrop> drops;
     private final String entityName;
+    private final ConfigMessage announce;
 
-    public BossDrops(List<BossDrop> drops, String entityName) {
+    public BossDrops(List<BossDrop> drops, String entityName, ConfigMessage announce) {
         this.drops = drops;
         this.entityName = entityName;
+        this.announce = announce;
     }
 
     public void drop(Player player, int points) {
@@ -51,6 +54,7 @@ public class BossDrops implements ConfigurationSerializable {
             deserializedDrops.add(BossDrop.deserialize(dropMap));
         }
         String entityName = (String) map.get("entityName");
-        return new BossDrops(deserializedDrops, entityName);
+        ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
+        return new BossDrops(deserializedDrops, entityName, announce);
     }
 }

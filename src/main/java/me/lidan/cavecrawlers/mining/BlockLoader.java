@@ -9,7 +9,7 @@ public class BlockLoader extends ConfigLoader<BlockInfo> {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final MiningManager miningManager = MiningManager.getInstance();
 
-    public BlockLoader() {
+    private BlockLoader() {
         super(BlockInfo.class, "blocks");
     }
 

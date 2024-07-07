@@ -6,7 +6,7 @@ public class PerksLoader extends ConfigLoader<Perk> {
     private static PerksLoader instance;
     private PerksManager manager = PerksManager.getInstance();
 
-    public PerksLoader() {
+    private PerksLoader() {
         super(Perk.class, "perks");
         manager = PerksManager.getInstance();
     }

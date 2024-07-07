@@ -5,7 +5,7 @@ import me.lidan.cavecrawlers.objects.ConfigLoader;
 public class BossLoader extends ConfigLoader<BossDrops> {
     private static BossLoader instance;
 
-    public BossLoader() {
+    private BossLoader() {
         super(BossDrops.class, "bosses");
     }
 

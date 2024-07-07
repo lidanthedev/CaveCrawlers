@@ -6,7 +6,7 @@ public class ItemsLoader extends ConfigLoader<ItemInfo> {
     private static ItemsLoader instance;
     private final ItemsManager itemsManager;
 
-    public ItemsLoader(ItemsManager itemsManager) {
+    private ItemsLoader(ItemsManager itemsManager) {
         super(ItemInfo.class, "items");
         this.itemsManager = itemsManager;
     }

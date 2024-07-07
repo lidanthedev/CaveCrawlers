@@ -1,18 +1,13 @@
 package me.lidan.cavecrawlers.bosses;
 
 import lombok.Getter;
-import me.lidan.cavecrawlers.griffin.GriffinDrop;
-import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class BossDrops implements ConfigurationSerializable {
@@ -31,11 +26,11 @@ public class BossDrops implements ConfigurationSerializable {
     }
 
     public void drop(Player player, Location location, int points) {
-        Map<String, BossDrop> gotDrops = new HashMap<>();
+        Set<String> gotDrops = new HashSet<>();
         for (BossDrop drop : drops) {
             String track = drop.getTrack();
-            if (!gotDrops.containsKey(track) && points >= drop.getRequiredPoints() && drop.rollChance(player)) {
-                gotDrops.put(track, drop);
+            if (!gotDrops.contains(track) && points >= drop.getRequiredPoints() && drop.rollChance(player)) {
+                gotDrops.add(track);
                 drop.drop(player, location);
             }
         }

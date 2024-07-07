@@ -39,7 +39,7 @@ public class BossDrops implements ConfigurationSerializable {
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return Map.of("drops", drops);
+        return Map.of("drops", drops, "entityName", entityName, "announce", ConfigMessage.getIdOfMessage(announce));
     }
 
     public static BossDrops deserialize(Map<String, Object> map) {

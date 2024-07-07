@@ -53,7 +53,6 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
         this(type, chance, value, null);
     }
 
-
     @Override
     protected Entity giveMob(Player player, Location location) {
         Entity entity = super.giveMob(player, location);

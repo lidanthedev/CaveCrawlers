@@ -3,6 +3,9 @@ package me.lidan.cavecrawlers;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import me.lidan.cavecrawlers.bosses.BossDrop;
+import me.lidan.cavecrawlers.bosses.BossDrops;
+import me.lidan.cavecrawlers.bosses.BossLoader;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.SimpleDrop;
@@ -95,6 +98,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerShops();
         registerBlocks();
         registerDrops();
+        registerBosses();
         registerGriffin();
         registerPerks();
 
@@ -108,6 +112,10 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerBosses() {
+        BossLoader.getInstance().load();
     }
 
     private void registerConfig() {
@@ -144,6 +152,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Skills.class);
         ConfigurationSerialization.registerClass(GriffinDrop.class);
         ConfigurationSerialization.registerClass(GriffinDrops.class);
+        ConfigurationSerialization.registerClass(BossDrop.class);
+        ConfigurationSerialization.registerClass(BossDrops.class);
         ConfigurationSerialization.registerClass(Perk.class);
         ConfigurationSerialization.registerClass(ConfigMessage.class);
         ConfigurationSerialization.registerClass(SoundOptions.class);

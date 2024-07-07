@@ -3,8 +3,6 @@ package me.lidan.cavecrawlers.entities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
-import me.lidan.cavecrawlers.drops.DropsManager;
-import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
@@ -15,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter
 public class BossEntityData extends EntityData {
@@ -46,9 +43,8 @@ public class BossEntityData extends EntityData {
         BossDrops drops = BossManager.getInstance().getEntityDrops(name);
         if (drops == null) return;
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()
-                .sorted(Comparator.comparingDouble(Map.Entry::getValue))
+                .sorted((o1, o2) -> (int) (o2.getValue() - o1.getValue()))
                 .toList());
-        Collections.reverse(sortedDamage);
         for (int i = 0; i < Math.min(bonusPoints.length, sortedDamage.size()); i++) {
             addPoints(sortedDamage.get(i).getKey(), bonusPoints[i]);
         }

@@ -50,7 +50,7 @@ public class BossEntityData extends EntityData {
         }
         Map<String, String> placeholders = new HashMap<>();
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < bonusPoints.length; i++) {
             int placement = i + 1;
             placeholders.put("leaderboard_" + placement + "_name", "N/A");
             placeholders.put("leaderboard_" + placement + "_points", "N/A");

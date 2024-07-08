@@ -36,7 +36,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -54,6 +53,8 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import static me.lidan.cavecrawlers.entities.dragons.EyePlacement.DisableEyes;
+import static me.lidan.cavecrawlers.entities.dragons.EyePlacement.resetEyes;
 import static org.bukkit.Bukkit.getConsoleSender;
 
 @Command({"cavetest", "ct"})
@@ -762,5 +763,14 @@ public class CaveTestCommand {
     @AutoComplete("@mobID")
     public void mythicAddSpawner(Player sender, String skill){
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("dragons enable")
+    public void DragonsEnable(){
+        resetEyes();
+    }
+    @Subcommand("dragons disable")
+    public void DragonsDisable(){
+        DisableEyes();
     }
 }

@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.entities.dragons.EyePlacement;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
@@ -43,6 +44,7 @@ import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -78,6 +80,8 @@ public final class CaveCrawlers extends JavaPlugin {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();
         });
 
+        getServer().getWorlds().forEach(world -> {world.setMetadata("placed_eyes", new FixedMetadataValue(this, 0));});
+
         if (!setupEconomy() ) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -89,6 +93,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerSerializer();
 
         registerConfig();
+
 
         registerAbilities();
         registerItems();
@@ -225,6 +230,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
         registerEvent(new FirstJoinListener());
+        registerEvent(new EyePlacement());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
@@ -237,6 +243,7 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void startTasks(){
+        Bukkit.getScheduler().runTask(this, EyePlacement::resetEyes);
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
             Bukkit.getOnlinePlayers().forEach(player -> {

@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.entities.dragons;
 
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import net.milkbowl.vault.chat.Chat;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EnderDragon;
@@ -14,8 +15,10 @@ import org.bukkit.event.entity.EnderDragonChangePhaseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import me.lidan.cavecrawlers.items.ItemsManager;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -63,10 +66,11 @@ public class EyePlacement implements Listener {
         for (Block block : blocks) {
             if (block.getType() == Material.BEDROCK && block.getLocation().getY() == MIDDLE.getY()) {
                 block.setType(Material.END_PORTAL_FRAME);
+                world.setMetadata("placed_eyes", new FixedMetadataValue(CaveCrawlers.getInstance(), 0));
             }
         }
     }
-    public static void DisableEyes() {
+    public static void disableEyes() {
         double size = 10;
         ArrayList<Block> blocks = loopBlocksHorizontally(MIDDLE, size);
         for (Block block : blocks) {
@@ -78,23 +82,27 @@ public class EyePlacement implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {return;}
+            Player player = event.getPlayer();
+            ItemStack itemInHand = player.getInventory().getItemInMainHand();
+            if (event.getClickedBlock().getType() == Material.END_PORTAL_FRAME && event.getClickedBlock().getData() < 4) {
+                String itemId = ItemsManager.getInstance().getIDofItemStackSafe(itemInHand);
+                if ("SUMMONING_EYE".equals(itemId)) {
+                    World world = player.getWorld();
+                    int placedEyes = increasePlacedEyesCount(world);
+                    Block block = event.getClickedBlock();
+                    player.sendMessage(ChatColor.DARK_PURPLE + "☬ " + player.getDisplayName() + ChatColor.LIGHT_PURPLE + " placed a Summoning Eye! "+ ChatColor.GRAY + "(" + ChatColor.YELLOW + placedEyes + ChatColor.GRAY + "/" + ChatColor.GREEN + "8" + ChatColor.GRAY + ")");
+                    changeBlock(block, Material.BEDROCK);
+                    ItemsManager.getInstance().removeItems(player, ItemsManager.getInstance().getItemByID("SUMMONING_EYE"), 1);
+                    plugin.getLogger().severe("Dragon System: Eye Placed " + player.getDisplayName() + " " + placedEyes);
 
-        Player player = event.getPlayer();
-        ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (Objects.requireNonNull(event.getClickedBlock()).getType() == END_PORTAL_FRAME && itemInHand.hasItemMeta() && Objects.requireNonNull(itemInHand.getItemMeta()).hasDisplayName() && ChatColor.stripColor(itemInHand.getItemMeta().getDisplayName()).equalsIgnoreCase("summoning eye")) {
-                World world = player.getWorld();
-                int placedEyes = increasePlacedEyesCount(world);
-                Block block = event.getClickedBlock();
-                player.sendMessage(ChatColor.DARK_PURPLE + "☬ " + event.getPlayer().getDisplayName() + ChatColor.LIGHT_PURPLE + " placed an eye! (" + placedEyes + "/8)");
-                changeBlockToBedrock(block);
-                EyePlacement.log.info("Dragon System: Eye Placed " + event.getPlayer().getDisplayName() + placedEyes);
-                if (placedEyes == MAX_EYES) {
-                    spawnRandomDragon(world);
+                    if (placedEyes == MAX_EYES) {
+                        spawnRandomDragon(world);
+                    }
                 }
             }
         }
-    }
+
 
     private int increasePlacedEyesCount(World world) {
         // Increment the count of placed eyes in the world's metadata or storage
@@ -105,9 +113,9 @@ public class EyePlacement implements Listener {
         return placedEyes;
     }
 
-    private void changeBlockToBedrock(Block block) {
-        block.setType(BEDROCK);
-        EyePlacement.log.info("BEDROCK dragons");
+    private void changeBlock(Block block, Material material) {
+        block.setType(material);
+        EyePlacement.log.info("Changed block at " + block.getLocation() + " to " + material.toString());
     }
 
     private void spawnRandomDragon(World world) {
@@ -126,13 +134,23 @@ public class EyePlacement implements Listener {
         }
         return null;
     }
+    public static void Wait(long delay, Runnable task) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                task.run();
+            }
+        }.runTaskLater(CaveCrawlers.getInstance(), delay);
+    }
+
     @EventHandler
     public void onDragonChangePhase(EnderDragonChangePhaseEvent e) {
         if (e.getNewPhase() == EnderDragon.Phase.DYING) {
+            EyePlacement.log.info("Dragon Dying");
             e.getEntity().setHealth(0);
             e.getEntity().remove();
-            resetEyes();
-            EyePlacement.log.info("Dragon Dying");
+            Wait(80L, EyePlacement::resetEyes);
+            EyePlacement.log.info("Dragon Dead");
         }
     }
 }

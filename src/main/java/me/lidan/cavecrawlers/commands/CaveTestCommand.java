@@ -53,7 +53,7 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static me.lidan.cavecrawlers.entities.dragons.EyePlacement.DisableEyes;
+import static me.lidan.cavecrawlers.entities.dragons.EyePlacement.disableEyes;
 import static me.lidan.cavecrawlers.entities.dragons.EyePlacement.resetEyes;
 import static org.bukkit.Bukkit.getConsoleSender;
 
@@ -771,6 +771,6 @@ public class CaveTestCommand {
     }
     @Subcommand("dragons disable")
     public void DragonsDisable(){
-        DisableEyes();
+        disableEyes();
     }
 }

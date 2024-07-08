@@ -185,7 +185,7 @@ public class Drop implements ConfigurationSerializable {
                 "type", type,
                 "chance", chance,
                 "value", value,
-                "announce", announce,
+                "announce", ConfigMessage.getIdOfMessage(announce),
                 "chanceModifier", chanceModifier,
                 "amountModifier", amountModifier
         );

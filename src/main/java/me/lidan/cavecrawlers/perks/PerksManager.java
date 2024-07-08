@@ -1,9 +1,6 @@
 package me.lidan.cavecrawlers.perks;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.entity.Player;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +9,7 @@ public class PerksManager {
     private static PerksManager instance;
     private final Map<String, Perk> perks = new HashMap<>();
 
-    public PerksManager() {
+    private PerksManager() {
 
     }
 

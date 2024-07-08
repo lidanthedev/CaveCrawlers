@@ -119,6 +119,16 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         return config.getSerializable(key, ConfigMessage.class);
     }
 
+    public static String getIdOfMessage(ConfigMessage message){
+        for (String key : config.getKeys(false)) {
+            ConfigMessage configMessage = getMessage(key);
+            if (configMessage != null && configMessage.equals(message)){
+                return key;
+            }
+        }
+        return null;
+    }
+
     public static ConfigMessage getMessageOrDefault(String key, ConfigMessage defaultMessage){
         return config.getSerializable(key, ConfigMessage.class, defaultMessage);
     }

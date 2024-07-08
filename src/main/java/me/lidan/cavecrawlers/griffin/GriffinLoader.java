@@ -6,7 +6,7 @@ public class GriffinLoader extends ConfigLoader<GriffinDrops> {
     private static GriffinLoader instance;
     private GriffinManager griffinManager;
 
-    public GriffinLoader() {
+    private GriffinLoader() {
         super(GriffinDrops.class, "griffin");
         griffinManager = GriffinManager.getInstance();
     }

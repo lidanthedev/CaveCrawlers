@@ -7,7 +7,7 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
     private static DropLoader instance;
     private final DropsManager dropsManager = DropsManager.getInstance();
 
-    public DropLoader() {
+    private DropLoader() {
         super(EntityDrops.class, "drops");
     }
 

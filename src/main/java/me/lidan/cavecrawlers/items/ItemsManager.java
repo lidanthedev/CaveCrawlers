@@ -3,9 +3,6 @@ package me.lidan.cavecrawlers.items;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.items.abilities.AbilityManager;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -30,7 +27,7 @@ public class ItemsManager {
     private final ConfigurationSection vanillaConversion;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
-    public ItemsManager() {
+    private ItemsManager() {
         itemsMap = new HashMap<>();
         vanillaConversion = CaveCrawlers.getInstance().getConfig().getConfigurationSection("vanilla-convert");
     }

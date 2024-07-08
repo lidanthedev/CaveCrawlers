@@ -23,16 +23,16 @@ public class StatsManager {
     private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
 
+    private StatsManager() {
+        this.statsMap = new HashMap<>();
+        this.statsAdder = new HashMap<>();
+    }
+
     public static StatsManager getInstance() {
         if (instance == null){
             instance = new StatsManager();
         }
         return instance;
-    }
-
-    public StatsManager() {
-        this.statsMap = new HashMap<>();
-        this.statsAdder = new HashMap<>();
     }
 
     public Stats getStats(UUID uuid){

@@ -16,11 +16,11 @@ public class PlayerDataManager {
 
     private Map<UUID, PlayerData> uuidPlayerDataMap;
 
-    public PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
+    private PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
         this.uuidPlayerDataMap = uuidPlayerDataMap;
     }
 
-    public PlayerDataManager() {
+    private PlayerDataManager() {
         this.uuidPlayerDataMap = new HashMap<>();
         File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
         if (!dir.exists()) {

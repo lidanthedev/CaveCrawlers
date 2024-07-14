@@ -61,6 +61,8 @@ shadowJar{
 
 jar.enabled = false
 
+build.dependsOn(shadowJar)
+
 def targetJavaVersion = 17
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)

@@ -8,18 +8,18 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
 import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.drops.Drop;
-import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.drops.SimpleDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
-import me.lidan.cavecrawlers.items.ItemType;
-import me.lidan.cavecrawlers.items.Rarity;
-import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsLoader;
+import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.*;
+import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -38,7 +38,6 @@ import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import me.lidan.cavecrawlers.listeners.PotionsListener;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import net.milkbowl.vault.economy.Economy;
@@ -50,7 +49,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import revxrsal.commands.CommandHandler;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
 import java.util.Arrays;
@@ -58,7 +56,7 @@ import java.util.Arrays;
 @Getter
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
-    private CommandHandler commandHandler;
+    private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
 
@@ -212,6 +210,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.register(new QolCommand());
         commandHandler.register(new MenuCommands());
         commandHandler.register(new SellCommand());
+        commandHandler.registerBrigadier();
     }
 
     public void registerEvents(){

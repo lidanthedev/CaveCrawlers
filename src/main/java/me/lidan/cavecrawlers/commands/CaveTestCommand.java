@@ -39,7 +39,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -51,8 +50,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
-import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
+import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.lang.reflect.Field;
@@ -88,7 +87,7 @@ public class CaveTestCommand {
         this.perksManager = PerksManager.getInstance();
         this.entityManager = EntityManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
-        handler.getAutoCompleter().registerSuggestion("shopID", (args, sender, command) -> ShopManager.getInstance().getKeys());
+        handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
             Player player = Bukkit.getPlayer(sender.getName());
             if (player != null){
@@ -567,7 +566,7 @@ public class CaveTestCommand {
     }
 
     @Subcommand("shop open")
-    @AutoComplete("@shopID *")
+    @AutoComplete("@shopId *")
     public void shopOpen(Player sender, String ID){
         ShopMenu shopMenu = shopManager.getShop(ID);
         shopMenu.open(sender);
@@ -582,53 +581,53 @@ public class CaveTestCommand {
     }
 
     @Subcommand("shop add")
-    @AutoComplete("@shopID @itemID @itemID *")
-    public void shopAdd(CommandSender sender, String shopID, String resultID, String ingredientID, int amount){
-        shopManager.addItemToShop(shopID, resultID, ingredientID, amount);
+    @AutoComplete("@shopId @itemID @itemID *")
+    public void shopAdd(CommandSender sender, String shopId, String resultId, String ingredientId, int amount){
+        shopManager.addItemToShop(shopId, resultId, ingredientId, amount);
         sender.sendMessage("Added item to shop!");
     }
 
     @Subcommand("shop create")
-    public void shopCreate(CommandSender sender, String shopID){
-        shopManager.createShop(shopID);
+    public void shopCreate(CommandSender sender, String shopId){
+        shopManager.createShop(shopId);
         sender.sendMessage("Shop Created!");
     }
 
     @Subcommand("shop update")
-    @AutoComplete("@shopID * @itemID *")
-    public void shopUpdate(CommandSender sender, String shopID, int slotID, String ingredientID, int amount){
-        shopManager.updateShop(shopID, slotID, ingredientID, amount);
+    @AutoComplete("@shopId * @itemID *")
+    public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount){
+        shopManager.updateShop(shopId, slotId, ingredientId, amount);
         sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop updateCoins")
-    @AutoComplete("@shopID *")
-    public void shopUpdateCoins(CommandSender sender, String shopID, int slotID, double coins){
-        shopManager.updateShopCoins(shopID, slotID, coins);
+    @AutoComplete("@shopId *")
+    public void shopUpdateCoins(CommandSender sender, String shopId, int slotId, double coins){
+        shopManager.updateShopCoins(shopId, slotId, coins);
         sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop remove")
-    @AutoComplete("@shopID *")
-    public void shopRemove(CommandSender sender, String shopID, int slotID){
-        shopManager.removeShop(shopID, slotID);
+    @AutoComplete("@shopId *")
+    public void shopRemove(CommandSender sender, String shopId, int slotId){
+        shopManager.removeShop(shopId, slotId);
         sender.sendMessage("Removed slot from shop!");
     }
 
     @Subcommand("shop delete")
-    @AutoComplete("@shopID")
-    public void shopDelete(CommandSender sender, String shopID){
-        shopManager.deleteShop(shopID);
+    @AutoComplete("@shopId")
+    public void shopDelete(CommandSender sender, String shopId){
+        shopManager.deleteShop(shopId);
         sender.sendMessage("Deleted shop!");
     }
 
     @Subcommand("shop edit")
-    @AutoComplete("@shopID *")
-    public void shopEdit(Player sender, String shopID, int slotID){
-        ShopMenu shopMenu = shopManager.getShop(shopID);
+    @AutoComplete("@shopId *")
+    public void shopEdit(Player sender, String shopId, int slotId){
+        ShopMenu shopMenu = shopManager.getShop(shopId);
         assert shopMenu != null;
-        ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
-        shopMenu.shopEditor(sender, shopItem, slotID);
+        ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
+        shopMenu.shopEditor(sender, shopItem, slotId);
     }
 
     @Subcommand("mining test")

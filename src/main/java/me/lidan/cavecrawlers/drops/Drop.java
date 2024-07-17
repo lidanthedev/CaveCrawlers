@@ -146,8 +146,12 @@ public class Drop implements ConfigurationSerializable {
                     "name", itemInfo.getFormattedName(),
                     "rarity", itemInfo.getRarity().toString(),
                     "dropRarity", dropRarity.toString()));
-            announce.sendMessage(player, placeholders);
+            sendAnnounceMessage(player);
         }
+    }
+
+    protected void sendAnnounceMessage(Player player) {
+        announce.sendMessage(player, placeholders);
     }
 
     protected Entity giveMob(Player player, Location location) {
@@ -157,7 +161,7 @@ public class Drop implements ConfigurationSerializable {
 
             if (announce != null) {
                 placeholders.put("name", entity.getName());
-                announce.sendMessage(player, placeholders);
+                sendAnnounceMessage(player);
             }
 
             return entity;
@@ -174,7 +178,7 @@ public class Drop implements ConfigurationSerializable {
         VaultUtils.giveCoins(player, amount);
         if (announce != null) {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
-            announce.sendMessage(player, placeholders);
+            sendAnnounceMessage(player);
         }
     }
 

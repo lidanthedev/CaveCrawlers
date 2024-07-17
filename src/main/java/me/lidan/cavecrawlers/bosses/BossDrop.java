@@ -71,7 +71,6 @@ public class BossDrop extends Drop implements ConfigurationSerializable {
         }
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), () -> {
             placeholders.put("player", player.getDisplayName());
-            log.info("Announcing to players in the same world: {} with placeholders: {}", player.getWorld().getName(), placeholders);
             for (Player p : player.getWorld().getPlayers()) {
                 announce.sendMessage(p, placeholders);
             }

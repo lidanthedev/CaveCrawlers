@@ -114,6 +114,7 @@ public class Altar implements ConfigurationSerializable {
         BossEntityData entityData = new BossEntityData(livingEntity);
         for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
             entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem);
+            entityData.addDamage(uuidIntegerEntry.getKey(), 1);
         }
         entityData.addOnDeathRunnable(() -> {
             Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), this::resetAltar, altarRechargeTime);

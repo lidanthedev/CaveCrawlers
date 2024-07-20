@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,13 +34,17 @@ public class AltarDrop extends Drop implements ConfigurationSerializable {
         drop(null, location);
     }
 
+    public Entity giveMob(Location location) {
+        return super.giveMob(null, location);
+    }
+
     @Override
     protected void sendAnnounceMessage(Player player) {
         if (player == null) return;
         super.sendAnnounceMessage(player);
     }
 
-    private boolean rollChance() {
+    public boolean rollChance() {
         return RandomUtils.chanceOf(chance);
     }
 

@@ -6,6 +6,7 @@ import lombok.Getter;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarLoader;
+import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
@@ -81,7 +82,12 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();
         });
-
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Altar.class, (args, sender, command) -> {
+            return AltarManager.getInstance().getAltarNames();
+        });
+        commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
+            return AltarManager.getInstance().getAltar(valueResolverContext.pop());
+        });
         if (!setupEconomy() ) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -276,6 +282,7 @@ public final class CaveCrawlers extends JavaPlugin {
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
+        AltarManager.getInstance().reset();
         killEntities();
         closeAllGuis();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {

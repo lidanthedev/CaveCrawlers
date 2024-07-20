@@ -20,6 +20,7 @@ public class BossEntityData extends EntityData {
     protected final Map<UUID, Integer> points = new HashMap<>();
     protected int[] bonusPoints = {300, 250, 200, 150, 100};
     protected long startTime = System.currentTimeMillis();
+    private final List<Runnable> onDeathRunnable = new ArrayList<>();
 
     public BossEntityData(LivingEntity entity) {
         super(entity);
@@ -37,8 +38,15 @@ public class BossEntityData extends EntityData {
         this.points.put(player, points);
     }
 
+    public void addOnDeathRunnable(Runnable runnable) {
+        onDeathRunnable.add(runnable);
+    }
+
     @Override
     public void onDeath(EntityDeathEvent event) {
+        for (Runnable runnable : onDeathRunnable) {
+            runnable.run();
+        }
         String name = entity.getName();
         BossDrops drops = BossManager.getInstance().getEntityDrops(name);
         if (drops == null) return;

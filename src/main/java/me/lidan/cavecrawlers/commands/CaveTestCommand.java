@@ -7,6 +7,7 @@ import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
+import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -65,29 +66,21 @@ import static org.bukkit.Bukkit.getConsoleSender;
 @CommandPermission("cavecrawlers.test")
 public class CaveTestCommand {
 
-    private final ShopManager shopManager;
-    private final ItemsManager itemsManager;
-    private final StatsManager statsManager;
-    private final MiningManager miningManager;
-    private final GriffinManager griffinManager;
-    private final AbilityManager abilityManager;
-    private final PerksManager perksManager;
-    private final EntityManager entityManager;
+    private final ShopManager shopManager = ShopManager.getInstance();
+    private final ItemsManager itemsManager = ItemsManager.getInstance();
+    private final StatsManager statsManager = StatsManager.getInstance();
+    private final MiningManager miningManager = MiningManager.getInstance();
+    private final GriffinManager griffinManager = GriffinManager.getInstance();
+    private final AbilityManager abilityManager = AbilityManager.getInstance();
+    private final PerksManager perksManager = PerksManager.getInstance();
+    private final EntityManager entityManager = EntityManager.getInstance();
+    private final AltarManager altarManager = AltarManager.getInstance();
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
-    private final CaveCrawlers plugin;
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
-        this.plugin = CaveCrawlers.getInstance();
-        this.shopManager = ShopManager.getInstance();
-        this.itemsManager = ItemsManager.getInstance();
-        this.statsManager = StatsManager.getInstance();
-        this.miningManager = MiningManager.getInstance();
-        this.griffinManager = GriffinManager.getInstance();
-        this.abilityManager = AbilityManager.getInstance();
-        this.perksManager = PerksManager.getInstance();
-        this.entityManager = EntityManager.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -779,10 +772,54 @@ public class CaveTestCommand {
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 
-    @Subcommand("altar save")
-    public void altarSave(Player sender){
-        Altar testAltar = new Altar(List.of(new Location(Bukkit.getWorld("work"), 147,67,4)), new Location(Bukkit.getWorld("work"),148,70,2), List.of(new AltarDrop(100, "TestBoss")), ItemsManager.getInstance().getItemByID("SUMMONING_EYE"), Material.END_PORTAL_FRAME, Material.BEDROCK, null);
-        config.set("altar", testAltar);
-        config.save();
+    @Subcommand("altar create")
+    public void altarCreate(Player sender, String altarName){
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(sender.getInventory().getItemInMainHand());
+        if (itemInfo == null){
+            sender.sendMessage("§cERROR! You must hold the summoning item!");
+            return;
+        }
+        Altar altar = new Altar();
+        altar.setItemToSpawn(itemInfo);
+        altarManager.updateAltar(altarName, altar);
+        sender.sendMessage("Created Altar!");
+    }
+
+    @Subcommand("altar setSpawnLocation")
+    public void altarSetSpawnLocation(Player sender, Altar altar){
+        altar.setSpawnLocation(sender.getLocation());
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Set Spawn Location!");
+    }
+
+    @Subcommand("altar addSummonBlock")
+    public void altarAddSummonBlock(Player sender, Altar altar){
+        Block block = sender.getTargetBlock(null, 10);
+        sender.spawnParticle(Particle.FLAME, block.getLocation(), 1, 0, 0, 0, 0);
+        altar.getAltarLocations().add(block.getLocation());
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Added Summon Block!");
+    }
+
+    @Subcommand("altar setMaterial")
+    public void altarSetMaterial(Player sender, Altar altar, Material material){
+        altar.setAltarMaterial(material);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Set Material!");
+    }
+
+    @Subcommand("altar setUsedMaterial")
+    public void altarSetUsedMaterial(Player sender, Altar altar, Material material){
+        altar.setAlterUsedMaterial(material);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Set Used Material!");
+    }
+
+    @Subcommand("altar addSpawn")
+    @AutoComplete("* @mobID *")
+    public void altarAddSpawn(Player sender, Altar altar, String mob, double chance){
+        altar.getSpawns().add(new AltarDrop(chance, mob));
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Added Spawn!");
     }
 }

@@ -3,6 +3,10 @@ package me.lidan.cavecrawlers;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarDrop;
+import me.lidan.cavecrawlers.altar.AltarLoader;
+import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
@@ -78,7 +82,12 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();
         });
-
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Altar.class, (args, sender, command) -> {
+            return AltarManager.getInstance().getAltarNames();
+        });
+        commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
+            return AltarManager.getInstance().getAltar(valueResolverContext.pop());
+        });
         if (!setupEconomy() ) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -99,6 +108,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerBosses();
         registerGriffin();
         registerPerks();
+        registerAltars();
 
         registerCommands();
         registerEvents();
@@ -157,6 +167,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(SoundOptions.class);
         ConfigurationSerialization.registerClass(TitleOptions.class);
         ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(AltarDrop.class);
+        ConfigurationSerialization.registerClass(Altar.class);
     }
 
     private void registerAbilities() {
@@ -200,6 +212,11 @@ public final class CaveCrawlers extends JavaPlugin {
         shopLoader.load();
     }
 
+    public void registerAltars(){
+        AltarLoader altarLoader = AltarLoader.getInstance();
+        altarLoader.load();
+    }
+
     public void registerCommands(){
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillType.class, (args, sender, command) -> SkillType.names());
@@ -234,6 +251,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
         registerEvent(new FirstJoinListener());
+        registerEvent(new AltarListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
@@ -264,6 +282,7 @@ public final class CaveCrawlers extends JavaPlugin {
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
+        AltarManager.getInstance().reset();
         killEntities();
         closeAllGuis();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {

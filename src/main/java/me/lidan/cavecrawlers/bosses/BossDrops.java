@@ -14,11 +14,13 @@ public class BossDrops implements ConfigurationSerializable {
     private final List<BossDrop> drops;
     private final String entityName;
     private final ConfigMessage announce;
+    private final List<Integer> bonusPoints;
 
-    public BossDrops(List<BossDrop> drops, String entityName, ConfigMessage announce) {
+    public BossDrops(List<BossDrop> drops, String entityName, ConfigMessage announce, List<Integer> bonusPoints) {
         this.drops = drops;
         this.entityName = entityName;
         this.announce = announce;
+        this.bonusPoints = bonusPoints;
     }
 
     public void drop(Player player, int points) {
@@ -39,7 +41,7 @@ public class BossDrops implements ConfigurationSerializable {
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return Map.of("drops", drops, "entityName", entityName, "announce", ConfigMessage.getIdOfMessage(announce));
+        return Map.of("drops", drops, "entityName", entityName, "announce", ConfigMessage.getIdOfMessage(announce), "bonusPoints", bonusPoints);
     }
 
     public static BossDrops deserialize(Map<String, Object> map) {
@@ -50,6 +52,7 @@ public class BossDrops implements ConfigurationSerializable {
         }
         String entityName = (String) map.get("entityName");
         ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
-        return new BossDrops(deserializedDrops, entityName, announce);
+        List<Integer> bonusPoints = (List<Integer>) map.getOrDefault("bonusPoints", List.of(300, 250, 200, 150, 100));
+        return new BossDrops(deserializedDrops, entityName, announce, bonusPoints);
     }
 }

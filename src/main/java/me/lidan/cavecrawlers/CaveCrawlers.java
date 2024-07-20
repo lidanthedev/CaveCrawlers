@@ -3,6 +3,8 @@ package me.lidan.cavecrawlers;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
@@ -157,6 +159,8 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(SoundOptions.class);
         ConfigurationSerialization.registerClass(TitleOptions.class);
         ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(AltarDrop.class);
+        ConfigurationSerialization.registerClass(Altar.class);
     }
 
     private void registerAbilities() {
@@ -234,6 +238,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
         registerEvent(new FirstJoinListener());
+        registerEvent(new AltarListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

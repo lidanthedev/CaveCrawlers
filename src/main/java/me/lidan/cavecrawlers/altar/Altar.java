@@ -1,27 +1,38 @@
 package me.lidan.cavecrawlers.altar;
 
 import lombok.Data;
-import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Data
-public class Altar {
+public class Altar implements ConfigurationSerializable {
+    private static ItemsManager itemsManager = ItemsManager.getInstance();
+
     private List<Location> altarLocations = new ArrayList<>();
     private Location spawnLocation;
-    private List<Drop> spawns = new ArrayList<>();
+    private List<AltarDrop> spawns = new ArrayList<>();
+    private ItemInfo itemToSpawn;
     private Material altarMaterial;
     private Material alterUsedMaterial;
     private ConfigMessage announce;
 
-    public Altar(List<Location> altarLocations, Location spawnLocation, List<Drop> spawns, Material altarMaterial, Material alterUsedMaterial, ConfigMessage announce) {
+    private Map<UUID, Integer> playerPlacedMap = new HashMap<>();
+
+    public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage announce) {
         this.altarLocations = altarLocations;
         this.spawnLocation = spawnLocation;
         this.spawns = spawns;
+        this.itemToSpawn = itemToSpawn;
         this.altarMaterial = altarMaterial;
         this.alterUsedMaterial = alterUsedMaterial;
         this.announce = announce;
@@ -33,9 +44,52 @@ public class Altar {
         }
     }
 
+    public boolean isAltar(Location location) {
+        return altarLocations.contains(location);
+    }
+
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) return;
+        if (!isAltar(clickedBlock.getLocation())) return;
+        if (!itemsManager.hasItem(player, itemToSpawn, 1)) return;
+        if (clickedBlock.getType() != altarMaterial) return;
+        int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
+        playerPlacedMap.put(player.getUniqueId(), afterPlace);
+        clickedBlock.setType(alterUsedMaterial);
+        if (afterPlace == altarLocations.size()) {
+            roll();
+        }
+    }
+
+    private void roll() {
+        for (AltarDrop spawn : spawns) {
+            spawn.roll(spawnLocation);
+        }
+    }
+
     public void disableAltar() {
         for (Location location : altarLocations) {
             location.getBlock().setType(alterUsedMaterial);
         }
+    }
+
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        return Map.of("altarLocations", altarLocations, "spawnLocation", spawnLocation, "spawns", spawns, "itemToSpawn", itemToSpawn, "altarMaterial", altarMaterial, "alterUsedMaterial", alterUsedMaterial, "announce", ConfigMessage.getIdOfMessage(announce));
+    }
+
+    public static Altar deserialize(Map<String, Object> map) {
+        List<Location> altarLocations = (List<Location>) map.get("altarLocations");
+        Location spawnLocation = (Location) map.get("spawnLocation");
+        List<AltarDrop> spawns = (List<AltarDrop>) map.get("spawns");
+        ItemInfo itemToSpawn = (ItemInfo) map.get("itemToSpawn");
+        Material altarMaterial = Material.valueOf(map.get("altarMaterial").toString());
+        Material alterUsedMaterial = Material.valueOf(map.get("alterUsedMaterial").toString());
+        ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
+        return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, announce);
     }
 }

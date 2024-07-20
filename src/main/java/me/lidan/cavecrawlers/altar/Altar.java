@@ -55,6 +55,7 @@ public class Altar implements ConfigurationSerializable {
         if (!isAltar(clickedBlock.getLocation())) return;
         if (!itemsManager.hasItem(player, itemToSpawn, 1)) return;
         if (clickedBlock.getType() != altarMaterial) return;
+        itemsManager.removeItems(player, itemToSpawn, 1);
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         playerPlacedMap.put(player.getUniqueId(), afterPlace);
         clickedBlock.setType(alterUsedMaterial);
@@ -79,17 +80,25 @@ public class Altar implements ConfigurationSerializable {
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return Map.of("altarLocations", altarLocations, "spawnLocation", spawnLocation, "spawns", spawns, "itemToSpawn", itemToSpawn, "altarMaterial", altarMaterial, "alterUsedMaterial", alterUsedMaterial, "announce", ConfigMessage.getIdOfMessage(announce));
+        Map<String, Object> map = new HashMap<>();
+        map.put("altarLocations", altarLocations);
+        map.put("spawnLocation", spawnLocation);
+        map.put("spawns", spawns);
+        map.put("itemToSpawn", itemToSpawn.getID());
+        map.put("altarMaterial", altarMaterial.toString());
+        map.put("alterUsedMaterial", alterUsedMaterial.toString());
+        map.put("announce", announce);
+        return map;
     }
 
     public static Altar deserialize(Map<String, Object> map) {
         List<Location> altarLocations = (List<Location>) map.get("altarLocations");
         Location spawnLocation = (Location) map.get("spawnLocation");
         List<AltarDrop> spawns = (List<AltarDrop>) map.get("spawns");
-        ItemInfo itemToSpawn = (ItemInfo) map.get("itemToSpawn");
+        ItemInfo itemToSpawn = itemsManager.getItemByID(map.get("itemToSpawn").toString());
         Material altarMaterial = Material.valueOf(map.get("altarMaterial").toString());
         Material alterUsedMaterial = Material.valueOf(map.get("alterUsedMaterial").toString());
-        ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
+        ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
         return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, announce);
     }
 }

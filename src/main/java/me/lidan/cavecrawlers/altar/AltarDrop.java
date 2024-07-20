@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class AltarDrop extends Drop implements ConfigurationSerializable {
@@ -44,11 +45,21 @@ public class AltarDrop extends Drop implements ConfigurationSerializable {
 
     @Override
     public @NotNull Map<String, Object> serialize() {
-        return super.serialize();
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type.name());
+        map.put("chance", chance);
+        map.put("value", value);
+        return map;
     }
 
     public static Drop deserialize(Map<String, Object> map) {
-        Drop drop = Drop.deserialize(map);
-        return new AltarDrop(drop.getType(), drop.getChance(), drop.getValue(), drop.getAnnounce(), drop.getChanceModifier(), drop.getAmountModifier());
+        return new AltarDrop(
+                DropType.valueOf((String) map.get("type")),
+                (double) map.get("chance"),
+                (String) map.get("value"),
+                null,
+                null,
+                null
+        );
     }
 }

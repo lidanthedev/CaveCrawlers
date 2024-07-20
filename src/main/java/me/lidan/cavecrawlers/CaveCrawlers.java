@@ -5,6 +5,7 @@ import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
+import me.lidan.cavecrawlers.altar.AltarLoader;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
@@ -101,6 +102,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerBosses();
         registerGriffin();
         registerPerks();
+        registerAltars();
 
         registerCommands();
         registerEvents();
@@ -202,6 +204,11 @@ public final class CaveCrawlers extends JavaPlugin {
     public void registerShops(){
         ShopLoader shopLoader = ShopLoader.getInstance();
         shopLoader.load();
+    }
+
+    public void registerAltars(){
+        AltarLoader altarLoader = AltarLoader.getInstance();
+        altarLoader.load();
     }
 
     public void registerCommands(){

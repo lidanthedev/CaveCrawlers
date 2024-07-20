@@ -5,6 +5,8 @@ import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.core.mobs.MobExecutor;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -775,5 +777,12 @@ public class CaveTestCommand {
     @AutoComplete("@mobID")
     public void mythicAddSpawner(Player sender, String skill){
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("altar save")
+    public void altarSave(Player sender){
+        Altar testAltar = new Altar(List.of(new Location(Bukkit.getWorld("work"), 147,67,4)), new Location(Bukkit.getWorld("work"),148,70,2), List.of(new AltarDrop(100, "TestBoss")), ItemsManager.getInstance().getItemByID("SUMMONING_EYE"), Material.END_PORTAL_FRAME, Material.BEDROCK, null);
+        config.set("altar", testAltar);
+        config.save();
     }
 }

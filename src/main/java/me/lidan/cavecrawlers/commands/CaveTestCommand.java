@@ -825,6 +825,20 @@ public class CaveTestCommand {
         sender.sendMessage(ChatColor.GREEN + "Success set spawn item for %s".formatted(altar.getId()));
     }
 
+    @Subcommand("altar setPointsPerItem")
+    public void altarSetPointsPerItem(Player sender, Altar altar, int points){
+        altar.setPointsPerItem(points);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set points per item for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setAltarRechargeTime")
+    public void altarSetAltarRechargeTime(Player sender, Altar altar, int time){
+        altar.setAltarRechargeTime(time);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set altar recharge time for %s".formatted(altar.getId()));
+    }
+
     @Subcommand("altar addSpawn")
     @AutoComplete("* @mobID *")
     public void altarAddSpawn(Player sender, Altar altar, String mob, double chance){

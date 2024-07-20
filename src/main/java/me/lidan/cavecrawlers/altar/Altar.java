@@ -20,8 +20,6 @@ import java.util.*;
 
 @Data
 public class Altar implements ConfigurationSerializable {
-    public static final int POINTS_PER_ITEM = 100;
-    public static final int ALTAR_RECHARGE = 200;
     private static ItemsManager itemsManager = ItemsManager.getInstance();
     private static EntityManager entityManager = EntityManager.getInstance();
 
@@ -35,11 +33,13 @@ public class Altar implements ConfigurationSerializable {
     private Material alterUsedMaterial;
     private ConfigMessage placeAnnounce;
     private ConfigMessage spawnAnnounce;
+    private int pointsPerItem;
+    private int altarRechargeTime;
 
     private Map<UUID, Integer> playerPlacedMap = new HashMap<>();
     private LivingEntity spawnedEntity;
 
-    public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage placeAnnounce, ConfigMessage spawnAnnounce) {
+    public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage placeAnnounce, ConfigMessage spawnAnnounce, int pointsPerItem, int altarRechargeTime) {
         this.altarLocations = altarLocations;
         this.spawnLocation = spawnLocation;
         this.spawns = spawns;
@@ -48,30 +48,29 @@ public class Altar implements ConfigurationSerializable {
         this.alterUsedMaterial = alterUsedMaterial;
         this.placeAnnounce = placeAnnounce;
         this.spawnAnnounce = spawnAnnounce;
+        this.pointsPerItem = pointsPerItem;
+        this.altarRechargeTime = altarRechargeTime;
     }
 
     public Altar(){
-        this(new ArrayList<>(), null, new ArrayList<>(), null, Material.END_PORTAL_FRAME, Material.BEDROCK, null, null);
-    }
-
-    public void resetAltarBlocks() {
-        for (Location location : altarLocations) {
-            location.getBlock().setType(altarMaterial);
-        }
+        this(new ArrayList<>(), null, new ArrayList<>(), null, Material.END_PORTAL_FRAME, Material.BEDROCK, null, null, 100, 200);
     }
 
     public boolean isAltar(Location location) {
         return altarLocations.contains(location);
     }
 
+    public int getTotalPlaced(){
+        return playerPlacedMap.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) return;
-        if (!isAltar(clickedBlock.getLocation())) return;
-        if (!itemsManager.hasItem(player, itemToSpawn, 1)) return;
-        if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
         if (clickedBlock.getType() != altarMaterial) return;
+        if (!isAltar(clickedBlock.getLocation())) return;
+        if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
         if (player.getGameMode() != GameMode.CREATIVE)
             itemsManager.removeItems(player, itemToSpawn, 1);
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
@@ -85,7 +84,7 @@ public class Altar implements ConfigurationSerializable {
             placeholders.put("max_amount", String.valueOf(altarLocations.size()));
             sendAnnounce(placeAnnounce, placeholders, player.getWorld());
         }
-        if (afterPlace == altarLocations.size()) {
+        if (getTotalPlaced() == altarLocations.size()) {
             roll();
         }
     }
@@ -112,10 +111,10 @@ public class Altar implements ConfigurationSerializable {
     public void onSpawn(LivingEntity livingEntity) {
         BossEntityData entityData = new BossEntityData(livingEntity);
         for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
-            entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * POINTS_PER_ITEM);
+            entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem);
         }
         entityData.addOnDeathRunnable(() -> {
-            Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), this::resetAltar, ALTAR_RECHARGE);
+            Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), this::resetAltar, altarRechargeTime);
         });
         entityManager.setEntityData(livingEntity.getUniqueId(), entityData);
         playerPlacedMap.clear();
@@ -123,6 +122,12 @@ public class Altar implements ConfigurationSerializable {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("entity", livingEntity.getName());
             sendAnnounce(spawnAnnounce, placeholders, livingEntity.getWorld());
+        }
+    }
+
+    public void resetAltarBlocks() {
+        for (Location location : altarLocations) {
+            location.getBlock().setType(altarMaterial);
         }
     }
 
@@ -159,6 +164,8 @@ public class Altar implements ConfigurationSerializable {
         map.put("alterUsedMaterial", alterUsedMaterial.toString());
         map.put("placeAnnounce", ConfigMessage.getIdOfMessage(placeAnnounce));
         map.put("spawnAnnounce", ConfigMessage.getIdOfMessage(spawnAnnounce));
+        map.put("pointsPerItem", pointsPerItem);
+        map.put("altarRechargeTime", altarRechargeTime);
         return map;
     }
 
@@ -171,6 +178,8 @@ public class Altar implements ConfigurationSerializable {
         Material alterUsedMaterial = Material.valueOf(map.get("alterUsedMaterial").toString());
         ConfigMessage placeAnnounce = ConfigMessage.getMessage((String) map.get("placeAnnounce"));
         ConfigMessage spawnAnnounce = ConfigMessage.getMessage((String) map.get("spawnAnnounce"));
-        return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, placeAnnounce, spawnAnnounce);
+        int pointsPerItem = (int) map.getOrDefault("pointsPerItem", 100);
+        int altarRechargeTime = (int) map.getOrDefault("altarRechargeTime", 200);
+        return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, placeAnnounce, spawnAnnounce, pointsPerItem, altarRechargeTime);
     }
 }

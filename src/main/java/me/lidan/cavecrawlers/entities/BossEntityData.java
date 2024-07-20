@@ -18,7 +18,6 @@ import java.util.*;
 public class BossEntityData extends EntityData {
     private static final Logger log = LoggerFactory.getLogger(BossEntityData.class);
     protected final Map<UUID, Integer> points = new HashMap<>();
-    protected int[] bonusPoints = {300, 250, 200, 150, 100};
     protected long startTime = System.currentTimeMillis();
     private final List<Runnable> onDeathRunnable = new ArrayList<>();
 
@@ -49,16 +48,17 @@ public class BossEntityData extends EntityData {
         }
         String name = entity.getName();
         BossDrops drops = BossManager.getInstance().getEntityDrops(name);
+        List<Integer> bonusPoints = drops.getBonusPoints();
         if (drops == null) return;
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()
                 .sorted((o1, o2) -> (int) (o2.getValue() - o1.getValue()))
                 .toList());
-        for (int i = 0; i < Math.min(bonusPoints.length, sortedDamage.size()); i++) {
-            addPoints(sortedDamage.get(i).getKey(), bonusPoints[i]);
+        for (int i = 0; i < Math.min(bonusPoints.size(), sortedDamage.size()); i++) {
+            addPoints(sortedDamage.get(i).getKey(), bonusPoints.get(i));
         }
         Map<String, String> placeholders = new HashMap<>();
 
-        for (int i = 0; i < bonusPoints.length; i++) {
+        for (int i = 0; i < bonusPoints.size(); i++) {
             int placement = i + 1;
             placeholders.put("leaderboard_" + placement + "_name", "N/A");
             placeholders.put("leaderboard_" + placement + "_points", "N/A");

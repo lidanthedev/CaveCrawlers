@@ -6,7 +6,7 @@ public class AltarLoader extends ConfigLoader<Altar> {
     private static AltarLoader instance;
     private final AltarManager altarManager = AltarManager.getInstance();
 
-    public AltarLoader() {
+    private AltarLoader() {
         super(Altar.class, "altars");
     }
 

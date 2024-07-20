@@ -21,17 +21,15 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final File fileDir;
     private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
 
-    public ConfigLoader(Class<T> type, String dirName) {
+    protected ConfigLoader(Class<T> type, String dirName) {
         this(type, new File(CaveCrawlers.getInstance().getDataFolder(), dirName));
     }
 
-    public ConfigLoader(Class<T> type, File fileDir) {
+    protected ConfigLoader(Class<T> type, File fileDir) {
         this.type = type;
         this.fileDir = fileDir;
         this.itemIDFileMap = new HashMap<>();
     }
-
-
 
     public void load(){
         registerItemsFromFolder(fileDir);

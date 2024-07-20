@@ -781,38 +781,39 @@ public class CaveTestCommand {
         }
         Altar altar = new Altar();
         altar.setItemToSpawn(itemInfo);
+        altar.setSpawnLocation(sender.getLocation());
         altarManager.updateAltar(altarName, altar);
-        sender.sendMessage("Created Altar!");
+        sender.sendMessage(ChatColor.GREEN + "Created Alter named %s".formatted(altarName));
     }
 
     @Subcommand("altar setSpawnLocation")
     public void altarSetSpawnLocation(Player sender, Altar altar){
         altar.setSpawnLocation(sender.getLocation());
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Set Spawn Location!");
+        sender.sendMessage(ChatColor.GREEN + "Success set alter spawn for %s".formatted(altar.getId()));
     }
 
     @Subcommand("altar addSummonBlock")
     public void altarAddSummonBlock(Player sender, Altar altar){
         Block block = sender.getTargetBlock(null, 10);
-        sender.spawnParticle(Particle.FLAME, block.getLocation(), 1, 0, 0, 0, 0);
+        sender.spawnParticle(Particle.FLAME, block.getLocation(), 100, 1, 1, 1, 0);
         altar.getAltarLocations().add(block.getLocation());
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Added Summon Block!");
+        sender.sendMessage(ChatColor.GREEN + "Success add summon block for %s".formatted(altar.getId()));
     }
 
     @Subcommand("altar setMaterial")
     public void altarSetMaterial(Player sender, Altar altar, Material material){
         altar.setAltarMaterial(material);
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Set Material!");
+        sender.sendMessage(ChatColor.GREEN + "Success set alter material for %s".formatted(altar.getId()));
     }
 
     @Subcommand("altar setUsedMaterial")
     public void altarSetUsedMaterial(Player sender, Altar altar, Material material){
         altar.setAlterUsedMaterial(material);
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Set Used Material!");
+        sender.sendMessage(ChatColor.GREEN + "Success set alter used material for %s".formatted(altar.getId()));
     }
 
     @Subcommand("altar setSpawnItem")
@@ -821,7 +822,7 @@ public class CaveTestCommand {
         ItemInfo itemInfo = itemsManager.getItemByID(itemId);
         altar.setItemToSpawn(itemInfo);
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Set Used Material!");
+        sender.sendMessage(ChatColor.GREEN + "Success set spawn item for %s".formatted(altar.getId()));
     }
 
     @Subcommand("altar addSpawn")
@@ -829,7 +830,27 @@ public class CaveTestCommand {
     public void altarAddSpawn(Player sender, Altar altar, String mob, double chance){
         altar.getSpawns().add(new AltarDrop(chance, mob));
         altarManager.updateAltar(altar.getId(), altar);
-        sender.sendMessage("Added Spawn!");
+        sender.sendMessage(ChatColor.GREEN + "Success add spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
+    }
+
+    @Subcommand("altar info")
+    public void altarInfo(Player sender, Altar altar){
+        // show the info in a pretty way
+        sender.sendMessage("Altar Info:");
+        sender.sendMessage("ID: " + altar.getId());
+        sender.sendMessage("Item to Spawn: " + altar.getItemToSpawn().getName());
+        sender.sendMessage("Altar Material: " + altar.getAltarMaterial());
+        sender.sendMessage("Used Material: " + altar.getAlterUsedMaterial());
+        sender.sendMessage("Spawns: ");
+        for (AltarDrop spawn : altar.getSpawns()) {
+            sender.sendMessage("  - " + spawn.getValue() + " with chance " + spawn.getChance());
+        }
+
+        sender.sendMessage("Locations are shown visually with fake blocks");
+        for (Location altarLocation : altar.getAltarLocations()) {
+            sender.sendBlockChange(altarLocation, Material.PINK_CONCRETE.createBlockData());
+        }
+        sender.sendBlockChange(altar.getSpawnLocation(), Material.YELLOW_CONCRETE.createBlockData());
     }
 
     @Subcommand("altar reset")

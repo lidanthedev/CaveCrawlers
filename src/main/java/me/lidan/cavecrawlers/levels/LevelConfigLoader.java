@@ -1,77 +1,47 @@
 package me.lidan.cavecrawlers.levels;
 
-import me.lidan.cavecrawlers.drops.Drop;
-import me.lidan.cavecrawlers.utils.StringUtils;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.slf4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class  LevelConfigLoader {
-
+public class LevelConfigLoader {
     private static LevelConfigLoader instance;
-    private static final Logger log = LoggerFactory.getLogger(LevelConfigLoader.class);
-    private final File configFile;
-    private final FileConfiguration config;
-    protected Map<String, String> placeholders = new HashMap<>();
+    private final CustomConfig config;
 
-    private LevelConfigLoader(JavaPlugin plugin) {
-        this.configFile = new File(plugin.getDataFolder(), "levels.yml");
-        this.config = YamlConfiguration.loadConfiguration(configFile);
-        Level(null);
-
+    private LevelConfigLoader() {
+        this.config = new CustomConfig("levels.yml");
         saveDefaultConfig();
+    }
 
-    }
-    public void Level(Player player){
-        level(0, player);
-    }
-    public static LevelConfigLoader getInstance(JavaPlugin plugin) {
+    public static LevelConfigLoader getInstance() {
         if (instance == null) {
-            instance = new LevelConfigLoader(plugin);
+            instance = new LevelConfigLoader();
         }
         return instance;
     }
 
     public void saveDefaultConfig() {
-        if (!configFile.exists()) {
+        if (!config.getFile().exists()) {
+            config.setup();
             config.options().copyDefaults(true);
-            saveConfig();
+            config.save();
         }
     }
 
-    public void saveConfig() {
-        try {
-            config.save(configFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void level(int level, Player player) {
-        placeholders.clear();
-        placeholders.putAll(Map.of("level", StringUtils.getNumberFormat(level)));
-        log.info("ERROR level plceholder");
-
-    }
     public void setLevelInfo(int level, ChatColor color) {
         config.set("levels." + level + ".color", color.name());
-        saveConfig();
+        config.save();
     }
-    public void setLevelColor(String playerId, int level, ChatColor color) {
+
+    public void setLevelColor(int level, ChatColor color) {
         config.set("levels." + level + ".color", color.name());
-        saveConfig();
+        config.save();
     }
+
     public LevelInfo getLevelInfo(int level) {
         String colorName = config.getString("levels." + level + ".color");
         if (colorName != null) {
@@ -82,11 +52,16 @@ public class  LevelConfigLoader {
     }
 
     public void setPlayerLevelInfo(String playerId, LevelInfo levelInfo) {
-        config.set("players." + playerId, levelInfo.getLevel());
-        saveConfig();
+        config.set("players." + playerId + ".level", levelInfo.getLevel());
+        config.save();
     }
 
     public LevelInfo getPlayerLevelInfo(String playerId) {
+        return getLevelInfo(playerId, config);
+    }
+
+    @Nullable
+    static LevelInfo getLevelInfo(String playerId, CustomConfig config) {
         ConfigurationSection playerSection = config.getConfigurationSection("players." + playerId);
         if (playerSection != null) {
             int level = playerSection.getInt("level", 1); // Default level is 1
@@ -94,17 +69,20 @@ public class  LevelConfigLoader {
             ChatColor color = ChatColor.valueOf(colorName);
             return new LevelInfo(level, color);
         }
-        return null; // Handle if player's level info is not found
+        return null;
     }
+
     public String getLevelColor(int level) {
         return config.getString("levels." + level + ".color");
     }
+
     public String getPlayerLevelColor(String playerId) {
-        return config.getString("levels." + playerId + ".color");
+        return config.getString("players." + playerId + ".color");
     }
+
     public void setPlayerXP(String playerId, int xpAmount) {
         config.set("players." + playerId + ".xp", xpAmount);
-        saveConfig();
+        config.save();
     }
 
     public int getPlayerXP(String playerId) {
@@ -113,12 +91,13 @@ public class  LevelConfigLoader {
 
     public void setPlayerLevel(String playerId, int level) {
         config.set("players." + playerId + ".level", level);
-        saveConfig();
+        config.save();
     }
 
     public int getPlayerLevel(String playerId) {
         return config.getInt("players." + playerId + ".level", 1); // Default level is 1
     }
+
     public String getPlayerPrefix(String playerId) {
         return config.getString("players." + playerId + ".prefix", "DefaultPrefix");
     }

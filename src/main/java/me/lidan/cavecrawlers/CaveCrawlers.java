@@ -126,8 +126,6 @@ public final class CaveCrawlers extends JavaPlugin {
     private void registerConfig() {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
-        levelConfigLoader = LevelConfigLoader.getInstance(this);
-        playerLevelManager = new PlayerLevelManager(levelConfigLoader, new Stats(), new ActionBarManager());
         Skill.setXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
     }
 

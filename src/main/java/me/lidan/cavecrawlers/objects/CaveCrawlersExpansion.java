@@ -51,7 +51,7 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
             }
         }
         else if (args[0].equalsIgnoreCase("level")){
-            LevelConfigLoader levelconfigLoader = LevelConfigLoader.getInstance(plugin);
+            LevelConfigLoader levelconfigLoader = LevelConfigLoader.getInstance();
             LevelInfo levelInfo = levelconfigLoader.getPlayerLevelInfo(player.getUniqueId().toString());
             try {
                 if (levelInfo != null) {

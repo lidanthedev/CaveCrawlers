@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import static me.lidan.cavecrawlers.gui.SellMenu.config;
+import static me.lidan.cavecrawlers.levels.LevelConfigLoader.getLevelInfo;
 
 public class LevelInfo {
 
@@ -38,13 +39,6 @@ public class LevelInfo {
     }
     public static LevelInfo getPlayerLevelInfo(String playerId) {
         // Replace this with your actual implementation to fetch player level info from config
-        ConfigurationSection playerSection = config.getConfigurationSection("players." + playerId);
-        if (playerSection != null) {
-            int level = playerSection.getInt("level", 1); // Default level is 1
-            String colorName = playerSection.getString("color", ChatColor.GRAY.name()); // Default color is GRAY
-            ChatColor color = ChatColor.valueOf(colorName);
-            return new LevelInfo(level, color);
-        }
-        return null; // Handle if player's level info is not found
+        return getLevelInfo(playerId, config);
     }
 }

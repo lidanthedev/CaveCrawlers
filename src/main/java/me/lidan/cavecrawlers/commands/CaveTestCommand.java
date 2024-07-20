@@ -92,7 +92,7 @@ public class CaveTestCommand {
         this.abilityManager = AbilityManager.getInstance();
         this.perksManager = PerksManager.getInstance();
         this.entityManager = EntityManager.getInstance();
-        this.levelconfigLoader = LevelConfigLoader.getInstance(plugin);
+        this.levelconfigLoader = LevelConfigLoader.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -788,23 +788,32 @@ public class CaveTestCommand {
     public void sendLevel(Player sender) {
         String playerId = sender.getUniqueId().toString(); // Use UUID as playerId
         LevelInfo levelInfo = levelconfigLoader.getPlayerLevelInfo(playerId);
+
         if (levelInfo != null) {
             int level = levelInfo.getLevel(); // Retrieve the player's level
-            ChatColor levelColor = ChatColor.valueOf(levelconfigLoader.getLevelColor(level)); // Get ChatColor based on level
+            String colorName = levelconfigLoader.getLevelColor(level);
 
-            // Construct the message with colored text
-            String levelMessage = ChatColor.GREEN + "Your current level is " +
-                    levelColor + level;
-            sender.sendMessage(levelMessage);
+            if (colorName != null) {
+                try {
+                    ChatColor levelColor = ChatColor.valueOf(colorName); // Get ChatColor based on level color name
+
+                    // Construct the message with colored text
+                    String levelMessage = ChatColor.GREEN + "Your current level is " +
+                            levelColor + level;
+                    sender.sendMessage(levelMessage);
+                } catch (IllegalArgumentException e) {
+                    sender.sendMessage(ChatColor.RED + "Invalid color name found in configuration.");
+                    e.printStackTrace();
+                }
+            } else {
+                sender.sendMessage(ChatColor.RED + "Color name for level " + level + " is null.");
+            }
         } else {
-            // For new players or when level info is not found
-//            LevelInfo defaultLevelInfo = new LevelInfo(1, ChatColor.GRAY);
-            levelconfigLoader.setPlayerLevel(playerId, 1);
-//            levelconfigLoader.setPlayerLevelInfo(playerId, new LevelInfo(1, ChatColor.GRAY));
-            sender.sendMessage(ChatColor.YELLOW + "Your level is not listed. Your level is 1");
+            // If level info doesn't exist, set default level and inform the player
+            levelconfigLoader.setPlayerLevel(playerId, 1); // Set default level to 1
+            sender.sendMessage(ChatColor.YELLOW + "Your level is not listed. Your level is now set to 1.");
         }
     }
-
 
     @Subcommand("level set lvl")
     public void setLevel(Player sender, int level) {
@@ -818,7 +827,7 @@ public class CaveTestCommand {
     public void setcolor(Player sender, int level, ChatColor color) {
         String playerId = sender.getUniqueId().toString();
         levelconfigLoader.setLevelInfo(level, color);
-        levelconfigLoader.setLevelColor(playerId, level, color);
+        levelconfigLoader.getPlayerLevelColor(playerId);
         sender.sendMessage(ChatColor.GREEN + "level Color has been set to " + levelconfigLoader.getLevelColor(level));
     }
 }

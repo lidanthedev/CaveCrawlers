@@ -22,7 +22,7 @@ public class FirstJoinListener implements Listener {
     private final LevelConfigLoader levelConfigLoader;
 
     public FirstJoinListener(JavaPlugin plugin) {
-        this.levelConfigLoader = LevelConfigLoader.getInstance(plugin);
+        this.levelConfigLoader = LevelConfigLoader.getInstance();
     }
 
     @EventHandler(ignoreCancelled = true)

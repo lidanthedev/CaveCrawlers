@@ -48,6 +48,7 @@ public class AltarDrop extends Drop implements ConfigurationSerializable {
     }
 
     public static Drop deserialize(Map<String, Object> map) {
-        return Drop.deserialize(map);
+        Drop drop = Drop.deserialize(map);
+        return new AltarDrop(drop.getType(), drop.getChance(), drop.getValue(), drop.getAnnounce(), drop.getChanceModifier(), drop.getAmountModifier());
     }
 }

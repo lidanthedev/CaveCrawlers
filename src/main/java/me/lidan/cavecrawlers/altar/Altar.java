@@ -76,15 +76,17 @@ public class Altar implements ConfigurationSerializable {
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         playerPlacedMap.put(player.getUniqueId(), afterPlace);
         clickedBlock.setType(alterUsedMaterial);
+        int totalPlaced = getTotalPlaced();
         if (placeAnnounce != null) {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("player", player.getDisplayName());
             placeholders.put("item", itemToSpawn.getName());
-            placeholders.put("amount", String.valueOf(afterPlace));
+            placeholders.put("amount", String.valueOf(totalPlaced));
+            placeholders.put("player_amount", String.valueOf(afterPlace));
             placeholders.put("max_amount", String.valueOf(altarLocations.size()));
             sendAnnounce(placeAnnounce, placeholders, player.getWorld());
         }
-        if (getTotalPlaced() == altarLocations.size()) {
+        if (totalPlaced == altarLocations.size()) {
             roll();
         }
     }

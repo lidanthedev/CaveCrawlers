@@ -815,6 +815,15 @@ public class CaveTestCommand {
         sender.sendMessage("Set Used Material!");
     }
 
+    @Subcommand("altar setSpawnItem")
+    @AutoComplete("* @itemID")
+    public void altarSetSpawnItem(Player sender, Altar altar, String itemId){
+        ItemInfo itemInfo = itemsManager.getItemByID(itemId);
+        altar.setItemToSpawn(itemInfo);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage("Set Used Material!");
+    }
+
     @Subcommand("altar addSpawn")
     @AutoComplete("* @mobID *")
     public void altarAddSpawn(Player sender, Altar altar, String mob, double chance){

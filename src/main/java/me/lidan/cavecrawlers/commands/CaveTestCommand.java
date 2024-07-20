@@ -18,6 +18,8 @@ import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
+import me.lidan.cavecrawlers.levels.LevelConfigLoader;
+import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -35,7 +37,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.*;
-import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
@@ -54,8 +56,10 @@ import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 
 import static org.bukkit.Bukkit.getConsoleSender;
 
@@ -71,9 +75,11 @@ public class CaveTestCommand {
     private final AbilityManager abilityManager;
     private final PerksManager perksManager;
     private final EntityManager entityManager;
+    private final LevelConfigLoader levelconfigLoader;
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final CaveCrawlers plugin;
+    private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
 
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
@@ -86,6 +92,7 @@ public class CaveTestCommand {
         this.abilityManager = AbilityManager.getInstance();
         this.perksManager = PerksManager.getInstance();
         this.entityManager = EntityManager.getInstance();
+        this.levelconfigLoader = LevelConfigLoader.getInstance(plugin);
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -775,5 +782,43 @@ public class CaveTestCommand {
     @AutoComplete("@mobID")
     public void mythicAddSpawner(Player sender, String skill){
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
+    }
+
+    @Subcommand("level send")
+    public void sendLevel(Player sender) {
+        String playerId = sender.getUniqueId().toString(); // Use UUID as playerId
+        LevelInfo levelInfo = levelconfigLoader.getPlayerLevelInfo(playerId);
+        if (levelInfo != null) {
+            int level = levelInfo.getLevel(); // Retrieve the player's level
+            ChatColor levelColor = ChatColor.valueOf(levelconfigLoader.getLevelColor(level)); // Get ChatColor based on level
+
+            // Construct the message with colored text
+            String levelMessage = ChatColor.GREEN + "Your current level is " +
+                    levelColor + level;
+            sender.sendMessage(levelMessage);
+        } else {
+            // For new players or when level info is not found
+//            LevelInfo defaultLevelInfo = new LevelInfo(1, ChatColor.GRAY);
+            levelconfigLoader.setPlayerLevel(playerId, 1);
+//            levelconfigLoader.setPlayerLevelInfo(playerId, new LevelInfo(1, ChatColor.GRAY));
+            sender.sendMessage(ChatColor.YELLOW + "Your level is not listed. Your level is 1");
+        }
+    }
+
+
+    @Subcommand("level set lvl")
+    public void setLevel(Player sender, int level) {
+        String playerId = sender.getUniqueId().toString();
+        LevelInfo levelInfo = new LevelInfo(level, null);
+        levelconfigLoader.setPlayerLevelInfo(playerId, levelInfo);
+        levelconfigLoader.setPlayerLevel(playerId,level);
+        sender.sendMessage(ChatColor.GREEN + "Your level has been set to " + levelconfigLoader.getLevelColor(level) + level);
+    }
+    @Subcommand("level set color")
+    public void setcolor(Player sender, int level, ChatColor color) {
+        String playerId = sender.getUniqueId().toString();
+        levelconfigLoader.setLevelInfo(level, color);
+        levelconfigLoader.setLevelColor(playerId, level, color);
+        sender.sendMessage(ChatColor.GREEN + "level Color has been set to " + levelconfigLoader.getLevelColor(level));
     }
 }

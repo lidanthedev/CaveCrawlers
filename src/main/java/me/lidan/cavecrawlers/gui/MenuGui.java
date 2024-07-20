@@ -2,6 +2,9 @@ package me.lidan.cavecrawlers.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.levels.LevelConfigLoader;
+import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.kyori.adventure.text.Component;
@@ -9,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class MenuGui {
     private final Player player;
@@ -39,9 +43,12 @@ public class MenuGui {
         this.player = player;
         Stats stats = StatsManager.getInstance().getStats(player);
         String[] statsMessage = stats.toFormatString().split("\n");
+        int currentLevel = LevelConfigLoader.getInstance(JavaPlugin.getPlugin(CaveCrawlers.class)).getPlayerLevel(player.getUniqueId().toString());
+        String currentColor = LevelConfigLoader.getInstance(JavaPlugin.getPlugin(CaveCrawlers.class)).getLevelColor(5);
         this.gui = new Gui(6, "§rMenu");
 
         gui.disableAllInteractions();
+        gui.setItem(1, ItemBuilder.skull().texture(MADDOX_SKULL_TEXTURE).setName("Skyblock Level").setLore(ChatColor.GRAY + "SkyBlock Level "+ currentColor + currentLevel).asGuiItem());
         gui.setItem(13, ItemBuilder.skull().owner(player).setName("§f%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
         gui.setItem(20, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aSkills").setLore("§7View your Skill progression and\n §7rewards.").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();

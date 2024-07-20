@@ -821,7 +821,16 @@ public class CaveTestCommand {
         LevelInfo levelInfo = new LevelInfo(level, null);
         levelconfigLoader.setPlayerLevelInfo(playerId, levelInfo);
         levelconfigLoader.setPlayerLevel(playerId,level);
-        sender.sendMessage(ChatColor.GREEN + "Your level has been set to " + levelconfigLoader.getLevelColor(level) + level);
+
+        if (levelconfigLoader.getLevelColor(level) == null) {
+            levelconfigLoader.setLevelColor(level, ChatColor.GRAY);
+            String colorName = levelconfigLoader.getLevelColor(level);
+            ChatColor levelColor = ChatColor.valueOf(colorName);
+            sender.sendMessage(ChatColor.GREEN + "Level color is null so listed to be " + levelColor + String.valueOf(levelInfo.getLevel()));
+        }
+        else {
+            sender.sendMessage(ChatColor.GREEN + "Your level has been set to " + levelconfigLoader.getLevelColor(level) + level);
+        }
     }
     @Subcommand("level set color")
     public void setcolor(Player sender, int level, ChatColor color) {

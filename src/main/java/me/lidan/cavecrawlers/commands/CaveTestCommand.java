@@ -822,4 +822,17 @@ public class CaveTestCommand {
         altarManager.updateAltar(altar.getId(), altar);
         sender.sendMessage("Added Spawn!");
     }
+
+    @Subcommand("altar reset")
+    public void altarReset(Player sender, Altar altar){
+        altar.resetAltar();
+        sender.sendMessage("Reset Altar!");
+    }
+
+    @Subcommand("altar disable")
+    public void altarDisable(Player sender, Altar altar){
+        altar.refundAltar();
+        altar.disableAltar();
+        sender.sendMessage("Disabled Altar!");
+    }
 }

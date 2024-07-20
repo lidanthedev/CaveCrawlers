@@ -7,10 +7,7 @@ import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
@@ -36,27 +33,28 @@ public class Altar implements ConfigurationSerializable {
     private ItemInfo itemToSpawn;
     private Material altarMaterial;
     private Material alterUsedMaterial;
-    private ConfigMessage announce;
+    private ConfigMessage placeAnnounce;
+    private ConfigMessage spawnAnnounce;
 
     private Map<UUID, Integer> playerPlacedMap = new HashMap<>();
     private LivingEntity spawnedEntity;
 
-    public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage announce) {
+    public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage placeAnnounce, ConfigMessage spawnAnnounce) {
         this.altarLocations = altarLocations;
         this.spawnLocation = spawnLocation;
         this.spawns = spawns;
         this.itemToSpawn = itemToSpawn;
         this.altarMaterial = altarMaterial;
         this.alterUsedMaterial = alterUsedMaterial;
-        this.announce = announce;
+        this.placeAnnounce = placeAnnounce;
+        this.spawnAnnounce = spawnAnnounce;
     }
 
     public Altar(){
-        this(new ArrayList<>(), null, new ArrayList<>(), null, Material.END_PORTAL_FRAME, Material.BEDROCK, null);
+        this(new ArrayList<>(), null, new ArrayList<>(), null, Material.END_PORTAL_FRAME, Material.BEDROCK, null, null);
     }
 
-    public void resetAltar() {
-        playerPlacedMap.clear();
+    public void resetAltarBlocks() {
         for (Location location : altarLocations) {
             location.getBlock().setType(altarMaterial);
         }
@@ -72,14 +70,30 @@ public class Altar implements ConfigurationSerializable {
         if (clickedBlock == null) return;
         if (!isAltar(clickedBlock.getLocation())) return;
         if (!itemsManager.hasItem(player, itemToSpawn, 1)) return;
+        if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
         if (clickedBlock.getType() != altarMaterial) return;
         if (player.getGameMode() != GameMode.CREATIVE)
             itemsManager.removeItems(player, itemToSpawn, 1);
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         playerPlacedMap.put(player.getUniqueId(), afterPlace);
         clickedBlock.setType(alterUsedMaterial);
+        if (placeAnnounce != null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", player.getDisplayName());
+            placeholders.put("item", itemToSpawn.getName());
+            placeholders.put("amount", String.valueOf(afterPlace));
+            placeholders.put("max_amount", String.valueOf(altarLocations.size()));
+            sendAnnounce(placeAnnounce, placeholders, player.getWorld());
+        }
         if (afterPlace == altarLocations.size()) {
             roll();
+        }
+    }
+
+    public void sendAnnounce(ConfigMessage message, Map<String, String> placeholders, World world){
+        if (message == null) return;
+        for (Player player : world.getPlayers()) {
+            message.sendMessage(player, placeholders);
         }
     }
 
@@ -104,6 +118,26 @@ public class Altar implements ConfigurationSerializable {
             Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), this::resetAltar, ALTAR_RECHARGE);
         });
         entityManager.setEntityData(livingEntity.getUniqueId(), entityData);
+        playerPlacedMap.clear();
+        if (spawnAnnounce != null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("entity", livingEntity.getName());
+            sendAnnounce(spawnAnnounce, placeholders, livingEntity.getWorld());
+        }
+    }
+
+    public void resetAltar(){
+        refundAltar();
+        resetAltarBlocks();
+    }
+
+    public void refundAltar() {
+        for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
+            Player player = Bukkit.getPlayer(uuidIntegerEntry.getKey());
+            if (player == null) continue;
+            itemsManager.giveItem(player, itemToSpawn, uuidIntegerEntry.getValue());
+        }
+        playerPlacedMap.clear();
     }
 
     public void disableAltar() {
@@ -123,7 +157,8 @@ public class Altar implements ConfigurationSerializable {
         map.put("itemToSpawn", itemToSpawn.getID());
         map.put("altarMaterial", altarMaterial.toString());
         map.put("alterUsedMaterial", alterUsedMaterial.toString());
-        map.put("announce", announce);
+        map.put("placeAnnounce", ConfigMessage.getIdOfMessage(placeAnnounce));
+        map.put("spawnAnnounce", ConfigMessage.getIdOfMessage(spawnAnnounce));
         return map;
     }
 
@@ -134,7 +169,8 @@ public class Altar implements ConfigurationSerializable {
         ItemInfo itemToSpawn = itemsManager.getItemByID(map.get("itemToSpawn").toString());
         Material altarMaterial = Material.valueOf(map.get("altarMaterial").toString());
         Material alterUsedMaterial = Material.valueOf(map.get("alterUsedMaterial").toString());
-        ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
-        return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, announce);
+        ConfigMessage placeAnnounce = ConfigMessage.getMessage((String) map.get("placeAnnounce"));
+        ConfigMessage spawnAnnounce = ConfigMessage.getMessage((String) map.get("spawnAnnounce"));
+        return new Altar(altarLocations, spawnLocation, spawns, itemToSpawn, altarMaterial, alterUsedMaterial, placeAnnounce, spawnAnnounce);
     }
 }

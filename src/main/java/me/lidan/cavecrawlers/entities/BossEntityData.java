@@ -48,8 +48,8 @@ public class BossEntityData extends EntityData {
         }
         String name = entity.getName();
         BossDrops drops = BossManager.getInstance().getEntityDrops(name);
-        List<Integer> bonusPoints = drops.getBonusPoints();
         if (drops == null) return;
+        List<Integer> bonusPoints = drops.getBonusPoints();
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()
                 .sorted((o1, o2) -> (int) (o2.getValue() - o1.getValue()))
                 .toList());

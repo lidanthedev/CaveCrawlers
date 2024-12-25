@@ -42,29 +42,35 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
     @Override
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         String[] args = params.split("_");
-        if (args[0].equalsIgnoreCase("stat")){
+        if (args[0].equalsIgnoreCase("stat")) {
             plugin.getLogger().info("Placeholder Stat");
-            if (args.length == 2){
+            if (args.length == 2) {
                 plugin.getLogger().info("Getting stat " + args[1] + " for " + player.getName());
                 StatType statType = StatType.valueOf(args[1]);
                 return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
             }
-        }
-        else if (args[0].equalsIgnoreCase("level")){
-            LevelConfigLoader levelconfigLoader = LevelConfigLoader.getInstance();
-            LevelInfo levelInfo = levelconfigLoader.getPlayerLevelInfo(player.getUniqueId().toString());
+        } else if (args[0].equalsIgnoreCase("level")) {
+            LevelConfigLoader levelConfigLoader = LevelConfigLoader.getInstance();
+            String playerId = player.getUniqueId().toString();
             try {
-                if (levelInfo != null) {
-                    int level = levelInfo.getLevel(); // Retrieve the player's level
-                    ChatColor levelColor = ChatColor.valueOf(levelconfigLoader.getLevelColor(level)); // Get ChatColor based on level
-                    return levelColor + "" + level;
+                int level = levelConfigLoader.getPlayerLevel(playerId);
+                String colorName = levelConfigLoader.getLevelColor(level);
+                if (colorName != null) {
+                    try {
+                        ChatColor levelColor = ChatColor.valueOf(colorName);
+                        return levelColor + "" + level;
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Invalid color name found for level " + level);
+                        return "Level " + level;
+                    }
+                } else {
+                    return "Level " + level;
                 }
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 log.warn("Error getting level for {}", player.getName());
             }
             return "0";
         }
-        return null;
+        return params;
     }
 }

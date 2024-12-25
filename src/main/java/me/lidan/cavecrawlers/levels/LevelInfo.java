@@ -1,11 +1,9 @@
 package me.lidan.cavecrawlers.levels;
 
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-
-import static me.lidan.cavecrawlers.gui.SellMenu.config;
-import static me.lidan.cavecrawlers.levels.LevelConfigLoader.getLevelInfo;
 
 public class LevelInfo {
 
@@ -24,21 +22,25 @@ public class LevelInfo {
     public ChatColor getColor() {
         return color;
     }
-
     public ConfigurationSection serialize() {
         ConfigurationSection section = new YamlConfiguration();
         section.set("level", level);
         section.set("color", color.name());
         return section;
     }
-
     public static LevelInfo deserialize(ConfigurationSection section) {
         int level = section.getInt("level");
         ChatColor color = ChatColor.valueOf(section.getString("color"));
         return new LevelInfo(level, color);
     }
-    public static LevelInfo getPlayerLevelInfo(String playerId) {
-        // Replace this with your actual implementation to fetch player level info from config
-        return getLevelInfo(playerId, config);
+    public static LevelInfo getPlayerLevelInfo(String playerId, CustomConfig config) {
+        ConfigurationSection playerSection = config.getConfigurationSection("players." + playerId);
+        if (playerSection != null) {
+            int level = playerSection.getInt("level", 1); // Default level is 1
+            String colorName = playerSection.getString("color", ChatColor.GRAY.name()); // Default color is GRAY
+            ChatColor color = ChatColor.valueOf(colorName);
+            return new LevelInfo(level, color);
+        }
+        return null;
     }
 }

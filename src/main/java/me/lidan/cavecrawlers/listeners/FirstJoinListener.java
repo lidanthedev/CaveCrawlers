@@ -31,15 +31,15 @@ public class FirstJoinListener implements Listener {
         String playerId = player.getUniqueId().toString();
 
         if (player.hasPlayedBefore()) {
-            LevelInfo playerLevelInfo = levelConfigLoader.getPlayerLevelInfo(playerId);
-            if (playerLevelInfo != null) {
+            int level = levelConfigLoader.getPlayerLevel(playerId);
+            if (level > 0) {
                 return;
-            } else {
-                player.sendMessage(ChatColor.RED + "Error fetching your level info.");
             }
         } else {
-            LevelInfo defaultLevelInfo = new LevelInfo(1, ChatColor.GRAY);
-            levelConfigLoader.setPlayerLevelInfo(playerId, defaultLevelInfo); // Set LevelInfo object directly
+            int defaultLevel = 1;
+            ChatColor defaultColor = ChatColor.GRAY;
+            levelConfigLoader.setPlayerLevel(playerId, defaultLevel);
+            levelConfigLoader.setLevelColor(defaultLevel, defaultColor);
         }
         if (firstJoinCommands.isEmpty()) {
             return;

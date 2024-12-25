@@ -141,7 +141,7 @@ public final class CaveCrawlers extends JavaPlugin {
         PerksLoader.getInstance().load();
     }
     private void registerLevels() {
-        LevelConfigLoader.getInstance();
+        LevelConfigLoader.getInstance().load();
     }
 
     private static void registerSerializer() {

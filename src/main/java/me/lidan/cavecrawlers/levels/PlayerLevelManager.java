@@ -8,10 +8,11 @@ public class PlayerLevelManager {
 
     private final LevelConfigLoader levelConfigLoader;
     private final ActionBarManager actionBarManager;
+    private static final int maxXP = 100;
 
-    public PlayerLevelManager(LevelConfigLoader levelConfigLoader, ActionBarManager actionBarManager) {
+    public PlayerLevelManager(LevelConfigLoader levelConfigLoader) {
         this.levelConfigLoader = levelConfigLoader;
-        this.actionBarManager = actionBarManager;
+        this.actionBarManager = ActionBarManager.getInstance();
     }
 
     public int getPlayerXP(Player player) {
@@ -22,14 +23,11 @@ public class PlayerLevelManager {
         int currentXP = getPlayerXP(player);
         int newXP = currentXP + xpAmount;
         levelConfigLoader.setPlayerXP(player.getUniqueId().toString(), newXP);
-
-        // Check for level up
         checkLevelUp(player, newXP);
     }
 
     private void checkLevelUp(Player player, int xp) {
         int currentLevel = levelConfigLoader.getPlayerLevel(player.getUniqueId().toString());
-        final int maxXP = 100; // Max XP per level
         actionBarManager.sendActionBar(player, ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + ChatColor.GRAY + "/" + ChatColor.DARK_AQUA + maxXP);
         if (xp >= maxXP) {
             int newLevel = currentLevel + 1;

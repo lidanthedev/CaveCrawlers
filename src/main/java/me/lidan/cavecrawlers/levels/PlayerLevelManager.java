@@ -1,29 +1,22 @@
 package me.lidan.cavecrawlers.levels;
 
 import me.lidan.cavecrawlers.stats.ActionBarManager;
-import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PlayerLevelManager {
 
     private final LevelConfigLoader levelConfigLoader;
-    private final Stats stats;
     private final ActionBarManager actionBarManager;
 
-    public PlayerLevelManager(LevelConfigLoader levelConfigLoader, Stats stats, ActionBarManager actionBarManager) {
+    public PlayerLevelManager(LevelConfigLoader levelConfigLoader, ActionBarManager actionBarManager) {
         this.levelConfigLoader = levelConfigLoader;
-        this.stats = stats;
         this.actionBarManager = actionBarManager;
     }
 
     public int getPlayerXP(Player player) {
         return levelConfigLoader.getPlayerXP(player.getUniqueId().toString());
     }
-    private final int xpPerEnderman = 5; // Adjust XP per Enderman as needed
 
     public void givePlayerXP(Player player, int xpAmount) {
         int currentXP = getPlayerXP(player);
@@ -36,7 +29,7 @@ public class PlayerLevelManager {
 
     private void checkLevelUp(Player player, int xp) {
         int currentLevel = levelConfigLoader.getPlayerLevel(player.getUniqueId().toString());
-        int maxXP = 100; // Max XP per level
+        final int maxXP = 100; // Max XP per level
         actionBarManager.sendActionBar(player, ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + ChatColor.GRAY + "/" + ChatColor.DARK_AQUA + maxXP);
         if (xp >= maxXP) {
             int newLevel = currentLevel + 1;
@@ -49,8 +42,5 @@ public class PlayerLevelManager {
                     "     §8+§a5 §c❤ Health",
                     "§3▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂");
         }
-    }
-    public void giveXPForKillingEndermen(Player player, int xpPerEnderman) {
-        givePlayerXP(player, xpPerEnderman);
     }
 }

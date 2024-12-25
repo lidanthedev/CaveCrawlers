@@ -43,8 +43,6 @@ public class MenuGui {
         this.player = player;
         Stats stats = StatsManager.getInstance().getStats(player);
         String[] statsMessage = stats.toFormatString().split("\n");
-        int currentLevel = LevelConfigLoader.getInstance().getPlayerLevel(player.getUniqueId().toString());
-        String currentColor = LevelConfigLoader.getInstance().getLevelColor(5);
         this.gui = new Gui(6, "§rMenu");
 
         gui.disableAllInteractions();

@@ -19,9 +19,7 @@ import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.*;
-import me.lidan.cavecrawlers.levels.DeathXP;
 import me.lidan.cavecrawlers.levels.LevelConfigLoader;
-import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.levels.PlayerLevelManager;
 import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
@@ -39,7 +37,6 @@ import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillType;
 import me.lidan.cavecrawlers.skills.Skills;
-import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -64,8 +61,6 @@ public final class CaveCrawlers extends JavaPlugin {
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
-    private LevelConfigLoader levelConfigLoader;
-    private PlayerLevelManager playerLevelManager;
 
     @Override
     public void onEnable() {
@@ -106,6 +101,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerBosses();
         registerGriffin();
         registerPerks();
+        registerLevels();
 
         registerCommands();
         registerEvents();
@@ -143,6 +139,9 @@ public final class CaveCrawlers extends JavaPlugin {
 
     private void registerPerks() {
         PerksLoader.getInstance().load();
+    }
+    private void registerLevels() {
+        LevelConfigLoader.getInstance();
     }
 
     private static void registerSerializer() {
@@ -241,7 +240,6 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
         registerEvent(new FirstJoinListener(this));
-        registerEvent(new DeathXP(playerLevelManager));
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

@@ -47,6 +47,7 @@ import me.lidan.cavecrawlers.utils.Cuboid;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -200,6 +201,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("FIRE_SPIRAL", new FireSpiralAbility());
         abilityManager.registerAbility("EARTH_SHOOTER", new EarthShooterAbility());
         abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
+        abilityManager.registerAbility("ARROW_THING", new ArrowAbility());
     }
 
     public void registerItems() {

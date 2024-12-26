@@ -200,6 +200,7 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("FIRE_SPIRAL", new FireSpiralAbility());
         abilityManager.registerAbility("EARTH_SHOOTER", new EarthShooterAbility());
         abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
+        abilityManager.registerAbility("ARROW_SPIRAL", new ArrowSpiralAbility());
     }
 
     public void registerItems() {

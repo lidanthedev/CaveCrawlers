@@ -17,11 +17,11 @@ import org.bukkit.util.Vector;
 public class ArrowSpiralAbility extends ClickAbility implements Listener {
 
     public ArrowSpiralAbility() {
-        super("Arrow Spiral", "Shoots an arrow with a Spiral around it ", 0, 0);
+        super("Arrow Spiral", "Shoots an arrow with a Spiral around it", 0, 0);
     }
 
     private double projectileVelocity = 2;
-    private double distance = 100;
+    private double maxDistance = 100;
     private double resolution = 10;
     private double amountOfLines = 8;
     private double loopiness = 1;
@@ -58,19 +58,19 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
                         world.spawnParticle(mainParticle, newloc, 2, 0, 0, 0, mainParticleSpread);
                     }
 
-                    for (int a = 0, b = 0; a < amountOfLines; a++, b++) {
-                        if (b >= sideParticles.length) b = 0;
+                    for (int a = 0, particleIndex = 0; a < amountOfLines; a++, particleIndex++) {
+                        if (particleIndex >= sideParticles.length) particleIndex = 0;
                         Location loc2 = newloc.clone();
 
                         float angle = (float) Math.toRadians(i * loopiness + a * lineSpacing);
                         loc2.add(new Vector(Math.cos(angle), Math.sin(angle), Math.cos(angle)).multiply(relativeRadius).rotateAroundY(Math.toRadians(loc2.getPitch())));
                         loc2.add(new Vector(Math.cos(angle), Math.sin(angle), Math.cos(angle)).multiply(relativeRadius).rotateAroundY(Math.toRadians(-loc2.getPitch())));
 
-                        world.spawnParticle(sideParticles[b], loc2, 1, 0, 0, 0, 0);
+                        world.spawnParticle(sideParticles[particleIndex], loc2, 1, 0, 0, 0, 0);
                     }
                     i++;
                 }
-                if (p.getLocation().distance(player.getLocation()) > distance || p.isDead()) {
+                if (p.getLocation().distance(player.getLocation()) > maxDistance || p.isDead()) {
                     p.remove();
                     cancel();
                 }
@@ -85,8 +85,8 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
         if (map.has("amountOfLines")) {
             ability.amountOfLines = map.get("amountOfLines").getAsDouble();
         }
-        if (map.has("distance")) {
-            ability.distance = map.get("distance").getAsDouble();
+        if (map.has("maxDistance")) {
+            ability.maxDistance = map.get("distance").getAsDouble();
         }
         if (map.has("radius")) {
             ability.radius = map.get("radius").getAsDouble();

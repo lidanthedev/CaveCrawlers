@@ -786,17 +786,13 @@ public class CaveTestCommand {
 
     @Subcommand("level send")
     public void sendLevel(Player sender) {
-        String playerId = sender.getUniqueId().toString(); // Use UUID as playerId
-        int level = levelconfigLoader.getPlayerLevel(playerId); // Get the player's level
-
+        String playerId = sender.getUniqueId().toString();
+        int level = levelconfigLoader.getPlayerLevel(playerId);
         if (level > 0) {
-            String colorName = levelconfigLoader.getLevelColor(level); // Get level color (as string)
-
+            String colorName = levelconfigLoader.getLevelColor(level);
             if (colorName != null) {
                 try {
-                    ChatColor levelColor = ChatColor.valueOf(colorName); // Convert color string to ChatColor
-
-                    // Construct the message with colored text
+                    ChatColor levelColor = ChatColor.valueOf(colorName);
                     String levelMessage = ChatColor.GREEN + "Your current level is " + levelColor + level;
                     sender.sendMessage(levelMessage);
                 } catch (IllegalArgumentException e) {
@@ -814,32 +810,20 @@ public class CaveTestCommand {
     @Subcommand("level set lvl")
     public void setLevel(Player sender, int level) {
         String playerId = sender.getUniqueId().toString();
-
-        // Retrieve the color for the level (or default to gray if not set)
         String colorName = levelconfigLoader.getLevelColor(level);
         if (colorName == null) {
-            colorName = ChatColor.GRAY.name();  // Default to gray if color is not set
-            levelconfigLoader.setLevelColor(level, ChatColor.GRAY); // Save default color for the level
+            colorName = ChatColor.GRAY.name();
+            levelconfigLoader.setLevelColor(level, ChatColor.GRAY);
         }
-
-        ChatColor levelColor = ChatColor.valueOf(colorName);  // Convert the String to ChatColor
-
-        // Set player's level and level color
-        levelconfigLoader.setPlayerLevel(playerId, level);  // Set the player's level
-        levelconfigLoader.setLevelColor(level, levelColor);  // Set the level color for the given level
-
-        // Send feedback to the player
+        ChatColor levelColor = ChatColor.valueOf(colorName);
+        levelconfigLoader.setPlayerLevel(playerId, level);
+        levelconfigLoader.setLevelColor(level, levelColor);
         sender.sendMessage(ChatColor.GREEN + "Your level has been set to " + levelColor + level);
     }
 
     @Subcommand("level set color")
     public void setColor(Player sender, int level, ChatColor color) {
-        String playerId = sender.getUniqueId().toString();
-
-        // Set the level color
-        levelconfigLoader.setLevelColor(level, color);  // Set the level color for the given level
-
-        // Send feedback to the player
+        levelconfigLoader.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
     }
 }

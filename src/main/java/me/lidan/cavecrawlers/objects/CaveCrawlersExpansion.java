@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -49,28 +50,26 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                 StatType statType = StatType.valueOf(args[1]);
                 return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
             }
-        } else if (args[0].equalsIgnoreCase("level")) {
+        }
+        else if (args[0].equalsIgnoreCase("level")) {
             LevelConfigLoader levelConfigLoader = LevelConfigLoader.getInstance();
             String playerId = player.getUniqueId().toString();
-            try {
-                int level = levelConfigLoader.getPlayerLevel(playerId);
-                String colorName = levelConfigLoader.getLevelColor(level);
-                if (colorName != null) {
-                    try {
-                        ChatColor levelColor = ChatColor.valueOf(colorName);
-                        return levelColor + "" + level;
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Invalid color name found for level " + level);
-                        return "Level " + level;
+            int level = levelConfigLoader.getPlayerLevel(playerId);
+            String colorName = levelConfigLoader.getLevelColor(level);
+            ChatColor levelColor = ChatColor.GRAY;
+            if (colorName != null) {
+                try {
+                    levelColor = ChatColor.valueOf(colorName);
+                } catch (IllegalArgumentException e) {
+                    if (player instanceof Player) {
+                        ((Player) player).sendMessage(ChatColor.RED + "Invalid color in configuration for level " + level);
                     }
-                } else {
-                    return "Level " + level;
                 }
-            } catch (Exception e) {
-                log.warn("Error getting level for {}", player.getName());
+            } else {
+                levelConfigLoader.setLevelColor(level, ChatColor.valueOf(levelColor.name()));
             }
-            return "0";
+            return levelColor + "" + level;
         }
-        return params;
+        return null;
     }
 }

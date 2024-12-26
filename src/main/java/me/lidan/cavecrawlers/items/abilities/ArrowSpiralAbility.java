@@ -86,7 +86,7 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
             ability.amountOfLines = map.get("amountOfLines").getAsDouble();
         }
         if (map.has("maxDistance")) {
-            ability.maxDistance = map.get("distance").getAsDouble();
+            ability.maxDistance = map.get("maxDistance").getAsDouble();
         }
         if (map.has("radius")) {
             ability.radius = map.get("radius").getAsDouble();

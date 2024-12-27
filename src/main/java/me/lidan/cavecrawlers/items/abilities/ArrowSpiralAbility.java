@@ -14,6 +14,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.Random;
+
 public class ArrowSpiralAbility extends ClickAbility implements Listener {
 
     public ArrowSpiralAbility() {
@@ -41,12 +43,11 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
         p.setVelocity(loc.getDirection().multiply(projectileVelocity));
 
         new BukkitRunnable() {
-            private final double relativeRadius = radius / 2;
             private final double mainParticleSpread = radius / 50;
             private final double lineSpacing = 360 / amountOfLines;
             private final double resolutionRatio = 1 / resolution;
 
-            int i = 0;
+            int i = new Random().nextInt(360);
 
             @Override
             public void run() {
@@ -54,23 +55,23 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
                 for (int f = 0; f < resolution; f++) {
                     Vector vector = p.getVelocity();
                     newloc.add(vector.multiply(resolutionRatio));
-                    if (p.getLocation().distance(player.getLocation()) > 2) {
+                    if (newloc.distance(player.getLocation()) > 2.5) {
                         world.spawnParticle(mainParticle, newloc, 2, 0, 0, 0, mainParticleSpread);
-                    }
+                        for (int a = 0, particleIndex = 0; a < amountOfLines; a++, particleIndex++) {
+                            if (particleIndex >= sideParticles.length) particleIndex = 0;
+                            Location loc2 = newloc.clone();
 
-                    for (int a = 0, particleIndex = 0; a < amountOfLines; a++, particleIndex++) {
-                        if (particleIndex >= sideParticles.length) particleIndex = 0;
-                        Location loc2 = newloc.clone();
-
-                        float angle = (float) Math.toRadians(i * loopiness + a * lineSpacing);
-                        loc2.add(new Vector(Math.cos(angle), Math.sin(angle), Math.cos(angle)).multiply(relativeRadius).rotateAroundY(Math.toRadians(loc2.getPitch())));
-                        loc2.add(new Vector(Math.cos(angle), Math.sin(angle), Math.cos(angle)).multiply(relativeRadius).rotateAroundY(Math.toRadians(-loc2.getPitch())));
-
-                        world.spawnParticle(sideParticles[particleIndex], loc2, 1, 0, 0, 0, 0);
+                            float angle = (float) Math.toRadians(360 - ((i * loopiness + a * lineSpacing) % 360));
+                            loc2.add(new Vector(Math.cos(angle), Math.sin(angle), Math.cos(angle)).multiply(radius)
+                                    .rotateAroundY(Math.toRadians(loc.getYaw()))
+                                    .rotateAroundX(Math.toRadians(-p.getLocation().getPitch()))
+                            );
+                            world.spawnParticle(sideParticles[particleIndex], loc2, 1, 0, 0, 0, 0);
+                        }
                     }
                     i++;
                 }
-                if (p.getLocation().distance(player.getLocation()) > maxDistance || p.isDead()) {
+                if (p.getLocation().distance(loc) > maxDistance || p.isDead()) {
                     p.remove();
                     cancel();
                 }

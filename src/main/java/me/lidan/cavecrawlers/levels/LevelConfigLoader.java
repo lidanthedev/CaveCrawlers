@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.levels;
 
 import me.lidan.cavecrawlers.utils.CustomConfig;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 
 
 public class LevelConfigLoader {

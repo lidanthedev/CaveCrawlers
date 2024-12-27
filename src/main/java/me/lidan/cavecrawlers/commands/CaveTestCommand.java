@@ -885,7 +885,6 @@ public class CaveTestCommand {
         altar.disableAltar();
         sender.sendMessage("Disabled Altar!");
     }
-}
 
     @Subcommand("level send")
     public void sendLevel(Player sender) {

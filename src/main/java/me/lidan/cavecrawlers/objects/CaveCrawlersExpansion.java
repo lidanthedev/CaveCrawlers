@@ -6,7 +6,7 @@ import me.lidan.cavecrawlers.levels.LevelConfigLoader;
 import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;

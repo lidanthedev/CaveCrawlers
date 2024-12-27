@@ -5,6 +5,9 @@ import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.core.mobs.MobExecutor;
 import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarDrop;
+import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -37,6 +40,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.*;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -67,32 +71,23 @@ import static org.bukkit.Bukkit.getConsoleSender;
 @CommandPermission("cavecrawlers.test")
 public class CaveTestCommand {
 
-    private final ShopManager shopManager;
-    private final ItemsManager itemsManager;
-    private final StatsManager statsManager;
-    private final MiningManager miningManager;
-    private final GriffinManager griffinManager;
-    private final AbilityManager abilityManager;
-    private final PerksManager perksManager;
-    private final EntityManager entityManager;
-    private final LevelConfigLoader levelconfigLoader;
+    private final ShopManager shopManager = ShopManager.getInstance();
+    private final ItemsManager itemsManager = ItemsManager.getInstance();
+    private final StatsManager statsManager = StatsManager.getInstance();
+    private final MiningManager miningManager = MiningManager.getInstance();
+    private final GriffinManager griffinManager = GriffinManager.getInstance();
+    private final AbilityManager abilityManager = AbilityManager.getInstance();
+    private final PerksManager perksManager = PerksManager.getInstance();
+    private final EntityManager entityManager = EntityManager.getInstance();
+    private final AltarManager altarManager = AltarManager.getInstance();
+    private final LevelConfigLoader levelconfigLoader = LevelConfigLoader.getInstance();
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
-    private final CaveCrawlers plugin;
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
+    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public CaveTestCommand(CommandHandler handler) {
         this.handler = handler;
-        this.plugin = CaveCrawlers.getInstance();
-        this.shopManager = ShopManager.getInstance();
-        this.itemsManager = ItemsManager.getInstance();
-        this.statsManager = StatsManager.getInstance();
-        this.miningManager = MiningManager.getInstance();
-        this.griffinManager = GriffinManager.getInstance();
-        this.abilityManager = AbilityManager.getInstance();
-        this.perksManager = PerksManager.getInstance();
-        this.entityManager = EntityManager.getInstance();
-        this.levelconfigLoader = LevelConfigLoader.getInstance();
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
@@ -166,7 +161,7 @@ public class CaveTestCommand {
 
 
     @Subcommand("config saveStats")
-    public void saveStats(Player sender) {
+    public void saveStats(Player sender){
         config.set("stat", statsManager.getStats(sender));
         sender.sendMessage("set stat to your stats!");
         config.save();
@@ -208,9 +203,8 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item update")
-    public void itemUpdate(Player sender) {
-        ItemStack hand = sender.getEquipment().getItemInMainHand();
-        ;
+    public void itemUpdate(Player sender){
+        ItemStack hand = sender.getEquipment().getItemInMainHand();;
         ItemStack updateItemStack = itemsManager.updateItemStack(hand);
         sender.getEquipment().setItem(EquipmentSlot.HAND, updateItemStack);
     }
@@ -298,13 +292,13 @@ public class CaveTestCommand {
     //item edit baseItem <material> - edit held item's base item
 
     @Subcommand("item create")
-    public void itemCreate(Player sender, String ID, Material material) {
-        if (itemsManager.getItemByID(ID) != null) {
+    public void itemCreate(Player sender, String ID, Material material){
+        if (itemsManager.getItemByID(ID) != null){
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
 
-        String name = ID.replace("_", " ");
+        String name = ID.replace("_"," ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats(true);
         ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
@@ -316,9 +310,9 @@ public class CaveTestCommand {
 
     @Subcommand("item clone")
     @AutoComplete("@itemID *")
-    public void itemClone(Player sender, String originId, String Id) {
+    public void itemClone(Player sender, String originId, String Id){
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
             return;
         }
@@ -330,10 +324,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit stat")
-    public void itemEditStat(Player sender, StatType stat, double number) {
+    public void itemEditStat(Player sender, StatType stat, double number){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -345,10 +339,10 @@ public class CaveTestCommand {
 
     @Subcommand("item edit ability")
     @AutoComplete("@abilityID")
-    public void itemEditAbility(Player sender, String abilityId) {
+    public void itemEditAbility(Player sender, String abilityId){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -359,10 +353,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit name")
-    public void itemEditName(Player sender, String name) {
+    public void itemEditName(Player sender, String name){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -373,10 +367,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit description")
-    public void itemEditDescription(Player sender, String description) {
+    public void itemEditDescription(Player sender, String description){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -387,10 +381,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit type")
-    public void itemEditType(Player sender, ItemType type) {
+    public void itemEditType(Player sender, ItemType type){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -401,10 +395,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit rarity")
-    public void itemEditRarity(Player sender, Rarity rarity) {
+    public void itemEditRarity(Player sender, Rarity rarity){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -415,10 +409,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit baseItem")
-    public void itemEditBaseItem(Player sender, Material material) {
+    public void itemEditBaseItem(Player sender, Material material){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
+        if (itemInfo == null){
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
@@ -429,10 +423,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("lores")
-    public void showLore(Player sender) {
+    public void showLore(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) {
+        if (meta == null){
             sender.sendMessage("ERROR! NO META FOUND!");
             return;
         }
@@ -446,40 +440,40 @@ public class CaveTestCommand {
         for (int i = 0; i < lore.size(); i++) {
             message = new JsonMessage();
             String line = lore.get(i);
-            message.append(line).setClickAsSuggestCmd("/ie lore set %s %s".formatted(i + 1, line.replaceAll("§", "&"))).save().send(sender);
+            message.append(line).setClickAsSuggestCmd("/ie lore set %s %s".formatted(i+1 ,line.replaceAll("§", "&"))).save().send(sender);
         }
     }
 
     @Command("lores")
-    public void loresCommand(Player sender) {
+    public void loresCommand(Player sender){
         showLore(sender);
     }
 
     @Subcommand("packet test")
-    public void packetTest(Player player, int stage) {
+    public void packetTest(Player player, int stage){
         PacketManager packetManager = PacketManager.getInstance();
         packetManager.setBlockDestroyStage(player, player.getTargetBlock(null, 10).getLocation(), stage);
     }
 
     @Subcommand("nbt set")
-    public void nbtSet(Player sender, String key, String value) {
+    public void nbtSet(Player sender, String key, String value){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.setString(hand, key, value);
         sender.sendMessage("set NBT!");
     }
 
     @Subcommand("nbt get")
-    public void nbtGet(Player sender, String key) {
+    public void nbtGet(Player sender, String key){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String value = ItemNbt.getString(hand, key);
         sender.sendMessage("value: " + value);
     }
 
     @Subcommand("nbt send")
-    public void nbtSend(Player sender) {
+    public void nbtSend(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) {
+        if (meta == null){
             sender.sendMessage("ERROR! NO META FOUND!");
             return;
         }
@@ -491,10 +485,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("pixel auction")
-    public void pixelAuction(Player sender) {
+    public void pixelAuction(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) {
+        if (meta == null){
             sender.sendMessage("ERROR! NO META FOUND!");
             return;
         }
@@ -504,22 +498,22 @@ public class CaveTestCommand {
         int auctionLine = -1;
         for (int i = 0; i < lore.size(); i++) {
             String line = lore.get(i);
-            if (line.contains(ChatColor.DARK_GRAY + "[")) {
+            if (line.contains(ChatColor.DARK_GRAY + "[")){
                 linesToDelete.add(i);
             }
-            if (line.contains("This item can be reforged!")) {
+            if (line.contains("This item can be reforged!")){
                 linesToDelete.add(i);
             }
-            if (line.contains("-----------")) {
+            if (line.contains("-----------")){
                 auctionLine = i;
             }
-            if (auctionLine != -1) {
+            if (auctionLine != -1){
                 linesToDelete.add(i);
             }
         }
 
         for (int i = linesToDelete.size() - 1; i >= 0; i--) {
-            lore.remove((int) linesToDelete.get(i));
+           lore.remove((int) linesToDelete.get(i));
         }
 
         lore.forEach(sender::sendMessage);
@@ -531,10 +525,10 @@ public class CaveTestCommand {
     }
 
     @Subcommand("pixel reformat")
-    public void pixelReformat(Player sender) {
+    public void pixelReformat(Player sender){
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) {
+        if (meta == null){
             sender.sendMessage("ERROR! NO META FOUND!");
             return;
         }
@@ -552,36 +546,36 @@ public class CaveTestCommand {
     }
 
     @Subcommand("coins set")
-    public void coinsSet(CommandSender sender, OfflinePlayer player, double amount) {
+    public void coinsSet(CommandSender sender, OfflinePlayer player, double amount){
         VaultUtils.setCoins(player, amount);
     }
 
     @Subcommand("coins give")
-    public void coinsGive(CommandSender sender, OfflinePlayer player, double amount) {
+    public void coinsGive(CommandSender sender, OfflinePlayer player, double amount){
         VaultUtils.giveCoins(player, amount);
     }
 
     @Subcommand("coins take")
-    public void coinsTake(CommandSender sender, OfflinePlayer player, double amount) {
+    public void coinsTake(CommandSender sender, OfflinePlayer player, double amount){
         VaultUtils.takeCoins(player, amount);
     }
 
     @Subcommand("coins get")
-    public void coinsGet(CommandSender sender, OfflinePlayer player) {
+    public void coinsGet(CommandSender sender, OfflinePlayer player){
         double coins = VaultUtils.getCoins(player);
         sender.sendMessage(player.getName() + " has " + coins);
     }
 
     @Subcommand("shop open")
     @AutoComplete("@shopId *")
-    public void shopOpen(Player sender, String ID) {
+    public void shopOpen(Player sender, String ID){
         ShopMenu shopMenu = shopManager.getShop(ID);
         shopMenu.open(sender);
     }
 
     @Subcommand("playerviewer")
-    public void playerViewerOpen(Player sender, @Optional Player arg) {
-        if (arg == null) {
+    public void playerViewerOpen(Player sender, @Optional Player arg){
+        if(arg == null) {
             arg = sender;
         }
         new PlayerViewer(arg).open(sender);
@@ -589,34 +583,34 @@ public class CaveTestCommand {
 
     @Subcommand("shop add")
     @AutoComplete("@shopId @itemID @itemID *")
-    public void shopAdd(CommandSender sender, String shopId, String resultId, String ingredientId, int amount) {
+    public void shopAdd(CommandSender sender, String shopId, String resultId, String ingredientId, int amount){
         shopManager.addItemToShop(shopId, resultId, ingredientId, amount);
         sender.sendMessage("Added item to shop!");
     }
 
     @Subcommand("shop create")
-    public void shopCreate(CommandSender sender, String shopId) {
+    public void shopCreate(CommandSender sender, String shopId){
         shopManager.createShop(shopId);
         sender.sendMessage("Shop Created!");
     }
 
     @Subcommand("shop update")
     @AutoComplete("@shopId * @itemID *")
-    public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
+    public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount){
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
         sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop updateCoins")
     @AutoComplete("@shopId *")
-    public void shopUpdateCoins(CommandSender sender, String shopId, int slotId, double coins) {
+    public void shopUpdateCoins(CommandSender sender, String shopId, int slotId, double coins){
         shopManager.updateShopCoins(shopId, slotId, coins);
         sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop remove")
     @AutoComplete("@shopId *")
-    public void shopRemove(CommandSender sender, String shopId, int slotId) {
+    public void shopRemove(CommandSender sender, String shopId, int slotId){
         shopManager.removeShop(shopId, slotId);
         sender.sendMessage("Removed slot from shop!");
     }
@@ -784,6 +778,115 @@ public class CaveTestCommand {
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 
+    @Subcommand("altar create")
+    public void altarCreate(Player sender, String altarName){
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(sender.getInventory().getItemInMainHand());
+        if (itemInfo == null){
+            sender.sendMessage("§cERROR! You must hold the summoning item!");
+            return;
+        }
+        Altar altar = new Altar();
+        altar.setItemToSpawn(itemInfo);
+        altar.setSpawnLocation(sender.getLocation());
+        altarManager.updateAltar(altarName, altar);
+        sender.sendMessage(ChatColor.GREEN + "Created Alter named %s".formatted(altarName));
+    }
+
+    @Subcommand("altar setSpawnLocation")
+    public void altarSetSpawnLocation(Player sender, Altar altar){
+        altar.setSpawnLocation(sender.getLocation());
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set alter spawn for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar addSummonBlock")
+    public void altarAddSummonBlock(Player sender, Altar altar){
+        Block block = sender.getTargetBlock(null, 10);
+        sender.spawnParticle(Particle.FLAME, block.getLocation(), 100, 1, 1, 1, 0);
+        altar.getAltarLocations().add(block.getLocation());
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success add summon block for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setMaterial")
+    public void altarSetMaterial(Player sender, Altar altar, Material material){
+        altar.setAltarMaterial(material);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set alter material for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setUsedMaterial")
+    public void altarSetUsedMaterial(Player sender, Altar altar, Material material){
+        altar.setAlterUsedMaterial(material);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set alter used material for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setSpawnItem")
+    @AutoComplete("* @itemID")
+    public void altarSetSpawnItem(Player sender, Altar altar, String itemId){
+        ItemInfo itemInfo = itemsManager.getItemByID(itemId);
+        altar.setItemToSpawn(itemInfo);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set spawn item for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setPointsPerItem")
+    public void altarSetPointsPerItem(Player sender, Altar altar, int points){
+        altar.setPointsPerItem(points);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set points per item for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar setAltarRechargeTime")
+    public void altarSetAltarRechargeTime(Player sender, Altar altar, int time){
+        altar.setAltarRechargeTime(time);
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set altar recharge time for %s".formatted(altar.getId()));
+    }
+
+    @Subcommand("altar addSpawn")
+    @AutoComplete("* @mobID *")
+    public void altarAddSpawn(Player sender, Altar altar, String mob, double chance){
+        altar.getSpawns().add(new AltarDrop(chance, mob));
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success add spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
+    }
+
+    @Subcommand("altar info")
+    public void altarInfo(Player sender, Altar altar){
+        // show the info in a pretty way
+        sender.sendMessage("Altar Info:");
+        sender.sendMessage("ID: " + altar.getId());
+        sender.sendMessage("Item to Spawn: " + altar.getItemToSpawn().getName());
+        sender.sendMessage("Altar Material: " + altar.getAltarMaterial());
+        sender.sendMessage("Used Material: " + altar.getAlterUsedMaterial());
+        sender.sendMessage("Spawns: ");
+        for (AltarDrop spawn : altar.getSpawns()) {
+            sender.sendMessage("  - " + spawn.getValue() + " with chance " + spawn.getChance());
+        }
+
+        sender.sendMessage("Locations are shown visually with fake blocks");
+        for (Location altarLocation : altar.getAltarLocations()) {
+            sender.sendBlockChange(altarLocation, Material.PINK_CONCRETE.createBlockData());
+        }
+        sender.sendBlockChange(altar.getSpawnLocation(), Material.YELLOW_CONCRETE.createBlockData());
+    }
+
+    @Subcommand("altar reset")
+    public void altarReset(Player sender, Altar altar){
+        altar.resetAltar();
+        sender.sendMessage("Reset Altar!");
+    }
+
+    @Subcommand("altar disable")
+    public void altarDisable(Player sender, Altar altar){
+        altar.refundAltar();
+        altar.disableAltar();
+        sender.sendMessage("Disabled Altar!");
+    }
+}
+
     @Subcommand("level send")
     public void sendLevel(Player sender) {
         String playerId = sender.getUniqueId().toString();
@@ -808,7 +911,7 @@ public class CaveTestCommand {
     }
 
     @Subcommand("level set lvl")
-    public void setLevel(Player sender, int level) {
+    public void levelSetLevel(Player sender, int level) {
         String playerId = sender.getUniqueId().toString();
         String colorName = levelconfigLoader.getLevelColor(level);
         if (colorName == null) {
@@ -822,7 +925,7 @@ public class CaveTestCommand {
     }
 
     @Subcommand("level set color")
-    public void setColor(Player sender, int level, ChatColor color) {
+    public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigLoader.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
     }

@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -22,17 +21,15 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final File fileDir;
     private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
 
-    public ConfigLoader(Class<T> type, String dirName) {
+    protected ConfigLoader(Class<T> type, String dirName) {
         this(type, new File(CaveCrawlers.getInstance().getDataFolder(), dirName));
     }
 
-    public ConfigLoader(Class<T> type, File fileDir) {
+    protected ConfigLoader(Class<T> type, File fileDir) {
         this.type = type;
         this.fileDir = fileDir;
         this.itemIDFileMap = new HashMap<>();
     }
-
-
 
     public void load(){
         registerItemsFromFolder(fileDir);
@@ -78,13 +75,19 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         return registeredItems;
     }
 
-    public CustomConfig getConfig(String ID){
+    public CustomConfig getConfig(String Id){
         Map<String, File> idFileMap = getItemIDFileMap();
-        File file = idFileMap.get(ID);
+        File file = idFileMap.get(Id);
         if (file == null){
-            file = new File(getFileDir(), ID + ".yml");
+            file = new File(getFileDir(), Id + ".yml");
         }
         return new CustomConfig(file);
+    }
+
+    public void update(String Id, T item){
+        CustomConfig config = getConfig(Id);
+        config.set(Id, item);
+        config.save();
     }
 
     public void clear(){

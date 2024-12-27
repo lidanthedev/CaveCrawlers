@@ -57,8 +57,6 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
             ActionBarManager.getInstance().actionBar(player, actionbar);
         if (sound != null)
             player.playSound(player.getLocation(), sound.getSound(), sound.getVolume(), sound.getPitch());
-        if (levelInfo != null)
-            player.sendMessage(String.valueOf(levelInfo.getLevel()), player.getName());
     }
 
     public void sendMessage(Player player) {

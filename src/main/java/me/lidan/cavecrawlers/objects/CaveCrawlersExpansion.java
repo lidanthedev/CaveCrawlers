@@ -2,8 +2,7 @@ package me.lidan.cavecrawlers.objects;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.levels.LevelConfigLoader;
-import me.lidan.cavecrawlers.levels.LevelInfo;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
@@ -52,13 +51,13 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
             }
         }
         else if (args[0].equalsIgnoreCase("level")) {
-            LevelConfigLoader levelConfigLoader = LevelConfigLoader.getInstance();
+            LevelConfigManager levelConfigManager = LevelConfigManager.getInstance();
             String playerId = player.getUniqueId().toString();
-            int level = levelConfigLoader.getPlayerLevel(playerId);
-            String colorName = levelConfigLoader.getLevelColor(level);
+            int level = levelConfigManager.getPlayerLevel(playerId);
+            String colorName = levelConfigManager.getLevelColor(level);
             ChatColor levelColor = ChatColor.GRAY;
             if (colorName == null) {
-                levelConfigLoader.setLevelColor(level, ChatColor.valueOf(levelColor.name()));
+                levelConfigManager.setLevelColor(level, ChatColor.valueOf(levelColor.name()));
             } else {
                 try {
                     levelColor = ChatColor.valueOf(colorName);

@@ -21,7 +21,7 @@ import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
-import me.lidan.cavecrawlers.levels.LevelConfigLoader;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -77,7 +77,7 @@ public class CaveTestCommand {
     private final PerksManager perksManager = PerksManager.getInstance();
     private final EntityManager entityManager = EntityManager.getInstance();
     private final AltarManager altarManager = AltarManager.getInstance();
-    private final LevelConfigLoader levelconfigLoader = LevelConfigLoader.getInstance();
+    private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
     private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
@@ -887,9 +887,9 @@ public class CaveTestCommand {
     @Subcommand("level send")
     public void sendLevel(Player sender) {
         String playerId = sender.getUniqueId().toString();
-        int level = levelconfigLoader.getPlayerLevel(playerId);
+        int level = levelconfigManager.getPlayerLevel(playerId);
         if (level > 0) {
-            String colorName = levelconfigLoader.getLevelColor(level);
+            String colorName = levelconfigManager.getLevelColor(level);
             if (colorName != null) {
                 try {
                     ChatColor levelColor = ChatColor.valueOf(colorName);
@@ -910,20 +910,20 @@ public class CaveTestCommand {
     @Subcommand("level set lvl")
     public void levelSetLevel(Player sender, int level) {
         String playerId = sender.getUniqueId().toString();
-        String colorName = levelconfigLoader.getLevelColor(level);
+        String colorName = levelconfigManager.getLevelColor(level);
         if (colorName == null) {
             colorName = ChatColor.GRAY.name();
-            levelconfigLoader.setLevelColor(level, ChatColor.GRAY);
+            levelconfigManager.setLevelColor(level, ChatColor.GRAY);
         }
         ChatColor levelColor = ChatColor.valueOf(colorName);
-        levelconfigLoader.setPlayerLevel(playerId, level);
-        levelconfigLoader.setLevelColor(level, levelColor);
+        levelconfigManager.setPlayerLevel(playerId, level);
+        levelconfigManager.setLevelColor(level, levelColor);
         sender.sendMessage(ChatColor.GREEN + "Your level has been set to " + levelColor + level);
     }
 
     @Subcommand("level set color")
     public void levelSetColor(Player sender, int level, ChatColor color) {
-        levelconfigLoader.setLevelColor(level, color);
+        levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
     }
 }

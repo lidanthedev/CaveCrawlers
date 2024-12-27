@@ -2,9 +2,6 @@ package me.lidan.cavecrawlers.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
-import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.levels.LevelConfigLoader;
-import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.kyori.adventure.text.Component;
@@ -12,7 +9,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class MenuGui {
     private final Player player;

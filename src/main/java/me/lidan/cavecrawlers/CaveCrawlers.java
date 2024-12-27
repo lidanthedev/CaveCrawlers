@@ -23,7 +23,7 @@ import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.*;
-import me.lidan.cavecrawlers.levels.LevelConfigLoader;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -151,7 +151,7 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     private void registerLevels() {
-        LevelConfigLoader.getInstance().load();
+        LevelConfigManager.getInstance().saveDefaultConfig();
     }
 
     private static void registerSerializer() {

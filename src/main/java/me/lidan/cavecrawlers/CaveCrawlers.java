@@ -45,6 +45,7 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.Cuboid;
+import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -88,6 +89,9 @@ public final class CaveCrawlers extends JavaPlugin {
         });
         commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
             return AltarManager.getInstance().getAltar(valueResolverContext.pop());
+        });
+        commandHandler.registerValueResolver(ChatColor.class, valueResolverContext -> {
+            return ChatColor.valueOf(valueResolverContext.pop());
         });
         if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));

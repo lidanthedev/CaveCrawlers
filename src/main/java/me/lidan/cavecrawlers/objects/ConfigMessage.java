@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.ChatColor;
@@ -22,6 +23,7 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     private TitleOptions titleOptions;
     private String actionbar = "";
     private SoundOptions sound;
+    private LevelInfo levelInfo;
 
     public ConfigMessage(String message, TitleOptions titleOptions, String actionbar, SoundOptions sound) {
         this.message = ChatColor.translateAlternateColorCodes('&', message);

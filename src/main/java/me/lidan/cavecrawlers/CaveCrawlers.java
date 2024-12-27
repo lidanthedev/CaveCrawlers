@@ -23,6 +23,7 @@ import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsLoader;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.*;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
@@ -88,7 +89,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
             return AltarManager.getInstance().getAltar(valueResolverContext.pop());
         });
-        if (!setupEconomy() ) {
+        if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -109,6 +110,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerGriffin();
         registerPerks();
         registerAltars();
+        registerLevels();
 
         registerCommands();
         registerEvents();
@@ -146,6 +148,10 @@ public final class CaveCrawlers extends JavaPlugin {
 
     private void registerPerks() {
         PerksLoader.getInstance().load();
+    }
+
+    private void registerLevels() {
+        LevelConfigManager.getInstance().saveDefaultConfig();
     }
 
     private static void registerSerializer() {
@@ -208,17 +214,17 @@ public final class CaveCrawlers extends JavaPlugin {
         itemsLoader.load();
     }
 
-    public void registerShops(){
+    public void registerShops() {
         ShopLoader shopLoader = ShopLoader.getInstance();
         shopLoader.load();
     }
 
-    public void registerAltars(){
+    public void registerAltars() {
         AltarLoader altarLoader = AltarLoader.getInstance();
         altarLoader.load();
     }
 
-    public void registerCommands(){
+    public void registerCommands() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillType.class, (args, sender, command) -> SkillType.names());
         commandHandler.register(new StatCommand());
@@ -231,7 +237,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerBrigadier();
     }
 
-    public void registerEvents(){
+    public void registerEvents() {
         registerEvent(new AntiBanListener());
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
@@ -251,7 +257,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RightClickPlayerViewer());
         registerEvent(new AntiStupidStuffListener());
         registerEvent(new PerksListener());
-        registerEvent(new FirstJoinListener());
+        registerEvent(new FirstJoinListener(this));
         registerEvent(new AltarListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
@@ -264,7 +270,7 @@ public final class CaveCrawlers extends JavaPlugin {
         }
     }
 
-    public void startTasks(){
+    public void startTasks() {
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
             Bukkit.getOnlinePlayers().forEach(player -> {
@@ -273,7 +279,7 @@ public final class CaveCrawlers extends JavaPlugin {
         }, 0, 20);
     }
 
-    public void registerEvent(Listener listener){
+    public void registerEvent(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
     }
 
@@ -299,10 +305,10 @@ public final class CaveCrawlers extends JavaPlugin {
         });
     }
 
-    public void killEntities(){
+    public void killEntities() {
         Bukkit.getWorlds().forEach(world -> {
             world.getEntities().forEach(entity -> {
-                if (entity.getScoreboardTags().contains("HologramCaveCrawlers")){
+                if (entity.getScoreboardTags().contains("HologramCaveCrawlers")) {
                     entity.remove();
                 }
             });
@@ -321,7 +327,7 @@ public final class CaveCrawlers extends JavaPlugin {
         return true;
     }
 
-    public static CaveCrawlers getInstance(){
+    public static CaveCrawlers getInstance() {
         return CaveCrawlers.getPlugin(CaveCrawlers.class);
     }
 }

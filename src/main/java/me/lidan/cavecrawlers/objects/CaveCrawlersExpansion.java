@@ -57,7 +57,9 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
             int level = levelConfigLoader.getPlayerLevel(playerId);
             String colorName = levelConfigLoader.getLevelColor(level);
             ChatColor levelColor = ChatColor.GRAY;
-            if (colorName != null) {
+            if (colorName == null) {
+                levelConfigLoader.setLevelColor(level, ChatColor.valueOf(levelColor.name()));
+            } else {
                 try {
                     levelColor = ChatColor.valueOf(colorName);
                 } catch (IllegalArgumentException e) {
@@ -65,8 +67,6 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                         ((Player) player).sendMessage(ChatColor.RED + "Invalid color in configuration for level " + level);
                     }
                 }
-            } else {
-                levelConfigLoader.setLevelColor(level, ChatColor.valueOf(levelColor.name()));
             }
             return levelColor + "" + level;
         }

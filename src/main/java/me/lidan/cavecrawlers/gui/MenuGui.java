@@ -4,8 +4,6 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -100,11 +98,8 @@ public class MenuGui {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(ACBAG_COMMAND);
         })));
-        gui.setItem(49, ItemBuilder.from(Material.BARRIER).setName(ChatColor.RED + "Close Menu").setLore("","§eClick to Close Menu").asGuiItem((event -> {
-            Player sender = (Player) event.getWhoClicked();
-            sender.closeInventory();
-        })));
-        gui.getFiller().fill(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
+        gui.setItem(49, GuiItems.CLOSE_ITEM);
+        gui.getFiller().fill(GuiItems.GLASS_ITEM);
     }
 
     public void open(){

@@ -214,8 +214,8 @@ public class CaveTestCommand {
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
-    public void itemGive(CommandSender sender, Player player, @Named("Item ID") String ID, @Default("1") int amount) {
-        ItemStack exampleSword = itemsManager.buildItem(ID, 1);
+    public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
+        ItemStack exampleSword = itemsManager.buildItem(id, 1);
         for (int i = 0; i < amount; i++) {
             itemsManager.giveItemStacks(player, exampleSword);
         }
@@ -229,21 +229,21 @@ public class CaveTestCommand {
 
     @Subcommand("item import")
     @AutoComplete("@handID *")
-    public void itemImport(Player sender, String ID) {
+    public void itemImport(Player sender, String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
 
         ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (oldInfo != null) {
-            sender.sendMessage("ERROR! Item already has ID! Changing base item instead");
-            sender.sendMessage("Don't want that? remove with the ID /ct item remove-id");
+            sender.sendMessage("ERROR! Item already has id! Changing base item instead");
+            sender.sendMessage("Don't want that? remove with the id /ct item remove-id");
             oldInfo.setBaseItem(hand);
             itemsManager.setItem(oldInfo.getID(), oldInfo);
             return;
         }
 
-        if (ID.equals("FILL")) {
-            ID = getFillID(sender).iterator().next();
-            sender.sendMessage("Fill: " + ID);
+        if (id.equals("FILL")) {
+            id = getFillID(sender).iterator().next();
+            sender.sendMessage("Fill: " + id);
         }
 
         ItemInfo itemInfo;
@@ -252,17 +252,17 @@ public class CaveTestCommand {
             itemInfo = exporter.toItemInfo();
         } catch (Exception error) {
             sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
-            String name = ID.replace("_", " ");
+            String name = id.replace("_", " ");
             name = StringUtils.setTitleCase(name);
             Stats stats = new Stats(true);
             itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, hand, Rarity.COMMON);
         }
 
-        itemsManager.setItem(ID, itemInfo);
+        itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
 
-        sender.sendMessage("Exported Item with ID " + ID);
+        sender.sendMessage("Exported Item with id " + id);
     }
 
     @Subcommand("item remove-id")
@@ -277,30 +277,28 @@ public class CaveTestCommand {
         new ItemsGui(sender, query).open();
     }
 
-    // TODO: add these commands
-    // item create <id> <material> - create item with Id and material
-    //
-    //you must hold an item with an already existing id to edit
-    //item edit stat <stat> <number> - edit held item's stat
-    //item edit ability <ability> - edit held item's  ability
-    //item edit name <name> - edit held item's name
-    //item edit description <description> - edit held item's description
-    //item edit type <type> - edit held item's type
-    //item edit rarity <rarity> - edit held item's rarity
-    //item edit baseItem <material> - edit held item's base item
-
+    // item creating and editing commands:
+    // item create <id> <material> - create item with id and material
+    // you must hold an item with an already existing id to edit
+    // item edit stat <stat> <number> - edit held item's stat
+    // item edit ability <ability> - edit held item's  ability
+    // item edit name <name> - edit held item's name
+    // item edit description <description> - edit held item's description
+    // item edit type <type> - edit held item's type
+    // item edit rarity <rarity> - edit held item's rarity
+    // item edit baseItem <material> - edit held item's base item
     @Subcommand("item create")
-    public void itemCreate(Player sender, String ID, Material material) {
-        if (itemsManager.getItemByID(ID) != null) {
+    public void itemCreate(Player sender, String id, Material material) {
+        if (itemsManager.getItemByID(id) != null) {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
 
-        String name = ID.replace("_", " ");
+        String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats(true);
         ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
-        itemsManager.setItem(ID, itemInfo);
+        itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
         sender.sendMessage("Created Item!");
@@ -308,15 +306,15 @@ public class CaveTestCommand {
 
     @Subcommand("item clone")
     @AutoComplete("@itemID *")
-    public void itemClone(Player sender, String originId, String Id) {
+    public void itemClone(Player sender, String originId, String id) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
             return;
         }
 
-        itemsManager.setItem(Id, itemInfo);
-        ItemStack itemStack = itemsManager.buildItem(Id, 1);
+        itemsManager.setItem(id, itemInfo);
+        ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);
         sender.sendMessage("Cloned Item!");
     }
@@ -365,12 +363,15 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit description")
-    public void itemEditDescription(Player sender, String description) {
+    public void itemEditDescription(Player sender, @Default("reset") String description) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
+        }
+        if (description.equals("reset")) {
+            description = null;
         }
         itemInfo.setDescription(description);
         itemsManager.setItem(itemInfo.getID(), itemInfo);
@@ -404,6 +405,25 @@ public class CaveTestCommand {
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
         sender.sendMessage("Updated Rarity!");
+    }
+
+    @Subcommand("item edit baseItemToHand")
+    public void itemEditBaseItemToHand(Player sender, String id) {
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfoHand = itemsManager.getItemFromItemStack(hand);
+        if (itemInfoHand != null) {
+            sender.sendMessage("ERROR! HELD ITEM ALREADY HAS ID!");
+            return;
+        }
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setBaseItem(new ItemStack(hand));
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Base Item!");
     }
 
     @Subcommand("item edit baseItem")

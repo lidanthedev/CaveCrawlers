@@ -1,8 +1,8 @@
 package me.lidan.cavecrawlers.commands;
 
 import me.lidan.cavecrawlers.gui.SkillsGui;
-import me.lidan.cavecrawlers.listeners.XpGainingListener;
 import me.lidan.cavecrawlers.skills.SkillType;
+import me.lidan.cavecrawlers.skills.SkillXpManager;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
+import revxrsal.commands.annotation.DefaultFor;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -49,9 +50,9 @@ public class SkillCommand {
 
     @Subcommand("addxp")
     public void addXp(Player sender, SkillType type, double amount) {
-        XpGainingListener xpGainingListener = XpGainingListener.getInstance();
+        SkillXpManager skillXpManager = SkillXpManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
-        xpGainingListener.giveXp(sender, type, amount, true);
+        skillXpManager.giveXp(sender, type, amount, true);
         sender.sendMessage("add xp to %s".formatted(type));
     }
 
@@ -91,6 +92,7 @@ public class SkillCommand {
     }
 
     @Subcommand("gui")
+    @DefaultFor("skills")
     public void openGui(Player sender){
         new SkillsGui(sender).open();
     }

@@ -252,7 +252,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new AntiPlaceListener());
         registerEvent(new MiningListener());
         registerEvent(new EntityDeathListener());
-        registerEvent(new XpGainingListener());
+        registerEvent(new SkillXpGainingListener());
         registerEvent(new MenuItemListener());
         registerEvent(new EntityChangeBlockListener());
         registerEvent(new GriffinListener());

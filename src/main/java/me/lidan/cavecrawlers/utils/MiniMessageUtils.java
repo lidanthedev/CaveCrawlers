@@ -25,7 +25,6 @@ public class MiniMessageUtils {
         TagResolver[] resolvers = placeholders.entrySet().stream()
                 .map(entry -> Placeholder.component(entry.getKey(), entry.getValue()))
                 .toArray(TagResolver[]::new);
-
         return MiniMessage.miniMessage().deserialize(message, resolvers);
     }
 
@@ -37,4 +36,21 @@ public class MiniMessageUtils {
         return PlainTextComponentSerializer.plainText().serialize(message);
     }
 
+    public static Component progressBar(double current, double max, int length) {
+        return progressBar(current, max, length, "-");
+    }
+
+    public static Component progressBar(double current, double max, int length, String icon) {
+        StringBuilder progressBar = new StringBuilder();
+        double percent = current / max * 100d;
+        for (int i = 0; i < length; i++) {
+            if (i < percent / (100d / length)) {
+                progressBar.append("<green>");
+            } else {
+                progressBar.append("<white>");
+            }
+            progressBar.append(icon);
+        }
+        return MiniMessage.miniMessage().deserialize(progressBar.toString());
+    }
 }

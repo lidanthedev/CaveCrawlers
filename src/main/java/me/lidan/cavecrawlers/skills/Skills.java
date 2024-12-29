@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -47,8 +48,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public void tryLevelUp(SkillType type){
         Skill skill = get(type);
-        if (skill.levelUp()){
+        int leveled = skill.levelUp();
+        if (leveled > 0) {
             Player player = Bukkit.getPlayer(uuid);
+            LevelConfigManager.getInstance().givePlayerXP(player, 10 * leveled);
             if (player != null)
                 skill.sendLevelUpMessage(player);
         }

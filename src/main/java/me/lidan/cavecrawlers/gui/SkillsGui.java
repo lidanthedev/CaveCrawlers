@@ -9,11 +9,13 @@ import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 public class SkillsGui {
     private final Player player;
@@ -46,13 +48,21 @@ public class SkillsGui {
     @NotNull
     private static GuiItem getSkillGuiItem(Skill skill, ItemStack baseItem) {
         SkillType skillType = skill.getType();
-        int amount = skill.getLevel();
-        if (amount == 0){
-            amount = 1;
-        }
         String skillName = StringUtils.setTitleCase(skillType.name());
-        GuiItem guiItem = ItemBuilder.from(baseItem).setName(ChatColor.AQUA + skillName + " " + skill.getLevel() + "/50" + " (" + Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d + "%)").amount(amount).model(110007).asGuiItem();
-        return guiItem;
+        return ItemBuilder.from(baseItem).name(MiniMessageUtils.miniMessageString("<italic:false><green><name> <level>", Map.of(
+                        "name", skillName,
+                        "level", String.valueOf(skill.getLevel())
+                )))
+                .lore(MiniMessageUtils.miniMessageString(""), MiniMessageUtils.miniMessageString("<italic:false><gray>Progress to Level <next-level>: <yellow><progress>%", Map.of("next-level", String.valueOf(skill.getLevel() + 1),
+                                "progress", String.valueOf(skill.getXp() / skill.getXpToLevel() * 100))),
+                        MiniMessageUtils.miniMessageComponent("<italic:false><bar> <yellow><xp><gold>/<yellow><max>", Map.of(
+                                "bar", MiniMessageUtils.progressBar(skill.getXp(), skill.getXpToLevel(), 20),
+                                "xp", MiniMessageUtils.miniMessageString(StringUtils.getNumberFormat(skill.getXp())),
+                                "max", MiniMessageUtils.miniMessageString(StringUtils.getShortNumber(skill.getXpToLevel())))),
+                        MiniMessageUtils.miniMessageString(""),
+                        MiniMessageUtils.miniMessageString("<italic:false><yellow>Click to view!"))
+                .flags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE)
+                .asGuiItem();
     }
 
     public void open(){

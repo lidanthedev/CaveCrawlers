@@ -49,8 +49,8 @@ public class Skill implements ConfigurationSerializable {
         this.xp = xp;
     }
 
-    public boolean levelUp() {
-        boolean leveled = false;
+    public int levelUp() {
+        int leveled = 0;
         while (xp >= xpToLevel && level < xpToLevelList.size()){
             level++;
             xp -= xpToLevel;
@@ -58,7 +58,7 @@ public class Skill implements ConfigurationSerializable {
                 xp = 0;
             }
             xpToLevel = xpToLevelList.get(level);
-            leveled = true;
+            leveled++;
         }
         return leveled;
     }

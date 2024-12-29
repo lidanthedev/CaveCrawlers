@@ -32,6 +32,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+
+// TODO: split this class to manager and listener
 public class XpGainingListener implements Listener {
     private static final String DIR_NAME = "skills";
     private static XpGainingListener instance;

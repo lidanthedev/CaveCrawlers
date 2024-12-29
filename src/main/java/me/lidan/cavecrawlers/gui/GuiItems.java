@@ -14,7 +14,7 @@ public class GuiItems {
         sender.closeInventory();
     }));
 
-    public static final @NotNull GuiItem BACK_ITEM = ItemBuilder.from(Material.ARROW).setName(ChatColor.WHITE + "Go Back").setLore("", "§eClick to To Back").asGuiItem((event -> {
+    public static final @NotNull GuiItem BACK_ITEM = ItemBuilder.from(Material.ARROW).setName(ChatColor.GRAY + "Go Back").setLore("", "§eClick to To Back").asGuiItem((event -> {
         Player sender = (Player) event.getWhoClicked();
         MenuGui menuGui = new MenuGui(sender);
         menuGui.open();

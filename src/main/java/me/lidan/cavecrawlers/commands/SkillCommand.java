@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.commands;
 
 import me.lidan.cavecrawlers.gui.SkillsGui;
+import me.lidan.cavecrawlers.listeners.XpGainingListener;
 import me.lidan.cavecrawlers.skills.SkillType;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -47,9 +48,10 @@ public class SkillCommand {
     }
 
     @Subcommand("addxp")
-    public void addXp(Player sender, SkillType type, int amount){
+    public void addXp(Player sender, SkillType type, double amount) {
+        XpGainingListener xpGainingListener = XpGainingListener.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
-        skills.addXp(type, amount);
+        xpGainingListener.giveXp(sender, type, amount, true);
         sender.sendMessage("add xp to %s".formatted(type));
     }
 

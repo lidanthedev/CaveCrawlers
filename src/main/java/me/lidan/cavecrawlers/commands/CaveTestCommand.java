@@ -40,6 +40,8 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -192,6 +194,14 @@ public class CaveTestCommand {
         config.load();
     }
 
+    @Subcommand("config adventure")
+    public void configAdventure(CommandSender sender) {
+        Component component = MiniMessageUtils.miniMessageString("<red>Cool message<green> with colors");
+        String serialized = MiniMessage.miniMessage().serialize(component);
+        config.set("component", serialized);
+        config.save();
+    }
+
     @Subcommand("item getID")
     public void itemGetID(Player sender) {
         ItemStack hand = sender.getInventory().getItemInMainHand();
@@ -202,7 +212,6 @@ public class CaveTestCommand {
     @Subcommand("item update")
     public void itemUpdate(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
-        ;
         ItemStack updateItemStack = itemsManager.updateItemStack(hand);
         sender.getEquipment().setItem(EquipmentSlot.HAND, updateItemStack);
     }

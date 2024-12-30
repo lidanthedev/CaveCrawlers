@@ -5,8 +5,9 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -69,8 +70,8 @@ public class SkillXpManager {
         String skillName = StringUtils.setTitleCase(skillType.name());
         skills.tryLevelUp(skillType);
         if (showMessage) {
-            String message = ChatColor.DARK_AQUA + "+" + xp + " " + skillName + " (" + Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d + "%)";
-            ActionBarManager.getInstance().actionBar(player, message);
+            Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", String.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
+            ActionBarManager.getInstance().actionBar(player, component);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }
     }

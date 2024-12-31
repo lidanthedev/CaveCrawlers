@@ -1,9 +1,12 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.Stats;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,7 +15,8 @@ import java.util.Map;
 
 @Slf4j
 @Data
-public class SkillInfo {
+@ToString
+public class SkillInfo implements ConfigurationSerializable {
     private final String name;
     private final Map<Integer, List<SkillReward>> rewards;
     private final int maxLevel = 50;
@@ -63,5 +67,21 @@ public class SkillInfo {
 
     public Stats getStats(int level) {
         return statsRewards.get(level);
+    }
+
+    @Override
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("rewards", rewards);
+        map.put("autoReward", autoReward);
+        return map;
+    }
+
+    public static SkillInfo deserialize(Map<String, Object> map) {
+        String name = (String) map.get("name");
+        Map<Integer, List<SkillReward>> rewards = (Map<Integer, List<SkillReward>>) map.get("rewards");
+        boolean autoReward = (boolean) map.get("autoReward");
+        return new SkillInfo(name, rewards, autoReward);
     }
 }

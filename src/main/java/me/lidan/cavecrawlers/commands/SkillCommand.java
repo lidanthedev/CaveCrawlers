@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.gui.SkillsGui;
 import me.lidan.cavecrawlers.skills.*;
 import me.lidan.cavecrawlers.stats.Stat;
@@ -15,10 +16,12 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 @Command({"skills", "myskills", "skilladmin"})
 @CommandPermission("cavecrawlers.skills")
 public class SkillCommand {
 
+    public static final CustomConfig TEST_SKILL_CONFIG = new CustomConfig("testskill.yml");
     private final PlayerDataManager playerDataManager;
 
     public SkillCommand() {
@@ -48,9 +51,9 @@ public class SkillCommand {
 
     @Subcommand("addxp")
     public void addXp(Player sender, SkillType type, double amount) {
-        SkillXpManager skillXpManager = SkillXpManager.getInstance();
+        SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
-        skillXpManager.giveXp(sender, type, amount, true);
+        skillsManager.giveXp(sender, type, amount, true);
         sender.sendMessage("add xp to %s".formatted(type));
     }
 
@@ -65,7 +68,7 @@ public class SkillCommand {
     public void test(Player sender){
         // save skills to custom config
         Skills skills = playerDataManager.getSkills(sender);
-        CustomConfig config = new CustomConfig("testskill.yml");
+        CustomConfig config = TEST_SKILL_CONFIG;
         config.set("skills", skills);
         config.save();
         // load skills from custom config
@@ -80,7 +83,7 @@ public class SkillCommand {
     @Subcommand("testLoad")
     public void testLoad(Player sender){
         // load skills from custom config
-        CustomConfig config = new CustomConfig("testskill.yml");
+        CustomConfig config = TEST_SKILL_CONFIG;
         Skills loadedSkills = (Skills) config.get("skills");
         if (loadedSkills == null) {
             sender.sendMessage("Failed to load skills from config file.");
@@ -106,5 +109,17 @@ public class SkillCommand {
             sender.sendMessage("Applied reward %s".formatted(reward));
             sender.sendMessage("Stats: %s".formatted(skillInfo.getStats(level).toFormatString()));
         });
+        TEST_SKILL_CONFIG.set("BetaSkill", skillInfo);
+        TEST_SKILL_CONFIG.save();
+    }
+
+    @Subcommand("testBetaSkillLoad")
+    public void testBetaSkillLoad(Player sender) {
+        SkillInfo skillInfo = (SkillInfo) TEST_SKILL_CONFIG.get("BetaSkill");
+        if (skillInfo == null) {
+            sender.sendMessage("Failed to load skill from config file.");
+            return;
+        }
+        log.info("Loaded skill: {}", skillInfo);
     }
 }

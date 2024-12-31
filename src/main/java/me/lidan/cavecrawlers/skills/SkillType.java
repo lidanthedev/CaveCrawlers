@@ -1,12 +1,11 @@
 package me.lidan.cavecrawlers.skills;
 
 import me.lidan.cavecrawlers.stats.StatType;
-import net.md_5.bungee.api.ChatColor;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated
 public enum SkillType {
     COMBAT("Combat", new StatType[] {StatType.CRIT_CHANCE}),
     MINING("Mining", new StatType[] {StatType.DEFENSE}),

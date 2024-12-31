@@ -37,9 +37,7 @@ import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksLoader;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
-import me.lidan.cavecrawlers.skills.Skill;
-import me.lidan.cavecrawlers.skills.SkillType;
-import me.lidan.cavecrawlers.skills.Skills;
+import me.lidan.cavecrawlers.skills.*;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -179,6 +177,10 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Drop.class);
         ConfigurationSerialization.registerClass(AltarDrop.class);
         ConfigurationSerialization.registerClass(Altar.class);
+        ConfigurationSerialization.registerClass(CoinSkillReward.class);
+        ConfigurationSerialization.registerClass(ItemSkillReward.class);
+        ConfigurationSerialization.registerClass(StatSkillReward.class);
+        ConfigurationSerialization.registerClass(SkillInfo.class);
     }
 
     private void registerAbilities() {

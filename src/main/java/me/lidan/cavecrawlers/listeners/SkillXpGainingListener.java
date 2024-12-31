@@ -2,7 +2,7 @@ package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.skills.SkillXpManager;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,7 +21,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class SkillXpGainingListener implements Listener {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private final SkillXpManager skillXpManager = SkillXpManager.getInstance();
+    private final SkillsManager skillsManager = SkillsManager.getInstance();
 
     public SkillXpGainingListener() {
     }
@@ -35,7 +35,7 @@ public class SkillXpGainingListener implements Listener {
             return;
         }
         String reason = "break";
-        skillXpManager.tryGiveXp(reason, material, player);
+        skillsManager.tryGiveXp(reason, material, player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -49,7 +49,7 @@ public class SkillXpGainingListener implements Listener {
                     if (modifier == null) {
                         return;
                     }
-                    skillXpManager.tryGiveXp("brew", modifier.getType(), player);
+                    skillsManager.tryGiveXp("brew", modifier.getType(), player);
                 });
     }
 
@@ -67,7 +67,7 @@ public class SkillXpGainingListener implements Listener {
                 type = activeMob.getType().getInternalName();
             }
         }
-        skillXpManager.tryGiveXp(reason, type, player);
+        skillsManager.tryGiveXp(reason, type, player);
 
     }
 
@@ -81,6 +81,6 @@ public class SkillXpGainingListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
-        skillXpManager.tryGiveXp("fish", item.getItemStack().getType(), player);
+        skillsManager.tryGiveXp("fish", item.getItemStack().getType(), player);
     }
 }

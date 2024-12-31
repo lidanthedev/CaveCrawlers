@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
@@ -17,23 +18,23 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SkillXpManager {
+public class SkillsManager extends ConfigLoader<SkillInfo> {
     private static final String DIR_NAME = "skills";
-    private static SkillXpManager instance;
+    private static SkillsManager instance;
     private File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
     @Getter
-    private Map<SkillType, CustomConfig> skillConfigs = new HashMap<>();
+    private Map<String, CustomConfig> skillConfigs = new HashMap<>();
+    private Map<String, SkillInfo> skillInfoMap = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
-    public SkillXpManager() {
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        for (String name : SkillType.names()) {
-            File file = new File(dir, name + ".yml");
-            skillConfigs.put(SkillType.valueOf(name), new CustomConfig(file));
-        }
+    public SkillsManager() {
+        super(SkillInfo.class, "skills");
         instance = this;
+    }
+
+    @Override
+    public void register(String key, SkillInfo value) {
+        skillInfoMap.put(key, value);
     }
 
 
@@ -54,7 +55,8 @@ public class SkillXpManager {
     }
 
     public void tryGiveXp(String reason, String material, Player player) {
-        for (SkillType skillType : skillConfigs.keySet()) {
+        for (String skillName : skillConfigs.keySet()) {
+            SkillType skillType = SkillType.valueOf(skillName);
             tryGiveXp(skillType, reason, material, player);
         }
     }
@@ -80,9 +82,9 @@ public class SkillXpManager {
         return skillConfigs.get(type);
     }
 
-    public static SkillXpManager getInstance() {
+    public static SkillsManager getInstance() {
         if (instance == null) {
-            instance = new SkillXpManager();
+            instance = new SkillsManager();
         }
         return instance;
     }

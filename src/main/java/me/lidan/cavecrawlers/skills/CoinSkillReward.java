@@ -5,6 +5,10 @@ import lombok.EqualsAndHashCode;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -19,5 +23,16 @@ public class CoinSkillReward extends SkillReward {
     public void applyReward(Player player) {
         Drop drop = new Drop(DropType.COINS, 100, String.valueOf(amount), null);
         drop.drop(player);
+    }
+
+    @Override
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("amount", amount);
+        return map;
+    }
+
+    public static CoinSkillReward deserialize(Map<String, Object> map) {
+        return new CoinSkillReward((int) map.get("amount"));
     }
 }

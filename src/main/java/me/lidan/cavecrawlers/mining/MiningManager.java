@@ -4,7 +4,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.skills.SkillXpManager;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.Cooldown;
@@ -114,8 +114,8 @@ public class MiningManager {
         }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
         event.setDropItems(false);
-        SkillXpManager skillXpManager = SkillXpManager.getInstance();
-        skillXpManager.tryGiveXp("break", originType, player);
+        SkillsManager skillsManager = SkillsManager.getInstance();
+        skillsManager.tryGiveXp("break", originType, player);
         handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
         handleBlockRegen(block, originType);

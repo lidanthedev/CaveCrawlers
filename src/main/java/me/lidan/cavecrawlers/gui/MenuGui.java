@@ -42,7 +42,7 @@ public class MenuGui {
         this.gui = new Gui(6, "§rMenu");
 
         gui.disableAllInteractions();
-        gui.setItem(13, ItemBuilder.skull().owner(player).setName("§f%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
+        gui.setItem(13, ItemBuilder.skull().owner(player).setName("§r%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
         gui.setItem(20, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aSkills").setLore("§7View your Skill progression and\n §7rewards.").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(SKILLS_COMMAND);
@@ -67,35 +67,10 @@ public class MenuGui {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(ENDER_CHEST_COMMAND);
         })));
-        gui.setItem(30, ItemBuilder.from(Material.BONE).setName("§aPets").setLore("§7Pets Gives Stat boosts","§7And level up from skills.","§7","§eClick to open").asGuiItem((event -> {
-            Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(PETS_COMMAND);
-        })));
-        gui.setItem(31, ItemBuilder.from(Material.CRAFTING_TABLE).setName("§eCrafting Table").setLore("§7Craft Items and vanilla items", "§eClick to open").asGuiItem((event -> {
-            Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(CRAFTING_TABLE_COMMAND);
-        })));
-        gui.setItem(32, ItemBuilder.skull().texture(MADDOX_SKULL_TEXTURE).setName("§cSlayers").setLore("§7Click to start §cHARD Bosses").asGuiItem((event -> {
-            Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(MADDOX_COMMNAD);
-        })));
-        gui.setItem(40, ItemBuilder.from(Material.GOLD_INGOT).setName("§eSell").setLore("§7","§7Click to sell items").asGuiItem((event -> {
+        gui.setItem(31, ItemBuilder.from(Material.GOLD_INGOT).setName("§eSell").setLore("§7","§7Click to sell items").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(SELL_COMMAND);
         })));
-        World world = player.getWorld();
-        if (world.getName().equalsIgnoreCase("ASkyBlock")) { /// did here skull texture island warp too cuz it's the same head
-            gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP).setName("§bWarp To: §aHub").setLore("§7Teleports you to", "§7spawn.", "","§eClick to Warp").asGuiItem((event -> {
-                Player sender = (Player) event.getWhoClicked();
-                sender.performCommand(HUB_COMMAND);
-            })));
-        } else {
-            gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP).setName("§bWarp To: §aPrivate Island").setLore("§7Teleports you back to your", "§7private island.", "","§eClick to Warp").asGuiItem((event -> {
-                Player sender = (Player) event.getWhoClicked();
-                sender.performCommand(ISLAND_COMMAND);
-            })));
-        }
-
         gui.setItem(53, ItemBuilder.skull().texture(ACBAG_SKULL_TEXTRUE).setName("§aAccessory Bag").setLore("§7Store all of your accessories.").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(ACBAG_COMMAND);

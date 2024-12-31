@@ -1,20 +1,18 @@
 package me.lidan.cavecrawlers.commands;
 
 import me.lidan.cavecrawlers.gui.SkillsGui;
-import me.lidan.cavecrawlers.skills.SkillType;
-import me.lidan.cavecrawlers.skills.SkillXpManager;
-import me.lidan.cavecrawlers.skills.Skills;
+import me.lidan.cavecrawlers.skills.*;
+import me.lidan.cavecrawlers.stats.Stat;
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
-import revxrsal.commands.annotation.Command;
-import revxrsal.commands.annotation.DefaultFor;
-import revxrsal.commands.annotation.Optional;
-import revxrsal.commands.annotation.Subcommand;
+import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Command({"skills", "myskills", "skilladmin"})
@@ -95,5 +93,18 @@ public class SkillCommand {
     @DefaultFor("skills")
     public void openGui(Player sender){
         new SkillsGui(sender).open();
+    }
+
+    @Subcommand("testBetaSkill")
+    public void testBetaSkill(Player sender, @Default("1") int level) {
+        HashMap<Integer, List<SkillReward>> rewards = new HashMap<>();
+        rewards.put(1, List.of(new StatSkillReward(new Stat(StatType.STRENGTH, 10))));
+        rewards.put(5, List.of(new StatSkillReward(new Stat(StatType.STRENGTH, 20))));
+        SkillInfo skillInfo = new SkillInfo("BetaSkill", rewards, true);
+        skillInfo.getRewards().get(level).forEach(reward -> {
+            reward.applyReward(sender);
+            sender.sendMessage("Applied reward %s".formatted(reward));
+            sender.sendMessage("Stats: %s".formatted(skillInfo.getStats(level).toFormatString()));
+        });
     }
 }

@@ -37,8 +37,12 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         skillInfoMap.put(key, value);
     }
 
+    public SkillInfo getSkillInfo(String key) {
+        return skillInfoMap.get(key);
+    }
 
-    public void tryGiveXp(SkillType skillType, String reason, String material, Player player) {
+
+    public void tryGiveXp(SkillInfo skillType, String reason, String material, Player player) {
         CustomConfig config = getConfig(skillType);
         if (!config.contains(reason)) {
             return;
@@ -50,13 +54,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         }
     }
 
-    public void tryGiveXp(SkillType skillType, String reason, Material material, Player player) {
+    public void tryGiveXp(SkillInfo skillType, String reason, Material material, Player player) {
         tryGiveXp(skillType, reason, material.name(), player);
     }
 
     public void tryGiveXp(String reason, String material, Player player) {
         for (String skillName : skillConfigs.keySet()) {
-            SkillType skillType = SkillType.valueOf(skillName);
+            SkillInfo skillType = SkillsManager.getInstance().getSkillInfo(skillName);
             tryGiveXp(skillType, reason, material, player);
         }
     }
@@ -65,11 +69,11 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         tryGiveXp(reason, material.name(), player);
     }
 
-    public void giveXp(Player player, SkillType skillType, double xp, boolean showMessage) {
+    public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
         Skill skill = skills.get(skillType);
         skill.addXp(xp);
-        String skillName = StringUtils.setTitleCase(skillType.name());
+        String skillName = StringUtils.setTitleCase(skillType.getName());
         skills.tryLevelUp(skillType);
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", String.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
@@ -78,8 +82,8 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         }
     }
 
-    public CustomConfig getConfig(SkillType type) {
-        return skillConfigs.get(type);
+    public CustomConfig getConfig(SkillInfo type) {
+        return skillConfigs.get(type.getName());
     }
 
     public static SkillsManager getInstance() {

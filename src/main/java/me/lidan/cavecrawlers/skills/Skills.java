@@ -14,39 +14,39 @@ import java.util.*;
 
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
-    private final Map<SkillType, Skill> skills;
+    private final Map<SkillInfo, Skill> skills;
     @Getter @Setter
     private UUID uuid;
 
     public Skills(List<Skill> skillList){
         this.skills = new HashMap<>();
-        for (Skill skill : skillList) {
-            this.skills.put(skill.getType(), skill);
-        }
-        for (SkillType type : SkillType.values()) {
-            if (!skills.containsKey(type)){
-                skills.put(type, new Skill(type, 0));
-            }
-        }
+//        for (Skill skill : skillList) {
+//            this.skills.put(skill.getType(), skill);
+//        }
+//        for (SkillType type : SkillType.values()) {
+//            if (!skills.containsKey(type)){
+//                skills.put(type, new Skill(type, 0));
+//            }
+//        }
     }
 
     public Skills() {
         this(new ArrayList<>());
     }
 
-    public Skill get(SkillType type){
+    public Skill get(SkillInfo type) {
         return skills.get(type);
     }
 
-    public void addXp(SkillType type, double amount){
+    public void addXp(SkillInfo type, double amount) {
         get(type).addXp(amount);
     }
 
-    public void addXp(SkillType type, double amount, double multiplier){
+    public void addXp(SkillInfo type, double amount, double multiplier) {
         get(type).addXp(amount * multiplier);
     }
 
-    public void tryLevelUp(SkillType type){
+    public void tryLevelUp(SkillInfo type) {
         Skill skill = get(type);
         int leveled = skill.levelUp();
         if (leveled > 0) {
@@ -77,8 +77,8 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        for (SkillType statType : skills.keySet()) {
-            map.put(statType.name(), get(statType));
+        for (SkillInfo statType : skills.keySet()) {
+            map.put(statType.getName(), get(statType));
         }
         return map;
     }
@@ -90,7 +90,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
                 continue;
             }
             Object value = map.get(key);
-            SkillType type = SkillType.valueOf(key);
+            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
             Skill skill = (Skill) value;
             skills.skills.put(type, skill);
         }

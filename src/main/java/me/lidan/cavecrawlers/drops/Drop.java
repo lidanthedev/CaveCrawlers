@@ -29,6 +29,9 @@ import java.util.Map;
 
 @Data
 public class Drop implements ConfigurationSerializable {
+    public record ItemDropInfo(int amount, ItemInfo itemInfo) {
+    }
+
     private static final Logger log = LoggerFactory.getLogger(Drop.class);
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -125,6 +128,22 @@ public class Drop implements ConfigurationSerializable {
     }
 
     protected void giveItem(Player player) {
+        ItemDropInfo result = getItemDropInfo(value);
+        if (result == null) return;
+        int amount = result.amount();
+        amount = getNewAmount(player, result.amount());
+        itemsManager.giveItem(player, result.itemInfo(), amount);
+        if (announce != null) {
+            DropRarity dropRarity = DropRarity.getRarity(chance);
+            placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount),
+                    "name", result.itemInfo().getFormattedName(),
+                    "rarity", result.itemInfo().getRarity().toString(),
+                    "dropRarity", dropRarity.toString()));
+            sendAnnounceMessage(player);
+        }
+    }
+
+    public static @Nullable ItemDropInfo getItemDropInfo(String value) {
         int amount = 1;
         String itemID = value;
         if (value.contains(" ")){
@@ -136,18 +155,9 @@ public class Drop implements ConfigurationSerializable {
         ItemInfo itemInfo = itemsManager.getItemByID(itemID);
         if (itemInfo == null){
             log.error("Item with ID {} not found", itemID);
-            return;
+            return null;
         }
-        amount = getNewAmount(player, amount);
-        itemsManager.giveItem(player, itemInfo, amount);
-        if (announce != null) {
-            DropRarity dropRarity = DropRarity.getRarity(chance);
-            placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount),
-                    "name", itemInfo.getFormattedName(),
-                    "rarity", itemInfo.getRarity().toString(),
-                    "dropRarity", dropRarity.toString()));
-            sendAnnounceMessage(player);
-        }
+        return new ItemDropInfo(amount, itemInfo);
     }
 
     protected void sendAnnounceMessage(Player player) {

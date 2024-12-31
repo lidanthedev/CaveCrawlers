@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +25,11 @@ public class CoinSkillReward extends SkillReward {
     public void applyReward(Player player) {
         Drop drop = new Drop(DropType.COINS, 100, String.valueOf(amount), null);
         drop.drop(player);
+    }
+
+    @Override
+    public Component getRewardMessage() {
+        return MiniMessageUtils.miniMessageString("<green>+<coins> coins</green>", Map.of("coins", String.valueOf(amount)));
     }
 
     @Override

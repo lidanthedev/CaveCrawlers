@@ -65,6 +65,10 @@ public class SkillInfo implements ConfigurationSerializable {
         }
     }
 
+    public List<SkillReward> getRewards(int level) {
+        return rewards.get(level);
+    }
+
     public Stats getStats(int level) {
         return statsRewards.get(level);
     }

@@ -91,6 +91,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerValueResolver(ChatColor.class, valueResolverContext -> {
             return ChatColor.valueOf(valueResolverContext.pop());
         });
+        commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
+            return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
+        });
         if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);

@@ -1,16 +1,13 @@
 package me.lidan.cavecrawlers.items;
 
 import lombok.Data;
-import lombok.Setter;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
-import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,6 +74,10 @@ public class ItemInfo implements ConfigurationSerializable {
 
     public String getFormattedName(){
         return rarity.getColor() + name;
+    }
+
+    public String getFormattedNameWithAmount(int amount) {
+        return getFormattedName() + ChatColor.DARK_GRAY + " x" + amount;
     }
 
     @NotNull

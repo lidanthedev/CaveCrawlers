@@ -3,10 +3,10 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
@@ -15,23 +15,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class Skill implements ConfigurationSerializable {
     @Getter @Setter
     private static List<Double> xpToLevelList = new ArrayList<>();
-    private SkillType type;
+    private SkillInfo type;
     private int level;
     private double xp;
     private double xpToLevel = 100;
     private double totalXp;
 
-    public Skill(SkillType type, int level) {
+    private UUID uuid;
+
+    public Skill(SkillInfo type, int level) {
         this.type = type;
         this.level = level;
     }
 
-    public Skill(SkillType type, int level, double xp, double xpToLevel, double totalXp) {
+    public Skill(SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
         this.type = type;
         this.level = level;
         this.xp = xp;
@@ -64,21 +67,17 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public Stats getStats(){
-        Stats stats = new Stats(true);
-        for (StatType statType : type.getStatType()) {
-            stats.add(statType, level);
-        }
-        return stats;
+        return type.getStats(level);
     }
 
     public void sendLevelUpMessage(Player player){
-        String skillName = StringUtils.setTitleCase(type.name());
+        String skillName = StringUtils.setTitleCase(type.getName());
         player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "------------------------------------------");
         player.sendMessage("    " + ChatColor.AQUA + ChatColor.BOLD + "SKILL LEVEL UP " + ChatColor.RESET + ChatColor.DARK_AQUA + skillName + " " + ChatColor.DARK_GRAY + (this.level - 1) + ChatColor.DARK_GRAY + ChatColor.BOLD + "➡" + ChatColor.DARK_AQUA + this.level);
         player.sendMessage("");
         player.sendMessage("    " + ChatColor.GREEN + ChatColor.BOLD + "REWARDS");
-        for (StatType statType : type.getStatType()) {
-            player.sendMessage("       " + ChatColor.DARK_GRAY + "+" + statType.getColor() + "1 " + statType.getFormatName());
+        for (SkillReward reward : type.getRewards(level)) {
+            player.sendMessage(reward.getRewardMessage());
         }
         player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "------------------------------------------");
 
@@ -86,11 +85,15 @@ public class Skill implements ConfigurationSerializable {
 
     }
 
+    public Player getPlayer() {
+        return Bukkit.getPlayer(uuid);
+    }
+
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         return Map.of(
-                "type", type.name(),
+                "type", type.getName(),
                 "level", level,
                 "xp", xp,
                 "xpToLevel", xpToLevel,
@@ -99,8 +102,10 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public static Skill deserialize(Map<String, Object> map) {
+        String type = (String) map.get("type");
+        SkillInfo skillInfo = SkillsManager.getInstance().getSkillInfo(type);
         Skill skill = new Skill(
-                SkillType.valueOf((String) map.get("type")),
+                skillInfo,
                 0,
                 (double) map.get("totalXp"),
                 xpToLevelList.get(0),

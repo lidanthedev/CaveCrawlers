@@ -3,6 +3,8 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import me.lidan.cavecrawlers.stats.Stat;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,6 +23,11 @@ public class StatSkillReward extends SkillReward {
     @Override
     public void applyReward(Player player) {
 
+    }
+
+    @Override
+    public Component getRewardMessage() {
+        return MiniMessageUtils.miniMessageString("<green>+<amount> <stat></green>", Map.of("amount", String.valueOf(stat.getValue()), "stat", stat.getType().getName()));
     }
 
     @Override

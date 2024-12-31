@@ -3,14 +3,17 @@ package me.lidan.cavecrawlers.gui;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.PrefixUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -18,11 +21,12 @@ import org.bukkit.inventory.ItemStack;
 public class PlayerViewer {
     private final Player player;
     private final Gui gui;
+    private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
 
     public PlayerViewer(Player player) {
         this.player = player;
         this.gui = Gui.gui()
-                .title(Component.text(ChatColor.GRAY + "Player Viewer"))
+                .title(Component.text(ChatColor.GRAY + player.getName()+"'s " + "Profile"))
                 .rows(6)
                 .create();
         // Helmet
@@ -56,7 +60,15 @@ public class PlayerViewer {
             gui.setItem(1, ItemBuilder.from(mainHand.clone()).asGuiItem());
         }
         // Bank
-        gui.setItem(15, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GOLD + "Money: " + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());
+        gui.setItem(15, ItemBuilder.from(Material.GOLD_INGOT).setName(ChatColor.GRAY + "Money: " + ChatColor.GOLD + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());
+        // Level
+        String playerId = player.getUniqueId().toString();
+        int level = levelconfigManager.getPlayerLevel(playerId);
+        String colorName = levelconfigManager.getLevelColor(level);
+        ChatColor levelColor = ChatColor.valueOf(colorName);
+        gui.setItem(16, ItemBuilder.from(Material.EMERALD).setName(ChatColor.GRAY + "Level: " + ChatColor.DARK_GRAY + "[" + levelColor + level + ChatColor.DARK_GRAY + "]").asGuiItem());
+        // Rank
+        gui.setItem(24, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GRAY + "Rank: " + PrefixUtils.getPlayerPrefix(player)).asGuiItem());
         // glass
         gui.getFiller().fill(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         gui.disableAllInteractions();

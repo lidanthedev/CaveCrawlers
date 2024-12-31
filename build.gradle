@@ -49,6 +49,7 @@ dependencies {
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
     compileOnly 'io.lumine:Mythic-Dist:5.3.5'
     compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'net.luckperms:api:5.4'
 }
 
 compileJava { // Preserve parameter names in the bytecode

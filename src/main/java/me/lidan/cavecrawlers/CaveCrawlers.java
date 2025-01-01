@@ -115,6 +115,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerGriffin();
         registerPerks();
         registerAltars();
+        registerSkills();
         registerLevels();
 
         registerCommands();
@@ -127,6 +128,10 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerSkills() {
+        SkillsManager.getInstance().load();
     }
 
     private void registerBosses() {
@@ -301,7 +306,7 @@ public final class CaveCrawlers extends JavaPlugin {
         AltarManager.getInstance().reset();
         killEntities();
         closeAllGuis();
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && caveCrawlersExpansion != null) {
             caveCrawlersExpansion.unregister();
         }
     }

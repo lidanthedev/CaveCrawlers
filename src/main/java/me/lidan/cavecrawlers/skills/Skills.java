@@ -38,6 +38,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         return skills.get(type);
     }
 
+    public void set(SkillInfo type, Skill skill) {
+        skills.put(type, skill);
+    }
+
     public void addXp(SkillInfo type, double amount) {
         get(type).addXp(amount);
     }

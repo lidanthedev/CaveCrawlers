@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.stats;
 
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.Arrays;
@@ -77,6 +79,10 @@ public enum StatType {
 
     public String getFormatName(){
         return color + icon + " " + name;
+    }
+
+    public Component getFormatNameComponent() {
+        return LegacyComponentSerializer.legacySection().deserialize(getFormatName());
     }
 
     public String getColoredName(){

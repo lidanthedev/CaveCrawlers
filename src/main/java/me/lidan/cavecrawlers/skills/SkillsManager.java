@@ -34,6 +34,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
 
     @Override
     public void register(String key, SkillInfo value) {
+//        log.info("Registering skill: {} with info {}", key, value);
         skillInfoMap.put(key, value);
     }
 
@@ -72,6 +73,10 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
         Skill skill = skills.get(skillType);
+        if (skill == null) {
+            skill = new Skill(skillType, 0);
+            skills.set(skillType, skill);
+        }
         skill.addXp(xp);
         String skillName = StringUtils.setTitleCase(skillType.getName());
         skills.tryLevelUp(skillType);

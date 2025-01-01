@@ -3,8 +3,10 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Data
 public class Skill implements ConfigurationSerializable {
     @Getter @Setter
@@ -67,7 +70,11 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public Stats getStats(){
-        return type.getStats(level);
+        Stats stats = type.getStats(level);
+        if (stats == null) {
+            stats = new Stats(true);
+        }
+        return stats;
     }
 
     public void sendLevelUpMessage(Player player){
@@ -76,8 +83,9 @@ public class Skill implements ConfigurationSerializable {
         player.sendMessage("    " + ChatColor.AQUA + ChatColor.BOLD + "SKILL LEVEL UP " + ChatColor.RESET + ChatColor.DARK_AQUA + skillName + " " + ChatColor.DARK_GRAY + (this.level - 1) + ChatColor.DARK_GRAY + ChatColor.BOLD + "➡" + ChatColor.DARK_AQUA + this.level);
         player.sendMessage("");
         player.sendMessage("    " + ChatColor.GREEN + ChatColor.BOLD + "REWARDS");
-        for (SkillReward reward : type.getRewards(level)) {
-            player.sendMessage(reward.getRewardMessage());
+        List<SkillReward> rewards = type.getRewards(level);
+        for (SkillReward reward : rewards) {
+            player.sendMessage(Component.text("    ").append(reward.getRewardMessage()));
         }
         player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "------------------------------------------");
 

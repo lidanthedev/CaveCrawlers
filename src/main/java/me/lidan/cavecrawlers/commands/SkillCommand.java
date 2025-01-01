@@ -54,14 +54,14 @@ public class SkillCommand {
         SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
         skillsManager.giveXp(sender, type, amount, true);
-        sender.sendMessage("add xp to %s".formatted(type));
+        sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
     @Subcommand("set")
     public void set(Player sender, SkillInfo type, int amount) {
         Skills stats = playerDataManager.getSkills(sender);
         stats.get(type).setLevel(amount);
-        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
+        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type.getName(), amount));
     }
 
     @Subcommand("test")

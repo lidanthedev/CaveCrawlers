@@ -53,6 +53,9 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     }
 
     public void registerItemsFromFile(File file) {
+        if (!file.getName().endsWith(".yml")) {
+            return;
+        }
         CustomConfig customConfig = new CustomConfig(file);
         Set<String> registered = registerItemsFromConfig(customConfig);
         for (String s : registered) {

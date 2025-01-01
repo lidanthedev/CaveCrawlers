@@ -5,6 +5,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.Stats;
+import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,17 +24,19 @@ public class SkillInfo implements ConfigurationSerializable {
     private boolean autoReward;
     private List<SkillObjective> objectives;
     private List<Double> xpToLevelList = new ArrayList<>();
+    private Material icon;
 
     private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
     private final Map<Integer, Stats> statsRewards = new HashMap<>();
 
-    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives, List<Double> xpToLevelList) {
+    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives, List<Double> xpToLevelList, Material icon) {
         this.name = name;
         this.rewards = rewards;
         this.autoReward = autoReward;
         this.maxLevel = maxLevel;
         this.objectives = objectives;
         this.xpToLevelList = xpToLevelList;
+        this.icon = icon;
         if (autoReward) {
             generateRewards();
         }
@@ -42,7 +45,7 @@ public class SkillInfo implements ConfigurationSerializable {
     }
 
     public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
-        this(name, rewards, autoReward, 50, new ArrayList<>(), Skill.getDefaultXpToLevelList());
+        this(name, rewards, autoReward, 50, new ArrayList<>(), Skill.getDefaultXpToLevelList(), Material.PAPER);
     }
 
     public void generateActionObjectives() {
@@ -107,6 +110,7 @@ public class SkillInfo implements ConfigurationSerializable {
         }
         map.put("objectives", objectives);
         map.put("xpToLevelList", xpToLevelList);
+        map.put("icon", icon.name());
         return map;
     }
 
@@ -131,6 +135,7 @@ public class SkillInfo implements ConfigurationSerializable {
                 xpToLevelList.add(Double.MAX_VALUE);
             }
         }
+        Material icon = Material.valueOf((String) map.getOrDefault("icon", "PAPER"));
         List<String> objectives = (List<String>) map.get("objectives");
         List<SkillObjective> skillObjectives = new ArrayList<>();
         if (objectives != null) {
@@ -138,6 +143,6 @@ public class SkillInfo implements ConfigurationSerializable {
                 skillObjectives.add(SkillObjective.valueOf(objective));
             }
         }
-        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList);
+        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList, icon);
     }
 }

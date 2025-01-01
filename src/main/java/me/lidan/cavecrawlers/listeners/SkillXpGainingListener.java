@@ -1,7 +1,9 @@
 package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillsManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -19,6 +21,7 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 
 
+@Slf4j
 public class SkillXpGainingListener implements Listener {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final SkillsManager skillsManager = SkillsManager.getInstance();
@@ -34,8 +37,7 @@ public class SkillXpGainingListener implements Listener {
         if (player.getGameMode() != GameMode.SURVIVAL) {
             return;
         }
-        String reason = "break";
-        skillsManager.tryGiveXp(reason, material, player);
+        skillsManager.tryGiveXp(SkillAction.MINE, material, player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -49,7 +51,7 @@ public class SkillXpGainingListener implements Listener {
                     if (modifier == null) {
                         return;
                     }
-                    skillsManager.tryGiveXp("brew", modifier.getType(), player);
+                    skillsManager.tryGiveXp(SkillAction.BREW, modifier.getType(), player);
                 });
     }
 
@@ -59,7 +61,6 @@ public class SkillXpGainingListener implements Listener {
             return;
         }
         Player player = event.getEntity().getKiller();
-        String reason = "kill";
         String type = event.getEntityType().name();
         if (plugin.getMythicBukkit() != null) {
             ActiveMob activeMob = plugin.getMythicBukkit().getAPIHelper().getMythicMobInstance(event.getEntity());
@@ -67,8 +68,7 @@ public class SkillXpGainingListener implements Listener {
                 type = activeMob.getType().getInternalName();
             }
         }
-        skillsManager.tryGiveXp(reason, type, player);
-
+        skillsManager.tryGiveXp(SkillAction.KILL, type, player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -81,6 +81,6 @@ public class SkillXpGainingListener implements Listener {
             return;
         }
         Player player = event.getPlayer();
-        skillsManager.tryGiveXp("fish", item.getItemStack().getType(), player);
+        skillsManager.tryGiveXp(SkillAction.FISH, item.getItemStack().getType(), player);
     }
 }

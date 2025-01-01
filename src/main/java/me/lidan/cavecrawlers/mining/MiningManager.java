@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
@@ -115,7 +116,7 @@ public class MiningManager {
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
         event.setDropItems(false);
         SkillsManager skillsManager = SkillsManager.getInstance();
-        skillsManager.tryGiveXp("break", originType, player);
+        skillsManager.tryGiveXp(SkillAction.MINE, originType, player);
         handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
         handleBlockRegen(block, originType);
@@ -191,7 +192,7 @@ public class MiningManager {
 
     public CustomConfig getConfig(String ID){
         BlockLoader blockLoader = BlockLoader.getInstance();
-        Map<String, File> idFileMap = blockLoader.getItemIDFileMap();
+        Map<String, File> idFileMap = blockLoader.getConfigMap();
         File file = idFileMap.get(ID);
         if (file == null){
             file = new File(blockLoader.getFileDir(), ID + ".yml");

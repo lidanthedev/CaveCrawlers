@@ -16,7 +16,7 @@ import java.util.Set;
 public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final Class<T> type;
     @Getter
-    private final Map<String, File> itemIDFileMap;
+    private final Map<String, File> configMap;
     @Getter
     private final File fileDir;
     private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
@@ -28,7 +28,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     protected ConfigLoader(Class<T> type, File fileDir) {
         this.type = type;
         this.fileDir = fileDir;
-        this.itemIDFileMap = new HashMap<>();
+        this.configMap = new HashMap<>();
     }
 
     public void load(){
@@ -56,7 +56,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         CustomConfig customConfig = new CustomConfig(file);
         Set<String> registered = registerItemsFromConfig(customConfig);
         for (String s : registered) {
-            itemIDFileMap.put(s, file);
+            configMap.put(s, file);
         }
     }
 
@@ -76,7 +76,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     }
 
     public CustomConfig getConfig(String Id){
-        Map<String, File> idFileMap = getItemIDFileMap();
+        Map<String, File> idFileMap = getConfigMap();
         File file = idFileMap.get(Id);
         if (file == null){
             file = new File(getFileDir(), Id + ".yml");
@@ -84,14 +84,14 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         return new CustomConfig(file);
     }
 
-    public void update(String Id, T item){
+    public void update(String Id, T value) {
         CustomConfig config = getConfig(Id);
-        config.set(Id, item);
+        config.set(Id, value);
         config.save();
     }
 
     public void clear(){
-        itemIDFileMap.clear();
+        configMap.clear();
     }
 
     public abstract void register(String key, T value);

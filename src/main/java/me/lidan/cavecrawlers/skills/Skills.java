@@ -20,14 +20,14 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public Skills(List<Skill> skillList){
         this.skills = new HashMap<>();
-//        for (Skill skill : skillList) {
-//            this.skills.put(skill.getType(), skill);
-//        }
-//        for (SkillType type : SkillType.values()) {
-//            if (!skills.containsKey(type)){
-//                skills.put(type, new Skill(type, 0));
-//            }
-//        }
+        for (Skill skill : skillList) {
+            this.skills.put(skill.getType(), skill);
+        }
+        for (SkillInfo type : SkillsManager.getInstance().getSkillInfoMap().values()) {
+            if (!skills.containsKey(type)) {
+                skills.put(type, new Skill(type, 0));
+            }
+        }
     }
 
     public Skills() {
@@ -35,7 +35,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public Skill get(SkillInfo type) {
-        return skills.get(type);
+        return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 
     public void set(SkillInfo type, Skill skill) {
@@ -52,7 +52,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public void tryLevelUp(SkillInfo type) {
         Skill skill = get(type);
-        int leveled = skill.levelUp();
+        int leveled = skill.levelUp(true);
         if (leveled > 0) {
             Player player = Bukkit.getPlayer(uuid);
             LevelConfigManager.getInstance().givePlayerXP(player, 10 * leveled);
@@ -72,9 +72,16 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public String toFormatString() {
         StringBuilder builder = new StringBuilder();
         for (Skill skill : skills.values()) {
-            builder.append(skill.getType()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
+            builder.append(skill.getType().getName()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
         }
         return builder.toString();
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+        for (Map.Entry<SkillInfo, Skill> entry : skills.entrySet()) {
+            entry.getValue().setUuid(uuid);
+        }
     }
 
     @NotNull

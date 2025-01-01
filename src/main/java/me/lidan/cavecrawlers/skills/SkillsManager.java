@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
@@ -11,24 +12,23 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@Slf4j
+@Getter
 public class SkillsManager extends ConfigLoader<SkillInfo> {
     private static final String DIR_NAME = "skills";
     private static SkillsManager instance;
-    private File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
-    @Getter
     private Map<String, CustomConfig> skillConfigs = new HashMap<>();
     private Map<String, SkillInfo> skillInfoMap = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public SkillsManager() {
-        super(SkillInfo.class, "skills");
+        super(SkillInfo.class, DIR_NAME);
         instance = this;
     }
 
@@ -43,30 +43,32 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
     }
 
 
-    public void tryGiveXp(SkillInfo skillType, String reason, String material, Player player) {
-        CustomConfig config = getConfig(skillType);
-        if (!config.contains(reason)) {
+    public void tryGiveXp(SkillInfo skillType, SkillAction reason, String material, Player player) {
+        List<SkillObjective> objectives = skillType.getActionObjectives().get(reason);
+        if (objectives == null) {
             return;
         }
-        ConfigurationSection map = config.getConfigurationSection(reason);
-        if (map != null && map.contains(material)) {
-            double xp = map.getDouble(material);
-            giveXp(player, skillType, xp, true);
+        for (SkillObjective objective : objectives) {
+            if (objective.getObjective().equalsIgnoreCase(material)) {
+                double xp = objective.getAmount();
+                giveXp(player, skillType, xp, true);
+            }
         }
     }
 
-    public void tryGiveXp(SkillInfo skillType, String reason, Material material, Player player) {
+    public void tryGiveXp(SkillInfo skillType, SkillAction reason, Material material, Player player) {
         tryGiveXp(skillType, reason, material.name(), player);
     }
 
-    public void tryGiveXp(String reason, String material, Player player) {
-        for (String skillName : skillConfigs.keySet()) {
-            SkillInfo skillType = SkillsManager.getInstance().getSkillInfo(skillName);
+    public void tryGiveXp(SkillAction reason, String material, Player player) {
+        Skills skills = PlayerDataManager.getInstance().getSkills(player);
+        for (Skill skill : skills) {
+            SkillInfo skillType = skill.getType();
             tryGiveXp(skillType, reason, material, player);
         }
     }
 
-    public void tryGiveXp(String reason, Material material, Player player) {
+    public void tryGiveXp(SkillAction reason, Material material, Player player) {
         tryGiveXp(reason, material.name(), player);
     }
 
@@ -88,7 +90,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
     }
 
     public CustomConfig getConfig(SkillInfo type) {
-        return skillConfigs.get(type.getName());
+        return getConfig(type.getName());
     }
 
     public static SkillsManager getInstance() {

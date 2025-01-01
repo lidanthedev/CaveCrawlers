@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,8 @@ public class ItemSkillReward extends SkillReward {
     public Component getRewardMessage() {
         Drop.ItemDropInfo dropInfo = Drop.getItemDropInfo(item);
         String item = dropInfo.itemInfo().getFormattedNameWithAmount(dropInfo.amount());
-        return MiniMessageUtils.miniMessageString("<green>+<item></green>", Map.of("item", item));
+        Component itemComponent = LegacyComponentSerializer.legacySection().deserialize(item);
+        return MiniMessageUtils.miniMessageComponent("<green>+<item></green>", Map.of("item", itemComponent));
     }
 
     @Override

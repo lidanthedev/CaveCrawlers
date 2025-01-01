@@ -17,21 +17,40 @@ import java.util.Map;
 @Data
 @ToString
 public class SkillInfo implements ConfigurationSerializable {
-    private final String name;
-    private final Map<Integer, List<SkillReward>> rewards;
-    private final int maxLevel = 50;
-    private final boolean autoReward;
+    private String name;
+    private Map<Integer, List<SkillReward>> rewards;
+    private int maxLevel;
+    private boolean autoReward;
+    private List<SkillObjective> objectives = new ArrayList<>();
+    private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
 
     private final Map<Integer, Stats> statsRewards = new HashMap<>();
 
-    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
+    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives) {
         this.name = name;
         this.rewards = rewards;
         this.autoReward = autoReward;
+        this.maxLevel = maxLevel;
+        this.objectives = objectives;
         if (autoReward) {
             generateRewards();
         }
         generateStatsRewards();
+        generateActionObjectives();
+    }
+
+    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
+        this(name, rewards, autoReward, 50, new ArrayList<>());
+    }
+
+    public void generateActionObjectives() {
+        for (SkillObjective objective : objectives) {
+            SkillAction skillAction = objective.getAction();
+            if (!actionObjectives.containsKey(skillAction)) {
+                actionObjectives.put(skillAction, new ArrayList<>());
+            }
+            actionObjectives.get(skillAction).add(objective);
+        }
     }
 
     public void generateRewards() {
@@ -79,13 +98,35 @@ public class SkillInfo implements ConfigurationSerializable {
         map.put("name", name);
         map.put("rewards", rewards);
         map.put("autoReward", autoReward);
+        map.put("maxLevel", maxLevel);
+        List<String> objectives = new ArrayList<>();
+        for (SkillObjective objective : this.objectives) {
+            objectives.add(objective.toSaveString());
+        }
+        map.put("objectives", objectives);
         return map;
     }
 
     public static SkillInfo deserialize(Map<String, Object> map) {
         String name = (String) map.get("name");
-        Map<Integer, List<SkillReward>> rewards = (Map<Integer, List<SkillReward>>) map.get("rewards");
-        boolean autoReward = (boolean) map.get("autoReward");
-        return new SkillInfo(name, rewards, autoReward);
+        Map<Integer, List<String>> rewards = (Map<Integer, List<String>>) map.get("rewards");
+        Map<Integer, List<SkillReward>> rewardsMap = new HashMap<>();
+        for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
+            List<SkillReward> skillRewards = new ArrayList<>();
+            for (String reward : entry.getValue()) {
+                skillRewards.add(SkillReward.valueOf(reward));
+            }
+            rewardsMap.put(entry.getKey(), skillRewards);
+        }
+        boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
+        int maxLevel = (int) map.getOrDefault("maxLevel", 50);
+        List<String> objectives = (List<String>) map.get("objectives");
+        List<SkillObjective> skillObjectives = new ArrayList<>();
+        if (objectives != null) {
+            for (String objective : objectives) {
+                skillObjectives.add(SkillObjective.valueOf(objective));
+            }
+        }
+        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives);
     }
 }

@@ -130,8 +130,7 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        int amount = result.amount();
-        amount = getNewAmount(player, result.amount());
+        int amount = getNewAmount(player, result.amount());
         itemsManager.giveItem(player, result.itemInfo(), amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);

@@ -34,6 +34,7 @@ public class PlayerData implements ConfigurationSerializable {
     }
 
     public void loadPlayer(UUID uuid) {
+        skills.setUuid(uuid);
 //        CustomConfig config = new CustomConfig("players/" + uuid + ".yml");
 //        if (config.contains("skills")) {
 //            skills = (Skills) config.get("skills");

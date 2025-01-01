@@ -23,7 +23,7 @@ import java.util.UUID;
 @Data
 public class Skill implements ConfigurationSerializable {
     @Getter @Setter
-    private static List<Double> xpToLevelList = new ArrayList<>();
+    private static List<Double> defaultXpToLevelList = new ArrayList<>(); // updated from main config
     private SkillInfo type;
     private int level;
     private double xp;
@@ -58,13 +58,13 @@ public class Skill implements ConfigurationSerializable {
     public int levelUp(boolean withRewards) {
         Player player = getPlayer();
         int leveled = 0;
-        while (xp >= xpToLevel && level < xpToLevelList.size()){
+        while (xp >= xpToLevel && level + 1 < type.getXpToLevelList().size() && level < type.getMaxLevel()) {
             level++;
             xp -= xpToLevel;
             if (xp < 0){
                 xp = 0;
             }
-            xpToLevel = xpToLevelList.get(level);
+            xpToLevel = type.getXpToLevelList().get(level);
             if (withRewards) {
                 List<SkillReward> rewards = type.getRewards(level);
                 for (SkillReward reward : rewards) {
@@ -123,7 +123,7 @@ public class Skill implements ConfigurationSerializable {
                 skillInfo,
                 0,
                 (double) map.get("totalXp"),
-                xpToLevelList.get(0),
+                skillInfo.getXpToLevelList().get(0),
                 (double) map.get("totalXp")
         );
         skill.levelUp(false);

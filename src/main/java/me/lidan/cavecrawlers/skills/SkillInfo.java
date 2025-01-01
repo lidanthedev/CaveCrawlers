@@ -21,17 +21,19 @@ public class SkillInfo implements ConfigurationSerializable {
     private Map<Integer, List<SkillReward>> rewards;
     private int maxLevel;
     private boolean autoReward;
-    private List<SkillObjective> objectives = new ArrayList<>();
-    private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
+    private List<SkillObjective> objectives;
+    private List<Double> xpToLevelList = new ArrayList<>();
 
+    private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
     private final Map<Integer, Stats> statsRewards = new HashMap<>();
 
-    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives) {
+    public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives, List<Double> xpToLevelList) {
         this.name = name;
         this.rewards = rewards;
         this.autoReward = autoReward;
         this.maxLevel = maxLevel;
         this.objectives = objectives;
+        this.xpToLevelList = xpToLevelList;
         if (autoReward) {
             generateRewards();
         }
@@ -40,7 +42,7 @@ public class SkillInfo implements ConfigurationSerializable {
     }
 
     public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
-        this(name, rewards, autoReward, 50, new ArrayList<>());
+        this(name, rewards, autoReward, 50, new ArrayList<>(), Skill.getDefaultXpToLevelList());
     }
 
     public void generateActionObjectives() {
@@ -104,6 +106,7 @@ public class SkillInfo implements ConfigurationSerializable {
             objectives.add(objective.toSaveString());
         }
         map.put("objectives", objectives);
+        map.put("xpToLevelList", xpToLevelList);
         return map;
     }
 
@@ -120,6 +123,14 @@ public class SkillInfo implements ConfigurationSerializable {
         }
         boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
         int maxLevel = (int) map.getOrDefault("maxLevel", 50);
+        List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
+        int xpToLevelSize = xpToLevelList.size();
+        if (xpToLevelSize < maxLevel) {
+            log.warn("Skill {} does not have enough xpToLevel values (has {}), filling with unreachable xp", name, xpToLevelSize);
+            for (int i = xpToLevelSize; i <= maxLevel; i++) {
+                xpToLevelList.add(Double.MAX_VALUE);
+            }
+        }
         List<String> objectives = (List<String>) map.get("objectives");
         List<SkillObjective> skillObjectives = new ArrayList<>();
         if (objectives != null) {
@@ -127,6 +138,6 @@ public class SkillInfo implements ConfigurationSerializable {
                 skillObjectives.add(SkillObjective.valueOf(objective));
             }
         }
-        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives);
+        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList);
     }
 }

@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.storage;
 
 import lombok.Data;
 import me.lidan.cavecrawlers.skills.Skills;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,15 +36,19 @@ public class PlayerData implements ConfigurationSerializable {
 
     public void loadPlayer(UUID uuid) {
         skills.setUuid(uuid);
-//        CustomConfig config = new CustomConfig("players/" + uuid + ".yml");
-//        if (config.contains("skills")) {
-//            skills = (Skills) config.get("skills");
-//        }
+        CustomConfig config = new CustomConfig(getConfigFor(uuid));
+        if (config.contains("skills")) {
+            skills = (Skills) config.get("skills");
+        }
     }
 
     public void savePlayer(UUID uuid) {
-//        CustomConfig config = new CustomConfig("players/" + uuid + ".yml");
-//        config.set("skills", skills);
-//        config.save();
+        CustomConfig config = new CustomConfig(getConfigFor(uuid));
+        config.set("skills", skills);
+        config.save();
+    }
+
+    private static @NotNull String getConfigFor(UUID uuid) {
+        return "players/" + uuid + ".yml";
     }
 }

@@ -707,6 +707,13 @@ public class CaveTestCommand {
         sender.sendMessage("Saved Player Data!");
     }
 
+    @Subcommand("data reset")
+    public void dataReset(Player sender) {
+        PlayerDataManager dataManager = PlayerDataManager.getInstance();
+        dataManager.resetPlayerData(sender.getUniqueId());
+        sender.sendMessage("Reset Player Data!");
+    }
+
     @Subcommand("kill target")
     public void killTarget(Player sender, @Default("1") int amount) {
         // kill the entity the sender is looking at

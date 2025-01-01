@@ -88,8 +88,8 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        for (SkillInfo statType : skills.keySet()) {
-            map.put(statType.getName(), get(statType));
+        for (SkillInfo skillInfo : skills.keySet()) {
+            map.put(skillInfo.getName(), get(skillInfo));
         }
         return map;
     }
@@ -102,6 +102,9 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
             }
             Object value = map.get(key);
             SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
+            if (type == null) {
+                continue;
+            }
             Skill skill = (Skill) value;
             skills.skills.put(type, skill);
         }

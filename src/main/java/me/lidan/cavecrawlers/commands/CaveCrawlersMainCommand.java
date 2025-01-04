@@ -66,9 +66,14 @@ import java.util.*;
 
 import static org.bukkit.Bukkit.getConsoleSender;
 
-@Command({"cavetest", "ct"})
+@Command({"ct", "cc", "cavecrawlers"})
 @CommandPermission("cavecrawlers.test")
-public class CaveTestCommand {
+public class CaveCrawlersMainCommand {
+    enum HelpCommandType {
+        LINE,
+        COMMAND,
+        TITLE
+    }
 
     private final ShopManager shopManager = ShopManager.getInstance();
     private final ItemsManager itemsManager = ItemsManager.getInstance();
@@ -85,7 +90,7 @@ public class CaveTestCommand {
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
-    public CaveTestCommand(CommandHandler handler) {
+    public CaveCrawlersMainCommand(CommandHandler handler) {
         this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
@@ -104,6 +109,88 @@ public class CaveTestCommand {
             handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> skillExecutor.getSkillNames());
         }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+    }
+
+    private Component getHelpMessage(HelpCommandType type, String command, String description) {
+        String onlyCommand = command.split("<")[0];
+        if (onlyCommand.contains("["))
+            onlyCommand = onlyCommand.split("\\[")[0];
+        if (type == HelpCommandType.TITLE)
+            return MiniMessageUtils.miniMessageString("<color:#D3495B><b><title></b></color>", Map.of("title", command));
+        if (type == HelpCommandType.COMMAND) {
+            onlyCommand = onlyCommand.toLowerCase();
+            return MiniMessageUtils.miniMessageString("<click:suggest_command:'<only_command>'><color:#E9724C><u><all_command></u></color></click> <color:#E0AF79><i>- <description></i></color>\n", Map.of("only_command", onlyCommand, "all_command", command, "description", description));
+        }
+        if (type == HelpCommandType.LINE)
+            return MiniMessageUtils.miniMessageString("<color:#c04253>-------------------------------------</color>");
+        return MiniMessageUtils.miniMessageString("<red>ERROR</red>");
+    }
+
+    @Subcommand("help")
+    @DefaultFor({"ct", "cc", "cavecrawlers"})
+    public void mainHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct help", "show this message"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item", "item commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop", "shop commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar", "altar commands"));
+    }
+
+    @Subcommand("help item")
+    @DefaultFor({"ct item", "cc item", "cavecrawlers item"})
+    public void itemHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item give <Item id> [amount]", "give yourself an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item get <Item ID> [amount]", "give yourself an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item browse", "open the item browser"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Editor Help", ""));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item create <id> <material>", "create an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item clone <originId> <id>", "clone an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit stat <stat> <number>", "edit an item's stat"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit ability <ability>", "edit an item's ability"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit name <name>", "edit an item's name"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit description <description>", "edit an item's description"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit type <type>", "edit an item's type"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit rarity <rarity>", "edit an item's rarity"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItem <material>", "edit an item's base item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item import <id>", "import the item in your hand (advanced)"));
+    }
+
+    @Subcommand("help shop")
+    @DefaultFor({"ct shop", "cc shop", "cavecrawlers shop"})
+    public void shopHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop add <shop-name> <ingredient-item> <amount>", "add items to the shop"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop (middle-click to edit)"));
+    }
+
+    @Subcommand("help altar")
+    @DefaultFor({"ct altar", "cc altar", "cavecrawlers altar"})
+    public void altarHelp(CommandSender sender) {
+        /*
+        Altar commands:
+        /ct altar create <name> - create an altar
+        /ct altar addspawn <altar-name> <mob-name> <chance> - add a mob spawn to an altar
+        /ct altar addsummonblock <altar-name> - adds the block you are looking at as a summon block
+        /ct altar setspawnlocation <altar-name> - sets the spawn location for the altar
+        /ct altar info <altar-name> - get info about an altar
+         */
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Altar Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar create <name>", "create an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addspawn <altar-name> <mob-name> <chance>", "add a mob spawn to an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addsummonblock <altar-name>", "adds the block you are looking at as a summon block"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar setspawnlocation <altar-name>", "sets the spawn location for the altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar info <altar-name>", "get info about an altar"));
     }
 
     @NotNull

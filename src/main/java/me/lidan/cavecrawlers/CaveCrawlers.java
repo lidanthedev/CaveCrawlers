@@ -261,7 +261,7 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
         commandHandler.register(new StatCommand());
-        commandHandler.register(new CaveTestCommand(commandHandler));
+        commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
         commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
         commandHandler.register(new QolCommand());

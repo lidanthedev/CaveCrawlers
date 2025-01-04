@@ -417,6 +417,7 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit baseItemToHand")
+    @AutoComplete("@itemID")
     public void itemEditBaseItemToHand(Player sender, String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfoHand = itemsManager.getItemFromItemStack(hand);

@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class CoinSkillReward extends SkillReward {
 
     @Override
     public Component getRewardMessage() {
-        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> coins</green>", Map.of("coins", String.valueOf(amount)));
+        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> coins</green>", Map.of("coins", StringUtils.valueOf(amount)));
     }
 
     @Override

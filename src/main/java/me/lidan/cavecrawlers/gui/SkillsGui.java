@@ -3,7 +3,6 @@ package me.lidan.cavecrawlers.gui;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
-import dev.triumphteam.gui.guis.PaginatedGui;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillInfo;
@@ -27,37 +26,79 @@ import java.util.Map;
 @Slf4j
 public class SkillsGui {
     private final Player player;
-    private final PaginatedGui gui;
+    private final Gui gui;
+    private final List<GuiItem> items = new ArrayList<>();
+    private int currentPage = 0;
 
     public SkillsGui(Player player) {
         this.player = player;
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
-        gui = Gui.paginated().rows(5).pageSize(7).title(MiniMessageUtils.miniMessageString("Your Skills")).create();
+        gui = Gui.gui().rows(5).title(MiniMessageUtils.miniMessageString("Your Skills")).create();
         gui.disableAllInteractions();
 
         for (Skill skill : skills) {
-            gui.addItem(getSkillGuiItem(skill));
-        }
-        int size = gui.getPageItems().size();
-
-        if (size > 7) {
-            gui.setItem(3, 1, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Previous").asGuiItem(event -> gui.previous()));
-            gui.setItem(3, 9, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Next").asGuiItem(event -> gui.next()));
+            GuiItem skillGuiItem = getSkillGuiItem(skill);
+            skillGuiItem.setAction(event -> {
+                new SkillsRewardsGui(player, skill).open();
+            });
+            items.add(skillGuiItem);
         }
 
         gui.getFiller().fillBetweenPoints(0, 0, 2, 9, GuiItems.GLASS_ITEM);
         gui.getFiller().fillBetweenPoints(4, 0, 5, 9, GuiItems.GLASS_ITEM);
         gui.getFiller().fillBetweenPoints(3, 0, 3, 9, GuiItems.GLASS_ITEM);
 
+        gui.setItem(1, 5, ItemBuilder.from(Material.DIAMOND_SWORD).name(MiniMessageUtils.miniMessageString("<italic:false><green>Your skills")).flags(ItemFlag.values()).asGuiItem());
+
         gui.setItem(39, GuiItems.BACK_ITEM);
         gui.setItem(40, GuiItems.CLOSE_ITEM);
 
+        updateItems();
+    }
+
+    private void updateItems() {
+        List<GuiItem> guiItems = items.subList(currentPage * 7, Math.min(7 * (currentPage + 1), items.size()));
+        int size = guiItems.size();
         List<Integer> layoutForItems = getLayoutForItems(size);
-        layoutForItems.forEach(i -> gui.removeItem(3, i));
-//        for (int i = 0; i < 20; i++) {
-//            gui.addItem(ItemBuilder.from(Material.DIAMOND).name(Component.text("Test" + i)).asGuiItem());
-//        }
-//        gui.getFiller().fill(GuiItems.GLASS_ITEM);
+        getLayoutForItems(7).forEach(i -> gui.setItem(3, i, GuiItems.GLASS_ITEM));
+        for (int i = 0; i < size; i++) {
+            gui.setItem(3, layoutForItems.get(i), guiItems.get(i));
+        }
+
+
+        if (items.size() > 7) {
+            gui.setItem(3, 1, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Previous").asGuiItem(event -> previous()));
+            gui.setItem(3, 9, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Next").asGuiItem(event -> next()));
+        }
+        gui.update();
+    }
+
+    public void next() {
+        if (currentPage * 7 + 7 >= items.size()) {
+            return;
+        }
+        currentPage++;
+        updateItems();
+    }
+
+    public void previous() {
+        if (currentPage == 0) {
+            return;
+        }
+        currentPage--;
+        updateItems();
+    }
+
+    public static @NotNull GuiItem getSkillRewardGuiItem(SkillInfo skillInfo, int level, boolean unlocked) {
+        Material material = unlocked ? Material.LIME_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE;
+        List<Component> lore = new ArrayList<>(getRewardsLoreForLevel(skillInfo, level));
+        if (unlocked) {
+            lore.add(MiniMessageUtils.miniMessageString("<italic:false><green>Unlocked!"));
+        } else {
+            lore.add(MiniMessageUtils.miniMessageString("<italic:false><red>Locked!"));
+        }
+
+        return ItemBuilder.from(material).name(MiniMessageUtils.miniMessageString("<italic:false><green><name> Level <level>", Map.of("name", StringUtils.setTitleCase(skillInfo.getName()), "level", StringUtils.valueOf(level)))).lore(lore).asGuiItem();
     }
 
     public List<Integer> getLayoutForItems(int n) {
@@ -79,34 +120,28 @@ public class SkillsGui {
         }
     }
 
-    private static GuiItem getSkillGuiItem(Skill skill) {
+    public static GuiItem getSkillGuiItem(Skill skill) {
         return getSkillGuiItem(skill, skill.getType().getIcon());
     }
 
-    private static GuiItem getSkillGuiItem(Skill skill, Material material) {
+    public static GuiItem getSkillGuiItem(Skill skill, Material material) {
         return getSkillGuiItem(skill, new ItemStack(material));
     }
 
     @NotNull
-    private static GuiItem getSkillGuiItem(Skill skill, ItemStack baseItem) {
+    public static GuiItem getSkillGuiItem(Skill skill, ItemStack baseItem) {
         SkillInfo skillType = skill.getType();
         String skillName = StringUtils.setTitleCase(skillType.getName());
         List<Component> lore = new ArrayList<>();
         lore.add(MiniMessageUtils.miniMessageString(""));
         lore.add(MiniMessageUtils.miniMessageString("<italic:false><gray>Progress to Level <next-level>: <yellow><progress>%", Map.of("next-level", String.valueOf(skill.getLevel() + 1),
-                "progress", String.valueOf(skill.getXp() / skill.getXpToLevel() * 100))));
+                "progress", StringUtils.getNumberFormat(skill.getXp() / skill.getXpToLevel() * 100))));
         lore.add(MiniMessageUtils.miniMessageComponent("<italic:false><bar> <yellow><xp><gold>/<yellow><max>", Map.of(
                 "bar", MiniMessageUtils.progressBar(skill.getXp(), skill.getXpToLevel(), 20),
                 "xp", MiniMessageUtils.miniMessageString(StringUtils.getNumberFormat(skill.getXp())),
                 "max", MiniMessageUtils.miniMessageString(StringUtils.getShortNumber(skill.getXpToLevel())))));
         if (skill.getLevel() < skill.getType().getMaxLevel()) {
-            lore.add(Component.space());
-            lore.add(MiniMessageUtils.miniMessageString("<italic:false><gray>Level <level> Rewards:", Map.of(
-                    "level", String.valueOf(skill.getLevel() + 1)
-            )));
-            for (SkillReward skillReward : skillType.getRewards().get(skill.getLevel() + 1)) {
-                lore.add(MiniMessageUtils.miniMessageComponent("  <italic:false><msg>", Map.of("msg", skillReward.getRewardMessage())));
-            }
+            lore.addAll(getRewardsLoreForLevel(skillType, skill.getLevel() + 1));
         }
         lore.add(Component.space());
         lore.add(MiniMessageUtils.miniMessageString("<italic:false><yellow>Click to view!"));
@@ -119,8 +154,28 @@ public class SkillsGui {
                 .asGuiItem();
     }
 
+    public static List<Component> getRewardsLoreForLevel(SkillInfo skillType, int level) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.space());
+        lore.add(MiniMessageUtils.miniMessageString("<italic:false><gray>Level <level> Rewards:", Map.of(
+                "level", String.valueOf(level)
+        )));
+        lore.addAll(getOnlyRewardsLoreForLevel(skillType.getRewards(level)));
+        return lore;
+    }
+
+    public static List<Component> getOnlyRewardsLoreForLevel(List<SkillReward> rewards) {
+        List<Component> lore = new ArrayList<>();
+        if (rewards == null) {
+            return lore;
+        }
+        for (SkillReward skillReward : rewards) {
+            lore.add(MiniMessageUtils.miniMessageComponent("  <italic:false><msg>", Map.of("msg", skillReward.getRewardMessage())));
+        }
+        return lore;
+    }
+
     public void open() {
         gui.open(player);
-        log.info("page: {} with size: {}", gui.getCurrentPageNum(), gui.getCurrentPageItems().size());
     }
 }

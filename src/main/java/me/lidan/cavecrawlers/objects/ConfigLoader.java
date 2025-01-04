@@ -56,10 +56,14 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         if (!file.getName().endsWith(".yml")) {
             return;
         }
-        CustomConfig customConfig = new CustomConfig(file);
-        Set<String> registered = registerItemsFromConfig(customConfig);
-        for (String s : registered) {
-            configMap.put(s, file);
+        try {
+            CustomConfig customConfig = new CustomConfig(file);
+            Set<String> registered = registerItemsFromConfig(customConfig);
+            for (String s : registered) {
+                configMap.put(s, file);
+            }
+        } catch (Exception e) {
+            CaveCrawlers.getInstance().getLogger().warning("Failed to Load File: " + file.getPath());
         }
     }
 

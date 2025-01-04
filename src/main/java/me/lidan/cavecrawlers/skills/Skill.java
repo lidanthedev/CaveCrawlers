@@ -108,7 +108,7 @@ public class Skill implements ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         return Map.of(
-                "type", type.getName(),
+                "type", type.getId(),
                 "level", level,
                 "xp", xp,
                 "xpToLevel", xpToLevel,

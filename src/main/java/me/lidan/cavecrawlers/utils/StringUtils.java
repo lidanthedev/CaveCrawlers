@@ -233,6 +233,14 @@ public class StringUtils {
         return loreBuilder(lore, ChatColor.GRAY, 30);
     }
 
+    public static <T> String valueOf(T value) {
+        if (value instanceof Number) {
+            return getNumberFormat((Number) value);
+        } else {
+            return String.valueOf(value);
+        }
+    }
+
     public static <T> String getNumberFormat(Number num) {
         return NumberFormat.getNumberInstance(Locale.US).format(num);
     }

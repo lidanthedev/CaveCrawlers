@@ -34,7 +34,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
 
     @Override
     public void register(String key, SkillInfo value) {
-//        log.info("Registering skill: {} with info {}", key, value);
+        value.setId(key);
         skillInfoMap.put(key, value);
     }
 

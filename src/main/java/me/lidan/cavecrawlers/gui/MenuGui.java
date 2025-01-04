@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,6 +16,7 @@ public class MenuGui {
     private final Gui gui;
 
     public static final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    public static CustomConfig config = new CustomConfig("menu.yml");
     // heads
     public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";
     public static final String WARRPS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjBiZmMyNTc3ZjZlMjZjNmM2ZjczNjVjMmM0MDc2YmNjZWU2NTMxMjQ5ODkzODJjZTkzYmNhNGZjOWUzOWIifX19";
@@ -23,19 +25,19 @@ public class MenuGui {
     public static final String ACBAG_SKULL_TEXTRUE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYxYTkxOGMwYzQ5YmE4ZDA1M2U1MjJjYjkxYWJjNzQ2ODkzNjdiNGQ4YWEwNmJmYzFiYTkxNTQ3MzA5ODVmZiJ9fX0=";
     public static final String ISLAND_WARP = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjE1MWNmZmRhZjMwMzY3MzUzMWE3NjUxYjM2NjM3Y2FkOTEyYmE0ODU2NDMxNThlNTQ4ZDU5YjJlYWQ1MDExIn19fQ==";
     // commands
-    public static final String SKILLS_COMMAND = "skills";
-    public static final String KITS_COMMAND = "kits";
-    public static final String SHOP_COMMAND = "shop";
-    public static final String WARP_COMMAND = "warp";
-    public static final String DAILY_COMMAND = "daily";
-    public static final String STORAGE_COMMAND = "ec";
-    public static final String PETS_COMMAND = "pets";
-    public static final String CRAFTING_TABLE_COMMAND = "craft";
-    public static final String MADDOX_COMMNAD = "slayermenu";
-    public static final String SELL_COMMAND = "sell";
-    public static final String ACBAG_COMMAND = "acbag";
-    public static final String ISLAND_COMMAND = "is";
-    public static final String HUB_COMMAND = "spawn";
+    public static final String SKILLS_COMMAND = config.getString("skills-command", "skills");
+    public static final String KITS_COMMAND = config.getString("kits-command", "kits");
+    public static final String SHOP_COMMAND = config.getString("shop-command", "shop");
+    public static final String WARP_COMMAND = config.getString("warp-command", "warp");
+    public static final String DAILY_COMMAND = config.getString("daily-command", "daily");
+    public static final String STORAGE_COMMAND = config.getString("storage-command", "ec");
+    public static final String PETS_COMMAND = config.getString("pets-command", "pets");
+    public static final String CRAFTING_TABLE_COMMAND = config.getString("crafting-table-command", "craftingtable");
+    public static final String MADDOX_COMMNAD = config.getString("maddox-command", "slayer");
+    public static final String SELL_COMMAND = config.getString("sell-command", "sell");
+    public static final String ACBAG_COMMAND = config.getString("acbag-command", "acbag");
+    public static final String ISLAND_COMMAND = config.getString("island-command", "is");
+    public static final String HUB_COMMAND = config.getString("hub-command", "hub");
     // settings
     public static final boolean HAS_SKYBLOCK = plugin.getConfig().getBoolean("has-skyblock", false);
 
@@ -59,11 +61,11 @@ public class MenuGui {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(SHOP_COMMAND);
         })));
-            gui.setItem(23, ItemBuilder.skull().texture(WARRPS_SKULL_TEXTURE).setName("§eWarps").setLore("§7Teleport and explore all", "§fwarps on that realm.", "§", "§eClick to preview kits").asGuiItem((event -> {
+        gui.setItem(23, ItemBuilder.skull().texture(WARRPS_SKULL_TEXTURE).setName("§eWarps").setLore("§7Teleport and explore all", "§7warps on that realm.", "§", "§eClick to preview kits").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(WARP_COMMAND);
         })));
-        gui.setItem(24, ItemBuilder.from(Material.ENDER_CHEST).setName("§aStorage").setLore("§7Store Items", "§7At Your Personal Storage.").asGuiItem((event -> {
+        gui.setItem(24, ItemBuilder.from(Material.ENDER_CHEST).setName("§aStorage").setLore("§7Store Items", "§7At Your Personal Storage.", "", "§eClick to open").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
             sender.performCommand(STORAGE_COMMAND);
         })));

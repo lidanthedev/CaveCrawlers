@@ -89,7 +89,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         for (SkillInfo skillInfo : skills.keySet()) {
-            map.put(skillInfo.getName(), get(skillInfo));
+            map.put(skillInfo.getId(), get(skillInfo));
         }
         return map;
     }

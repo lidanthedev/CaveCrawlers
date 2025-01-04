@@ -18,6 +18,7 @@ import java.util.Map;
 @Data
 @ToString
 public class SkillInfo implements ConfigurationSerializable {
+    private String id;
     private String name;
     private Map<Integer, List<SkillReward>> rewards;
     private int maxLevel;

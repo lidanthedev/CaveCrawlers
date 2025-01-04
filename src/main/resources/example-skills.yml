@@ -1,0 +1,102 @@
+# This is an example of how to create a skill for CaveCrawlers
+# You can create your own skills by following this format.
+# note: if autoReward is set to true, missing rewards will be automatically added to the skill.
+# note: if autoReward is set to false, you must add all rewards manually.
+# valid actions: KILL, MINE, FISH, BREW
+# valid what: any entity type, any block type, any item type
+# valid xp-given: any positive number
+# valid reward types: STAT, COINS, ITEM
+
+mining:
+  ==: me.lidan.cavecrawlers.skills.SkillInfo
+  icon: STONE_PICKAXE
+  maxLevel: 50
+  autoReward: true
+  name: Mining
+  rewards:
+    1:
+      # format: <type> <what> <amount>
+      - STAT DEFENSE 1.0
+      - STAT MINING_FORTUNE 1.0
+      - ITEM GOLD_INGOT 1
+      - COINS 1000
+    10:
+      - STAT DEFENSE 2.0
+      - STAT MINING_FORTUNE 2.0
+      - COINS 1000
+  objectives:
+    # format: <action> <what> <xp-given>
+    - MINE GOLD_ORE 10
+    - MINE DEEPSLATE_GOLD_ORE 50
+    - MINE NETHER_GOLD_ORE 100
+    - MINE DIAMOND_ORE 500
+
+combat:
+  ==: me.lidan.cavecrawlers.skills.SkillInfo
+  icon: STONE_SWORD
+  maxLevel: 50
+  autoReward: true
+  name: Combat
+  rewards:
+    1:
+      - STAT CRIT_CHANCE 1.0
+      - COINS 1000
+    10:
+      - STAT CRIT_CHANCE 1.0
+      - STAT CRIT_DAMAGE 1.0
+      - COINS 5000
+  objectives:
+    # format: <action> <what> <xp-given>
+    - KILL ZOMBIE 1
+    - KILL SKELETON 1
+    - KILL ENDERMAN 10
+    - KILL WITHER 100
+    - KILL WARDEN 500
+
+woodcutting:
+  ==: me.lidan.cavecrawlers.skills.SkillInfo
+  icon: STONE_AXE
+  maxLevel: 50
+  autoReward: true
+  name: Woodcutting
+  rewards:
+    1:
+      - STAT STRENGTH 1.0
+      - COINS 1000
+  objectives:
+    # format: <action> <what> <xp-given>
+    - MINE OAK_LOG 10
+
+fishing:
+  ==: me.lidan.cavecrawlers.skills.SkillInfo
+  icon: FISHING_ROD
+  maxLevel: 50
+  autoReward: true
+  name: Fishing
+  rewards:
+    1:
+      - STAT CRIT_DAMAGE 1.0
+      - COINS 1000
+  objectives:
+    # format: <action> <what> <xp-given>
+    - FISH COD 10
+    - FISH SALMON 50
+    - FISH ENCHANTED_BOOK 100
+    - FISH NAUTILUS_SHELL 500
+
+brewing:
+  ==: me.lidan.cavecrawlers.skills.SkillInfo
+  icon: BREWING_STAND
+  maxLevel: 50
+  autoReward: true
+  name: Brewing
+  rewards:
+    1:
+      - STAT INTELLIGENCE 1.0
+      - COINS 1000
+  objectives:
+    # format: <action> <what> <xp-given>
+    - BREW NETHER_WART 10
+    - BREW GLOWSTONE_DUST 50
+    - BREW REDSTONE 100
+    - BREW DRAGON_BREATH 500

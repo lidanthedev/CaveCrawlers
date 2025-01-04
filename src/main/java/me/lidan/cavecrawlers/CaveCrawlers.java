@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarLoader;
@@ -55,8 +56,13 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
+@Slf4j
 @Getter
 public final class CaveCrawlers extends JavaPlugin {
     public static Economy economy = null;
@@ -69,31 +75,6 @@ public final class CaveCrawlers extends JavaPlugin {
         // Plugin startup logic
         long start = System.currentTimeMillis();
         commandHandler = BukkitCommandHandler.create(this);
-        commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return Arrays.stream(Sound.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
-            return Arrays.stream(Material.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
-            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
-            return Arrays.stream(Rarity.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Altar.class, (args, sender, command) -> {
-            return AltarManager.getInstance().getAltarNames();
-        });
-        commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
-            return AltarManager.getInstance().getAltar(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(ChatColor.class, valueResolverContext -> {
-            return ChatColor.valueOf(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
-            return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
-        });
         if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -104,6 +85,7 @@ public final class CaveCrawlers extends JavaPlugin {
         }
         registerSerializer();
 
+        saveDefaultResources();
         registerConfig();
 
         registerAbilities();
@@ -128,6 +110,18 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void saveDefaultResources() {
+        if (getDataFolder().exists()) {
+            return;
+        }
+        log.info("Detected first time setup, saving default resources");
+        getDataFolder().mkdir();
+        saveResource("example-skills.yml", new File(getDataFolder(), "skills/example-skills.yml"));
+        saveResource("example-items.yml", new File(getDataFolder(), "items/example-items.yml"));
+        saveResource("messages.yml", false);
+        saveResource("example-shop.yml", new File(getDataFolder(), "shops/example-shop.yml"));
     }
 
     private void registerSkills() {
@@ -239,6 +233,31 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void registerCommands() {
+        commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
+            return AltarManager.getInstance().getAltar(valueResolverContext.pop());
+        });
+        commandHandler.registerValueResolver(ChatColor.class, valueResolverContext -> {
+            return ChatColor.valueOf(valueResolverContext.pop());
+        });
+        commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
+            return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
+            return Arrays.stream(Sound.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
+            return Arrays.stream(Material.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
+            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
+            return Arrays.stream(Rarity.values()).map(Enum::name).toList();
+        });
+        commandHandler.getAutoCompleter().registerParameterSuggestions(Altar.class, (args, sender, command) -> {
+            return AltarManager.getInstance().getAltarNames();
+        });
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
         commandHandler.register(new StatCommand());
@@ -339,6 +358,26 @@ public final class CaveCrawlers extends JavaPlugin {
         }
         economy = rsp.getProvider();
         return true;
+    }
+
+    public void saveResource(String resource, File path) {
+        if (!path.exists()) {
+            path.getParentFile().mkdirs();
+            try (InputStream in = getResource(resource);
+                 FileOutputStream out = new FileOutputStream(path)) {
+                if (in == null) {
+                    getLogger().warning("Resource not found: " + resource);
+                    return;
+                }
+                byte[] buffer = new byte[1024];
+                int length;
+                while ((length = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, length);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static CaveCrawlers getInstance() {

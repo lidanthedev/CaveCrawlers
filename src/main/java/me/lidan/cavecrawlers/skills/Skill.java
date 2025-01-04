@@ -58,13 +58,13 @@ public class Skill implements ConfigurationSerializable {
     public int levelUp(boolean withRewards) {
         Player player = getPlayer();
         int leveled = 0;
-        while (xp >= xpToLevel && level + 1 < type.getXpToLevelList().size() && level < type.getMaxLevel()) {
+        while (xp >= xpToLevel && level < type.getXpToLevelList().size() && level < type.getMaxLevel()) {
             level++;
             xp -= xpToLevel;
             if (xp < 0){
                 xp = 0;
             }
-            xpToLevel = type.getXpToLevelList().get(level);
+            xpToLevel = type.getXpToLevelList().get(level - 1);
             if (withRewards) {
                 List<SkillReward> rewards = type.getRewards(level);
                 for (SkillReward reward : rewards) {

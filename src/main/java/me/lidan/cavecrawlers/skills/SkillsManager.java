@@ -83,7 +83,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         String skillName = StringUtils.setTitleCase(skillType.getName());
         skills.tryLevelUp(skillType);
         if (showMessage) {
-            Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", String.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
+            Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().actionBar(player, component);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }

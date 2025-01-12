@@ -3,7 +3,6 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
+
 @Data
 public class Skill implements ConfigurationSerializable {
     @Getter @Setter
@@ -50,7 +49,7 @@ public class Skill implements ConfigurationSerializable {
         totalXp += amount;
     }
 
-    public void setXp(double xp) {
+    public void setXpOfCurrentLevel(double xp) {
         this.totalXp = xp - this.xp + totalXp;
         this.xp = xp;
     }
@@ -126,7 +125,11 @@ public class Skill implements ConfigurationSerializable {
                 skillInfo.getXpToLevelList().get(0),
                 (double) map.get("totalXp")
         );
-        skill.levelUp(false);
+        int leveled = skill.levelUp(false);
+        if (leveled > 0) {
+            skill.level = (int) map.get("level");
+            skill.levelUp(true);
+        }
         return skill;
     }
 }

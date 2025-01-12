@@ -100,6 +100,8 @@ public final class CaveCrawlers extends JavaPlugin {
         registerSkills();
         registerLevels();
 
+        registerCommandResolvers();
+        registerCommandCompletions();
         registerCommands();
         registerEvents();
         registerPlaceholders();
@@ -233,6 +235,17 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     public void registerCommands() {
+        commandHandler.register(new StatCommand());
+        commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
+        commandHandler.register(new PotionCommands());
+        commandHandler.register(new SkillCommand());
+        commandHandler.register(new QolCommand());
+        commandHandler.register(new MenuCommands());
+        commandHandler.register(new SellCommand());
+        commandHandler.registerBrigadier();
+    }
+
+    private void registerCommandResolvers() {
         commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
             return AltarManager.getInstance().getAltar(valueResolverContext.pop());
         });
@@ -242,6 +255,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
             return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
         });
+    }
+
+    private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
             return Arrays.stream(Sound.values()).map(Enum::name).toList();
@@ -260,14 +276,6 @@ public final class CaveCrawlers extends JavaPlugin {
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
-        commandHandler.register(new StatCommand());
-        commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
-        commandHandler.register(new PotionCommands());
-        commandHandler.register(new SkillCommand());
-        commandHandler.register(new QolCommand());
-        commandHandler.register(new MenuCommands());
-        commandHandler.register(new SellCommand());
-        commandHandler.registerBrigadier();
     }
 
     public void registerEvents() {

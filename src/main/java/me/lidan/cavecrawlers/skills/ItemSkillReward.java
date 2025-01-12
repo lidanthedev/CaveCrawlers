@@ -16,6 +16,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ItemSkillReward extends SkillReward {
+    public static final int CHANCE = 100;
     private final String item;
 
     public ItemSkillReward(String item) {
@@ -24,7 +25,7 @@ public class ItemSkillReward extends SkillReward {
 
     @Override
     public void applyReward(Player player) {
-        Drop drop = new Drop(DropType.ITEM, 100, item, null);
+        Drop drop = new Drop(DropType.ITEM, CHANCE, item, null);
         drop.drop(player);
     }
 

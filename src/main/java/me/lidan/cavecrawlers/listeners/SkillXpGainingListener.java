@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
-import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillsManager;
@@ -21,8 +20,8 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 
 
-@Slf4j
 public class SkillXpGainingListener implements Listener {
+    public static final int BREW_RADIUS = 10;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final SkillsManager skillsManager = SkillsManager.getInstance();
 
@@ -43,7 +42,7 @@ public class SkillXpGainingListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBrew(BrewEvent event) {
         Location location = event.getBlock().getLocation();
-        location.getWorld().getNearbyEntities(location, 10, 10, 10).stream()
+        location.getWorld().getNearbyEntities(location, BREW_RADIUS, BREW_RADIUS, BREW_RADIUS).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
                 .forEach(player -> {

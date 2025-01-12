@@ -142,6 +142,13 @@ public class Drop implements ConfigurationSerializable {
         }
     }
 
+    /**
+     * Parse the value from the config to get the item drop info
+     * Format: [itemID] [amount]
+     *
+     * @param value the value to parse
+     * @return the item drop info
+     */
     public static @Nullable ItemDropInfo getItemDropInfo(String value) {
         int amount = 1;
         String itemID = value;

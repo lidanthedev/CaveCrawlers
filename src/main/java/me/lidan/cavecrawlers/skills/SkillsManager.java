@@ -12,8 +12,10 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +50,28 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         if (objectives == null) {
             return;
         }
+        World world = player.getWorld();
+        List<SkillObjective> matches = new ArrayList<>();
         for (SkillObjective objective : objectives) {
             if (objective.getObjective().equalsIgnoreCase(material)) {
-                double xp = objective.getAmount();
-                giveXp(player, skillType, xp, true);
+                if (!objective.getWorlds().isEmpty() && !objective.getWorlds().contains(world.getName())) {
+                    continue;
+                }
+                matches.add(objective);
             }
         }
+        if (matches.isEmpty()) {
+            return;
+        }
+        // prefer the most specific objective
+        SkillObjective objective = matches.get(0);
+        for (SkillObjective match : matches) {
+            if (match.getWorlds().size() > objective.getWorlds().size()) {
+                objective = match;
+            }
+        }
+        double xp = objective.getAmount();
+        giveXp(player, skillType, xp, true);
     }
 
     public void tryGiveXp(SkillInfo skillType, SkillAction reason, Material material, Player player) {
@@ -73,15 +91,15 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
     }
 
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
-        Skills skills = PlayerDataManager.getInstance().getSkills(player);
-        Skill skill = skills.get(skillType);
+        Skills playerSkills = PlayerDataManager.getInstance().getSkills(player);
+        Skill skill = playerSkills.get(skillType);
         if (skill == null) {
             skill = new Skill(skillType, 0);
-            skills.set(skillType, skill);
+            playerSkills.set(skillType, skill);
         }
         skill.addXp(xp);
         String skillName = StringUtils.setTitleCase(skillType.getName());
-        skills.tryLevelUp(skillType);
+        playerSkills.tryLevelUp(skillType);
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().actionBar(player, component);

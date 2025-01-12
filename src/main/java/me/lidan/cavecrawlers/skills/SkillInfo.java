@@ -18,6 +18,8 @@ import java.util.Map;
 @Data
 @ToString
 public class SkillInfo implements ConfigurationSerializable {
+    public static final int DEFAULT_MAX_LEVEL = 50;
+    public static final Material DEFAULT_ICON = Material.PAPER;
     private String id;
     private String name;
     private Map<Integer, List<SkillReward>> rewards;
@@ -46,7 +48,7 @@ public class SkillInfo implements ConfigurationSerializable {
     }
 
     public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
-        this(name, rewards, autoReward, 50, new ArrayList<>(), Skill.getDefaultXpToLevelList(), Material.PAPER);
+        this(name, rewards, autoReward, DEFAULT_MAX_LEVEL, new ArrayList<>(), Skill.getDefaultXpToLevelList(), DEFAULT_ICON);
     }
 
     public void generateActionObjectives() {
@@ -127,7 +129,7 @@ public class SkillInfo implements ConfigurationSerializable {
             rewardsMap.put(entry.getKey(), skillRewards);
         }
         boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
-        int maxLevel = (int) map.getOrDefault("maxLevel", 50);
+        int maxLevel = (int) map.getOrDefault("maxLevel", DEFAULT_MAX_LEVEL);
         List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
         int xpToLevelSize = xpToLevelList.size();
         if (xpToLevelSize < maxLevel) {
@@ -136,7 +138,7 @@ public class SkillInfo implements ConfigurationSerializable {
                 xpToLevelList.add(Double.MAX_VALUE);
             }
         }
-        Material icon = Material.valueOf((String) map.getOrDefault("icon", "PAPER"));
+        Material icon = Material.valueOf((String) map.getOrDefault("icon", DEFAULT_ICON.name()));
         List<String> objectives = (List<String>) map.get("objectives");
         List<SkillObjective> skillObjectives = new ArrayList<>();
         if (objectives != null) {

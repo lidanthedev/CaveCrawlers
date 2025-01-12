@@ -57,10 +57,10 @@ public class SkillCommand {
         sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
-    @Subcommand("set")
-    public void set(Player sender, SkillInfo type, int amount) {
+    @Subcommand("setXp")
+    public void setXp(Player sender, SkillInfo type, int amount) {
         Skills stats = playerDataManager.getSkills(sender);
-        stats.get(type).setXp(amount);
+        stats.get(type).setXpOfCurrentLevel(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type.getName(), amount));
     }
 

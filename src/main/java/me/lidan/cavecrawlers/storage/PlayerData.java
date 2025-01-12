@@ -35,11 +35,14 @@ public class PlayerData implements ConfigurationSerializable {
     }
 
     public void loadPlayer(UUID uuid) {
-        skills.setUuid(uuid);
         CustomConfig config = new CustomConfig(getConfigFor(uuid));
         if (config.contains("skills")) {
             skills = (Skills) config.get("skills");
         }
+        if (skills == null) {
+            skills = new Skills();
+        }
+        skills.setUuid(uuid);
     }
 
     public void savePlayer(UUID uuid) {

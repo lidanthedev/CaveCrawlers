@@ -41,7 +41,6 @@ import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -144,7 +143,7 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Help", ""));
         sender.sendMessage("");
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item give <Item id> [amount]", "give yourself an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item give <player> <Item id> [amount]", "give a player an item"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item get <Item ID> [amount]", "give yourself an item"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item browse", "open the item browser"));
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Editor Help", ""));
@@ -156,8 +155,8 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit description <description>", "edit an item's description"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit type <type>", "edit an item's type"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit rarity <rarity>", "edit an item's rarity"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItem <material>", "edit an item's base item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item import <id>", "import the item in your hand (advanced)"));
     }
 
@@ -279,14 +278,6 @@ public class CaveCrawlersMainCommand {
     @Subcommand("config reload")
     public void reloadConfig(CommandSender sender) {
         config.load();
-    }
-
-    @Subcommand("config adventure")
-    public void configAdventure(CommandSender sender) {
-        Component component = MiniMessageUtils.miniMessageString("<red>Cool message<green> with colors");
-        String serialized = MiniMessage.miniMessage().serialize(component);
-        config.set("component", serialized);
-        config.save();
     }
 
     @Subcommand("item getID")
@@ -503,6 +494,20 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("Updated Rarity!");
     }
 
+    @Subcommand("item edit baseItem")
+    public void itemEditBaseItem(Player sender, Material material) {
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            return;
+        }
+        itemInfo.setBaseItem(new ItemStack(material));
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Base Item!");
+    }
+
     @Subcommand("item edit baseItemToHand")
     @AutoComplete("@itemID")
     public void itemEditBaseItemToHand(Player sender, String id) {
@@ -514,24 +519,10 @@ public class CaveCrawlersMainCommand {
         }
         ItemInfo itemInfo = itemsManager.getItemByID(id);
         if (itemInfo == null) {
-            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND BY THE PROVIDED ID!");
             return;
         }
         itemInfo.setBaseItem(new ItemStack(hand));
-        itemsManager.setItem(itemInfo.getID(), itemInfo);
-        itemUpdate(sender);
-        sender.sendMessage("Updated Base Item!");
-    }
-
-    @Subcommand("item edit baseItem")
-    public void itemEditBaseItem(Player sender, Material material) {
-        ItemStack hand = sender.getEquipment().getItemInMainHand();
-        ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
-        if (itemInfo == null) {
-            sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
-            return;
-        }
-        itemInfo.setBaseItem(new ItemStack(material));
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
         sender.sendMessage("Updated Base Item!");

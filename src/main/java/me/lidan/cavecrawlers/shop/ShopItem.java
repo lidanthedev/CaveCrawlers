@@ -119,7 +119,7 @@ public class ShopItem implements ConfigurationSerializable {
 
         double price = (double) map.get("price");
 
-        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.get("item-cost");
+        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.getOrDefault("item-cost", new HashMap<>());
         Map<ItemInfo, Integer> itemsMap = ItemsManager.getInstance().stringMapToItemMap(itemIdMap);
 
         return new ShopItem(result, resultAmount, price, itemsMap);

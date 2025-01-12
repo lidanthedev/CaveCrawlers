@@ -31,7 +31,7 @@ public class CoinSkillReward extends SkillReward {
 
     @Override
     public Component getRewardMessage() {
-        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> coins</green>", Map.of("coins", StringUtils.valueOf(amount)));
+        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> <gray>Coins</green>", Map.of("coins", StringUtils.valueOf(amount)));
     }
 
     @Override

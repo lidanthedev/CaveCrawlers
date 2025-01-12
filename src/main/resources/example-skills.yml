@@ -25,7 +25,7 @@ mining:
       - STAT MINING_FORTUNE 2.0
       - COINS 1000
   objectives:
-    # format: <action> <what> <xp-given>
+    # format: <action> <what> <xp-given> <worlds>
     - MINE GOLD_ORE 10
     - MINE DEEPSLATE_GOLD_ORE 50
     - MINE NETHER_GOLD_ORE 100
@@ -46,10 +46,11 @@ combat:
       - STAT CRIT_DAMAGE 1.0
       - COINS 5000
   objectives:
-    # format: <action> <what> <xp-given>
+    # format: <action> <what> <xp-given> <worlds>
     - KILL ZOMBIE 1
     - KILL SKELETON 1
     - KILL ENDERMAN 10
+    - KILL ENDERMAN 20 world_the_end
     - KILL WITHER 100
     - KILL WARDEN 500
 
@@ -64,7 +65,7 @@ woodcutting:
       - STAT STRENGTH 1.0
       - COINS 1000
   objectives:
-    # format: <action> <what> <xp-given>
+    # format: <action> <what> <xp-given> <worlds>
     - MINE OAK_LOG 10
 
 fishing:
@@ -78,7 +79,7 @@ fishing:
       - STAT CRIT_DAMAGE 1.0
       - COINS 1000
   objectives:
-    # format: <action> <what> <xp-given>
+    # format: <action> <what> <xp-given> <worlds>
     - FISH COD 10
     - FISH SALMON 50
     - FISH ENCHANTED_BOOK 100
@@ -95,7 +96,7 @@ brewing:
       - STAT INTELLIGENCE 1.0
       - COINS 1000
   objectives:
-    # format: <action> <what> <xp-given>
+    # format: <action> <what> <xp-given> <worlds>
     - BREW NETHER_WART 10
     - BREW GLOWSTONE_DUST 50
     - BREW REDSTONE 100

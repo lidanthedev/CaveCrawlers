@@ -40,6 +40,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.*;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -64,9 +65,14 @@ import java.util.*;
 
 import static org.bukkit.Bukkit.getConsoleSender;
 
-@Command({"cavetest", "ct"})
+@Command({"ct", "cc", "cavecrawlers"})
 @CommandPermission("cavecrawlers.test")
-public class CaveTestCommand {
+public class CaveCrawlersMainCommand {
+    enum HelpCommandType {
+        LINE,
+        COMMAND,
+        TITLE
+    }
 
     private final ShopManager shopManager = ShopManager.getInstance();
     private final ItemsManager itemsManager = ItemsManager.getInstance();
@@ -83,7 +89,7 @@ public class CaveTestCommand {
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
-    public CaveTestCommand(CommandHandler handler) {
+    public CaveCrawlersMainCommand(CommandHandler handler) {
         this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
@@ -102,6 +108,88 @@ public class CaveTestCommand {
             handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> skillExecutor.getSkillNames());
         }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+    }
+
+    private Component getHelpMessage(HelpCommandType type, String command, String description) {
+        String onlyCommand = command.split("<")[0];
+        if (onlyCommand.contains("["))
+            onlyCommand = onlyCommand.split("\\[")[0];
+        if (type == HelpCommandType.TITLE)
+            return MiniMessageUtils.miniMessageString("<color:#D3495B><b><title></b></color>", Map.of("title", command));
+        if (type == HelpCommandType.COMMAND) {
+            onlyCommand = onlyCommand.toLowerCase();
+            return MiniMessageUtils.miniMessageString("<click:suggest_command:'<only_command>'><color:#E9724C><u><all_command></u></color></click> <color:#E0AF79><i>- <description></i></color>\n", Map.of("only_command", onlyCommand, "all_command", command, "description", description));
+        }
+        if (type == HelpCommandType.LINE)
+            return MiniMessageUtils.miniMessageString("<color:#c04253>-------------------------------------</color>");
+        return MiniMessageUtils.miniMessageString("<red>ERROR</red>");
+    }
+
+    @Subcommand("help")
+    @DefaultFor({"ct", "cc", "cavecrawlers"})
+    public void mainHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct help", "show this message"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item", "item commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop", "shop commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar", "altar commands"));
+    }
+
+    @Subcommand("help item")
+    @DefaultFor({"ct item", "cc item", "cavecrawlers item"})
+    public void itemHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item give <player> <Item id> [amount]", "give a player an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item get <Item ID> [amount]", "give yourself an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item browse", "open the item browser"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Editor Help", ""));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item create <id> <material>", "create an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item clone <originId> <id>", "clone an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit stat <stat> <number>", "edit an item's stat"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit ability <ability>", "edit an item's ability"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit name <name>", "edit an item's name"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit description <description>", "edit an item's description"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit type <type>", "edit an item's type"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit rarity <rarity>", "edit an item's rarity"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItem <material>", "edit an item's base item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item import <id>", "import the item in your hand (advanced)"));
+    }
+
+    @Subcommand("help shop")
+    @DefaultFor({"ct shop", "cc shop", "cavecrawlers shop"})
+    public void shopHelp(CommandSender sender) {
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop add <shop-name> <ingredient-item> <amount>", "add items to the shop"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop (middle-click to edit)"));
+    }
+
+    @Subcommand("help altar")
+    @DefaultFor({"ct altar", "cc altar", "cavecrawlers altar"})
+    public void altarHelp(CommandSender sender) {
+        /*
+        Altar commands:
+        /ct altar create <name> - create an altar
+        /ct altar addspawn <altar-name> <mob-name> <chance> - add a mob spawn to an altar
+        /ct altar addsummonblock <altar-name> - adds the block you are looking at as a summon block
+        /ct altar setspawnlocation <altar-name> - sets the spawn location for the altar
+        /ct altar info <altar-name> - get info about an altar
+         */
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Altar Help", ""));
+        sender.sendMessage("");
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar create <name>", "create an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addspawn <altar-name> <mob-name> <chance>", "add a mob spawn to an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addsummonblock <altar-name>", "adds the block you are looking at as a summon block"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar setspawnlocation <altar-name>", "sets the spawn location for the altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar info <altar-name>", "get info about an altar"));
     }
 
     @NotNull
@@ -202,7 +290,6 @@ public class CaveTestCommand {
     @Subcommand("item update")
     public void itemUpdate(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
-        ;
         ItemStack updateItemStack = itemsManager.updateItemStack(hand);
         sender.getEquipment().setItem(EquipmentSlot.HAND, updateItemStack);
     }
@@ -214,8 +301,8 @@ public class CaveTestCommand {
 
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
-    public void itemGive(CommandSender sender, Player player, @Named("Item ID") String ID, @Default("1") int amount) {
-        ItemStack exampleSword = itemsManager.buildItem(ID, 1);
+    public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
+        ItemStack exampleSword = itemsManager.buildItem(id, 1);
         for (int i = 0; i < amount; i++) {
             itemsManager.giveItemStacks(player, exampleSword);
         }
@@ -229,21 +316,21 @@ public class CaveTestCommand {
 
     @Subcommand("item import")
     @AutoComplete("@handID *")
-    public void itemImport(Player sender, String ID) {
+    public void itemImport(Player sender, String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
 
         ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (oldInfo != null) {
-            sender.sendMessage("ERROR! Item already has ID! Changing base item instead");
-            sender.sendMessage("Don't want that? remove with the ID /ct item remove-id");
+            sender.sendMessage("ERROR! Item already has id! Changing base item instead");
+            sender.sendMessage("Don't want that? remove with the id /ct item remove-id");
             oldInfo.setBaseItem(hand);
             itemsManager.setItem(oldInfo.getID(), oldInfo);
             return;
         }
 
-        if (ID.equals("FILL")) {
-            ID = getFillID(sender).iterator().next();
-            sender.sendMessage("Fill: " + ID);
+        if (id.equals("FILL")) {
+            id = getFillID(sender).iterator().next();
+            sender.sendMessage("Fill: " + id);
         }
 
         ItemInfo itemInfo;
@@ -252,17 +339,17 @@ public class CaveTestCommand {
             itemInfo = exporter.toItemInfo();
         } catch (Exception error) {
             sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
-            String name = ID.replace("_", " ");
+            String name = id.replace("_", " ");
             name = StringUtils.setTitleCase(name);
             Stats stats = new Stats(true);
             itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, hand, Rarity.COMMON);
         }
 
-        itemsManager.setItem(ID, itemInfo);
+        itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
 
-        sender.sendMessage("Exported Item with ID " + ID);
+        sender.sendMessage("Exported Item with id " + id);
     }
 
     @Subcommand("item remove-id")
@@ -277,30 +364,28 @@ public class CaveTestCommand {
         new ItemsGui(sender, query).open();
     }
 
-    // TODO: add these commands
-    // item create <id> <material> - create item with Id and material
-    //
-    //you must hold an item with an already existing id to edit
-    //item edit stat <stat> <number> - edit held item's stat
-    //item edit ability <ability> - edit held item's  ability
-    //item edit name <name> - edit held item's name
-    //item edit description <description> - edit held item's description
-    //item edit type <type> - edit held item's type
-    //item edit rarity <rarity> - edit held item's rarity
-    //item edit baseItem <material> - edit held item's base item
-
+    // item creating and editing commands:
+    // item create <id> <material> - create item with id and material
+    // you must hold an item with an already existing id to edit
+    // item edit stat <stat> <number> - edit held item's stat
+    // item edit ability <ability> - edit held item's  ability
+    // item edit name <name> - edit held item's name
+    // item edit description <description> - edit held item's description
+    // item edit type <type> - edit held item's type
+    // item edit rarity <rarity> - edit held item's rarity
+    // item edit baseItem <material> - edit held item's base item
     @Subcommand("item create")
-    public void itemCreate(Player sender, String ID, Material material) {
-        if (itemsManager.getItemByID(ID) != null) {
+    public void itemCreate(Player sender, String id, Material material) {
+        if (itemsManager.getItemByID(id) != null) {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
 
-        String name = ID.replace("_", " ");
+        String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats(true);
         ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
-        itemsManager.setItem(ID, itemInfo);
+        itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
         sender.sendMessage("Created Item!");
@@ -308,15 +393,15 @@ public class CaveTestCommand {
 
     @Subcommand("item clone")
     @AutoComplete("@itemID *")
-    public void itemClone(Player sender, String originId, String Id) {
+    public void itemClone(Player sender, String originId, String id) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
             return;
         }
 
-        itemsManager.setItem(Id, itemInfo);
-        ItemStack itemStack = itemsManager.buildItem(Id, 1);
+        itemsManager.setItem(id, itemInfo);
+        ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);
         sender.sendMessage("Cloned Item!");
     }
@@ -365,12 +450,15 @@ public class CaveTestCommand {
     }
 
     @Subcommand("item edit description")
-    public void itemEditDescription(Player sender, String description) {
+    public void itemEditDescription(Player sender, @Default("reset") String description) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
+        }
+        if (description.equals("reset")) {
+            description = null;
         }
         itemInfo.setDescription(description);
         itemsManager.setItem(itemInfo.getID(), itemInfo);
@@ -415,6 +503,26 @@ public class CaveTestCommand {
             return;
         }
         itemInfo.setBaseItem(new ItemStack(material));
+        itemsManager.setItem(itemInfo.getID(), itemInfo);
+        itemUpdate(sender);
+        sender.sendMessage("Updated Base Item!");
+    }
+
+    @Subcommand("item edit baseItemToHand")
+    @AutoComplete("@itemID")
+    public void itemEditBaseItemToHand(Player sender, String id) {
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        ItemInfo itemInfoHand = itemsManager.getItemFromItemStack(hand);
+        if (itemInfoHand != null) {
+            sender.sendMessage("ERROR! HELD ITEM ALREADY HAS ID!");
+            return;
+        }
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! NO ITEM INFO FOUND BY THE PROVIDED ID!");
+            return;
+        }
+        itemInfo.setBaseItem(new ItemStack(hand));
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
         sender.sendMessage("Updated Base Item!");
@@ -676,6 +784,13 @@ public class CaveTestCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.savePlayerData(sender.getUniqueId());
         sender.sendMessage("Saved Player Data!");
+    }
+
+    @Subcommand("data reset")
+    public void dataReset(Player sender) {
+        PlayerDataManager dataManager = PlayerDataManager.getInstance();
+        dataManager.resetPlayerData(sender.getUniqueId());
+        sender.sendMessage("Reset Player Data!");
     }
 
     @Subcommand("kill target")

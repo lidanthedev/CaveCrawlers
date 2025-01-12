@@ -4,8 +4,8 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.listeners.XpGainingListener;
-import me.lidan.cavecrawlers.skills.SkillType;
+import me.lidan.cavecrawlers.skills.SkillAction;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import me.lidan.cavecrawlers.utils.Cooldown;
@@ -24,7 +24,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class MiningManager {
 
@@ -112,8 +115,8 @@ public class MiningManager {
         }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
         event.setDropItems(false);
-        XpGainingListener xpGainingListener = XpGainingListener.getInstance();
-        xpGainingListener.tryGiveXp("break", originType, player);
+        SkillsManager skillsManager = SkillsManager.getInstance();
+        skillsManager.tryGiveXp(SkillAction.MINE, originType, player);
         handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
         handleBlockRegen(block, originType);
@@ -189,7 +192,7 @@ public class MiningManager {
 
     public CustomConfig getConfig(String ID){
         BlockLoader blockLoader = BlockLoader.getInstance();
-        Map<String, File> idFileMap = blockLoader.getItemIDFileMap();
+        Map<String, File> idFileMap = blockLoader.getConfigMap();
         File file = idFileMap.get(ID);
         if (file == null){
             file = new File(blockLoader.getFileDir(), ID + ".yml");

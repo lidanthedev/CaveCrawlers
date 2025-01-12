@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class Stats implements Iterable<Stat>, ConfigurationSerializable {
-    private final Map<StatType, Stat> stats;
+public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneable {
+    private Map<StatType, Stat> stats;
 
     public Stats(List<Stat> statList) {
         this.stats = new HashMap<>();
@@ -158,5 +158,19 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
             stats.set(type, value);
         }
         return stats;
+    }
+
+    @Override
+    public Stats clone() {
+        try {
+            Stats clone = (Stats) super.clone();
+            clone.stats = new HashMap<>();
+            for (Stat stat : this) {
+                clone.stats.put(stat.getType(), new Stat(stat.getType(), stat.getValue()));
+            }
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

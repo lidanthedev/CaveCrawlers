@@ -1,0 +1,47 @@
+package me.lidan.cavecrawlers.skills;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropType;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import me.lidan.cavecrawlers.utils.StringUtils;
+import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class CoinSkillReward extends SkillReward {
+    public static final int CHANCE = 100;
+    private final int amount;
+
+    public CoinSkillReward(int amount) {
+        this.amount = amount;
+    }
+
+    @Override
+    public void applyReward(Player player) {
+        Drop drop = new Drop(DropType.COINS, CHANCE, String.valueOf(amount), null);
+        drop.drop(player);
+    }
+
+    @Override
+    public Component getRewardMessage() {
+        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> <gray>Coins</green>", Map.of("coins", StringUtils.valueOf(amount)));
+    }
+
+    @Override
+    public @NotNull Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("amount", amount);
+        return map;
+    }
+
+    public static CoinSkillReward deserialize(Map<String, Object> map) {
+        return new CoinSkillReward((int) map.get("amount"));
+    }
+}

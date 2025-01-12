@@ -3,10 +3,11 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
@@ -15,23 +16,27 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 
 @Data
 public class Skill implements ConfigurationSerializable {
     @Getter @Setter
-    private static List<Double> xpToLevelList = new ArrayList<>();
-    private SkillType type;
+    private static List<Double> defaultXpToLevelList = new ArrayList<>(); // updated from main config
+    private SkillInfo type;
     private int level;
     private double xp;
     private double xpToLevel = 100;
     private double totalXp;
 
-    public Skill(SkillType type, int level) {
+    private UUID uuid;
+
+    public Skill(SkillInfo type, int level) {
         this.type = type;
         this.level = level;
     }
 
-    public Skill(SkillType type, int level, double xp, double xpToLevel, double totalXp) {
+    public Skill(SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
         this.type = type;
         this.level = level;
         this.xp = xp;
@@ -44,41 +49,49 @@ public class Skill implements ConfigurationSerializable {
         totalXp += amount;
     }
 
-    public void setXp(double xp) {
+    public void setXpOfCurrentLevel(double xp) {
         this.totalXp = xp - this.xp + totalXp;
         this.xp = xp;
     }
 
-    public boolean levelUp() {
-        boolean leveled = false;
-        while (xp >= xpToLevel && level < xpToLevelList.size()){
+    public int levelUp(boolean withRewards) {
+        Player player = getPlayer();
+        int leveled = 0;
+        while (xp >= xpToLevel && level < type.getXpToLevelList().size() && level < type.getMaxLevel()) {
             level++;
             xp -= xpToLevel;
             if (xp < 0){
                 xp = 0;
             }
-            xpToLevel = xpToLevelList.get(level);
-            leveled = true;
+            xpToLevel = type.getXpToLevelList().get(level - 1);
+            if (withRewards) {
+                List<SkillReward> rewards = type.getRewards(level);
+                for (SkillReward reward : rewards) {
+                    reward.applyReward(player);
+                }
+            }
+            leveled++;
         }
         return leveled;
     }
 
     public Stats getStats(){
-        Stats stats = new Stats(true);
-        for (StatType statType : type.getStatType()) {
-            stats.add(statType, level);
+        Stats stats = type.getStats(level);
+        if (stats == null) {
+            stats = new Stats(true);
         }
         return stats;
     }
 
     public void sendLevelUpMessage(Player player){
-        String skillName = StringUtils.setTitleCase(type.name());
+        String skillName = StringUtils.setTitleCase(type.getName());
         player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "------------------------------------------");
         player.sendMessage("    " + ChatColor.AQUA + ChatColor.BOLD + "SKILL LEVEL UP " + ChatColor.RESET + ChatColor.DARK_AQUA + skillName + " " + ChatColor.DARK_GRAY + (this.level - 1) + ChatColor.DARK_GRAY + ChatColor.BOLD + "➡" + ChatColor.DARK_AQUA + this.level);
         player.sendMessage("");
         player.sendMessage("    " + ChatColor.GREEN + ChatColor.BOLD + "REWARDS");
-        for (StatType statType : type.getStatType()) {
-            player.sendMessage("       " + ChatColor.DARK_GRAY + "+" + statType.getColor() + "1 " + statType.getFormatName());
+        List<SkillReward> rewards = type.getRewards(level);
+        for (SkillReward reward : rewards) {
+            player.sendMessage(Component.text("    ").append(reward.getRewardMessage()));
         }
         player.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "------------------------------------------");
 
@@ -86,11 +99,15 @@ public class Skill implements ConfigurationSerializable {
 
     }
 
+    public Player getPlayer() {
+        return Bukkit.getPlayer(uuid);
+    }
+
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         return Map.of(
-                "type", type.name(),
+                "type", type.getId(),
                 "level", level,
                 "xp", xp,
                 "xpToLevel", xpToLevel,
@@ -99,14 +116,20 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public static Skill deserialize(Map<String, Object> map) {
+        String type = (String) map.get("type");
+        SkillInfo skillInfo = SkillsManager.getInstance().getSkillInfo(type);
         Skill skill = new Skill(
-                SkillType.valueOf((String) map.get("type")),
+                skillInfo,
                 0,
                 (double) map.get("totalXp"),
-                xpToLevelList.get(0),
+                skillInfo.getXpToLevelList().get(0),
                 (double) map.get("totalXp")
         );
-        skill.levelUp();
+        int leveled = skill.levelUp(false);
+        if (leveled > 0) {
+            skill.level = (int) map.get("level");
+            skill.levelUp(true);
+        }
         return skill;
     }
 }

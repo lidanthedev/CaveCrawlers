@@ -1,11 +1,14 @@
 package me.lidan.cavecrawlers.stats;
 
 import me.lidan.cavecrawlers.utils.Cooldown;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ChatMessageType;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
+import java.util.Map;
 import java.util.UUID;
 
 public class ActionBarManager {
@@ -18,20 +21,26 @@ public class ActionBarManager {
         cooldown = new Cooldown<>();
     }
 
-    public String[] actionBarBuild(Player player){
+    public Component[] actionBarBuildAdventure(Player player) {
         Stats stats = StatsManager.getInstance().getStats(player);
-        String[] arr = new String[3];
-        arr[0] = ChatColor.RED.toString() + (int) player.getHealth() + "/" + (int) player.getMaxHealth() + StatType.HEALTH.getIcon();
-        arr[1] = ChatColor.GREEN.toString() + (int) stats.get(StatType.DEFENSE).getValue() + StatType.DEFENSE.getIcon();
-        arr[2] = ChatColor.AQUA.toString() + (int) stats.get(StatType.MANA).getValue() + "/" + (int) stats.get(StatType.INTELLIGENCE).getValue() + StatType.INTELLIGENCE.getIcon();
+        Component[] arr = new Component[3];
+        arr[0] = MiniMessageUtils.miniMessageString("<red><health>/<max-health><icon>", Map.of("health", String.valueOf((int) player.getHealth()), "max-health", String.valueOf((int) player.getMaxHealth()), "icon", StatType.HEALTH.getIcon()));
+        arr[1] = MiniMessageUtils.miniMessageString("<green><defense><icon>", Map.of("defense", String.valueOf((int) stats.get(StatType.DEFENSE).getValue()), "icon", StatType.DEFENSE.getIcon()));
+        arr[2] = MiniMessageUtils.miniMessageString("<aqua><mana>/<max-mana><icon>", Map.of("mana", String.valueOf((int) stats.get(StatType.MANA).getValue()), "max-mana", String.valueOf((int) stats.get(StatType.INTELLIGENCE).getValue()), "icon", StatType.INTELLIGENCE.getIcon()));
         return arr;
     }
 
     public void actionBar(Player player, String alert){
-        String[] args = actionBarBuild(player);
+        Component[] args = actionBarBuildAdventure(player);
+        args[1] = LegacyComponentSerializer.legacySection().deserialize(alert);
+        sendActionBar(player, args);
+        cooldown.startCooldown(player.getUniqueId());
+    }
+
+    public void actionBar(Player player, Component alert) {
+        Component[] args = actionBarBuildAdventure(player);
         args[1] = alert;
-        String msg = String.join(" ", args);
-        sendActionBar(player, msg);
+        sendActionBar(player, args);
         cooldown.startCooldown(player.getUniqueId());
     }
 
@@ -39,15 +48,22 @@ public class ActionBarManager {
         if (cooldown.getCurrentCooldown(player.getUniqueId()) < ACTION_BAR_COOLDOWN){
             return;
         }
-        String[] args = actionBarBuild(player);
-        String msg = String.join(" ", args);
+        Component[] args = actionBarBuildAdventure(player);
+        sendActionBar(player, args);
+    }
+
+    private static void sendActionBar(Player player, Component[] args) {
+        Component msg = Component.join(JoinConfiguration.separator(Component.text(" ")), args);
         sendActionBar(player, msg);
     }
 
     public static void sendActionBar(Player player, String message){
         TextComponent component = new TextComponent(message);
+        player.sendActionBar(component);
+    }
 
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+    public static void sendActionBar(Player player, Component message) {
+        player.sendActionBar(message);
     }
 
     public static ActionBarManager getInstance() {

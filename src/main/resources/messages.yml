@@ -1,0 +1,127 @@
+griffin_under_leveled:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound: null
+  title:
+    ==: me.lidan.cavecrawlers.objects.TitleOptions
+    fadeIn: 5
+    stay: 20
+    fadeOut: 5
+    subtitle: '&cYou are level %player_griffin_level%. Use your spade to update your level!'
+    title: '&cThis mob is level %griffin_level%'
+  message: ''
+  actionbar: ''
+
+griffin_protected:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound: null
+  title:
+    ==: me.lidan.cavecrawlers.objects.TitleOptions
+    fadeIn: 5
+    stay: 20
+    fadeOut: 5
+    subtitle: "&cYou can't attack it for %time% seconds!"
+    title: '&cThis mob is protected!'
+  message: ''
+  actionbar: ''
+
+griffin_coins_message:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 1.0
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 1.0
+  title: null
+  message: '&6&lGRIFFIN! &6You got %amount% coins!'
+  actionbar: ''
+
+buy_item:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 1.0
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 2.0
+  title: null
+  message: '&eYou bought %formatted_name%&e'
+  actionbar: ''
+
+rare_drop_message:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 1.0
+    sound: BLOCK_NOTE_BLOCK_PLING
+    pitch: 1.0
+  title: null
+  message: '%dropRarity% %name%'
+  actionbar: ''
+
+griffin_mobs_message:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 0.5
+    sound: ENTITY_WITHER_SPAWN
+    pitch: 2.0
+  title: null
+  message: '&c&lGRIFFIN! &cYou found %name%!'
+  actionbar: ''
+loot-share-message:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 1.0
+    sound: BLOCK_NOTE_BLOCK_CHIME
+    pitch: 1.5
+  title: null
+  message: '&8[&e&lLOOT SHARE&8] &afor helping &f%summoner%'
+  actionbar: ''
+
+boss-death-message:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 0.5
+    sound: ENTITY_ENDER_DRAGON_DEATH
+    pitch: 1.0
+  title: null
+  message: |
+    &a▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+          %boss_name%&6&l down! The Fight Lasted %boss_time%s
+          &r
+          %attacker% &7dealt the final blow
+          &r
+          &e&l1st Damager &7- %leaderboard_1_name% &7- &e%leaderboard_1_damage%
+          &6&l2nd Damager &7- %leaderboard_2_name% &7- &e%leaderboard_2_damage%
+          &c&l3rd Damager &7- %leaderboard_3_name% &7- &e%leaderboard_3_damage%
+          &r
+          &eYour Damage: &a%player_damage%
+          &r
+    &a▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂
+  actionbar: ''
+
+player-got-boss-drop:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound:
+    ==: me.lidan.cavecrawlers.objects.SoundOptions
+    volume: 1.0
+    sound: ENTITY_PLAYER_LEVELUP
+    pitch: 1.0
+  title: null
+  message: '&r%player% &ehas obtained &r%name%!'
+  actionbar: ''
+
+altar-place:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound: null
+  title: null
+  message: '&5%player% &ehas placed in altar &5%amount%/%max_amount%!'
+  actionbar: ''
+
+altar-spawn:
+  ==: me.lidan.cavecrawlers.objects.ConfigMessage
+  sound: null
+  title: null
+  message: '&5%entity% &ehas spawned from altar!'
+  actionbar: ''

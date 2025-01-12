@@ -1,0 +1,183 @@
+# This file is an example of how you can define items in CaveCrawlers
+# You can create your own items by following this format.
+# or you can use the in-game command to create an item file. /ct item create <item-name>
+# to edit the item hold it and use /ct item edit
+
+ERROR_SCYTHE:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 3500.0
+    INTELLIGENCE: 0.0
+    SPEED: 0.0
+    MINING_FORTUNE: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: §6Error Scythe
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: DIAMOND_HOE
+    meta:
+      ==: ItemMeta
+      meta-type: UNSPECIFIC
+      ItemFlags:
+        - HIDE_UNBREAKABLE
+      Unbreakable: true
+  ability: ERROR_SCYTHE_ABILITY
+  type: SWORD
+  rarity: LEGENDARY
+
+WAND_OF_HEALING:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    SPEED: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: Wand Of Healing
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: STICK
+  ability: ZOMBIE_SWORD_HEAL{healAmount:250,healPercent:25,maxCharges:4,cost:100}
+  type: WAND
+  rarity: LEGENDARY
+
+TP_WAND:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    ATTACK_SPEED: 0.0
+    MANA: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    SPEED: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: Tp Wand
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: BLAZE_ROD
+  ability: TRANSMISSION{cost:5}
+  type: WAND
+  rarity: EPIC
+
+GOLD_INGOT:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    ATTACK_SPEED: 0.0
+    MANA: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    SPEED: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: §7Gold Ingot
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: GOLD_INGOT
+  ability: null
+  type: MATERIAL
+  rarity: COMMON
+
+ADMIN_SWORD:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 5000000.0
+    INTELLIGENCE: 0.0
+    MINING_FORTUNE: 0.0
+    SPEED: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: ADMIN Sword
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: NETHERITE_SWORD
+  ability: null
+  type: SWORD
+  rarity: EPIC
+
+ADMIN_BOOTS:
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 5000000.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 5000000.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 5000000.0
+    DAMAGE: 5000000.0
+    INTELLIGENCE: 5000000.0
+    MINING_FORTUNE: 0.0
+    SPEED: 200.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 5000000.0
+    HEALTH: 5000000.0
+    MINING_POWER: 0.0
+  name: ADMIN Boots
+  description: null
+  baseItem:
+    ==: org.bukkit.inventory.ItemStack
+    v: 3337
+    type: LEATHER_BOOTS
+  ability: null
+  type: BOOTS
+  rarity: SPECIAL

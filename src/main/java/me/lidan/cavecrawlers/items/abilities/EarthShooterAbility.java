@@ -1,27 +1,24 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 
 public class EarthShooterAbility extends ClickAbility {
     private int radius = 5;
 
-    private final Map<UUID, List<ArmorStand>> playersBlocks = new HashMap<>();
+    private final Map<UUID, List<BlockDisplay>> playersBlocks = new HashMap<>();
 
     public EarthShooterAbility() {
         super("Earth Shooter", "Takes the blocks around you shoots them towards your enemies!", 350, 1500, Action.values());
@@ -35,51 +32,21 @@ public class EarthShooterAbility extends ClickAbility {
             return false;
         }
 
-        if (playersBlocks.containsKey(player.getUniqueId()) && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) {
-            List<ArmorStand> armorStands = playersBlocks.get(player.getUniqueId());
-
-            for (ArmorStand armorStand : armorStands) {
-                armorStand.setVelocity(player.getLocation().getDirection().subtract(new Vector(0, 0.5, 0)));
-            }
-
-            playersBlocks.remove(player.getUniqueId());
-        }else if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block lowestBlock = getLowestBlock(player.getLocation());
             List<Block> blocks = BukkitUtils.loopBlocks(lowestBlock.getLocation(), radius);
 
-            List<ArmorStand> armorStands = new ArrayList<>();
+            List<BlockDisplay> blockDisplays = new ArrayList<>();
             for (Block block : blocks) {
                 if (block.getY() != lowestBlock.getY()) continue;
 
-                ArmorStand armorStand = player.getWorld().spawn(block.getLocation().add(0, 2, 0), ArmorStand.class);
-                armorStand.setInvulnerable(true);
-                armorStand.setVisible(true);
-                armorStand.addScoreboardTag("EarthShooter");
+                BlockDisplay blockDisplay = player.getWorld().spawn(block.getLocation().add(0, 1, 0), BlockDisplay.class);
+                blockDisplay.setBlock(block.getBlockData());
+                blockDisplay.addScoreboardTag("EarthShooter");
 
-                ItemStack head = new ItemStack(block.getType());
-                head.setData(block.getState().getData());
-                armorStand.getEquipment().setHelmet(head);
-
-                armorStand.setVelocity(new Vector(0, 1, 0));
-
-                armorStands.add(armorStand);
+                blockDisplays.add(blockDisplay);
             }
-            playersBlocks.put(player.getUniqueId(), armorStands);
-
-            long started = System.currentTimeMillis();
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (armorStands.isEmpty() || System.currentTimeMillis() - started >= 10_000) {
-                        this.cancel();
-                        return;
-                    }
-
-                    if (armorStands.get(0).getVelocity().getY() < 0) {
-                        armorStands.parallelStream().forEach(a -> a.setGravity(false));
-                    }
-                }
-            }.runTaskTimer(CaveCrawlers.getInstance(), 0L, 1L);
+            playersBlocks.put(player.getUniqueId(), blockDisplays);
         }
         return true;
     }

@@ -1,8 +1,7 @@
 plugins {
     id 'java'
-    id 'maven-publish'
-    id "com.github.johnrengelman.shadow" version "7.0.0"
-    id "io.freefair.lombok" version "8.3"
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "io.freefair.lombok" version "8.11"
 }
 
 group = 'me.lidan'
@@ -88,13 +87,5 @@ processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
-    }
-}
-
-publishing {
-    publications {
-        shadow(MavenPublication) { publication ->
-            project.shadow.component(publication)
-        }
     }
 }

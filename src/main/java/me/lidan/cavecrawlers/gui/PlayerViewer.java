@@ -5,12 +5,11 @@ import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import me.lidan.cavecrawlers.utils.LuckpermsUtils;
+import me.lidan.cavecrawlers.utils.LuckPermsUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
-
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -66,7 +65,7 @@ public class PlayerViewer {
         ChatColor levelColor = ChatColor.valueOf(colorName);
         gui.setItem(16, ItemBuilder.from(Material.EMERALD).setName(ChatColor.GRAY + "Level: " + ChatColor.DARK_GRAY + "[" + levelColor + level + ChatColor.DARK_GRAY + "]").asGuiItem());
         // Rank
-        gui.setItem(24, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GRAY + "Rank: " + LuckpermsUtils.getPlayerPrefix(player)).asGuiItem());
+        gui.setItem(24, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GRAY + "Rank: " + LuckPermsUtils.getPlayerPrefix(player)).asGuiItem());
         // glass
         gui.getFiller().fill(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         gui.disableAllInteractions();

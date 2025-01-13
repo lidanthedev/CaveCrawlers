@@ -5,41 +5,93 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+/**
+ * MiniMessageUtils class to manage MiniMessage
+ * Making it easier to use MiniMessage
+ */
 public class MiniMessageUtils {
+
+    public static final @NotNull MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+
+    /**
+     * Convert a string to a MiniMessage Component
+     *
+     * @param message the message in MiniMessage format
+     * @return the MiniMessage Component
+     */
     public static Component miniMessageString(String message) {
-        return MiniMessage.miniMessage().deserialize(message);
+        return MINI_MESSAGE.deserialize(message);
     }
 
+    /**
+     * Convert a string to a MiniMessage Component with placeholders
+     * @param message the message in MiniMessage format
+     * @param placeholders the placeholders as strings
+     * @return the MiniMessage Component
+     */
     public static Component miniMessageString(String message, Map<String, String> placeholders) {
         TagResolver[] resolvers = placeholders.entrySet().stream()
                 .map(entry -> Placeholder.parsed(entry.getKey(), entry.getValue()))
                 .toArray(TagResolver[]::new);
 
-        return MiniMessage.miniMessage().deserialize(message, resolvers);
+        return MINI_MESSAGE.deserialize(message, resolvers);
     }
 
+    /**
+     * Convert a string to a MiniMessage Component with placeholders
+     * @param message the message in MiniMessage format
+     * @param placeholders the placeholders as components
+     * @return the MiniMessage Component
+     */
     public static Component miniMessageComponent(String message, Map<String, Component> placeholders) {
         TagResolver[] resolvers = placeholders.entrySet().stream()
                 .map(entry -> Placeholder.component(entry.getKey(), entry.getValue()))
                 .toArray(TagResolver[]::new);
-        return MiniMessage.miniMessage().deserialize(message, resolvers);
+        return MINI_MESSAGE.deserialize(message, resolvers);
     }
 
+    /**
+     * Convert a MiniMessage Component to a string
+     * @param message the MiniMessage Component
+     * @param placeholders the placeholders as strings
+     * @return the message as a string
+     */
     public static String miniMessageFromStringToString(String message, Map<String, String> placeholders) {
         return componentToString(miniMessageString(message, placeholders));
     }
 
+    /**
+     * Convert a MiniMessage Component to a string
+     * @param message the MiniMessage Component
+     * @return the message as a string
+     */
     public static String componentToString(Component message) {
         return PlainTextComponentSerializer.plainText().serialize(message);
     }
 
+    /**
+     * Create a progress bar with a specific length
+     * @param current the current value
+     * @param max the max value
+     * @param length the length of the progress bar
+     * @return the progress bar as a component
+     */
     public static Component progressBar(double current, double max, int length) {
         return progressBar(current, max, length, "-");
     }
 
+    /**
+     * Create a progress bar with a specific length and icon
+     * @param current the current value
+     * @param max the max value
+     * @param length the length of the progress bar
+     * @param icon the icon to use
+     * @return the progress bar as a component
+     */
     public static Component progressBar(double current, double max, int length, String icon) {
         StringBuilder progressBar = new StringBuilder();
         double percent = current / max * 100d;
@@ -51,6 +103,6 @@ public class MiniMessageUtils {
             }
             progressBar.append(icon);
         }
-        return MiniMessage.miniMessage().deserialize(progressBar.toString());
+        return MINI_MESSAGE.deserialize(progressBar.toString());
     }
 }

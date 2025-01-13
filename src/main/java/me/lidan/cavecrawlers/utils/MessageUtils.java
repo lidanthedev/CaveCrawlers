@@ -22,7 +22,13 @@ public class MessageUtils {
         return "<st><dark_gray>"+" ".repeat(Math.max(0, spaceCount)) + "</dark_gray></st>";
     }
 
-    public static String CenteredMessageWithMinecraftSymbole(String message){
+    /**
+     * Centers a message in the player's chat window.
+     *
+     * @param message The message to center.
+     * @return A centered message.
+     */
+    public static String CenteredMessageWithMinecraftSymbols(String message) {
         String[] lines = ChatColor.translateAlternateColorCodes('&', message).split("\n", 40);
         StringBuilder returnMessage = new StringBuilder();
 
@@ -58,7 +64,11 @@ public class MessageUtils {
         return returnMessage.toString();
     }
 
-
+    /**
+     * Centers a message in the player's chat window.
+     * @param miniMessage The message to center.
+     * @return A centered message.
+     */
     public static Component CenteredMessageWithMiniMessage(String miniMessage) {
         if (miniMessage == null || miniMessage.isEmpty()) {
             return Component.empty();
@@ -104,7 +114,13 @@ public class MessageUtils {
         return MiniMessage.miniMessage().deserialize(centeredMiniMessage.toString());
     }
 
-    public static Component CenteredMessageWithMiniMessage(Component inputComponent) {
+    /**
+     * Centers a message in the player's chat window.
+     *
+     * @param inputComponent The message to center.
+     * @return A centered message.
+     */
+    public static Component CenteredMessageWithComponent(Component inputComponent) {
         if (inputComponent == null) {
             return Component.empty();
         }

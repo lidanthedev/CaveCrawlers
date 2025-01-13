@@ -70,6 +70,9 @@ public final class CaveCrawlers extends JavaPlugin {
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
 
+    /**
+     * Runs when the plugin is enabled
+     */
     @Override
     public void onEnable() {
         // Plugin startup logic
@@ -114,6 +117,9 @@ public final class CaveCrawlers extends JavaPlugin {
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
+    /**
+     * Save default resources
+     */
     private void saveDefaultResources() {
         if (getDataFolder().exists()) {
             return;
@@ -126,40 +132,67 @@ public final class CaveCrawlers extends JavaPlugin {
         saveResource("example-shop.yml", new File(getDataFolder(), "shops/example-shop.yml"));
     }
 
+    /**
+     * Register skills
+     */
     private void registerSkills() {
         SkillsManager.getInstance().load();
     }
 
+    /**
+     * Register bosses
+     */
     private void registerBosses() {
         BossLoader.getInstance().load();
     }
 
+    /**
+     * Register config
+     */
     private void registerConfig() {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
     }
 
+    /**
+     * Register drops
+     */
     private void registerDrops() {
         DropLoader.getInstance().load();
     }
 
+    /**
+     * Register blocks
+     */
     private void registerBlocks() {
         BlockLoader.getInstance().load();
     }
 
+    /**
+     * Register griffin
+     */
     private void registerGriffin() {
         GriffinLoader.getInstance().load();
     }
 
+    /**
+     * Register perks
+     */
     private void registerPerks() {
         PerksLoader.getInstance().load();
     }
 
+    /**
+     * Register levels
+     */
     private void registerLevels() {
         LevelConfigManager.getInstance().saveDefaultConfig();
     }
 
+    /**
+     * Register serializer
+     */
     private static void registerSerializer() {
         ConfigurationSerialization.registerClass(Stats.class);
         ConfigurationSerialization.registerClass(ItemInfo.class);
@@ -187,8 +220,10 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(SkillInfo.class);
     }
 
+    /**
+     * Register abilities
+     */
     private void registerAbilities() {
-        //example ability
         AbilityManager abilityManager = AbilityManager.getInstance();
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
         abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
@@ -219,21 +254,33 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("ARROW_SPIRAL", new ArrowSpiralAbility());
     }
 
+    /**
+     * Register items
+     */
     public void registerItems() {
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
         itemsLoader.load();
     }
 
+    /**
+     * Register shops
+     */
     public void registerShops() {
         ShopLoader shopLoader = ShopLoader.getInstance();
         shopLoader.load();
     }
 
+    /**
+     * Register altars
+     */
     public void registerAltars() {
         AltarLoader altarLoader = AltarLoader.getInstance();
         altarLoader.load();
     }
 
+    /**
+     * Register commands
+     */
     public void registerCommands() {
         commandHandler.register(new StatCommand());
         commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
@@ -245,6 +292,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerBrigadier();
     }
 
+    /**
+     * Register command resolvers
+     */
     private void registerCommandResolvers() {
         commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
             return AltarManager.getInstance().getAltar(valueResolverContext.pop());
@@ -257,6 +307,9 @@ public final class CaveCrawlers extends JavaPlugin {
         });
     }
 
+    /**
+     * Register command completions
+     */
     private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
@@ -278,6 +331,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
     }
 
+    /**
+     * Register events
+     */
     public void registerEvents() {
         registerEvent(new AntiBanListener());
         registerEvent(new DamageEntityListener());
@@ -303,6 +359,9 @@ public final class CaveCrawlers extends JavaPlugin {
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
+    /**
+     * Register placeholders
+     */
     public void registerPlaceholders() {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             caveCrawlersExpansion = new CaveCrawlersExpansion(this);
@@ -311,6 +370,9 @@ public final class CaveCrawlers extends JavaPlugin {
         }
     }
 
+    /**
+     * Start tasks
+     */
     public void startTasks() {
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
@@ -320,10 +382,18 @@ public final class CaveCrawlers extends JavaPlugin {
         }, 0, 20);
     }
 
+    /**
+     * Register event
+     *
+     * @param listener the listener
+     */
     public void registerEvent(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
     }
 
+    /**
+     * Runs when the plugin is disabled
+     */
     @Override
     public void onDisable() {
         // Plugin shutdown logic
@@ -338,6 +408,9 @@ public final class CaveCrawlers extends JavaPlugin {
         }
     }
 
+    /**
+     * Close all guis
+     */
     private void closeAllGuis() {
         Bukkit.getOnlinePlayers().forEach(player -> {
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGui) {
@@ -346,6 +419,9 @@ public final class CaveCrawlers extends JavaPlugin {
         });
     }
 
+    /**
+     * Kill entities
+     */
     public void killEntities() {
         Bukkit.getWorlds().forEach(world -> {
             world.getEntities().forEach(entity -> {
@@ -356,6 +432,10 @@ public final class CaveCrawlers extends JavaPlugin {
         });
     }
 
+    /**
+     * Setup economy
+     * @return true if economy is setup
+     */
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -368,6 +448,12 @@ public final class CaveCrawlers extends JavaPlugin {
         return true;
     }
 
+    /**
+     * Save a resource to a file path
+     * Used to save resources to subdirectories in the plugin folder
+     * @param resource the resource
+     * @param path the path as File object
+     */
     public void saveResource(String resource, File path) {
         if (!path.exists()) {
             path.getParentFile().mkdirs();
@@ -388,6 +474,10 @@ public final class CaveCrawlers extends JavaPlugin {
         }
     }
 
+    /**
+     * Get the plugin instance
+     * @return the plugin instance
+     */
     public static CaveCrawlers getInstance() {
         return CaveCrawlers.getPlugin(CaveCrawlers.class);
     }

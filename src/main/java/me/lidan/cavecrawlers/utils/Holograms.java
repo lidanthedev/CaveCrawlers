@@ -5,7 +5,6 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 
 public class Holograms {
@@ -33,6 +32,13 @@ public class Holograms {
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }
 
+    /**
+     * Shows a damage hologram above the mob.
+     *
+     * @param mob         The mob to show the hologram above.
+     * @param finalDamage The final damage dealt to the mob.
+     * @param crit        Whether the damage was a critical hit.
+     */
     public static void showDamageHologram(Mob mob, int finalDamage, boolean crit) {
         String prettyDamage = StringUtils.getNumberFormat(finalDamage);
 

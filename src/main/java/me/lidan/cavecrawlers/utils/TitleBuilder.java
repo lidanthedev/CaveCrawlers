@@ -11,6 +11,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * TitleBuilder class to build titles easily
+ * How to use:
+ * Make a new instance of the TitleBuilder class
+ * Set the players
+ * Set the title
+ * Set the subtitle
+ * Set the fade in, stay, fade out
+ * Show the title
+ * The title will be shown to the players
+ * most steps are optional
+ */
 @Getter
 public class TitleBuilder {
     private Set<Player> allPlayers;

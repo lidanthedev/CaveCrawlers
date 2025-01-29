@@ -1,10 +1,13 @@
 package me.lidan.cavecrawlers.utils;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -16,6 +19,55 @@ import java.util.Map;
 public class MiniMessageUtils {
 
     public static final @NotNull MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    public static final @NotNull LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
+
+    /**
+     * Convert a string to a MiniMessage Component
+     *
+     * @param message the message in MiniMessage format
+     * @return the MiniMessage Component
+     */
+    public static Component miniMessage(String message) {
+        return miniMessage(message, Map.of());
+    }
+
+    /**
+     * Convert a string to a MiniMessage Component with placeholders accepts any object
+     * This method is created to fit with the old method signature
+     *
+     * @param message      the message in MiniMessage format
+     * @param placeholders the placeholders as objects
+     * @return the MiniMessage Component
+     */
+    public static Component miniMessageAuto(String message, Map<String, Object> placeholders) {
+        return miniMessage(message, placeholders);
+    }
+
+    /**
+     * Convert a string to a MiniMessage Component with placeholders accepts any object
+     *
+     * @param message      the message in MiniMessage format
+     * @param placeholders the placeholders as objects
+     * @return the MiniMessage Component
+     */
+    public static Component miniMessage(String message, Map<String, Object> placeholders) {
+        if (placeholders.isEmpty()) {
+            return miniMessageString(message);
+        }
+        TagResolver[] resolvers = placeholders.entrySet().stream()
+                .map(entry -> {
+                    if (entry.getValue() instanceof Component) {
+                        return Placeholder.component(entry.getKey(), (Component) entry.getValue());
+                    } else if (entry.getValue() instanceof String str && str.contains(String.valueOf(ChatColor.COLOR_CHAR))) {
+                        return Placeholder.component(entry.getKey(), LEGACY_SECTION.deserialize(str));
+                    } else {
+                        return Placeholder.parsed(entry.getKey(), entry.getValue().toString());
+                    }
+                })
+                .toArray(TagResolver[]::new);
+
+        return MINI_MESSAGE.deserialize(message, resolvers).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+    }
 
     /**
      * Convert a string to a MiniMessage Component
@@ -24,7 +76,7 @@ public class MiniMessageUtils {
      * @return the MiniMessage Component
      */
     public static Component miniMessageString(String message) {
-        return MINI_MESSAGE.deserialize(message);
+        return MINI_MESSAGE.deserialize(message).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     /**
@@ -38,7 +90,7 @@ public class MiniMessageUtils {
                 .map(entry -> Placeholder.parsed(entry.getKey(), entry.getValue()))
                 .toArray(TagResolver[]::new);
 
-        return MINI_MESSAGE.deserialize(message, resolvers);
+        return MINI_MESSAGE.deserialize(message, resolvers).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     /**
@@ -51,7 +103,7 @@ public class MiniMessageUtils {
         TagResolver[] resolvers = placeholders.entrySet().stream()
                 .map(entry -> Placeholder.component(entry.getKey(), entry.getValue()))
                 .toArray(TagResolver[]::new);
-        return MINI_MESSAGE.deserialize(message, resolvers);
+        return MINI_MESSAGE.deserialize(message, resolvers).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 
     /**
@@ -71,6 +123,17 @@ public class MiniMessageUtils {
      */
     public static String componentToString(Component message) {
         return PlainTextComponentSerializer.plainText().serialize(message);
+    }
+
+    /**
+     * Convert a MiniMessage Component to a legacy string
+     * This method is not recommended to use
+     *
+     * @param message the MiniMessage Component
+     * @return the message as a legacy string
+     */
+    public static String componentToLegacyString(Component message) {
+        return LEGACY_SECTION.serialize(message);
     }
 
     /**

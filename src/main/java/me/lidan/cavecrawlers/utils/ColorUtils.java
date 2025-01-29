@@ -33,18 +33,18 @@ public class ColorUtils {
     }
 
     /**
-     * Get the hex color
+     * Get the hex color of the provided color
      * @param color the color
-     * @return the hex color
+     * @return the hex color of the provided color
      */
     public static String getHexColor(Color color){
         return "#%02x%02x%02x".formatted(color.getRed(), color.getGreen(), color.getBlue());
     }
 
     /**
-     * Get the minecraft color from the bukkit color
-     * @param color the color
-     * @return the minecraft color
+     * Get the minecraft color from the bukkit color provided
+     * @param color the provided color
+     * @return the minecraft color from the bukkit color provided
      */
     public static String getMinecraftColorFromBukkitColor(Color color){
         if(color.equals(Color.YELLOW))

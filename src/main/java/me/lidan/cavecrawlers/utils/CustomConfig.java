@@ -14,8 +14,8 @@ import java.io.IOException;
  * used to store data that is not stored in the main config
  * How to use:
  * Make a new instance of the CustomConfig class
- * Set the values in the config
- * Save the config
+ * Set the values in the config by calling set(key, value) value must implement ConfigurationSerializable
+ * Save the config by calling save()
  * The Config will load automatically
  */
 @Getter
@@ -36,6 +36,7 @@ public class CustomConfig extends YamlConfiguration {
 
     /**
      * Create a new CustomConfig
+     * The file will be created in the plugin data folder if it doesn't exist
      * @param name the name of the file
      */
     public CustomConfig(String name){
@@ -44,8 +45,9 @@ public class CustomConfig extends YamlConfiguration {
 
     /**
      * Setup the config
+     * Used internally to create the file if it doesn't exist
      */
-    public void setup(){
+    private void setup() {
         if (!file.exists()) {
             try {
                 file.createNewFile();

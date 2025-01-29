@@ -26,7 +26,6 @@ public class LevelConfigManager {
 
     public void saveDefaultConfig() {
         if (!config.getFile().exists()) {
-            config.setup();
             config.options().copyDefaults(true);
             config.save();
         }

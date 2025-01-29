@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
-import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 public class SellMenu {
     public record SellItem(ItemInfo itemInfo, int amount, double price) {
     }

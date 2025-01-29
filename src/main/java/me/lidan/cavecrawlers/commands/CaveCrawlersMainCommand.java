@@ -842,7 +842,7 @@ public class CaveCrawlersMainCommand {
         Location pos1 = sender.getEyeLocation();
         Location pos2 = pos1.clone().add(pos1.getDirection().multiply(50));
 
-        BukkitUtils.getLineBetweenTwoPoints(pos1, pos2, 0.5, loc -> {
+        BukkitUtils.runCallbackBetweenTwoPoints(pos1, pos2, 0.5, loc -> {
             sender.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
         });
     }

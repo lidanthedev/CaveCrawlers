@@ -37,7 +37,7 @@ public class Range implements Iterable<Integer> {
         return num >= min && num <= max;
     }
 
-    public List<Integer> getRange() {
+    public List<Integer> getRangeAsList() {
         List<Integer> range = new ArrayList<>();
         for (int i = min; i <= max; i++) {
             range.add(i);
@@ -47,7 +47,7 @@ public class Range implements Iterable<Integer> {
 
     @Override
     public @NotNull Iterator<Integer> iterator() {
-        return getRange().iterator();
+        return getRangeAsList().iterator();
     }
 
     @Override

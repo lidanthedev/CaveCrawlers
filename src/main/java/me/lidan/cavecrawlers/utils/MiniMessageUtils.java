@@ -109,16 +109,6 @@ public class MiniMessageUtils {
     /**
      * Convert a MiniMessage Component to a string
      * @param message the MiniMessage Component
-     * @param placeholders the placeholders as strings
-     * @return the message as a string
-     */
-    public static String miniMessageFromStringToString(String message, Map<String, String> placeholders) {
-        return componentToString(miniMessageString(message, placeholders));
-    }
-
-    /**
-     * Convert a MiniMessage Component to a string
-     * @param message the MiniMessage Component
      * @return the message as a string
      */
     public static String componentToString(Component message) {
@@ -126,7 +116,7 @@ public class MiniMessageUtils {
     }
 
     /**
-     * Convert a MiniMessage Component to a legacy string
+     * Convert a MiniMessage Component to a legacy string (minecraft color codes)
      * This method is not recommended to use
      *
      * @param message the MiniMessage Component

@@ -164,6 +164,7 @@ public final class CaveCrawlers extends JavaPlugin {
 
     /**
      * Register blocks
+     * Used by the custom mining system
      */
     private void registerBlocks() {
         BlockLoader.getInstance().load();
@@ -385,7 +386,7 @@ public final class CaveCrawlers extends JavaPlugin {
     /**
      * Register event
      *
-     * @param listener the listener
+     * @param listener the listener to register
      */
     public void registerEvent(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);

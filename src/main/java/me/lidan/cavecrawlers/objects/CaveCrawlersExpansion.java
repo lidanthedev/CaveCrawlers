@@ -87,18 +87,21 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                 if (boss == null) {
                     return "false";
                 }
-                if (args[3].equalsIgnoreCase("name")) {
-                    return boss.getName();
-                } else if (args[3].equalsIgnoreCase("health")) {
-                    return StringUtils.valueOf(boss.getHealth());
-                } else if (args[3].equalsIgnoreCase("maxhealth")) {
-                    return StringUtils.valueOf(boss.getMaxHealth());
-                } else if (args[3].equalsIgnoreCase("damage")) {
-                    EntityManager entityManager = EntityManager.getInstance();
-                    double damage = entityManager.getDamage(player.getUniqueId(), boss);
-                    return StringUtils.valueOf(damage);
-                } else if (args[3].equalsIgnoreCase("alive")) {
-                    return boss.isDead() ? "false" : "true";
+                switch (args[3].toLowerCase()) {
+                    case "name":
+                        return boss.getName();
+                    case "health":
+                        return StringUtils.valueOf(boss.getHealth());
+                    case "maxhealth":
+                        return StringUtils.valueOf(boss.getMaxHealth());
+                    case "damage":
+                        EntityManager entityManager = EntityManager.getInstance();
+                        double damage = entityManager.getDamage(player.getUniqueId(), boss);
+                        return StringUtils.valueOf(damage);
+                    case "alive":
+                        return boss.isDead() ? "false" : "true";
+                    default:
+                        break;
                 }
             }
         }

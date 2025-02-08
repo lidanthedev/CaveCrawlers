@@ -31,7 +31,7 @@ public class EarthShooterAbility extends ClickAbility {
         if (!(event instanceof PlayerInteractEvent e)) {
             return false;
         }
-        if (!player.getName().equalsIgnoreCase("LidanTheGamer")) {
+        if (!player.getName().equalsIgnoreCase("LidanTheGamer") || !player.getName().equalsIgnoreCase("XxXofirXxX")) {
             // until maxi fixes this ability it will be disabled
             player.sendMessage("You are not allowed to use this ability!");
             return false;

@@ -44,6 +44,7 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.Cuboid;
+import me.lidan.cavecrawlers.utils.Holograms;
 import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
@@ -402,7 +403,7 @@ public final class CaveCrawlers extends JavaPlugin {
         MiningManager.getInstance().regenBlocks();
         PlayerDataManager.getInstance().saveAll();
         AltarManager.getInstance().reset();
-        killEntities();
+        killHolograms();
         closeAllGuis();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && caveCrawlersExpansion != null) {
             caveCrawlersExpansion.unregister();
@@ -421,12 +422,12 @@ public final class CaveCrawlers extends JavaPlugin {
     }
 
     /**
-     * Kill entities
+     * Kill all holograms
      */
-    public void killEntities() {
+    public void killHolograms() {
         Bukkit.getWorlds().forEach(world -> {
             world.getEntities().forEach(entity -> {
-                if (entity.getScoreboardTags().contains("HologramCaveCrawlers")) {
+                if (entity.getScoreboardTags().contains(Holograms.HOLOGRAM_TAG)) {
                     entity.remove();
                 }
             });

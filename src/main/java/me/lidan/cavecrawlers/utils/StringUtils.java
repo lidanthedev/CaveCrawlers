@@ -107,7 +107,7 @@ public class StringUtils {
      * Why plural words are so complicated
      * Also, this is not perfect, but it works for most cases
      * @param text the text
-     * @param num the number
+     * @param num the number if bigger than 1, it will be plural
      * @return the plural of the word
      */
     public static String getPlural(String text, int num) {
@@ -225,8 +225,8 @@ public class StringUtils {
     /**
      * Get the number without a dot
      * I recommend using formatNumber instead for most cases
-     * @param value
-     * @return
+     * @param value the number
+     * @return the number without a dot
      */
     @NotNull
     public static String getNumberWithoutDot(double value) {

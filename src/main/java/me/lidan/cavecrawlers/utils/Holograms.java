@@ -10,6 +10,7 @@ import org.bukkit.entity.Mob;
 public class Holograms {
 
     public static final double Y_OFFSET = 2.5;
+    public static final String HOLOGRAM_TAG = "HologramCaveCrawlers";
 
     /**
      * Spawns a temporary armor stand with text at the specified location.
@@ -20,7 +21,7 @@ public class Holograms {
      */
     public static void spawnTempArmorStand(Location location, String text, int delay) {
         ArmorStand armorStand = location.getWorld().spawn(location, ArmorStand.class, stand -> {
-            stand.addScoreboardTag("HologramCaveCrawlers");
+            stand.addScoreboardTag(HOLOGRAM_TAG);
             stand.setCustomName(text);
             stand.setCustomNameVisible(true);
             stand.setInvulnerable(true);

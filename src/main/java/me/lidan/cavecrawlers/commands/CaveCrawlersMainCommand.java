@@ -879,6 +879,10 @@ public class CaveCrawlersMainCommand {
         entityManager.setEntityData(livingEntity.getUniqueId(), new BossEntityData(livingEntity));
     }
 
+    @Subcommand("test bossConfig")
+    public void testBossConfig(Player sender) {
+    }
+
     @Subcommand("mythic skill")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {

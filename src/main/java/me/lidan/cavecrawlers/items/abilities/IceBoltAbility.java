@@ -86,7 +86,7 @@ public class IceBoltAbility extends ScalingClickAbility implements Listener {
 
     private void BreakBolt(ArmorStand bolt) {
         Location loc = bolt.getLocation();
-     //   loc.getWorld().playSound(loc, Sound.ENTITY_SNOWBALL_THROW, 1.0f, 1.0f); Disabled the sound just for you lidan
+     //   loc.getWorld().playSound(loc, Sound.ENTITY_SNOWBALL_THROW, 1.0f, 1.0f); Disabled the sound just for you lidan.
         loc.getWorld().spawnParticle(Particle.SNOWBALL, loc, 10, 0.2, 0.2, 0.2, 0.1);
         bolt.remove();
     }

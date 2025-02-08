@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ColorUtils {
+    /**
+     * Get all the minecraft colors
+     *
+     * @return all the minecraft colors
+     */
     public static List<Color> getAllMinecraftColors(){
         List<Color> all_color = new ArrayList<>();
         all_color.add(Color.YELLOW); // yellow
@@ -26,10 +31,21 @@ public class ColorUtils {
         all_color.add(Color.fromRGB(255,192,203)); //pink
         return all_color;
     }
+
+    /**
+     * Get the hex color of the provided color
+     * @param color the color
+     * @return the hex color of the provided color
+     */
     public static String getHexColor(Color color){
         return "#%02x%02x%02x".formatted(color.getRed(), color.getGreen(), color.getBlue());
     }
 
+    /**
+     * Get the minecraft color from the bukkit color provided
+     * @param color the provided color
+     * @return the minecraft color from the bukkit color provided
+     */
     public static String getMinecraftColorFromBukkitColor(Color color){
         if(color.equals(Color.YELLOW))
             return "YELLOW";

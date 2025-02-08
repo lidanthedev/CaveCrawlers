@@ -5,6 +5,10 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * DefaultFontInfo class to manage the default font info
+ * Taken from https://www.spigotmc.org/threads/free-code-sending-perfectly-centered-chat-message.95872/
+ */
 @Getter
 public enum DefaultFontInfo {
     A('A', 5),
@@ -115,16 +119,29 @@ public enum DefaultFontInfo {
             CHAR_MAP.put(info.character, info);
     }
 
+    /**
+     * @param character the character
+     * @param length    the length
+     */
     DefaultFontInfo(char character, int length) {
         this.character = character;
         this.length = length;
     }
 
+    /**
+     * Get the length of the bold character
+     * @return the length
+     */
     public int getBoldLength() {
         if (this == DefaultFontInfo.SPACE) return this.getLength();
         return this.length + 1;
     }
 
+    /**
+     * Get the length of the character
+     * @param c the character
+     * @return the length
+     */
     public static DefaultFontInfo getDefaultFontInfo(char c) {
         return  CHAR_MAP.getOrDefault(c, DEFAULT);
     }

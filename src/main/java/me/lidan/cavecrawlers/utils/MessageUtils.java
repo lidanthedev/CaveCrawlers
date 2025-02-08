@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
+import org.jetbrains.annotations.NotNull;
 
 public class MessageUtils {
     private final static int CENTER_PX = 100;
@@ -22,7 +23,13 @@ public class MessageUtils {
         return "<st><dark_gray>"+" ".repeat(Math.max(0, spaceCount)) + "</dark_gray></st>";
     }
 
-    public static String CenteredMessageWithMinecraftSymbole(String message){
+    /**
+     * Centers a message in the player's chat window using Minecraft symbols.
+     *
+     * @param message The message to center.
+     * @return A centered message.
+     */
+    public static String CenteredMessageWithMinecraftSymbols(String message) {
         String[] lines = ChatColor.translateAlternateColorCodes('&', message).split("\n", 40);
         StringBuilder returnMessage = new StringBuilder();
 
@@ -44,21 +51,18 @@ public class MessageUtils {
                     messagePxSize++;
                 }
             }
-            int toCompensate = CENTER_PX - messagePxSize / 2;
-            int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
-            int compensated = 0;
-            StringBuilder sb = new StringBuilder();
-            while(compensated < toCompensate){
-                sb.append(" ");
-                compensated += spaceLength;
-            }
+            StringBuilder sb = calculatePadding(messagePxSize);
             returnMessage.append(sb.toString()).append(line).append("\n");
         }
 
         return returnMessage.toString();
     }
 
-
+    /**
+     * Centers a message in the player's chat window in MiniMessage format.
+     * @param miniMessage The message to center.
+     * @return A centered message.
+     */
     public static Component CenteredMessageWithMiniMessage(String miniMessage) {
         if (miniMessage == null || miniMessage.isEmpty()) {
             return Component.empty();
@@ -73,28 +77,7 @@ public class MessageUtils {
             Component parsedComponent = MiniMessage.miniMessage().deserialize(line);
 
             // Get the plain text for pixel size calculations
-            String plainText = PlainTextComponentSerializer.plainText().serialize(parsedComponent);
-
-            int messagePxSize = 0;
-            boolean isBold = false;
-
-            // Calculate the pixel width of the line
-            for (char c : plainText.toCharArray()) {
-                DefaultFontInfo fontInfo = DefaultFontInfo.getDefaultFontInfo(c);
-                messagePxSize += isBold ? fontInfo.getBoldLength() : fontInfo.getLength();
-                messagePxSize++;
-            }
-
-            // Calculate padding to center the line
-            int toCompensate = CENTER_PX - messagePxSize / 2;
-            int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
-            int compensated = 0;
-            StringBuilder padding = new StringBuilder();
-
-            while (compensated < toCompensate) {
-                padding.append(" ");
-                compensated += spaceLength;
-            }
+            StringBuilder padding = getPadding(parsedComponent);
 
             // Add padding spaces before the line and preserve formatting
             centeredMiniMessage.append(padding).append(line).append("\n");
@@ -104,25 +87,51 @@ public class MessageUtils {
         return MiniMessage.miniMessage().deserialize(centeredMiniMessage.toString());
     }
 
-    public static Component CenteredMessageWithMiniMessage(Component inputComponent) {
+    /**
+     * Centers a message in the player's chat window.
+     *
+     * @param inputComponent The message to center as a Component.
+     * @return A centered message.
+     */
+    public static Component CenteredMessageWithComponent(Component inputComponent) {
         if (inputComponent == null) {
             return Component.empty();
         }
 
         // Serialize the input component to plain text for pixel size calculations
-        String plainText = PlainTextComponentSerializer.plainText().serialize(inputComponent);
+        StringBuilder padding = getPadding(inputComponent);
+
+        // Add the calculated padding to the original component
+
+        // Deserialize the padded text back into a Component with MiniMessage for rendering
+        return Component.text(padding.toString())
+                .append(inputComponent);
+    }
+
+    /**
+     * Calculate the padding needed to center a message in the player's chat window.
+     *
+     * @param parsedComponent The message to center as a Component.
+     * @return A StringBuilder containing the padding spaces.
+     */
+    private static @NotNull StringBuilder getPadding(Component parsedComponent) {
+        String plainText = PlainTextComponentSerializer.plainText().serialize(parsedComponent);
 
         int messagePxSize = 0;
         boolean isBold = false;
 
-        // Calculate the pixel width of the plain text
+        // Calculate the pixel width of the line
         for (char c : plainText.toCharArray()) {
             DefaultFontInfo fontInfo = DefaultFontInfo.getDefaultFontInfo(c);
             messagePxSize += isBold ? fontInfo.getBoldLength() : fontInfo.getLength();
             messagePxSize++;
         }
 
-        // Calculate padding to center the message
+        // Calculate padding to center the line
+        return calculatePadding(messagePxSize);
+    }
+
+    private static @NotNull StringBuilder calculatePadding(int messagePxSize) {
         int toCompensate = CENTER_PX - messagePxSize / 2;
         int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
         int compensated = 0;
@@ -132,11 +141,6 @@ public class MessageUtils {
             padding.append(" ");
             compensated += spaceLength;
         }
-
-        // Add the calculated padding to the original component
-
-        // Deserialize the padded text back into a Component with MiniMessage for rendering
-        return Component.text(padding.toString())
-                .append(inputComponent);
+        return padding;
     }
 }

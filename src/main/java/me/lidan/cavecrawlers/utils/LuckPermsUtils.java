@@ -7,7 +7,13 @@ import net.luckperms.api.model.user.User;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class LuckpermsUtils {
+public class LuckPermsUtils {
+    /**
+     * Get the player prefix
+     *
+     * @param player the player
+     * @return the player prefix
+     */
     public static String getPlayerPrefix(Player player) {
         LuckPerms luckPerms = LuckPermsProvider.get();
         // Get the LuckPerms User object for the player

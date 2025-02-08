@@ -16,7 +16,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 public class MenuItemListener implements Listener {
 
-    public static final String SERVER_GUIDE_NAME = "§6Server Guide §7(Right Click)";
+    public static final String SERVER_GUIDE_NAME = "§aMenu §7(Right Click)";
     public static final String MENU = "menu";
 
     ItemStack item;

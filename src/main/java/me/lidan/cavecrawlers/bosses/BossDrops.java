@@ -41,7 +41,12 @@ public class BossDrops implements ConfigurationSerializable {
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return Map.of("drops", drops, "entityName", entityName, "announce", ConfigMessage.getIdOfMessage(announce), "bonusPoints", bonusPoints);
+        Map<String, Object> serialized = new HashMap<>();
+        serialized.put("drops", drops);
+        serialized.put("entityName", entityName);
+        serialized.put("announce", ConfigMessage.getIdOfMessage(announce));
+        serialized.put("bonusPoints", bonusPoints);
+        return serialized;
     }
 
     public static BossDrops deserialize(Map<String, Object> map) {

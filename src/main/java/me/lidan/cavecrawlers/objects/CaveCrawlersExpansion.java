@@ -80,12 +80,12 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
             AltarManager altarManager = AltarManager.getInstance();
             Altar altar = altarManager.getAltar(args[1]);
             if (altar == null) {
-                return null;
+                return "Altar not found";
             }
             if (args.length > 3 && args[2].equalsIgnoreCase("boss")) {
                 LivingEntity boss = altar.getSpawnedEntity();
                 if (boss == null) {
-                    return null;
+                    return "false";
                 }
                 if (args[3].equalsIgnoreCase("name")) {
                     return boss.getName();

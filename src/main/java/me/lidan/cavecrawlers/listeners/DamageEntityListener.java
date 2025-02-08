@@ -4,7 +4,10 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.entities.EntityManager;
-import me.lidan.cavecrawlers.stats.*;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
+import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Holograms;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -35,6 +38,8 @@ public class DamageEntityListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
     private static final EntityManager entityManager = EntityManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final double VOID_DAMAGE = 1000000000;
+    private static double serverDamageMultiplier = plugin.getConfig().getDouble("server-damage-multiplier", 1);
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -57,7 +62,7 @@ public class DamageEntityListener implements Listener {
     public void onEntityDamage(EntityDamageEvent event) {
         double damage = event.getDamage();
         if (event.getCause() == EntityDamageEvent.DamageCause.VOID){
-            damage = 1000000000;
+            damage = VOID_DAMAGE;
         }
 
         event.setDamage(damage);
@@ -76,6 +81,7 @@ public class DamageEntityListener implements Listener {
             onPlayerDamageMob(event, player, mob);
             return;
         }
+        calculated *= serverDamageMultiplier;
         damageMobAfterCalculation(event, player, mob, calculated, crit);
     }
 
@@ -97,6 +103,7 @@ public class DamageEntityListener implements Listener {
         DamageCalculation calculation = damageManager.getDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
+        damage *= serverDamageMultiplier;
         damageMobAfterCalculation(event, player, mob, damage, crit);
     }
 

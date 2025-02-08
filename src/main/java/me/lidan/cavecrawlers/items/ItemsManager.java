@@ -47,14 +47,19 @@ public class ItemsManager {
 
     public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
+        ItemStack clonedBaseItem = info.getBaseItem().clone();
         if (infoList == null){
-            return ItemBuilder.from(info.getBaseItem().clone()).amount(amount).build();
+            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
         }
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
+        if (clonedBaseItem.getType() == Material.AIR || clonedBaseItem.getItemMeta() == null) {
+            clonedBaseItem = new ItemStack(Material.PAPER);
+            lore.add(0, ChatColor.RED + "base item is missing");
+        }
 
         return ItemBuilder
-                .from(info.getBaseItem().clone())
+                .from(clonedBaseItem)
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()

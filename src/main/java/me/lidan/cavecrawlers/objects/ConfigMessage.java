@@ -121,7 +121,7 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         return config.getSerializable(key, ConfigMessage.class);
     }
 
-    public static String getIdOfMessage(ConfigMessage message){
+    public static @Nullable String getIdOfMessage(ConfigMessage message) {
         for (String key : config.getKeys(false)) {
             ConfigMessage configMessage = getMessage(key);
             if (configMessage != null && configMessage.equals(message)){

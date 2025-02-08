@@ -8,6 +8,8 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.bosses.BossDrop;
+import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -877,6 +879,14 @@ public class CaveCrawlersMainCommand {
         Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("TestBoss", sender.getLocation());
         if (!(entity instanceof LivingEntity livingEntity)) return;
         entityManager.setEntityData(livingEntity.getUniqueId(), new BossEntityData(livingEntity));
+    }
+
+    @Subcommand("test bossConfig")
+    public void testBossConfig(Player sender) {
+        List<BossDrop> drops = List.of(new BossDrop("item", 10, "GOLD_INGOT", 100));
+        List<Integer> bonusPoints = List.of(1, 2, 3, 4, 5);
+        config.set("bossDrops", new BossDrops(drops, "&4&lUnstable Dragon", null, bonusPoints));
+        config.save();
     }
 
     @Subcommand("mythic skill")

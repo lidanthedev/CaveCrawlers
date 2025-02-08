@@ -201,14 +201,14 @@ public class Drop implements ConfigurationSerializable {
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        return Map.of(
-                "type", type,
-                "chance", chance,
-                "value", value,
-                "announce", ConfigMessage.getIdOfMessage(announce),
-                "chanceModifier", chanceModifier,
-                "amountModifier", amountModifier
-        );
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type);
+        map.put("chance", chance);
+        map.put("value", value);
+        map.put("announce", ConfigMessage.getIdOfMessage(announce));
+        map.put("chanceModifier", chanceModifier);
+        map.put("amountModifier", amountModifier);
+        return map;
     }
 
     public static Drop deserialize(Map<String, Object> map) {

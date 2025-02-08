@@ -2,11 +2,16 @@ package me.lidan.cavecrawlers.objects;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +73,37 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                 }
             }
             return levelColor + "" + level;
+        } else if (args[0].equalsIgnoreCase("altar")) {
+            if (args.length < 2) {
+                return null;
+            }
+            AltarManager altarManager = AltarManager.getInstance();
+            Altar altar = altarManager.getAltar(args[1]);
+            if (altar == null) {
+                return "Altar not found";
+            }
+            if (args.length > 3 && args[2].equalsIgnoreCase("boss")) {
+                LivingEntity boss = altar.getSpawnedEntity();
+                if (boss == null) {
+                    return "false";
+                }
+                switch (args[3].toLowerCase()) {
+                    case "name":
+                        return boss.getName();
+                    case "health":
+                        return StringUtils.valueOf(boss.getHealth());
+                    case "maxhealth":
+                        return StringUtils.valueOf(boss.getMaxHealth());
+                    case "damage":
+                        EntityManager entityManager = EntityManager.getInstance();
+                        double damage = entityManager.getDamage(player.getUniqueId(), boss);
+                        return StringUtils.valueOf(damage);
+                    case "alive":
+                        return boss.isDead() ? "false" : "true";
+                    default:
+                        break;
+                }
+            }
         }
         return null;
     }

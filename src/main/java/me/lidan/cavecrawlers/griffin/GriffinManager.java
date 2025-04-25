@@ -1,15 +1,18 @@
 package me.lidan.cavecrawlers.griffin;
 
-import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import lombok.Data;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -128,12 +131,11 @@ public class GriffinManager {
     }
 
     public Entity spawnMob(String mob, Location location, Player player) {
-        try {
-            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
+        if (plugin.getMythicBukkit() != null) {
+            Entity entity = MythicMobsHook.getInstance().spawnMythicMob(mob, location);
+            if (entity == null) return null;
             protectMobForPlayer(player, entity);
             return entity;
-        } catch (InvalidMobTypeException e) {
-            plugin.getLogger().severe("Failed to spawn mobs");
         }
         return null;
     }

@@ -175,6 +175,10 @@ public final class CaveCrawlers extends JavaPlugin {
      * Register griffin
      */
     private void registerGriffin() {
+        if (mythicBukkit == null) {
+            log.warn("MythicMobs not found, disabling griffin feature");
+            return;
+        }
         GriffinLoader.getInstance().load();
     }
 
@@ -239,12 +243,14 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));
-        abilityManager.registerAbility("SPADE", new SpadeAbility());
         abilityManager.registerAbility("GOLDEN_LASER", new GoldenLaserAbility());
         abilityManager.registerAbility("PORTABLE_SHOP", new PortableShopAbility());
         abilityManager.registerAbility("SUPER_PORTABLE_SHOP", new AutoPortableShopAbility());
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
-        abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
+        if (mythicBukkit != null) {
+            abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
+            abilityManager.registerAbility("SPADE", new SpadeAbility());
+        }
         abilityManager.registerAbility("HULK", new HulkAbility());
         abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
         abilityManager.registerAbility("LIGHTNING", new LightningRodAbility());
@@ -350,7 +356,8 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new SkillXpGainingListener());
         registerEvent(new MenuItemListener());
         registerEvent(new EntityChangeBlockListener());
-        registerEvent(new GriffinListener());
+        if (mythicBukkit != null)
+            registerEvent(new GriffinListener());
         registerEvent(new WorldChangeListener());
         registerEvent(new InfoclickListener());
         registerEvent(new RightClickPlayerViewer());

@@ -1,9 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
 import dev.triumphteam.gui.components.util.ItemNbt;
-import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
-import io.lumine.mythic.core.mobs.MobExecutor;
-import io.lumine.mythic.core.skills.SkillExecutor;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
@@ -19,6 +16,7 @@ import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
@@ -104,10 +102,11 @@ public class CaveCrawlersMainCommand {
         });
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
         if (plugin.getMythicBukkit() != null) {
-            MobExecutor mobExecutor = plugin.getMythicBukkit().getMobManager();
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> mobExecutor.getMobNames());
-            SkillExecutor skillExecutor = plugin.getMythicBukkit().getSkillManager();
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> skillExecutor.getSkillNames());
+            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> plugin.getMythicBukkit().getMobManager().getMobNames());
+            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> plugin.getMythicBukkit().getSkillManager().getSkillNames());
+        } else {
+            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> Collections.emptySet());
+            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
         }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
     }
@@ -874,9 +873,16 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test bossSpawn")
-    public void testBossSpawn(Player sender) throws InvalidMobTypeException {
-        Location location = sender.getLocation();
-        Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob("TestBoss", sender.getLocation());
+    public void testBossSpawn(Player sender) {
+        if (plugin.getMythicBukkit() == null) {
+            sender.sendMessage("MythicBukkit not found!");
+            return;
+        }
+        Entity entity = null;
+        try {
+            entity = MythicMobsHook.getInstance().spawnMythicMob("TestBoss", sender.getLocation());
+        } catch (Exception ignored) {
+        }
         if (!(entity instanceof LivingEntity livingEntity)) return;
         entityManager.setEntityData(livingEntity.getUniqueId(), new BossEntityData(livingEntity));
     }
@@ -892,6 +898,10 @@ public class CaveCrawlersMainCommand {
     @Subcommand("mythic skill")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {
+        if (plugin.getMythicBukkit() == null) {
+            sender.sendMessage("MythicBukkit not found!");
+            return;
+        }
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 

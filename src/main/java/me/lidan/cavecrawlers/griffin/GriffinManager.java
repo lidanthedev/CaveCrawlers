@@ -25,20 +25,19 @@ import java.util.UUID;
 
 @Data
 public class GriffinManager {
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
-    public static final String WORLD_NAME = "eagleisland";
+    public static final String WORLD_NAME = plugin.getConfig().getString("griffin-world", "world");
     public static final int DEFAULT_PROTECTION_TIME = 5000;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
-    private final CaveCrawlers plugin;
 
     private GriffinManager() {
         world = Bukkit.getWorld(WORLD_NAME);
-        plugin = CaveCrawlers.getInstance();
     }
 
     public void registerDrop(String name, GriffinDrops drops){
@@ -152,7 +151,7 @@ public class GriffinManager {
 
     public int getGriffinMobLevel(String name) {
         // griffin mob name appear in this format: [Level 1] Minos Hunter
-        name = org.bukkit.ChatColor.stripColor(name);
+        name = ChatColor.stripColor(name);
         String[] split = name.split(" ");
         if (split.length < 2){
             return 0;

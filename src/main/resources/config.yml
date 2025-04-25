@@ -1,6 +1,7 @@
 server-damage-multiplier: 1.0
 menu-type: simple # simple or advanced or command to execute instead
 mining-blacklisted-worlds: []
+griffin-world: "griffin"
 skill-need-xp:
   - 100.0
   - 200.0

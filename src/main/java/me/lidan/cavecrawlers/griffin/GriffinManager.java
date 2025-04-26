@@ -37,12 +37,21 @@ public class GriffinManager {
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
+    private Location pos1;
+    private Location pos2;
 
     private GriffinManager() {
         world = Bukkit.getWorld(WORLD_NAME);
         if (world == null) {
             log.warn("Griffin world not found, please check your config. value: {}", WORLD_NAME);
+            return;
         }
+        pos1 = new Location(world, plugin.getConfig().getDouble("griffin.start-location.x"),
+                plugin.getConfig().getDouble("griffin.start-location.y"),
+                plugin.getConfig().getDouble("griffin.start-location.z"));
+        pos2 = new Location(world, plugin.getConfig().getDouble("griffin.end-location.x"),
+                plugin.getConfig().getDouble("griffin.end-location.y"),
+                plugin.getConfig().getDouble("griffin.end-location.z"));
     }
 
     public void registerDrop(String name, GriffinDrops drops){
@@ -89,8 +98,6 @@ public class GriffinManager {
         if (world == null) {
             return null;
         }
-        Location pos1 = new Location(world, -75,100,95);
-        Location pos2 = new Location(world, 149,64,-94);
 
         if (player.getWorld() != world){
             throw new IllegalArgumentException("Player is not in the correct world");

@@ -1,7 +1,6 @@
 server-damage-multiplier: 1.0
 menu-type: simple # simple or advanced or command to execute instead
 mining-blacklisted-worlds: []
-griffin-world: "griffin"
 skill-need-xp:
   - 100.0
   - 200.0
@@ -53,3 +52,13 @@ skill-need-xp:
   - 4800.0
   - 4900.0
   - 5000.0
+griffin: # Warning! This is a work in progress and may not be fully functional yet.
+  world: "griffin"
+  start-location:
+    x: 0
+    y: 0
+    z: 0
+  end-location:
+    x: 0
+    y: 0
+    z: 0

@@ -4,7 +4,7 @@ import me.lidan.cavecrawlers.objects.ConfigLoader;
 
 public class GriffinLoader extends ConfigLoader<GriffinDrops> {
     private static GriffinLoader instance;
-    private GriffinManager griffinManager;
+    private final GriffinManager griffinManager;
 
     private GriffinLoader() {
         super(GriffinDrops.class, "griffin");

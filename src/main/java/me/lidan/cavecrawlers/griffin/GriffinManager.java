@@ -1,15 +1,19 @@
 package me.lidan.cavecrawlers.griffin;
 
-import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.SpadeAbility;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -20,22 +24,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Data
 public class GriffinManager {
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static final int MAX_DISTANCE = 110;
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
-    public static final String WORLD_NAME = "eagleisland";
+    public static final String WORLD_NAME = plugin.getConfig().getString("griffin-world", "griffin");
     public static final int DEFAULT_PROTECTION_TIME = 5000;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
-    private final CaveCrawlers plugin;
 
     private GriffinManager() {
         world = Bukkit.getWorld(WORLD_NAME);
-        plugin = CaveCrawlers.getInstance();
+        if (world == null) {
+            log.warn("Griffin world not found, please check your config. value: {}", WORLD_NAME);
+        }
     }
 
     public void registerDrop(String name, GriffinDrops drops){
@@ -79,6 +86,9 @@ public class GriffinManager {
     }
 
     public Block generateGriffinLocation(Player player, int distance) {
+        if (world == null) {
+            return null;
+        }
         Location pos1 = new Location(world, -75,100,95);
         Location pos2 = new Location(world, 149,64,-94);
 
@@ -128,12 +138,11 @@ public class GriffinManager {
     }
 
     public Entity spawnMob(String mob, Location location, Player player) {
-        try {
-            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(mob, location);
+        if (plugin.getMythicBukkit() != null) {
+            Entity entity = MythicMobsHook.getInstance().spawnMythicMob(mob, location);
+            if (entity == null) return null;
             protectMobForPlayer(player, entity);
             return entity;
-        } catch (InvalidMobTypeException e) {
-            plugin.getLogger().severe("Failed to spawn mobs");
         }
         return null;
     }
@@ -150,7 +159,7 @@ public class GriffinManager {
 
     public int getGriffinMobLevel(String name) {
         // griffin mob name appear in this format: [Level 1] Minos Hunter
-        name = org.bukkit.ChatColor.stripColor(name);
+        name = ChatColor.stripColor(name);
         String[] split = name.split(" ");
         if (split.length < 2){
             return 0;

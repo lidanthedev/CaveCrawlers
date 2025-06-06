@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,25 +36,25 @@ public class ActionBarManager {
     public Component actionBarBuildAdventure(Player player, Component alert) {
         String formatCopy = format;
         assert formatCopy != null : "Action bar format cannot be null";
-        String defense = "";
         if (alert == null) {
             alert = Component.empty();
             formatCopy = formatCopy.replace("[", "");
             formatCopy = formatCopy.replace("]", "");
-            defense = String.valueOf((int) StatsManager.getInstance().getStats(player).get(StatType.DEFENSE).getValue());
         } else {
             // Replace text in [] with <alert>
             formatCopy = formatCopy.replaceFirst("\\[.*]", "<alert>");
         }
 
-        return MiniMessageUtils.miniMessage(formatCopy, Map.of(
+        Map<String, Object> placeholders = new HashMap<>(Map.of(
                 "health", String.valueOf((int) player.getHealth()),
                 "max-health", String.valueOf((int) player.getMaxHealth()),
-                "defense", defense,
-                "mana", String.valueOf((int) StatsManager.getInstance().getStats(player).get(StatType.MANA).getValue()),
                 "max-mana", String.valueOf((int) StatsManager.getInstance().getStats(player).get(StatType.INTELLIGENCE).getValue()),
                 "alert", alert
         ));
+        for (StatType statType : StatType.values()) {
+            placeholders.putIfAbsent(statType.name().toLowerCase(), String.valueOf((int) StatsManager.getInstance().getStats(player).get(statType).getValue()));
+        }
+        return MiniMessageUtils.miniMessage(formatCopy, placeholders);
     }
 
     public void actionBar(Player player, String alert){

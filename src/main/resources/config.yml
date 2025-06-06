@@ -3,6 +3,19 @@ menu:
   type: simple # simple or advanced or command to execute instead
   command: "openmenu"
 mining-blacklisted-worlds: []
+actionbar:
+
+  # The actionbar is the text that appears at the bottom of the screen.
+  # You can use the following placeholders:
+  # <health> - Current health of the player
+  # <max-health> - Maximum health of the player
+  # <defense> - Current defense of the player
+  # <mana> - Current mana of the player
+  # <max-mana> - Maximum mana of the player
+  # Make sure to put [] if you want alerts to be shown in the actionbar.
+  # Text in [] will be replaced with the alert for a few seconds.
+  enabled: true
+  format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
 skill-need-xp:
   - 100.0
   - 200.0

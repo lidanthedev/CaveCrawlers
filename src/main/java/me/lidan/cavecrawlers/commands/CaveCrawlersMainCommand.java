@@ -322,10 +322,8 @@ public class CaveCrawlersMainCommand {
 
         ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (oldInfo != null) {
-            sender.sendMessage("ERROR! Item already has id! Changing base item instead");
+            sender.sendMessage("ERROR! Item already has id!");
             sender.sendMessage("Don't want that? remove with the id /ct item remove-id");
-            oldInfo.setBaseItem(hand);
-            itemsManager.setItem(oldInfo.getID(), oldInfo);
             return;
         }
 

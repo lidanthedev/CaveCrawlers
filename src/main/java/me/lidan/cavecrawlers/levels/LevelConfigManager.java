@@ -76,13 +76,14 @@ public class LevelConfigManager {
 
     private void checkLevelUp(Player player, int xp) {
         int currentLevel = getPlayerLevel(player.getUniqueId().toString());
-        actionBarManager.sendActionBar(player, org.bukkit.ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + org.bukkit.ChatColor.GRAY + "/" + org.bukkit.ChatColor.DARK_AQUA + maxXP);
+        String message = ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + ChatColor.GRAY + "/" + ChatColor.DARK_AQUA + maxXP;
+        ActionBarManager.getInstance().actionBar(player, message);
         if (xp >= maxXP) {
             int newLevel = currentLevel + 1;
             setPlayerLevel(player.getUniqueId().toString(), newLevel);
             setPlayerXP(player.getUniqueId().toString(), xp - maxXP); // Carry over excess XP
             player.sendMessage("§3▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂▂",
-                    "    §3§lSKYBLOCK LEVEL UP " + "§bLevel " + org.bukkit.ChatColor.DARK_GRAY + currentLevel + "§8→§3" + newLevel,
+                    "    §3§lSKYBLOCK LEVEL UP " + "§bLevel " + ChatColor.DARK_GRAY + currentLevel + "§8→§3" + newLevel,
                     "§7",
                     "    §a§lREWARD",
                     "     §8+§a5 §c❤ Health",

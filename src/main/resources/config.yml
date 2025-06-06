@@ -11,7 +11,7 @@ actionbar:
   # <defense> - Current defense of the player
   # <mana> - Current mana of the player
   # <max-mana> - Maximum mana of the player
-  # <stat> - Stat if the player example: speed
+  # <stat> - Stat of the player example: speed
   # Make sure to put [] if you want alerts to be shown in the actionbar.
   # Text in [] will be replaced with the alert for a few seconds.
   enabled: true

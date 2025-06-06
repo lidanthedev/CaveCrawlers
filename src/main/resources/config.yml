@@ -4,7 +4,6 @@ menu:
   command: "openmenu"
 mining-blacklisted-worlds: []
 actionbar:
-
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:
   # <health> - Current health of the player

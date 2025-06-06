@@ -292,7 +292,6 @@ public final class CaveCrawlers extends JavaPlugin {
     public void registerCommands() {
         commandHandler.register(new StatCommand());
         commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
-        commandHandler.register(new PotionCommands());
         commandHandler.register(new SkillCommand());
         commandHandler.register(new QolCommand());
         commandHandler.register(new MenuCommands());

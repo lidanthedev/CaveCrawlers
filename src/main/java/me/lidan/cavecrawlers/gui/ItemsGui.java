@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
@@ -50,7 +51,9 @@ public class ItemsGui  {
         gui.setItem(6, 7, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Next").asGuiItem(event -> gui.next()));
         // Search
         gui.setItem(6, 5, ItemBuilder.from(Material.COMPASS).name(MiniMessageUtils.miniMessage("<blue>Search")).asGuiItem(event -> {
-
+            PromptManager.getInstance().prompt(player, "Search").thenAccept(result -> {
+                new ItemsGui(player, result, callback, title).open();
+            });
         }));
 
         Set<String> keys = itemsManager.getKeys();

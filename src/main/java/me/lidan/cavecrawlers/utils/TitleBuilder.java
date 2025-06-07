@@ -138,10 +138,10 @@ public class TitleBuilder {
 
 
     public void show(){
-        Duration fadeInDuration = fadeIn == 0 ? Duration.ZERO : Duration.ofSeconds(fadeIn);
-        Duration stayDuration = stay == 0 ? Duration.ZERO : Duration.ofSeconds(stay);;
-        Duration fadeOutDuration = fadeOut == 0 ? Duration.ZERO : Duration.ofSeconds(fadeOut);;
-        for(Player player: allPlayers){
+        Duration fadeInDuration = fadeIn == 0 ? Duration.ZERO : Duration.ofMillis(fadeIn);
+        Duration stayDuration = stay == 0 ? Duration.ZERO : Duration.ofMillis(stay);
+        Duration fadeOutDuration = fadeOut == 0 ? Duration.ZERO : Duration.ofMillis(fadeOut);
+        for (Player player : allPlayers) {
             player.sendTitlePart(TitlePart.TITLE, Component.text(title));
             player.sendTitlePart(TitlePart.SUBTITLE, Component.text(subtitle));
             player.sendTitlePart(TitlePart.TIMES, Title.Times.times(fadeInDuration, stayDuration, fadeOutDuration));

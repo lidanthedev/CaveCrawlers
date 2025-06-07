@@ -30,6 +30,7 @@ import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -62,6 +63,7 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.bukkit.Bukkit.getConsoleSender;
 
@@ -913,6 +915,23 @@ public class CaveCrawlersMainCommand {
     public void testMiniMessages(Player sender, @Default("<green>Testing Message") String message) {
         Component component = MiniMessageUtils.miniMessage(message);
         sender.sendMessage(component);
+    }
+
+    @Subcommand("test prompt")
+    public void testPrompt(Player sender) {
+        CompletableFuture<String> future = PromptManager.getInstance().prompt(sender, "Search");
+        future.thenAccept(s -> {
+            if (s.isEmpty()) {
+                sender.sendMessage("You didn't enter anything!");
+            } else {
+                sender.sendMessage("You entered: " + s);
+            }
+        });
+        // if exception occurs, it will be handled by the exceptionally block
+        future.exceptionally(throwable -> {
+            sender.sendMessage("An error occurred: " + throwable.getMessage());
+            return null;
+        });
     }
 
     @Subcommand("mythic skill")

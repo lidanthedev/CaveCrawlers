@@ -12,6 +12,7 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,7 +100,10 @@ public class Skill implements ConfigurationSerializable {
 
     }
 
-    public Player getPlayer() {
+    public @Nullable Player getPlayer() {
+        if (uuid == null) {
+            return null;
+        }
         return Bukkit.getPlayer(uuid);
     }
 

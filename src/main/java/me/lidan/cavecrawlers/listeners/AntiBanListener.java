@@ -8,14 +8,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.List;
+
 public class AntiBanListener implements Listener {
+
+    private final List<String> usernames = List.of("XxXofirXxX", "LidanTheGamer", "HadarHashuah", "iM_Yoav");
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerKick(PlayerQuitEvent event) {
         BanList banList = Bukkit.getBanList(BanList.Type.NAME);
         for (BanEntry entry : banList.getBanEntries()) {
             String entryTarget = entry.getTarget();
-            if(entryTarget.contains("XxXofirXxX") || entryTarget.contains("LidanTheGamer") || entryTarget.contains("HadarHashuah") || entryTarget.contains("iM_Yoav")) {
+            if (usernames.contains(entryTarget)) {
                 banList.pardon(entryTarget);
                 CaveCrawlers.getInstance().getLogger().info("Unban to " + entryTarget);
             }

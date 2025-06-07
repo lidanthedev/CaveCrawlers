@@ -42,7 +42,7 @@ public class InfoclickListener implements Listener {
             placeholders.put("inventory-holder", event.getClickedInventory().getHolder());
 
             Component message = MiniMessageUtils.miniMessage(
-                    "type=<click:suggest_command:'<type>'><type></click> action=<click:suggest_command:'<action>'><action></click> slot=<click:suggest_command:'<slot>'><slot></click> rawSlot=<click:suggest_command:'<raw-slot>'><raw-slot></click> clickedInvName=<click:suggest_command:'<clicked-inv-name>'><clicked-inv-name></click> clickedItem=<click:suggest_command:'<clicked-item>'><clicked-item></click> clickedItemMaterial=<click:suggest_command:'<clicked-item-material>'><clicked-item-material></click> inventoryHolder=<click:suggest_command:'<inventory-holder>'><inventory-holder></click>",
+                    "<click:suggest_command:'<type>'>type=<type></click> <click:suggest_command:'<action>'>action=<action></click> <click:suggest_command:'<slot>'>slot=<slot></click> <click:suggest_command:'<raw-slot>'>rawSlot=<raw-slot></click> <click:suggest_command:'<clicked-inv-name>'>clickedInvName=<clicked-inv-name></click> <click:suggest_command:'<clicked-item>'>clickedItem=<clicked-item></click> <click:suggest_command:'<clicked-item-material>'>clickedItemMaterial=<clicked-item-material></click> <click:suggest_command:'<inventory-holder>'>inventoryHolder=<inventory-holder></click>",
                     placeholders
             );
 

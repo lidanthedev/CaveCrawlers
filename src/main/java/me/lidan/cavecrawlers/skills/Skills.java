@@ -80,7 +80,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
         for (Map.Entry<SkillInfo, Skill> entry : skills.entrySet()) {
-            entry.getValue().setUuid(uuid);
+            Skill skill = entry.getValue();
+            if (skill != null) {
+                skill.setUuid(uuid);
+            }
         }
     }
 

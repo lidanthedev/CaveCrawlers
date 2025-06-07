@@ -94,8 +94,12 @@ public class ShopManager {
         ShopMenu shopMenu = getShop(shopID);
         assert shopMenu != null;
         ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
-        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
         ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(ingredientID);
+        updateShop(shopMenu, shopItem, itemInfo, amount);
+    }
+
+    public void updateShop(ShopMenu shopMenu, ShopItem shopItem, ItemInfo itemInfo, int amount) {
+        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
         if (amount == 0){
             itemsMap.remove(itemInfo);
         }
@@ -104,8 +108,8 @@ public class ShopManager {
         }
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
+        CustomConfig shopConfig = getConfig(shopMenu.getId());
+        shopConfig.set(shopMenu.getId(), shopMenu);
         shopConfig.save();
     }
 

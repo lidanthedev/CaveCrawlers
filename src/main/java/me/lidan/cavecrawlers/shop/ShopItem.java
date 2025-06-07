@@ -73,7 +73,7 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     @NotNull
-    public String formatName(String name, int amount) {
+    public static String formatName(String name, int amount) {
         name += " " + ChatColor.DARK_GRAY + "x" + amount;
         return name;
     }

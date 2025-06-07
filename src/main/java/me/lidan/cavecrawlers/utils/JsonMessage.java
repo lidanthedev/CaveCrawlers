@@ -7,15 +7,16 @@ package me.lidan.cavecrawlers.utils;
 //Modifications not expressly accepted by the author should be noted in the license of any forks.
 //No warranty for any purpose whatsoever is implied or expressed,
 //and the author shall not be held liable for any losses, direct or indirect as a result of using this software.
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.json.simple.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  *
@@ -25,8 +26,10 @@ import org.json.simple.JSONObject;
  *
  *         Version 2.3.0
  *
+ * @deprecated Use Adventure API instead, this class is no longer maintained.
  */
 
+@Deprecated
 public class JsonMessage {
 
 	private String msg;

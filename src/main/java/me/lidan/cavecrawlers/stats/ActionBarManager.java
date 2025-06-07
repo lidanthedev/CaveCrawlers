@@ -53,6 +53,7 @@ public class ActionBarManager {
         ));
         for (StatType statType : StatType.values()) {
             placeholders.putIfAbsent(statType.name().toLowerCase(), String.valueOf((int) StatsManager.getInstance().getStats(player).get(statType).getValue()));
+            placeholders.putIfAbsent(statType.name().toLowerCase() + "-icon", statType.getIcon());
         }
         return MiniMessageUtils.miniMessage(formatCopy, placeholders);
     }

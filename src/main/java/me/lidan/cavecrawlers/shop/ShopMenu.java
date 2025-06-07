@@ -7,9 +7,9 @@ import dev.triumphteam.gui.guis.GuiItem;
 import lombok.Data;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
 import me.lidan.cavecrawlers.items.abilities.AutoPortableShopAbility;
-import me.lidan.cavecrawlers.utils.JsonMessage;
+import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -64,23 +64,42 @@ public class ShopMenu implements ConfigurationSerializable {
     }
 
     public void shopEditor(Player player, ShopItem shopItem, int slotId) {
-        JsonMessage message = new JsonMessage();
-        String s = "Editing item: %s\n".formatted(shopItem.formatName(shopItem.getResult().getFormattedName(), shopItem.getResultAmount()));
-        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + s).save();
+        String baseMessage = "<gold><bold>Editing item: <item_name>\n</bold></gold>";
+        Map<String, Object> placeholders = new HashMap<>();
+        placeholders.put("item_name", shopItem.formatName(shopItem.getResult().getFormattedName(), shopItem.getResultAmount()));
+        Component message = MiniMessageUtils.miniMessage(baseMessage, placeholders);
+
         Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
         for (ItemInfo itemInfo : itemsMap.keySet()) {
             int amount = itemsMap.get(itemInfo);
             String suggestion = "/ct shop update " + id + " " + slotId + " " + itemInfo.getID() + " " + amount;
-            String msg = shopItem.formatName(itemInfo.getFormattedName(), amount) + ChatColor.GOLD + ChatColor.BOLD + " CLICK TO EDIT\n";
-            message.append(msg).setHoverAsTooltip("Edit").setClickAsSuggestCmd(suggestion).save();
+            String itemMessage = "<item_name><hover:show_text:'Click to edit'><click:suggest_command:'<command>'><gold><bold> CLICK TO EDIT\n</bold></gold></click></hover>";
+            Map<String, Object> itemPlaceholders = Map.of(
+                    "item_name", shopItem.formatName(itemInfo.getFormattedName(), amount),
+                    "command", suggestion
+            );
+            message = message.append(MiniMessageUtils.miniMessage(itemMessage, itemPlaceholders));
         }
-        String suggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
-        message.append(ChatColor.GOLD.toString() + ChatColor.BOLD + "Set Coins").setHoverAsTooltip("Set Coins").setClickAsSuggestCmd(suggestion).save();
-        suggestion = "/ct shop update " + id + " " + slotId + " ";
-        message.append(ChatColor.GREEN.toString() + ChatColor.BOLD + " New ingredient").setHoverAsTooltip("Add").setClickAsSuggestCmd(suggestion).save();
-        suggestion = "/ct shop remove " + id + " " + slotId;
-        message.append(ChatColor.RED.toString() + ChatColor.BOLD + " Remove item").setHoverAsTooltip("Remove").setClickAsSuggestCmd(suggestion).save();
-        message.send(player);
+
+        String coinsSuggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
+        message = message.append(MiniMessageUtils.miniMessage(
+                "<hover:show_text:'Set coins'><click:suggest_command:'<command>'><gold><bold>Set Coins</bold></gold></click></hover>",
+                Map.of("command", coinsSuggestion)
+        ));
+
+        String newIngredientSuggestion = "/ct shop update " + id + " " + slotId + " ";
+        message = message.append(MiniMessageUtils.miniMessage(
+                "<hover:show_text:'Add new ingredient'><click:suggest_command:'<command>'><green><bold> New ingredient</bold></green></click></hover>",
+                Map.of("command", newIngredientSuggestion)
+        ));
+
+        String removeItemSuggestion = "/ct shop remove " + id + " " + slotId;
+        message = message.append(MiniMessageUtils.miniMessage(
+                "<hover:show_text:'Remove item'><click:suggest_command:'<command>'><red><bold> Remove item</bold></red></click></hover>",
+                Map.of("command", removeItemSuggestion)
+        ));
+
+        player.sendMessage(message);
         player.closeInventory();
     }
 

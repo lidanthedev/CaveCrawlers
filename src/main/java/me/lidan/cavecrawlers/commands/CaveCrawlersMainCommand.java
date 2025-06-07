@@ -893,6 +893,12 @@ public class CaveCrawlersMainCommand {
         config.save();
     }
 
+    @Subcommand("test mini-messages")
+    public void testMiniMessages(Player sender, @Default("<green>Testing Message") String message) {
+        Component component = MiniMessageUtils.miniMessage(message);
+        sender.sendMessage(component);
+    }
+
     @Subcommand("mythic skill")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {

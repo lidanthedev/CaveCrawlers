@@ -539,13 +539,21 @@ public class CaveCrawlersMainCommand {
         List<String> lore = meta.getLore();
         String name = meta.getDisplayName();
 
-        JsonMessage message = new JsonMessage();
-        message.append(name).setClickAsSuggestCmd("/ie rename %s".formatted(name.replaceAll("§", "&"))).save().send(sender);
+        Component nameMessage = MiniMessageUtils.miniMessage(
+                "<hover:show_text:'Click to rename'><click:suggest_command:'/ie rename <name_click>'><name></click></hover>",
+                Map.of("name", name, "name_click", name.replaceAll("§", "&"))
+        );
+        sender.sendMessage(nameMessage);
+
         if (!meta.hasLore()) return;
+
         for (int i = 0; i < lore.size(); i++) {
-            message = new JsonMessage();
             String line = lore.get(i);
-            message.append(line).setClickAsSuggestCmd("/ie lore set %s %s".formatted(i + 1, line.replaceAll("§", "&"))).save().send(sender);
+            Component lineMessage = MiniMessageUtils.miniMessage(
+                    "<hover:show_text:'Click to edit'><click:suggest_command:'/ie lore set <index> <line_click>'><line></click></hover>",
+                    Map.of("index", String.valueOf(i + 1), "line", line, "line_click", line.replaceAll("§", "&"))
+            );
+            sender.sendMessage(lineMessage);
         }
     }
 
@@ -746,14 +754,22 @@ public class CaveCrawlersMainCommand {
     public void miningGetMat(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String mat = hand.getType().name();
-        new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
+        Component message = MiniMessageUtils.miniMessageString(
+                "<hover:show_text:'Click to copy'><click:suggest_command:'<material>'><material></click></hover>",
+                Map.of("material", mat)
+        );
+        sender.sendMessage(message);
     }
 
     @Subcommand("mining getTargetMat")
     public void miningGetTargetMat(Player sender) {
         Block targetBlock = sender.getTargetBlock(null, 10);
         String mat = targetBlock.getType().name();
-        new JsonMessage().append(mat).setClickAsSuggestCmd(mat).save().send(sender);
+        Component message = MiniMessageUtils.miniMessageString(
+                "<hover:show_text:'Click to copy'><click:suggest_command:'<material>'><material></click></hover>",
+                Map.of("material", mat)
+        );
+        sender.sendMessage(message);
     }
 
     @Subcommand("mining setHardness")

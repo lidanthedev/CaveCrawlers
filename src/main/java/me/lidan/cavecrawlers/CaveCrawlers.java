@@ -312,6 +312,9 @@ public final class CaveCrawlers extends JavaPlugin {
         commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
             return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
         });
+        commandHandler.registerValueResolver(StatType.class, valueResolverContext -> {
+            return StatType.valueOf(valueResolverContext.pop());
+        });
     }
 
     /**

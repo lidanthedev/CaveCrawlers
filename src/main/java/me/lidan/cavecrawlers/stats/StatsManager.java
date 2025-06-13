@@ -11,8 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +19,6 @@ import java.util.UUID;
 public class StatsManager {
     public static final int SPEED_LIMIT = 500;
     public static final int ATTACK_SPEED_LIMIT = 100;
-    private static final Logger log = LoggerFactory.getLogger(StatsManager.class);
     private final Map<UUID, Stats> statsMap;
     private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
@@ -107,7 +104,6 @@ public class StatsManager {
         for (StatType type : StatType.getStats()) {
             stats.set(type, type.getBase());
         }
-        log.info("Base stats calculated: {}", stats.toFormatString());
         return stats;
     }
 

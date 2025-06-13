@@ -14,42 +14,42 @@ import java.util.Map;
 public class StatType {
     private static final Map<String, StatType> stats = new HashMap<>();
 
+    public static final StatType HEALTH = new StatType("Health", "❤", ChatColor.RED, 100, ChatColor.RED);
+    public static final StatType DEFENSE = new StatType("Defense", "❈", ChatColor.GREEN, 0, ChatColor.GREEN);
+    public static final StatType MANA = new StatType("Mana", "✎", ChatColor.AQUA, 100, ChatColor.AQUA);
+    public static final StatType INTELLIGENCE = new StatType("Intelligence", "✎", ChatColor.AQUA, 100, ChatColor.AQUA);
+    public static final StatType MAGIC_FIND = new StatType("Magic Find", "✯", ChatColor.AQUA, 0, ChatColor.AQUA);
+    public static final StatType SPEED = new StatType("Speed", "✦", ChatColor.WHITE, 100, ChatColor.WHITE);
+    public static final StatType DAMAGE = new StatType("Damage", "❁", ChatColor.RED, 0, ChatColor.RED);
+    public static final StatType STRENGTH = new StatType("Strength", "❁", ChatColor.RED, 0, ChatColor.RED);
+    public static final StatType CRIT_DAMAGE = new StatType("Crit Damage", "☠", ChatColor.BLUE, 0, ChatColor.RED);
+    public static final StatType CRIT_CHANCE = new StatType("Crit Chance", "☣", ChatColor.BLUE, 0, ChatColor.RED);
+    public static final StatType ATTACK_SPEED = new StatType("Attack Speed", "⚔", ChatColor.YELLOW, 0, ChatColor.YELLOW);
+    public static final StatType ABILITY_DAMAGE = new StatType("Ability Damage", "๑", ChatColor.RED, 0, ChatColor.RED);
+    public static final StatType MINING_SPEED = new StatType("Mining Speed", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD);
+    public static final StatType MINING_FORTUNE = new StatType("Mining Fortune", "☘", ChatColor.GOLD, 0, ChatColor.GOLD);
+    public static final StatType MINING_POWER = new StatType("Mining Power", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD);
+    public static final StatType MINING_HAMMER = new StatType("Mining Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD);
+
     static {
         // Register default stats
-        register("HEALTH", new StatType("Health", "❤", ChatColor.RED, 100, ChatColor.RED));
-        register("DEFENSE", new StatType("Defense", "❈", ChatColor.GREEN, 0, ChatColor.GREEN));
-        register("MANA", new StatType("Mana", "✎", ChatColor.AQUA, 100, ChatColor.AQUA));
-        register("INTELLIGENCE", new StatType("Intelligence", "✎", ChatColor.AQUA, 100, ChatColor.AQUA));
-        register("MAGIC_FIND", new StatType("Magic Find", "✯", ChatColor.AQUA, 0, ChatColor.AQUA));
-        register("SPEED", new StatType("Speed", "✦", ChatColor.WHITE, 100, ChatColor.WHITE));
-        register("DAMAGE", new StatType("Damage", "❁", ChatColor.RED, 0, ChatColor.RED));
-        register("STRENGTH", new StatType("Strength", "❁", ChatColor.RED, 0, ChatColor.RED));
-        register("CRIT_DAMAGE", new StatType("Crit Damage", "☠", ChatColor.BLUE, 0, ChatColor.RED));
-        register("CRIT_CHANCE", new StatType("Crit Chance", "☣", ChatColor.BLUE, 0, ChatColor.RED));
-        register("ATTACK_SPEED", new StatType("Attack Speed", "⚔", ChatColor.YELLOW, 0, ChatColor.YELLOW));
-        register("ABILITY_DAMAGE", new StatType("Ability Damage", "๑", ChatColor.RED, 0, ChatColor.RED));
-        register("MINING_SPEED", new StatType("Mining Speed", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
-        register("MINING_FORTUNE", new StatType("Mining Fortune", "☘", ChatColor.GOLD, 0, ChatColor.GOLD));
-        register("MINING_POWER", new StatType("Mining Power", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
-        register("MINING_HAMMER", new StatType("Mining Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD));
+        register("HEALTH", HEALTH);
+        register("DEFENSE", DEFENSE);
+        register("MANA", MANA);
+        register("INTELLIGENCE", INTELLIGENCE);
+        register("MAGIC_FIND", MAGIC_FIND);
+        register("SPEED", SPEED);
+        register("DAMAGE", DAMAGE);
+        register("STRENGTH", STRENGTH);
+        register("CRIT_DAMAGE", CRIT_DAMAGE);
+        register("CRIT_CHANCE", CRIT_CHANCE);
+        register("ATTACK_SPEED", ATTACK_SPEED);
+        register("ABILITY_DAMAGE", ABILITY_DAMAGE);
+        register("MINING_SPEED", MINING_SPEED);
+        register("MINING_FORTUNE", MINING_FORTUNE);
+        register("MINING_POWER", MINING_POWER);
+        register("MINING_HAMMER", MINING_HAMMER);
     }
-
-    public static final StatType HEALTH = stats.get("HEALTH");
-    public static final StatType DEFENSE = stats.get("DEFENSE");
-    public static final StatType MANA = stats.get("MANA");
-    public static final StatType INTELLIGENCE = stats.get("INTELLIGENCE");
-    public static final StatType MAGIC_FIND = stats.get("MAGIC_FIND");
-    public static final StatType SPEED = stats.get("SPEED");
-    public static final StatType DAMAGE = stats.get("DAMAGE");
-    public static final StatType STRENGTH = stats.get("STRENGTH");
-    public static final StatType CRIT_DAMAGE = stats.get("CRIT_DAMAGE");
-    public static final StatType CRIT_CHANCE = stats.get("CRIT_CHANCE");
-    public static final StatType ATTACK_SPEED = stats.get("ATTACK_SPEED");
-    public static final StatType ABILITY_DAMAGE = stats.get("ABILITY_DAMAGE");
-    public static final StatType MINING_SPEED = stats.get("MINING_SPEED");
-    public static final StatType MINING_FORTUNE = stats.get("MINING_FORTUNE");
-    public static final StatType MINING_POWER = stats.get("MINING_POWER");
-    public static final StatType MINING_HAMMER = stats.get("MINING_HAMMER");
 
     private final String name;
     private final String icon;

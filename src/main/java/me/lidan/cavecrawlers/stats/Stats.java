@@ -29,13 +29,6 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         this(new ArrayList<>());
     }
 
-    public Stats(boolean zero){
-        this();
-        if (zero){
-            zero();
-        }
-    }
-
     public Stat get(StatType type){
         if (stats.containsKey(type)){
             return stats.get(type);

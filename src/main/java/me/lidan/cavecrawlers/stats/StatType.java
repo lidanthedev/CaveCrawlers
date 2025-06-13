@@ -51,6 +51,7 @@ public class StatType {
         register("MINING_HAMMER", MINING_HAMMER);
     }
 
+    private String id;
     private final String name;
     private final String icon;
     private final ChatColor color;
@@ -82,7 +83,8 @@ public class StatType {
     }
 
     public static void register(String id, StatType statType) {
-        stats.put(id.toUpperCase().replaceAll(" ", "_"), statType);
+        statType.id = id;
+        stats.put(id, statType);
     }
 
     public static StatType[] values() {
@@ -102,6 +104,6 @@ public class StatType {
     }
 
     public String name() {
-        return this.name.toUpperCase().replaceAll(" ", "_");
+        return this.id;
     }
 }

@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items;
 
-import lombok.SneakyThrows;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import net.md_5.bungee.api.ChatColor;
@@ -80,7 +79,7 @@ public class ItemExporter {
     }
 
     public Stats toStats(List<String> statLines) {
-        Stats stats = new Stats(true);
+        Stats stats = new Stats();
         for (String line : statLines) {
             line = ChatColor.stripColor(line);
             // Health: +500

@@ -101,16 +101,7 @@ public class StatType {
         return stats.keySet().stream().toList();
     }
 
-
     public String name() {
         return this.name.toUpperCase().replaceAll(" ", "_");
-    }
-
-    public static StatType getByName(String name) {
-        return stats.get(name.toUpperCase().replaceAll(" ", "_"));
-    }
-
-    public static StatType getByKey(String key) {
-        return stats.get(key);
     }
 }

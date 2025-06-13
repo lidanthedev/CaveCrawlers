@@ -79,7 +79,7 @@ public class Skill implements ConfigurationSerializable {
     public Stats getStats(){
         Stats stats = type.getStats(level);
         if (stats == null) {
-            stats = new Stats(true);
+            stats = new Stats();
         }
         return stats;
     }

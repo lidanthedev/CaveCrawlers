@@ -11,7 +11,7 @@ public class Stat {
 
     public Stat(StatType type) {
         this.type = type;
-        this.value = type.getBase();
+        this.value = 0;
     }
 
     public Stat(StatType type, double value) {

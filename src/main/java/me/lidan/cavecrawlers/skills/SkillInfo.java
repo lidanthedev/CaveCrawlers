@@ -75,7 +75,7 @@ public class SkillInfo implements ConfigurationSerializable {
     }
 
     public void generateStatsRewards() {
-        Stats stats = new Stats(true);
+        Stats stats = new Stats();
         for (int i = 1; i <= maxLevel; i++) {
             List<SkillReward> rewards = this.rewards.get(i);
             if (rewards == null) {

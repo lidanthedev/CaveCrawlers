@@ -31,7 +31,7 @@ public class StatType {
         register("MINING_SPEED", new StatType("Mining Speed", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
         register("MINING_FORTUNE", new StatType("Mining Fortune", "☘", ChatColor.GOLD, 0, ChatColor.GOLD));
         register("MINING_POWER", new StatType("Mining Power", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
-        register("MINING_HAMMER", new StatType("Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD));
+        register("MINING_HAMMER", new StatType("Mining Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD));
     }
 
     public static final StatType HEALTH = stats.get("HEALTH");
@@ -81,8 +81,8 @@ public class StatType {
         return color + name;
     }
 
-    public static void register(String name, StatType statInfo) {
-        stats.put(name.toUpperCase().replaceAll(" ", "_"), statInfo);
+    public static void register(String id, StatType statType) {
+        stats.put(id.toUpperCase().replaceAll(" ", "_"), statType);
     }
 
     public static StatType[] values() {
@@ -104,23 +104,6 @@ public class StatType {
 
     public String name() {
         return this.name.toUpperCase().replaceAll(" ", "_");
-    }
-
-    /**
-     * Creates a new StatType and registers it.
-     *<pre>
-     * It is recommended that you declare the stat as a constant in the following format:
-     *
-     * public static final StatType YOUR_STAT_NAME = StatType.getByName("Your Stat Name");
-     * @param name       The name of the stat type.
-     * @param icon       The icon representing the stat type.
-     * @param color      The color of the stat type.
-     * @param base       The base value of the stat type.
-     * @param loreColor  The color used in lore for this stat type.
-     *                   </pre>
-     */
-    public static void createStatType(String name, String icon, ChatColor color, double base, ChatColor loreColor) {
-        register(name.toUpperCase().replaceAll(" ", "_"), new StatType(name, icon, color, base, loreColor));
     }
 
     public static StatType getByName(String name) {

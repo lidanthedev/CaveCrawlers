@@ -704,7 +704,14 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop create")
     public void shopCreate(CommandSender sender, String shopId) {
-        shopManager.createShop(shopId);
+        if (shopManager.getShop(shopId) != null) {
+            sender.sendMessage("ERROR! SHOP ALREADY EXISTS! you can edit it with /ct shop editor <shopId>");
+            return;
+        }
+        ShopMenu shop = shopManager.createShop(shopId);
+        if (sender instanceof Player player) {
+            new ShopEditor(player, shop).open();
+        }
         sender.sendMessage("Shop Created!");
     }
 
@@ -718,7 +725,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand({"shop editor", "shop edit"})
     @AutoComplete("@shopId *")
     public void shopEditor(Player sender, String shopId) {
-        ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
+        ShopMenu shopMenu = shopManager.getShop(shopId);
         assert shopMenu != null;
         new ShopEditor(sender, shopMenu).open();
     }
@@ -726,7 +733,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("shop edit-ingredient")
     @AutoComplete("@shopId * @itemID *")
     public void shopEditIngredient(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
+        ShopMenu shopMenu = shopManager.getShop(shopId);
         assert shopMenu != null;
         ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
         new ShopItemIngredientsEditor(sender, shopMenu, shopItem).open();
@@ -735,7 +742,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("shop edit-shop-item")
     @AutoComplete("@shopId * @itemID *")
     public void shopEditItem(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
+        ShopMenu shopMenu = shopManager.getShop(shopId);
         assert shopMenu != null;
         ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
         new ShopItemEditor(sender, shopMenu, shopItem).open();

@@ -13,6 +13,9 @@ public class ShopManager {
 
     private final Map<String, ShopMenu> menuMap = new HashMap<>();
 
+    private ShopManager() {
+    }
+
     public void registerMenu(String key, ShopMenu menu) {
         menu.setId(key);
         menuMap.put(key, menu);
@@ -118,6 +121,10 @@ public class ShopManager {
     }
 
     public void saveShop(String shopID, ShopMenu shopMenu) {
+        if (shopMenu != null) {
+            shopMenu.buildGui();
+            menuMap.put(shopID, shopMenu);
+        }
         CustomConfig shopConfig = getConfig(shopID);
         shopConfig.set(shopID, shopMenu);
         shopConfig.save();

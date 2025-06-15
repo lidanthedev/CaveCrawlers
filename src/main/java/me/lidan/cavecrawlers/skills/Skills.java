@@ -62,7 +62,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public Stats getStats(){
-        Stats stats = new Stats(true);
+        Stats stats = new Stats();
         for (Skill skill : skills.values()) {
             stats.add(skill.getStats());
         }

@@ -99,17 +99,27 @@ public class StatsManager {
         player.setHealth(Math.min(health + healthRegen, maxHealth));
     }
 
+    public Stats calculateBaseStats() {
+        Stats stats = new Stats();
+        for (StatType type : StatType.getStats()) {
+            stats.set(type, type.getBase());
+        }
+        return stats;
+    }
+
     public Stats calculateStats(Player player) {
-        Stats stats = getStats(player);
+        Stats oldStats = getStats(player);
+        Stats stats = calculateBaseStats();
+
         Stats statsFromEquipment = getStatsFromPlayerEquipment(player);
         Stats statsFromSkills = getStatsFromSkills(player);
-        double manaAmount = stats.get(StatType.MANA).getValue();
-        statsFromEquipment.set(StatType.MANA, manaAmount);
-        stats = statsFromEquipment;
+        double manaAmount = oldStats.get(StatType.MANA).getValue();
+        stats.set(StatType.MANA, manaAmount);
         statsMap.put(player.getUniqueId(), stats);
         if (!statsAdder.containsKey(player.getUniqueId())){
-            statsAdder.put(player.getUniqueId(), new Stats(true));
+            statsAdder.put(player.getUniqueId(), new Stats());
         }
+        stats.add(statsFromEquipment);
         stats.add(statsFromSkills);
         stats.add(getStatsAdder(player));
 

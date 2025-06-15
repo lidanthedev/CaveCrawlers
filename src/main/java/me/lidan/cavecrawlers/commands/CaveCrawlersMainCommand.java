@@ -343,7 +343,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
             String name = id.replace("_", " ");
             name = StringUtils.setTitleCase(name);
-            Stats stats = new Stats(true);
+            Stats stats = new Stats();
             itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, hand, Rarity.COMMON);
         }
 
@@ -385,7 +385,7 @@ public class CaveCrawlersMainCommand {
 
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
-        Stats stats = new Stats(true);
+        Stats stats = new Stats();
         ItemInfo itemInfo = new ItemInfo(name, stats, ItemType.MATERIAL, material, Rarity.COMMON);
         itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);

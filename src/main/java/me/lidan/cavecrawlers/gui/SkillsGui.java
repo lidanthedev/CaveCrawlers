@@ -50,7 +50,7 @@ public class SkillsGui {
 
         gui.setItem(1, 5, ItemBuilder.from(Material.DIAMOND_SWORD).name(MiniMessageUtils.miniMessageString("<italic:false><green>Your skills")).flags(ItemFlag.values()).asGuiItem());
 
-        gui.setItem(39, GuiItems.BACK_ITEM);
+        gui.setItem(39, GuiItems.BACK_MENU_ITEM);
         gui.setItem(40, GuiItems.CLOSE_ITEM);
 
         updateItems();

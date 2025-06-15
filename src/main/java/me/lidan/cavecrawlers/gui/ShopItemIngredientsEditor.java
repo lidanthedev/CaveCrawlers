@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -14,6 +15,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ShopItemIngredientsEditor {
@@ -27,17 +30,20 @@ public class ShopItemIngredientsEditor {
         this.player = player;
         this.gui = Gui.gui()
                 .title(MiniMessageUtils.miniMessage("Shop Item Ingredients"))
-                .rows(6)
+                .rows(4)
                 .create();
         this.shopMenu = shopMenu;
         this.shopItem = shopItem;
         gui.disableAllInteractions();
-        gui.getFiller().fillBottom(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
-        gui.setItem(6, 5, ItemBuilder.from(Material.LIME_CONCRETE).name(MiniMessageUtils.miniMessage("<green>New Ingredient")).asGuiItem(inventoryClickEvent -> {
+        gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
+        gui.setItem(4, 5, ItemBuilder.from(Material.LIME_CONCRETE).name(MiniMessageUtils.miniMessage("<green>New Ingredient")).asGuiItem(inventoryClickEvent -> {
             new ItemsGui(player, "", (event, itemInfo) -> {
                 shopManager.updateShop(shopMenu, shopItem, itemInfo, 1);
                 reopen();
             }, MiniMessageUtils.miniMessage("<blue>Items Browser")).open();
+        }));
+        gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
+            // TODO: Implement back to shop editor
         }));
     }
 
@@ -50,13 +56,33 @@ public class ShopItemIngredientsEditor {
             ItemInfo itemInfo = entry.getKey();
             int amount = entry.getValue();
             ItemStack item = ItemsManager.getInstance().buildItem(itemInfo, amount);
+            List<Component> lore = new ArrayList<>(item.lore());
+            lore.add(Component.empty());
+            lore.add(MiniMessageUtils.miniMessage("<gold>Click to edit amount"));
+            lore.add(MiniMessageUtils.miniMessage("<gold>Right click to remove ingredient"));
             ItemBuilder itemBuilder = ItemBuilder.from(item)
                     .setName(ShopItem.formatName(itemInfo.getFormattedName(), amount))
-                    .lore(MiniMessageUtils.miniMessage("<gray>Click to remove this ingredient"));
+                    .lore(lore);
             GuiItem guiItem = itemBuilder.asGuiItem(event -> {
                 if (event.getWhoClicked() instanceof Player player) {
-                    shopManager.updateShop(shopMenu, shopItem, itemInfo, 0);
-                    reopen();
+                    if (event.isRightClick()) {
+                        shopManager.updateShop(shopMenu, shopItem, itemInfo, 0);
+                        reopen();
+                    } else if (event.isLeftClick()) {
+                        PromptManager.getInstance().prompt(player, "Enter new amount").thenAccept(input -> {
+                            try {
+                                int newAmount = Integer.parseInt(input);
+                                if (newAmount < 0) {
+                                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount cannot be negative!"));
+                                    return;
+                                }
+                                shopManager.updateShop(shopMenu, shopItem, itemInfo, newAmount);
+                                reopen();
+                            } catch (NumberFormatException e) {
+                                player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid amount! Please enter a valid number."));
+                            }
+                        });
+                    }
                 }
             });
             gui.addItem(guiItem);

@@ -44,7 +44,7 @@ public class ItemsGui  {
         query = query.toLowerCase();
         gui.disableAllInteractions();
         // filler
-        gui.getFiller().fillBottom(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
+        gui.getFiller().fillBottom(GuiItems.GLASS_ITEM);
         // Previous item
         gui.setItem(6, 3, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Previous").asGuiItem(event -> gui.previous()));
         // Next item

@@ -58,8 +58,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
-import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.lang.reflect.Field;
@@ -724,7 +724,6 @@ public class CaveCrawlersMainCommand {
         assert shopMenu != null;
         ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
         new ShopItemIngredientsEditor(sender, shopMenu, shopItem).open();
-        sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop updateCoins")

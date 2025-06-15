@@ -43,7 +43,7 @@ public class ShopItemIngredientsEditor {
             }, MiniMessageUtils.miniMessage("<blue>Items Browser")).open();
         }));
         gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
-            // TODO: Implement back to shop editor
+            new ShopItemEditor(player, shopMenu, shopItem).open();
         }));
     }
 

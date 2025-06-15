@@ -125,25 +125,30 @@ public class ShopManager {
         shopConfig.save();
     }
 
-    public void removeShop(String shopID, int slotID) {
-        ShopMenu shopMenu = getShop(shopID);
-        assert shopMenu != null;
-        List<ShopItem> shopItemList = shopMenu.getShopItemList();
-        shopItemList.remove(slotID);
-        shopMenu.buildGui();
-
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
-    }
-
-    public void deleteShop(String shopID){
+    public void deleteShop(String shopID) {
         ShopMenu shopMenu = getShop(shopID);
         assert shopMenu != null;
         menuMap.remove(shopID);
 
         CustomConfig shopConfig = getConfig(shopID);
         shopConfig.set(shopID, null);
+        shopConfig.save();
+    }
+
+    public void removeShop(String shopID, int slotID) {
+        ShopMenu shopMenu = getShop(shopID);
+        assert shopMenu != null;
+        removeShopItem(shopMenu, slotID);
+    }
+
+    public void removeShopItem(ShopMenu shopMenu, int slotID) {
+        String shopID = shopMenu.getId();
+        List<ShopItem> shopItemList = shopMenu.getShopItemList();
+        shopItemList.remove(slotID);
+        shopMenu.buildGui();
+
+        CustomConfig shopConfig = getConfig(shopID);
+        shopConfig.set(shopID, shopMenu);
         shopConfig.save();
     }
 }

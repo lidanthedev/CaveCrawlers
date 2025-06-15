@@ -5,11 +5,11 @@ import dev.triumphteam.gui.components.util.ItemNbt;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import lombok.Data;
+import me.lidan.cavecrawlers.gui.ShopItemEditor;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AutoPortableShopAbility;
 import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
-import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -46,7 +46,7 @@ public class ShopMenu implements ConfigurationSerializable {
             GuiItem guiItem = ItemBuilder.from(shopItem.toItem()).asGuiItem(event -> {
                 if (event.getWhoClicked() instanceof Player player) {
                     if (event.getAction() == InventoryAction.CLONE_STACK && player.hasPermission("cavecrawlers.admin")){
-                        shopEditor(player, shopItem, slotId);
+                        new ShopItemEditor(player, this, shopItem).open();
                         return;
                     }
                     if (event.isRightClick() && player.hasPermission("cavecrawlers.portableshop.auto")){
@@ -61,46 +61,6 @@ public class ShopMenu implements ConfigurationSerializable {
             });
             gui.addItem(guiItem);
         }
-    }
-
-    public void shopEditor(Player player, ShopItem shopItem, int slotId) {
-        String baseMessage = "<gold><bold>Editing item: <item_name>\n</bold></gold>";
-        Map<String, Object> placeholders = new HashMap<>();
-        placeholders.put("item_name", shopItem.formatName(shopItem.getResult().getFormattedName(), shopItem.getResultAmount()));
-        Component message = MiniMessageUtils.miniMessage(baseMessage, placeholders);
-
-        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
-        for (ItemInfo itemInfo : itemsMap.keySet()) {
-            int amount = itemsMap.get(itemInfo);
-            String suggestion = "/ct shop update " + id + " " + slotId + " " + itemInfo.getID() + " " + amount;
-            String itemMessage = "<item_name><hover:show_text:'Click to edit'><click:suggest_command:'<command>'><gold><bold> CLICK TO EDIT\n</bold></gold></click></hover>";
-            Map<String, Object> itemPlaceholders = Map.of(
-                    "item_name", shopItem.formatName(itemInfo.getFormattedName(), amount),
-                    "command", suggestion
-            );
-            message = message.append(MiniMessageUtils.miniMessage(itemMessage, itemPlaceholders));
-        }
-
-        String coinsSuggestion = "/ct shop updatecoins " + id + " " + slotId + " ";
-        message = message.append(MiniMessageUtils.miniMessage(
-                "<hover:show_text:'Set coins'><click:suggest_command:'<command>'><gold><bold>Set Coins</bold></gold></click></hover>",
-                Map.of("command", coinsSuggestion)
-        ));
-
-        String newIngredientSuggestion = "/ct shop update " + id + " " + slotId + " ";
-        message = message.append(MiniMessageUtils.miniMessage(
-                "<hover:show_text:'Add new ingredient'><click:suggest_command:'<command>'><green><bold> New ingredient</bold></green></click></hover>",
-                Map.of("command", newIngredientSuggestion)
-        ));
-
-        String removeItemSuggestion = "/ct shop remove " + id + " " + slotId;
-        message = message.append(MiniMessageUtils.miniMessage(
-                "<hover:show_text:'Remove item'><click:suggest_command:'<command>'><red><bold> Remove item</bold></red></click></hover>",
-                Map.of("command", removeItemSuggestion)
-        ));
-
-        player.sendMessage(message);
-        player.closeInventory();
     }
 
     public void open(Player player){

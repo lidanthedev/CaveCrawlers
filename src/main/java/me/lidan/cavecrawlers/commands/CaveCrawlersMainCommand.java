@@ -715,7 +715,7 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("Updated shop!");
     }
 
-    @Subcommand("shop editor")
+    @Subcommand({"shop editor", "shop edit"})
     @AutoComplete("@shopId *")
     public void shopEditor(Player sender, String shopId) {
         ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
@@ -760,15 +760,6 @@ public class CaveCrawlersMainCommand {
     public void shopDelete(CommandSender sender, String shopId) {
         shopManager.deleteShop(shopId);
         sender.sendMessage("Deleted shop!");
-    }
-
-    @Subcommand("shop edit")
-    @AutoComplete("@shopId *")
-    public void shopEdit(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = shopManager.getShop(shopId);
-        assert shopMenu != null;
-        ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
-        shopMenu.shopEditor(sender, shopItem, slotId);
     }
 
     @Subcommand("mining test")

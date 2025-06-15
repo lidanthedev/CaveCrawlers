@@ -33,9 +33,7 @@ public class ShopManager {
 
         ShopMenu shopMenu = new ShopMenu(title, new ArrayList<>());
         shopMenu.setId(shopID);
-        CustomConfig config = getConfig(shopID);
-        config.set(shopID, shopMenu);
-        config.save();
+        saveShop(shopID, shopMenu);
         registerMenu(shopID, shopMenu);
         return shopMenu;
     }
@@ -70,9 +68,7 @@ public class ShopManager {
         shopItemList.add(shopItem);
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
+        saveShop(shopID, shopMenu);
     }
 
     public Set<String> getKeys() {
@@ -108,9 +104,7 @@ public class ShopManager {
         }
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopMenu.getId());
-        shopConfig.set(shopMenu.getId(), shopMenu);
-        shopConfig.save();
+        saveShop(shopMenu.getId(), shopMenu);
     }
 
     public void updateShopCoins(String shopID, int slotID, double coins) {
@@ -120,6 +114,10 @@ public class ShopManager {
         shopItem.setPrice(coins);
         shopMenu.buildGui();
 
+        saveShop(shopID, shopMenu);
+    }
+
+    public void saveShop(String shopID, ShopMenu shopMenu) {
         CustomConfig shopConfig = getConfig(shopID);
         shopConfig.set(shopID, shopMenu);
         shopConfig.save();
@@ -130,9 +128,7 @@ public class ShopManager {
         assert shopMenu != null;
         menuMap.remove(shopID);
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, null);
-        shopConfig.save();
+        saveShop(shopID, null);
     }
 
     public void removeShop(String shopID, int slotID) {
@@ -147,8 +143,6 @@ public class ShopManager {
         shopItemList.remove(slotID);
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
+        saveShop(shopID, shopMenu);
     }
 }

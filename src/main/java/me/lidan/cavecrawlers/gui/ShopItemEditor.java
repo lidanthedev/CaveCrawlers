@@ -7,8 +7,13 @@ import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public class ShopItemEditor {
     public static final int SLOT_NOT_FOUND = -1;
@@ -34,7 +39,34 @@ public class ShopItemEditor {
     }
 
     private void initializeGuiItems() {
-        gui.setItem(2, 5, ItemBuilder.from(shopItem.toItem()).asGuiItem());
+        ItemStack resultItem = shopItem.toItem();
+        List<Component> lore = ShopEditor.changeLastLoreLine(resultItem, MiniMessageUtils.miniMessage("<yellow>Click to edit item"));
+        lore.add(MiniMessageUtils.miniMessage("<yellow>Right click to change amount"));
+        gui.setItem(2, 5, ItemBuilder.from(resultItem).lore(lore).asGuiItem(event -> {
+            if (event.getClick() == ClickType.LEFT) {
+                new ItemsGui(player, "", (event1, itemInfo) -> {
+                    shopItem.setResult(itemInfo);
+                    shopManager.saveShop(shopMenu.getId(), shopMenu);
+                    reopen();
+                }, MiniMessageUtils.miniMessage("<blue>Change Item")).open();
+            }
+            if (event.getClick() == ClickType.RIGHT) {
+                PromptManager.getInstance().prompt(player, "Enter new amount").thenAccept(input -> {
+                    try {
+                        int amount = Integer.parseInt(input);
+                        if (amount < 1) {
+                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount must be at least 1!"));
+                            return;
+                        }
+                        shopItem.setResultAmount(amount);
+                        shopManager.saveShop(shopMenu.getId(), shopMenu);
+                        reopen();
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                    }
+                });
+            }
+        }));
         gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
             new ShopEditor(player, shopMenu).open();
         }));

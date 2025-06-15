@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,12 +42,7 @@ public class ShopEditor {
         List<ShopItem> shopItemList = shopMenu.getShopItemList();
         for (ShopItem shopItem : shopItemList) {
             ItemStack item = shopItem.toItem();
-            List<Component> lore = item.lore();
-            if (lore == null) {
-                lore = new ArrayList<>();
-            }
-            lore.remove(lore.size() - 1);
-            lore.add(MiniMessageUtils.miniMessage("<yellow>Click to edit item"));
+            List<Component> lore = changeLastLoreLine(item, MiniMessageUtils.miniMessage("<yellow>Click to edit item"));
             GuiItem guiItem = ItemBuilder.from(item).lore(lore).asGuiItem(event -> {
                 new ShopItemEditor(player, shopMenu, shopItem).open();
             });
@@ -59,6 +55,16 @@ public class ShopEditor {
                 new ShopItemEditor(player, shopMenu, shopItem).open();
             }, MiniMessageUtils.miniMessage("<green>Add item")).open();
         }));
+    }
+
+    public static @NotNull List<Component> changeLastLoreLine(ItemStack item, Component component) {
+        List<Component> lore = item.lore();
+        if (lore == null) {
+            lore = new ArrayList<>();
+        }
+        lore.remove(lore.size() - 1);
+        lore.add(component);
+        return lore;
     }
 
     public void open() {

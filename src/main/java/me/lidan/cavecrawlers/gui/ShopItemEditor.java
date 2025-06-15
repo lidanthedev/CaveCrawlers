@@ -36,7 +36,7 @@ public class ShopItemEditor {
     private void initializeGuiItems() {
         gui.setItem(2, 5, ItemBuilder.from(shopItem.toItem()).asGuiItem());
         gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
-            // TODO: Implement back to shop editor
+            new ShopEditor(player, shopMenu).open();
         }));
         gui.setItem(4, 3, ItemBuilder.from(Material.YELLOW_CONCRETE).name(MiniMessageUtils.miniMessage("<gold>Set Coins")).asGuiItem(event -> {
             PromptManager.getInstance().prompt(player, "Enter new coin price").thenAccept(input -> {

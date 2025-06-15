@@ -14,10 +14,7 @@ import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.griffin.GriffinManager;
-import me.lidan.cavecrawlers.gui.ItemsGui;
-import me.lidan.cavecrawlers.gui.PlayerViewer;
-import me.lidan.cavecrawlers.gui.ShopItemEditor;
-import me.lidan.cavecrawlers.gui.ShopItemIngredientsEditor;
+import me.lidan.cavecrawlers.gui.*;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -716,6 +713,14 @@ public class CaveCrawlersMainCommand {
     public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
         sender.sendMessage("Updated shop!");
+    }
+
+    @Subcommand("shop editor")
+    @AutoComplete("@shopId *")
+    public void shopEditor(Player sender, String shopId) {
+        ShopMenu shopMenu = ShopManager.getInstance().getShop(shopId);
+        assert shopMenu != null;
+        new ShopEditor(sender, shopMenu).open();
     }
 
     @Subcommand("shop edit-ingredient")

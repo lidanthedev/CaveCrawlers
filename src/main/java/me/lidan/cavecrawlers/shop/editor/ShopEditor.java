@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShopEditor {
-    public static final int DEFAULT_COIN_PRICE = 10;
+    public static final int DEFAULT_COIN_PRICE = 0;
     private final Player player;
     private final Gui gui;
     private final ShopMenu shopMenu;

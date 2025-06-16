@@ -51,13 +51,17 @@ public class ShopItem implements ConfigurationSerializable {
 
         list.add("");
         list.add(ChatColor.GRAY + "Cost");
-        if (price > 0){
-            list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
-        }
-        for (ItemInfo itemInfo : itemsMap.keySet()) {
-            int amount = itemsMap.get(itemInfo);
-            String name = itemInfo.getFormattedName();
-            list.add(formatName(name, amount));
+        if (price <= 0 && itemsMap.isEmpty()) {
+            list.add(ChatColor.GOLD + "Free");
+        } else {
+            if (price > 0) {
+                list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
+            }
+            for (ItemInfo itemInfo : itemsMap.keySet()) {
+                int amount = itemsMap.get(itemInfo);
+                String name = itemInfo.getFormattedName();
+                list.add(formatName(name, amount));
+            }
         }
         list.add("");
         list.add(ChatColor.YELLOW + "Click to Trade");

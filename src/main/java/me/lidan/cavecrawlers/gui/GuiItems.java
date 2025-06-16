@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.gui;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
+import dev.triumphteam.gui.guis.PaginatedGui;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,4 +25,22 @@ public class GuiItems {
         menuGui.open();
     }));
     public static final @NotNull GuiItem GLASS_ITEM = ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem();
+
+    public static void setupNextPreviousItems(PaginatedGui gui, int row) {
+        gui.setItem(row, 9, GuiItems.GLASS_ITEM);
+        gui.setItem(row, 1, GuiItems.GLASS_ITEM);
+        if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
+            gui.setItem(row, 9, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
+                gui.next();
+                setupNextPreviousItems(gui, row);
+            }));
+        }
+        if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
+            gui.setItem(row, 1, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
+                gui.previous();
+                setupNextPreviousItems(gui, row);
+            }));
+        }
+        gui.update();
+    }
 }

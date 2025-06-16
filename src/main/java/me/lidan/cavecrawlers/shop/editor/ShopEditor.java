@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.shop.editor;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.prompt.PromptManager;
@@ -24,15 +25,16 @@ import java.util.Map;
 public class ShopEditor {
     public static final int DEFAULT_COIN_PRICE = 0;
     private final Player player;
-    private final Gui gui;
+    private final PaginatedGui gui;
     private final ShopMenu shopMenu;
     private final ShopManager shopManager = ShopManager.getInstance();
 
     public ShopEditor(Player player, ShopMenu shopMenu) {
         this.player = player;
-        this.gui = Gui.gui()
+        this.gui = Gui.paginated()
                 .title(MiniMessageUtils.miniMessage("Shop Editor: " + shopMenu.getId()))
                 .rows(6)
+                .pageSize(28)
                 .create();
         this.shopMenu = shopMenu;
         gui.disableAllInteractions();
@@ -65,6 +67,7 @@ public class ShopEditor {
                 reopen();
             });
         }));
+        GuiItems.setupNextPreviousItems(gui, gui.getRows());
     }
 
     private void reopen() {

@@ -26,6 +26,14 @@ public class ConfirmGui {
         initGui();
     }
 
+    public ConfirmGui(Player player, Component title, Runnable onConfirm) {
+        this(player, title, onConfirm, null);
+    }
+
+    public ConfirmGui(Player player, Runnable onConfirm, Runnable onCancel) {
+        this(player, Component.text("Confirm Action"), onConfirm, onCancel);
+    }
+
     public void initGui() {
         gui.setItem(2, 5, ItemBuilder.from(Material.PAPER).name(MiniMessageUtils.miniMessage("<yellow>Are you sure?")).asGuiItem());
 
@@ -42,14 +50,6 @@ public class ConfirmGui {
                 onConfirm.run();
             }
         }));
-    }
-
-    public ConfirmGui(Player player, Component title, Runnable onConfirm) {
-        this(player, title, onConfirm, null);
-    }
-
-    public ConfirmGui(Player player, Runnable onConfirm, Runnable onCancel) {
-        this(player, Component.text("Confirm Action"), onConfirm, onCancel);
     }
 
     public void open() {

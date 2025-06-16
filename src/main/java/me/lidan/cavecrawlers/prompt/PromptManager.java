@@ -11,9 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PromptManager {
     @Getter
-    private static final Map<UUID, CompletableFuture<String>> futureMap = new ConcurrentHashMap<>();
+    private static final Map<UUID, PromptFuture> futureMap = new ConcurrentHashMap<>();
     public static final int TITLE_FADE_IN_AND_OUT = 500;
     public static final int TITLE_STAY = 10000;
+    public static final String PROMPT_SUBTITLE = "Type your response in chat";
+    public static final String PROMPT_SUBTITLE_TO_CANCEL = "Left click to cancel";
     private static PromptManager instance;
 
     public static PromptManager getInstance() {
@@ -28,13 +30,25 @@ public class PromptManager {
     }
 
     public CompletableFuture<String> prompt(Player player, String promptTitle) {
-        return prompt(player, promptTitle, "Type your response in chat");
+        return prompt(player, promptTitle, PROMPT_SUBTITLE);
     }
 
     public CompletableFuture<String> prompt(Player player, String promptTitle, String promptSubtitle) {
-        CompletableFuture<String> future = new CompletableFuture<>();
+        PromptFuture future = new PromptFuture(promptTitle);
         futureMap.put(player.getUniqueId(), future);
         player.closeInventory();
+        showTitle(player, promptTitle, promptSubtitle);
+
+        future.whenComplete((response, throwable) -> player.resetTitle());
+
+        return future;
+    }
+
+    public static void showTitle(Player player, String promptTitle) {
+        showTitle(player, promptTitle, PROMPT_SUBTITLE);
+    }
+
+    public static void showTitle(Player player, String promptTitle, String promptSubtitle) {
         new TitleBuilder()
                 .setTitle(promptTitle)
                 .setSubtitle(promptSubtitle)
@@ -43,10 +57,5 @@ public class PromptManager {
                 .setFadeOut(TITLE_FADE_IN_AND_OUT)
                 .setPlayers(player)
                 .show();
-
-        future.whenComplete((response, throwable) -> player.resetTitle());
-
-        return future;
     }
-
 }

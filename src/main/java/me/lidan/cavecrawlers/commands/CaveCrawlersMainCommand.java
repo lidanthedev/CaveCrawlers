@@ -744,7 +744,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("shop remove")
     @AutoComplete("@shopId *")
     public void shopRemove(CommandSender sender, String shopId, int slotId) {
-        shopManager.removeShop(shopId, slotId);
+        shopManager.removeShopItem(shopId, slotId);
         sender.sendMessage("Removed slot from shop!");
     }
 

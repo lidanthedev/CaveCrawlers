@@ -98,7 +98,7 @@ public class ShopManager {
     }
 
     public void updateShop(ShopMenu shopMenu, ShopItem shopItem, ItemInfo itemInfo, int amount) {
-        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
+        Map<ItemInfo, Integer> itemsMap = shopItem.getIngredientsMap();
         if (amount == 0){
             itemsMap.remove(itemInfo);
         }

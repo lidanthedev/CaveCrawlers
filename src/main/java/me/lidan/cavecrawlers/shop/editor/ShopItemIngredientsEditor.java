@@ -54,7 +54,7 @@ public class ShopItemIngredientsEditor {
     }
 
     public void update() {
-        for (Map.Entry<ItemInfo, Integer> entry : shopItem.getItemsMap().entrySet()) {
+        for (Map.Entry<ItemInfo, Integer> entry : shopItem.getIngredientsMap().entrySet()) {
             ItemInfo itemInfo = entry.getKey();
             int amount = entry.getValue();
             ItemStack item = ItemsManager.getInstance().buildItem(itemInfo, amount);

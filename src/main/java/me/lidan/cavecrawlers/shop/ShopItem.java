@@ -25,14 +25,14 @@ public class ShopItem implements ConfigurationSerializable {
     private ItemInfo result;
     private int resultAmount;
     private double price;
-    private Map<ItemInfo, Integer> itemsMap;
+    private Map<ItemInfo, Integer> ingredientsMap;
     private ItemsManager itemsManager;
 
-    public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> itemsMap) {
+    public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> ingredientsMap) {
         this.result = result;
         this.resultAmount = resultAmount;
         this.price = price;
-        this.itemsMap = itemsMap;
+        this.ingredientsMap = ingredientsMap;
         itemsManager = ItemsManager.getInstance();
     }
 
@@ -51,14 +51,14 @@ public class ShopItem implements ConfigurationSerializable {
 
         list.add("");
         list.add(ChatColor.GRAY + "Cost");
-        if (price <= 0 && itemsMap.isEmpty()) {
+        if (price <= 0 && ingredientsMap.isEmpty()) {
             list.add(ChatColor.GOLD + "Free");
         } else {
             if (price > 0) {
                 list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
             }
-            for (ItemInfo itemInfo : itemsMap.keySet()) {
-                int amount = itemsMap.get(itemInfo);
+            for (ItemInfo itemInfo : ingredientsMap.keySet()) {
+                int amount = ingredientsMap.get(itemInfo);
                 String name = itemInfo.getFormattedName();
                 list.add(formatName(name, amount));
             }
@@ -85,9 +85,8 @@ public class ShopItem implements ConfigurationSerializable {
     public boolean buy(Player player) {
         if (canBuy(player)){
             VaultUtils.takeCoins(player, price);
-            itemsManager.removeItems(player, itemsMap);
-            ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-            player.getInventory().addItem(itemStack);
+            itemsManager.removeItems(player, ingredientsMap);
+            itemsManager.giveItem(player, result, resultAmount);
             Map<String, String> placeholders = Map.of(
                     "item", result.getFormattedName(),
                     "amount", String.valueOf(resultAmount),
@@ -101,7 +100,7 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean canBuy(Player player) {
-        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, itemsMap);
+        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
     }
 
     @NotNull
@@ -111,7 +110,7 @@ public class ShopItem implements ConfigurationSerializable {
         map.put("result", result.getID());
         map.put("resultAmount", resultAmount);
         map.put("price", price);
-        map.put("item-cost", itemsManager.itemMapToStringMap(itemsMap));
+        map.put("item-cost", itemsManager.itemMapToStringMap(ingredientsMap));
         return map;
     }
 

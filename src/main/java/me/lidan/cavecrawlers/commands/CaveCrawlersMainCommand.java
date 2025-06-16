@@ -170,7 +170,8 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop add <shop-name> <ingredient-item> <amount>", "add items to the shop"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop (middle-click to edit)"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop editor <shop-name>", "open the shop editor"));
     }
 
     @Subcommand("help altar")

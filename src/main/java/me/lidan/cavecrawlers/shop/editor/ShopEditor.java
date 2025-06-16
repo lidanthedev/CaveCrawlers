@@ -77,7 +77,9 @@ public class ShopEditor {
         if (lore == null) {
             lore = new ArrayList<>();
         }
-        lore.remove(lore.size() - 1);
+        if (!lore.isEmpty()) {
+            lore.remove(lore.size() - 1);
+        }
         lore.add(component);
         return lore;
     }

@@ -37,11 +37,10 @@ public class ShopItemEditor {
         gui.disableAllInteractions();
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
 
-        // Initialize GUI items and actions here
-        initializeGuiItems();
+        initGui();
     }
 
-    private void initializeGuiItems() {
+    private void initGui() {
         ItemStack resultItem = shopItem.toItem();
         List<Component> lore = ShopEditor.changeLastLoreLine(resultItem, MiniMessageUtils.miniMessage("<yellow>Click to edit item"));
         lore.add(MiniMessageUtils.miniMessage("<yellow>Right click to change amount"));

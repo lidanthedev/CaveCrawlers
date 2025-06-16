@@ -20,6 +20,7 @@ import java.util.List;
 
 public class ShopItemEditor {
     public static final int SLOT_NOT_FOUND = -1;
+    public static final int MIN_ITEM_AMOUNT = 1;
     private final Player player;
     private final Gui gui;
     private final ShopMenu shopMenu;
@@ -53,44 +54,38 @@ public class ShopItemEditor {
                 }, MiniMessageUtils.miniMessage("<blue>Change Item")).open();
             }
             if (event.getClick() == ClickType.RIGHT) {
-                PromptManager.getInstance().prompt(player, "Enter new amount").thenAccept(input -> {
-                    try {
-                        int amount = Integer.parseInt(input);
-                        if (amount < 1) {
-                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount must be at least 1!"));
-                            return;
-                        }
-                        shopItem.setResultAmount(amount);
-                        shopManager.saveShop(shopMenu.getId(), shopMenu);
-                        reopen();
-                    } catch (NumberFormatException e) {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                PromptManager.getInstance().promptNumber(player, "Enter new amount").thenAccept(amount -> {
+                    if (amount < MIN_ITEM_AMOUNT) {
+                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount must be at least 1!"));
+                        return;
                     }
-                });
+                    shopItem.setResultAmount(amount);
+                    shopManager.saveShop(shopMenu.getId(), shopMenu);
+                }).exceptionally(throwable -> {
+                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                    return null;
+                }).whenComplete((unused, throwable) -> reopen());
             }
         }));
         gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
             new ShopEditor(player, shopMenu).open();
         }));
         gui.setItem(4, 3, ItemBuilder.from(Material.YELLOW_CONCRETE).name(MiniMessageUtils.miniMessage("<gold>Set Coins")).asGuiItem(event -> {
-            PromptManager.getInstance().prompt(player, "Enter new coin price").thenAccept(input -> {
-                try {
-                    int coins = Integer.parseInt(input);
-                    if (coins < 0) {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Coins cannot be negative!"));
-                        return;
-                    }
-                    int slotID = shopMenu.getShopItemList().indexOf(shopItem);
-                    if (slotID == SLOT_NOT_FOUND) {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Shop item not found!"));
-                        return;
-                    }
-                    shopManager.updateShopCoins(shopMenu.getId(), slotID, coins);
-                    reopen();
-                } catch (NumberFormatException e) {
-                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+            PromptManager.getInstance().promptNumber(player, "Enter new coin price").thenAccept(coins -> {
+                if (coins < 0) {
+                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Coins cannot be negative!"));
+                    return;
                 }
-            });
+                int slotID = shopMenu.getShopItemList().indexOf(shopItem);
+                if (slotID == SLOT_NOT_FOUND) {
+                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Shop item not found!"));
+                    return;
+                }
+                shopManager.updateShopCoins(shopMenu.getId(), slotID, coins);
+            }).exceptionally(throwable -> {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                return null;
+            }).whenComplete((unused, throwable) -> reopen());
         }));
         gui.setItem(4, 5, ItemBuilder.from(Material.OAK_SIGN).name(MiniMessageUtils.miniMessage("<gold>Edit Ingredients")).asGuiItem(event -> {
             new ShopItemIngredientsEditor(player, shopMenu, shopItem).open();

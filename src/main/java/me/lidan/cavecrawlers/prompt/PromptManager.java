@@ -44,6 +44,17 @@ public class PromptManager {
         return future;
     }
 
+    public CompletableFuture<Integer> promptNumber(Player player, String promptTitle) {
+        return prompt(player, promptTitle)
+                .thenApply(response -> {
+                    try {
+                        return Integer.parseInt(response);
+                    } catch (NumberFormatException e) {
+                        throw new PromptException("Invalid number format: " + response, e);
+                    }
+                });
+    }
+
     public static void showTitle(Player player, String promptTitle) {
         showTitle(player, promptTitle, PROMPT_SUBTITLE);
     }

@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.abilities.AutoPortableShopAbility;
 import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
 import me.lidan.cavecrawlers.shop.editor.ShopItemEditor;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -38,7 +39,7 @@ public class ShopMenu implements ConfigurationSerializable {
     }
 
     public void buildGui(){
-        this.gui = Gui.gui().title(Component.text(this.title)).rows(6).disableAllInteractions().create();
+        this.gui = Gui.gui().title(MiniMessageUtils.miniMessage("<title>", Map.of("title", title))).rows(6).disableAllInteractions().create();
         gui.getFiller().fillBorder(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         for (int i = 0; i < shopItemList.size(); i++) {
             ShopItem shopItem = shopItemList.get(i);

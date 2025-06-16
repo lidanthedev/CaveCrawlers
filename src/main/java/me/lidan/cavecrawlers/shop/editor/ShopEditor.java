@@ -38,11 +38,10 @@ public class ShopEditor {
         gui.disableAllInteractions();
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
 
-        // Initialize GUI items and actions here
-        initializeGuiItems();
+        initGui();
     }
 
-    private void initializeGuiItems() {
+    private void initGui() {
         List<ShopItem> shopItemList = shopMenu.getShopItemList();
         for (ShopItem shopItem : shopItemList) {
             ItemStack item = shopItem.toItem();

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ShopItemIngredientsEditor {
+    public static final int MAX_INGREDIENTS = 14;
     private final Player player;
     private final Gui gui;
     private final ShopMenu shopMenu;
@@ -38,22 +39,29 @@ public class ShopItemIngredientsEditor {
         this.shopItem = shopItem;
         gui.disableAllInteractions();
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
-        gui.setItem(4, 5, ItemBuilder.from(Material.LIME_CONCRETE).name(MiniMessageUtils.miniMessage("<green>New Ingredient")).asGuiItem(inventoryClickEvent -> {
-            new ItemsGui(player, "", (event, itemInfo) -> {
-                shopManager.updateShop(shopMenu, shopItem, itemInfo, 1);
-                reopen();
-            }, MiniMessageUtils.miniMessage("<blue>Items Browser")).open();
-        }));
+        if (shopItem.getIngredientsMap().size() > MAX_INGREDIENTS) {
+            gui.setItem(4, 5, ItemBuilder.from(Material.RED_CONCRETE).name(MiniMessageUtils.miniMessage("<red>Too many ingredients")).asGuiItem(event -> {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>You cannot have more than 14 ingredients!"));
+            }));
+        } else {
+            gui.setItem(4, 5, ItemBuilder.from(Material.LIME_CONCRETE).name(MiniMessageUtils.miniMessage("<green>New Ingredient")).asGuiItem(inventoryClickEvent -> {
+                new ItemsGui(player, "", (event, itemInfo) -> {
+                    shopManager.updateShop(shopMenu, shopItem, itemInfo, 1);
+                    reopen();
+                }, MiniMessageUtils.miniMessage("<blue>Items Browser")).open();
+            }));
+        }
         gui.setItem(4, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
             new ShopItemEditor(player, shopMenu, shopItem).open();
         }));
+        initGui();
     }
 
     public void reopen() {
         new ShopItemIngredientsEditor(player, shopMenu, shopItem).open();
     }
 
-    public void update() {
+    public void initGui() {
         for (Map.Entry<ItemInfo, Integer> entry : shopItem.getIngredientsMap().entrySet()) {
             ItemInfo itemInfo = entry.getKey();
             int amount = entry.getValue();
@@ -71,18 +79,13 @@ public class ShopItemIngredientsEditor {
                         shopManager.updateShop(shopMenu, shopItem, itemInfo, 0);
                         reopen();
                     } else if (event.isLeftClick()) {
-                        PromptManager.getInstance().prompt(player, "Enter new amount").thenAccept(input -> {
-                            try {
-                                int newAmount = Integer.parseInt(input);
-                                if (newAmount < 0) {
-                                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount cannot be negative!"));
-                                    return;
-                                }
-                                shopManager.updateShop(shopMenu, shopItem, itemInfo, newAmount);
-                                reopen();
-                            } catch (NumberFormatException e) {
-                                player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid amount! Please enter a valid number."));
+                        PromptManager.getInstance().promptNumber(player, "Enter new amount").thenAccept(newAmount -> {
+                            if (newAmount < 0) {
+                                player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount cannot be negative!"));
+                                return;
                             }
+                            shopManager.updateShop(shopMenu, shopItem, itemInfo, newAmount);
+                            reopen();
                         });
                     }
                 }
@@ -93,7 +96,6 @@ public class ShopItemIngredientsEditor {
     }
 
     public void open() {
-        update();
         gui.open(player);
     }
 }

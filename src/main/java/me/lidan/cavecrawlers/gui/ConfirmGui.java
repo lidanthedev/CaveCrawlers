@@ -37,14 +37,14 @@ public class ConfirmGui {
     public void initGui() {
         gui.setItem(2, 5, ItemBuilder.from(Material.PAPER).name(MiniMessageUtils.miniMessage("<yellow>Are you sure?")).asGuiItem());
 
-        gui.setItem(2, 2, ItemBuilder.from(Material.RED_CONCRETE).name(MiniMessageUtils.miniMessage("<red>Cancel")).asGuiItem(event -> {
+        gui.setItem(2, 8, ItemBuilder.from(Material.RED_CONCRETE).name(MiniMessageUtils.miniMessage("<red>Cancel")).asGuiItem(event -> {
             player.closeInventory();
             if (onCancel != null) {
                 onCancel.run();
             }
         }));
 
-        gui.setItem(2, 8, ItemBuilder.from(Material.GREEN_CONCRETE).name(MiniMessageUtils.miniMessage("<green>Confirm")).asGuiItem(event -> {
+        gui.setItem(2, 2, ItemBuilder.from(Material.GREEN_CONCRETE).name(MiniMessageUtils.miniMessage("<green>Confirm")).asGuiItem(event -> {
             player.closeInventory();
             if (onConfirm != null) {
                 onConfirm.run();

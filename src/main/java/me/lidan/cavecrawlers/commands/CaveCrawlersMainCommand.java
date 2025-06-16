@@ -31,13 +31,10 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
-import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.shop.editor.ShopEditor;
-import me.lidan.cavecrawlers.shop.editor.ShopItemEditor;
-import me.lidan.cavecrawlers.shop.editor.ShopItemIngredientsEditor;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -173,7 +170,6 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop add <shop-name> <ingredient-item> <amount>", "add items to the shop"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop editor <shop-name>", "open the shop editor"));
     }
@@ -710,47 +706,32 @@ public class CaveCrawlersMainCommand {
     @Subcommand("shop create")
     public void shopCreate(CommandSender sender, String shopId) {
         if (shopManager.getShop(shopId) != null) {
-            sender.sendMessage("ERROR! SHOP ALREADY EXISTS! you can edit it with /ct shop editor <shopId>");
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /ct shop editor <shop-name>"));
             return;
         }
         ShopMenu shop = shopManager.createShop(shopId);
         if (sender instanceof Player player) {
             new ShopEditor(player, shop).open();
         }
-        sender.sendMessage("Shop Created!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Created shop!"));
     }
 
     @Subcommand("shop update")
     @AutoComplete("@shopId * @itemID *")
     public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
-        sender.sendMessage("Updated shop!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Updated shop!"));
     }
 
     @Subcommand({"shop editor", "shop edit"})
     @AutoComplete("@shopId *")
     public void shopEditor(Player sender, String shopId) {
         ShopMenu shopMenu = shopManager.getShop(shopId);
-        assert shopMenu != null;
+        if (shopMenu == null) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP NOT FOUND!"));
+            return;
+        }
         new ShopEditor(sender, shopMenu).open();
-    }
-
-    @Subcommand("shop edit-ingredient")
-    @AutoComplete("@shopId * @itemID *")
-    public void shopEditIngredient(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = shopManager.getShop(shopId);
-        assert shopMenu != null;
-        ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
-        new ShopItemIngredientsEditor(sender, shopMenu, shopItem).open();
-    }
-
-    @Subcommand("shop edit-shop-item")
-    @AutoComplete("@shopId * @itemID *")
-    public void shopEditItem(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = shopManager.getShop(shopId);
-        assert shopMenu != null;
-        ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
-        new ShopItemEditor(sender, shopMenu, shopItem).open();
     }
 
     @Subcommand("shop updateCoins")
@@ -771,7 +752,7 @@ public class CaveCrawlersMainCommand {
     @AutoComplete("@shopId")
     public void shopDelete(CommandSender sender, String shopId) {
         shopManager.deleteShop(shopId);
-        sender.sendMessage("Deleted shop!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Deleted shop successfully!"));
     }
 
     @Subcommand("mining test")

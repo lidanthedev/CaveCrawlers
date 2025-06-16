@@ -1,8 +1,10 @@
-package me.lidan.cavecrawlers.gui;
+package me.lidan.cavecrawlers.shop.editor;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
+import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;

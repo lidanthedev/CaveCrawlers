@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Map;
 
 public class ShopItemEditor {
     public static final int SLOT_NOT_FOUND = -1;
@@ -54,15 +55,12 @@ public class ShopItemEditor {
                 }, MiniMessageUtils.miniMessage("<blue>Change Item")).open();
             }
             if (event.getClick() == ClickType.RIGHT) {
-                PromptManager.getInstance().promptNumber(player, "Enter new amount").thenAccept(amount -> {
-                    if (amount < MIN_ITEM_AMOUNT) {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount must be at least 1!"));
-                        return;
-                    }
+                PromptManager.getInstance().promptNumberMin(player, "Enter new amount", MIN_ITEM_AMOUNT).thenAccept(amount -> {
                     shopItem.setResultAmount(amount);
                     shopManager.saveShop(shopMenu.getId(), shopMenu);
                 }).exceptionally(throwable -> {
-                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                    Throwable root = throwable.getCause() != null ? throwable.getCause() : throwable;
+                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Error! <message>", Map.of("message", root.getMessage())));
                     return null;
                 }).whenComplete((unused, throwable) -> reopen());
             }
@@ -71,11 +69,7 @@ public class ShopItemEditor {
             new ShopEditor(player, shopMenu).open();
         }));
         gui.setItem(4, 3, ItemBuilder.from(Material.YELLOW_CONCRETE).name(MiniMessageUtils.miniMessage("<gold>Set Coins")).asGuiItem(event -> {
-            PromptManager.getInstance().promptNumber(player, "Enter new coin price").thenAccept(coins -> {
-                if (coins < 0) {
-                    player.sendMessage(MiniMessageUtils.miniMessage("<red>Coins cannot be negative!"));
-                    return;
-                }
+            PromptManager.getInstance().promptNumberMin(player, "Enter new coin price", 0).thenAccept(coins -> {
                 int slotID = shopMenu.getShopItemList().indexOf(shopItem);
                 if (slotID == SLOT_NOT_FOUND) {
                     player.sendMessage(MiniMessageUtils.miniMessage("<red>Shop item not found!"));
@@ -83,7 +77,8 @@ public class ShopItemEditor {
                 }
                 shopManager.updateShopCoins(shopMenu.getId(), slotID, coins);
             }).exceptionally(throwable -> {
-                player.sendMessage(MiniMessageUtils.miniMessage("<red>Invalid number!"));
+                Throwable root = throwable.getCause() != null ? throwable.getCause() : throwable;
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>Error! <message>", Map.of("message", root.getMessage())));
                 return null;
             }).whenComplete((unused, throwable) -> reopen());
         }));

@@ -27,18 +27,22 @@ public class GuiItems {
     public static final @NotNull GuiItem GLASS_ITEM = ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem();
 
     public static void setupNextPreviousItems(PaginatedGui gui, int row) {
-        gui.setItem(row, 9, GuiItems.GLASS_ITEM);
-        gui.setItem(row, 1, GuiItems.GLASS_ITEM);
+        setupNextPreviousItems(gui, row, 1, 9);
+    }
+
+    public static void setupNextPreviousItems(PaginatedGui gui, int row, int prevColumn, int nextColumn) {
+        gui.setItem(row, nextColumn, GuiItems.GLASS_ITEM);
+        gui.setItem(row, prevColumn, GuiItems.GLASS_ITEM);
         if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
-            gui.setItem(row, 9, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
+            gui.setItem(row, nextColumn, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
                 gui.next();
-                setupNextPreviousItems(gui, row);
+                setupNextPreviousItems(gui, row, prevColumn, nextColumn);
             }));
         }
         if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
-            gui.setItem(row, 1, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
+            gui.setItem(row, prevColumn, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
                 gui.previous();
-                setupNextPreviousItems(gui, row);
+                setupNextPreviousItems(gui, row, prevColumn, nextColumn);
             }));
         }
         gui.update();

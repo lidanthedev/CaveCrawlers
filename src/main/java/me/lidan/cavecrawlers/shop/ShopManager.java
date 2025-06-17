@@ -135,7 +135,7 @@ public class ShopManager {
         shopConfig.save();
     }
 
-    public void deleteShop(String shopID) throws IllegalArgumentException {
+    public void removeShop(String shopID) throws IllegalArgumentException {
         ShopMenu shopMenu = getShop(shopID);
         if (shopMenu == null) {
             throw new IllegalArgumentException("Shop with ID " + shopID + " does not exist.");

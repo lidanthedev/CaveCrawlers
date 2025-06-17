@@ -741,18 +741,18 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("Updated shop!");
     }
 
-    @Subcommand("shop remove")
+    @Subcommand("shop remove-item")
     @AutoComplete("@shopId *")
-    public void shopRemove(CommandSender sender, String shopId, int slotId) {
+    public void shopRemoveItem(CommandSender sender, String shopId, int slotId) {
         shopManager.removeShopItem(shopId, slotId);
-        sender.sendMessage("Removed slot from shop!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed slot from shop!"));
     }
 
-    @Subcommand("shop delete")
+    @Subcommand("shop remove")
     @AutoComplete("@shopId")
-    public void shopDelete(CommandSender sender, String shopId) {
-        shopManager.deleteShop(shopId);
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Deleted shop successfully!"));
+    public void shopRemove(CommandSender sender, String shopId) {
+        shopManager.removeShop(shopId);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed shop successfully!"));
     }
 
     @Subcommand("mining test")

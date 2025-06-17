@@ -55,6 +55,16 @@ public class PromptManager {
                 });
     }
 
+    public CompletableFuture<Integer> promptNumberMin(Player player, String promptTitle, int min) {
+        return promptNumber(player, promptTitle)
+                .thenApply(response -> {
+                    if (response < min) {
+                        throw new PromptException("Number must be at least " + min + ": " + response);
+                    }
+                    return response;
+                });
+    }
+
     public static void showTitle(Player player, String promptTitle) {
         showTitle(player, promptTitle, PROMPT_SUBTITLE);
     }

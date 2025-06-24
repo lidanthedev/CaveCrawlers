@@ -30,10 +30,11 @@ import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
-import me.lidan.cavecrawlers.shop.ShopItem;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
+import me.lidan.cavecrawlers.shop.editor.ShopEditor;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -56,12 +57,13 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
-import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.bukkit.Bukkit.getConsoleSender;
 
@@ -168,8 +170,8 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop add <shop-name> <ingredient-item> <amount>", "add items to the shop"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop (middle-click to edit)"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop editor <shop-name>", "open the shop editor"));
     }
 
     @Subcommand("help altar")
@@ -703,15 +705,33 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop create")
     public void shopCreate(CommandSender sender, String shopId) {
-        shopManager.createShop(shopId);
-        sender.sendMessage("Shop Created!");
+        if (shopManager.getShop(shopId) != null) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /ct shop editor <shop-name>"));
+            return;
+        }
+        ShopMenu shop = shopManager.createShop(shopId);
+        if (sender instanceof Player player) {
+            new ShopEditor(player, shop).open();
+        }
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Created shop!"));
     }
 
     @Subcommand("shop update")
     @AutoComplete("@shopId * @itemID *")
     public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
-        sender.sendMessage("Updated shop!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Updated shop!"));
+    }
+
+    @Subcommand({"shop editor", "shop edit"})
+    @AutoComplete("@shopId *")
+    public void shopEditor(Player sender, String shopId) {
+        ShopMenu shopMenu = shopManager.getShop(shopId);
+        if (shopMenu == null) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP NOT FOUND!"));
+            return;
+        }
+        new ShopEditor(sender, shopMenu).open();
     }
 
     @Subcommand("shop updateCoins")
@@ -721,27 +741,18 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("Updated shop!");
     }
 
+    @Subcommand("shop remove-item")
+    @AutoComplete("@shopId *")
+    public void shopRemoveItem(CommandSender sender, String shopId, int slotId) {
+        shopManager.removeShopItem(shopId, slotId);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed slot from shop!"));
+    }
+
     @Subcommand("shop remove")
-    @AutoComplete("@shopId *")
-    public void shopRemove(CommandSender sender, String shopId, int slotId) {
-        shopManager.removeShop(shopId, slotId);
-        sender.sendMessage("Removed slot from shop!");
-    }
-
-    @Subcommand("shop delete")
     @AutoComplete("@shopId")
-    public void shopDelete(CommandSender sender, String shopId) {
-        shopManager.deleteShop(shopId);
-        sender.sendMessage("Deleted shop!");
-    }
-
-    @Subcommand("shop edit")
-    @AutoComplete("@shopId *")
-    public void shopEdit(Player sender, String shopId, int slotId) {
-        ShopMenu shopMenu = shopManager.getShop(shopId);
-        assert shopMenu != null;
-        ShopItem shopItem = shopMenu.getShopItemList().get(slotId);
-        shopMenu.shopEditor(sender, shopItem, slotId);
+    public void shopRemove(CommandSender sender, String shopId) {
+        shopManager.removeShop(shopId);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed shop successfully!"));
     }
 
     @Subcommand("mining test")
@@ -913,6 +924,23 @@ public class CaveCrawlersMainCommand {
     public void testMiniMessages(Player sender, @Default("<green>Testing Message") String message) {
         Component component = MiniMessageUtils.miniMessage(message);
         sender.sendMessage(component);
+    }
+
+    @Subcommand("test prompt")
+    public void testPrompt(Player sender) {
+        CompletableFuture<String> future = PromptManager.getInstance().prompt(sender, "Search");
+        future.thenAccept(s -> {
+            if (s.isEmpty()) {
+                sender.sendMessage("You didn't enter anything!");
+            } else {
+                sender.sendMessage("You entered: " + s);
+            }
+        });
+        // if exception occurs, it will be handled by the exceptionally block
+        future.exceptionally(throwable -> {
+            sender.sendMessage("An error occurred: " + throwable.getMessage());
+            return null;
+        });
     }
 
     @Subcommand("mythic skill")

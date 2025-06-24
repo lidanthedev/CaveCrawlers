@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -12,6 +13,9 @@ public class ShopManager {
     private static ShopManager instance;
 
     private final Map<String, ShopMenu> menuMap = new HashMap<>();
+
+    private ShopManager() {
+    }
 
     public void registerMenu(String key, ShopMenu menu) {
         menu.setId(key);
@@ -33,9 +37,7 @@ public class ShopManager {
 
         ShopMenu shopMenu = new ShopMenu(title, new ArrayList<>());
         shopMenu.setId(shopID);
-        CustomConfig config = getConfig(shopID);
-        config.set(shopID, shopMenu);
-        config.save();
+        saveShop(shopID, shopMenu);
         registerMenu(shopID, shopMenu);
         return shopMenu;
     }
@@ -70,9 +72,7 @@ public class ShopManager {
         shopItemList.add(shopItem);
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
+        saveShop(shopID, shopMenu);
     }
 
     public Set<String> getKeys() {
@@ -90,12 +90,18 @@ public class ShopManager {
         return instance;
     }
 
-    public void updateShop(String shopID, int slotID, String ingredientID, int amount) {
+    public void updateShop(String shopID, int slotID, String ingredientID, int amount) throws IllegalArgumentException {
         ShopMenu shopMenu = getShop(shopID);
-        assert shopMenu != null;
+        if (shopMenu == null) {
+            throw new IllegalArgumentException("Shop with ID " + shopID + " does not exist.");
+        }
         ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
-        Map<ItemInfo, Integer> itemsMap = shopItem.getItemsMap();
         ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(ingredientID);
+        updateShop(shopMenu, shopItem, itemInfo, amount);
+    }
+
+    public void updateShop(ShopMenu shopMenu, ShopItem shopItem, ItemInfo itemInfo, int amount) {
+        Map<ItemInfo, Integer> itemsMap = shopItem.getIngredientsMap();
         if (amount == 0){
             itemsMap.remove(itemInfo);
         }
@@ -104,42 +110,55 @@ public class ShopManager {
         }
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
+        saveShop(shopMenu.getId(), shopMenu);
     }
 
-    public void updateShopCoins(String shopID, int slotID, double coins) {
+    public void updateShopCoins(String shopID, int slotID, double coins) throws IllegalArgumentException {
         ShopMenu shopMenu = getShop(shopID);
-        assert shopMenu != null;
+        if (shopMenu == null) {
+            throw new IllegalArgumentException("Shop with ID " + shopID + " does not exist.");
+        }
         ShopItem shopItem = shopMenu.getShopItemList().get(slotID);
         shopItem.setPrice(coins);
         shopMenu.buildGui();
 
+        saveShop(shopID, shopMenu);
+    }
+
+    public void saveShop(String shopID, ShopMenu shopMenu) {
+        if (shopMenu != null) {
+            shopMenu.buildGui();
+            menuMap.put(shopID, shopMenu);
+        }
         CustomConfig shopConfig = getConfig(shopID);
         shopConfig.set(shopID, shopMenu);
         shopConfig.save();
     }
 
-    public void removeShop(String shopID, int slotID) {
+    public void removeShop(String shopID) throws IllegalArgumentException {
         ShopMenu shopMenu = getShop(shopID);
-        assert shopMenu != null;
+        if (shopMenu == null) {
+            throw new IllegalArgumentException("Shop with ID " + shopID + " does not exist.");
+        }
+        menuMap.remove(shopID);
+
+        saveShop(shopID, null);
+    }
+
+    public void removeShopItem(String shopID, int slotID) throws IllegalArgumentException {
+        ShopMenu shopMenu = getShop(shopID);
+        if (shopMenu == null) {
+            throw new IllegalArgumentException("Shop with ID " + shopID + " does not exist.");
+        }
+        removeShopItem(shopMenu, slotID);
+    }
+
+    public void removeShopItem(@NotNull ShopMenu shopMenu, int slotID) {
+        String shopID = shopMenu.getId();
         List<ShopItem> shopItemList = shopMenu.getShopItemList();
         shopItemList.remove(slotID);
         shopMenu.buildGui();
 
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, shopMenu);
-        shopConfig.save();
-    }
-
-    public void deleteShop(String shopID){
-        ShopMenu shopMenu = getShop(shopID);
-        assert shopMenu != null;
-        menuMap.remove(shopID);
-
-        CustomConfig shopConfig = getConfig(shopID);
-        shopConfig.set(shopID, null);
-        shopConfig.save();
+        saveShop(shopID, shopMenu);
     }
 }

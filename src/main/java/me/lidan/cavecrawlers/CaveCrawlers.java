@@ -9,7 +9,6 @@ import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarLoader;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.api.CaveCrawlersAPI;
-import me.lidan.cavecrawlers.api.CaveCrawlersInitEvent;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
@@ -52,7 +51,6 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -112,8 +110,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerCommands();
         registerEvents();
         registerPlaceholders();
-
-        Bukkit.getPluginManager().callEvent(new CaveCrawlersInitEvent());
 
         startTasks();
 
@@ -373,13 +369,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new FirstJoinListener(this));
         registerEvent(new AltarListener());
         registerEvent(new ChatPromptListener());
-        registerEvent(new Listener() {
-            @EventHandler
-            public void onLoadSomething(CaveCrawlersInitEvent event) {
-                // This is a placeholder for any additional initialization logic
-                getLogger().info("CaveCrawlers has been initialized successfully!");
-            }
-        });
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 

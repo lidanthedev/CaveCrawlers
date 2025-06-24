@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.ItemsAPI;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ItemsManager {
+public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;

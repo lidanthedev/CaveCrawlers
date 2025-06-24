@@ -31,18 +31,22 @@ public class GuiItems {
     }
 
     public static void setupNextPreviousItems(PaginatedGui gui, int row, int prevColumn, int nextColumn) {
-        gui.setItem(row, nextColumn, GuiItems.GLASS_ITEM);
-        gui.setItem(row, prevColumn, GuiItems.GLASS_ITEM);
+        setupNextPreviousItems(gui, row, row, prevColumn, nextColumn);
+    }
+
+    public static void setupNextPreviousItems(PaginatedGui gui, int prevRow, int nextRow, int prevColumn, int nextColumn) {
+        gui.setItem(nextRow, nextColumn, GuiItems.GLASS_ITEM);
+        gui.setItem(prevRow, prevColumn, GuiItems.GLASS_ITEM);
         if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
-            gui.setItem(row, nextColumn, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
+            gui.setItem(nextRow, nextColumn, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
                 gui.next();
-                setupNextPreviousItems(gui, row, prevColumn, nextColumn);
+                setupNextPreviousItems(gui, prevRow, nextRow, prevColumn, nextColumn);
             }));
         }
         if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
-            gui.setItem(row, prevColumn, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
+            gui.setItem(prevRow, prevColumn, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
                 gui.previous();
-                setupNextPreviousItems(gui, row, prevColumn, nextColumn);
+                setupNextPreviousItems(gui, prevRow, nextRow, prevColumn, nextColumn);
             }));
         }
         gui.update();

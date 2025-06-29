@@ -17,9 +17,6 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
-import me.lidan.cavecrawlers.griffin.GriffinDrop;
-import me.lidan.cavecrawlers.griffin.GriffinDrops;
-import me.lidan.cavecrawlers.griffin.GriffinLoader;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -172,17 +169,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     /**
-     * Register griffin
-     */
-    private void registerGriffin() {
-        if (mythicBukkit == null) {
-            log.warn("MythicMobs not found, disabling griffin feature");
-            return;
-        }
-        GriffinLoader.getInstance().load();
-    }
-
-    /**
      * Register perks
      */
     private void registerPerks() {
@@ -209,8 +195,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         ConfigurationSerialization.registerClass(Cuboid.class);
         ConfigurationSerialization.registerClass(Skill.class);
         ConfigurationSerialization.registerClass(Skills.class);
-        ConfigurationSerialization.registerClass(GriffinDrop.class);
-        ConfigurationSerialization.registerClass(GriffinDrops.class);
         ConfigurationSerialization.registerClass(BossDrop.class);
         ConfigurationSerialization.registerClass(BossDrops.class);
         ConfigurationSerialization.registerClass(Perk.class);
@@ -249,7 +233,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
         if (mythicBukkit != null) {
             abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
-            abilityManager.registerAbility("SPADE", new SpadeAbility());
         }
         abilityManager.registerAbility("HULK", new HulkAbility());
         abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
@@ -358,8 +341,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new SkillXpGainingListener());
         registerEvent(new MenuItemListener());
         registerEvent(new EntityChangeBlockListener());
-        if (mythicBukkit != null)
-            registerEvent(new GriffinListener());
         registerEvent(new WorldChangeListener());
         registerEvent(new InfoclickListener());
         registerEvent(new RightClickPlayerViewer());

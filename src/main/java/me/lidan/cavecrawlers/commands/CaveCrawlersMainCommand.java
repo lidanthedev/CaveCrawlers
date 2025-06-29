@@ -10,10 +10,6 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
-import me.lidan.cavecrawlers.griffin.GriffinDrop;
-import me.lidan.cavecrawlers.griffin.GriffinDrops;
-import me.lidan.cavecrawlers.griffin.GriffinLoader;
-import me.lidan.cavecrawlers.griffin.GriffinManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
@@ -80,7 +76,6 @@ public class CaveCrawlersMainCommand {
     private final ItemsManager itemsManager = ItemsManager.getInstance();
     private final StatsManager statsManager = StatsManager.getInstance();
     private final MiningManager miningManager = MiningManager.getInstance();
-    private final GriffinManager griffinManager = GriffinManager.getInstance();
     private final AbilityManager abilityManager = AbilityManager.getInstance();
     private final PerksManager perksManager = PerksManager.getInstance();
     private final EntityManager entityManager = EntityManager.getInstance();
@@ -839,17 +834,6 @@ public class CaveCrawlersMainCommand {
         plugin.getLogger().info("Ability reflected: " + boomAbility);
     }
 
-    @Subcommand("test griffinGrass")
-    public void testGriffinGrass(Player sender) {
-        Block block = griffinManager.generateGriffinLocation(sender);
-
-        sender.teleport(block.getLocation().add(0.5, 2, 0.5));
-
-        sender.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
-
-        sender.sendMessage("Got: " + block.getLocation() + " With block: " + block.getType());
-    }
-
     @Subcommand("test griffinCrash")
     public void testGriffinCrash(Player sender) {
         Location pos1 = new Location(sender.getWorld(), -88, 88, 148);
@@ -881,14 +865,6 @@ public class CaveCrawlersMainCommand {
             return;
         }
         plugin.getLogger().info("Ability: " + ability);
-    }
-
-    @Subcommand("test griffinConf")
-    public void testGriffinConfig(Player sender) {
-        GriffinDrops drops = new GriffinDrops(List.of(new GriffinDrop("mob", 0.5, "MinosHunter1"), new GriffinDrop("mob", 0.3, "SiameseLynxes1"), new GriffinDrop("coins", 0.2, "1000-5000")));
-        CustomConfig customConfig = GriffinLoader.getInstance().getConfig("COMMON");
-        customConfig.set("COMMON", drops);
-        customConfig.save();
     }
 
     @Subcommand("test perks")

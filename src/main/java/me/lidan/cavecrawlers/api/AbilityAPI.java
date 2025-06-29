@@ -26,10 +26,10 @@ public interface AbilityAPI {
     ItemAbility getAbilityByID(String ID);
 
     /**
-     * Builds an ability from the given ID.
+     * Gets the ID for a given ability instance.
      *
-     * @param ability the unique identifier for the ability
-     * @return the ItemAbility instance associated with the ID, or null if not found
+     * @param ability the ItemAbility instance
+     * @return the unique identifier for the ability, or null if not found
      */
     @Nullable
     String getIDbyAbility(ItemAbility ability);

@@ -61,7 +61,6 @@ public class StatsManager implements StatsAPI {
         stats.get(StatType.MANA).setValue(value);
     }
 
-    @Override
     public void applyStats(Player player){
         Stats stats = calculateStats(player);
 

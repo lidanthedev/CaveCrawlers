@@ -8,6 +8,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+/**
+ * API for managing custom items in the CaveCrawlers plugin.
+ * Provides methods for registering, retrieving, and building custom items, as well as extracting item information.
+ */
 public interface ItemsAPI {
     /**
      * Registers an item with the given ID and ItemInfo.

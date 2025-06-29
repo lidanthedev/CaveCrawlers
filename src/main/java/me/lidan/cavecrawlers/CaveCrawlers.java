@@ -8,22 +8,19 @@ import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarLoader;
 import me.lidan.cavecrawlers.altar.AltarManager;
-import me.lidan.cavecrawlers.api.CaveCrawlersAPI;
+import me.lidan.cavecrawlers.api.*;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
+import me.lidan.cavecrawlers.bosses.BossManager;
 import me.lidan.cavecrawlers.commands.*;
-import me.lidan.cavecrawlers.drops.Drop;
-import me.lidan.cavecrawlers.drops.DropLoader;
-import me.lidan.cavecrawlers.drops.EntityDrops;
-import me.lidan.cavecrawlers.drops.SimpleDrop;
+import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.drops.*;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.griffin.GriffinDrop;
 import me.lidan.cavecrawlers.griffin.GriffinDrops;
 import me.lidan.cavecrawlers.griffin.GriffinLoader;
-import me.lidan.cavecrawlers.items.ItemInfo;
-import me.lidan.cavecrawlers.items.ItemType;
-import me.lidan.cavecrawlers.items.ItemsLoader;
-import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.listeners.*;
@@ -37,9 +34,11 @@ import me.lidan.cavecrawlers.objects.TitleOptions;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksLoader;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.*;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -487,11 +486,70 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         }
     }
 
+    public static CaveCrawlersAPI getAPI() {
+        return CaveCrawlers.getInstance();
+    }
+
+    @Override
+    public AbilityAPI getAbilityAPI() {
+        return AbilityManager.getInstance();
+    }
+
+    @Override
+    public ActionBarAPI getActionBarAPI() {
+        return ActionBarManager.getInstance();
+    }
+
+    @Override
+    public BossAPI getBossAPI() {
+        return BossManager.getInstance();
+    }
+
+    @Override
+    public DamageAPI getDamageAPI() {
+        return DamageManager.getInstance();
+    }
+
+    @Override
+    public DropsAPI getDropsAPI() {
+        return DropsManager.getInstance();
+    }
+
+    @Override
+    public EntityAPI getEntityAPI() {
+        return EntityManager.getInstance();
+    }
+
+    @Override
+    public ItemsAPI getItemsAPI() {
+        return ItemsManager.getInstance();
+    }
+
+    @Override
+    public MiningAPI getMiningAPI() {
+        return MiningManager.getInstance();
+    }
+
+    @Override
+    public PromptAPI getPromptAPI() {
+        return PromptManager.getInstance();
+    }
+
+    @Override
+    public SkillsAPI getSkillsAPI() {
+        return SkillsManager.getInstance();
+    }
+
     /**
      * Get the plugin instance
      * @return the plugin instance
      */
     public static CaveCrawlers getInstance() {
         return CaveCrawlers.getPlugin(CaveCrawlers.class);
+    }
+
+    @Override
+    public StatsAPI getStatsAPI() {
+        return StatsManager.getInstance();
     }
 }

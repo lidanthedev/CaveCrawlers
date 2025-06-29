@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.MiningAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class MiningManager {
+public class MiningManager implements MiningAPI {
 
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -39,6 +40,7 @@ public class MiningManager {
     private final Map<Block, Material> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
 
+    @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
         if (blockInfo.getBlockPower() < 0){
             blockInfoMap.remove(block);
@@ -51,6 +53,7 @@ public class MiningManager {
         blockInfoMap.put(block, blockInfo);
     }
 
+    @Override
     public MiningProgress getProgress(Player player){
         return getProgress(player.getUniqueId());
     }
@@ -59,6 +62,7 @@ public class MiningManager {
         return progressMap.get(player);
     }
 
+    @Override
     public void setProgress(Player player, @Nullable MiningProgress progress){
         setProgress(player.getUniqueId(), progress);
     }
@@ -74,6 +78,7 @@ public class MiningManager {
         }
     }
 
+    @Override
     public void breakBlock(Player player, Block block){
         applySlowDig(player);
         Stats stats = StatsManager.getInstance().getStats(player);

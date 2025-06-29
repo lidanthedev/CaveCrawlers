@@ -67,6 +67,7 @@ import java.util.Arrays;
 @Slf4j
 @Getter
 public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
+    public static final int TICKS_TO_SECOND = 20;
     public static Economy economy = null;
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
@@ -99,7 +100,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerBlocks();
         registerDrops();
         registerBosses();
-        registerGriffin();
         registerPerks();
         registerAltars();
         registerSkills();
@@ -392,7 +392,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
             });
-        }, 0, 20);
+        }, 0, TICKS_TO_SECOND);
     }
 
     /**

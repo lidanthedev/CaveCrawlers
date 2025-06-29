@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.stats;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.ActionBarAPI;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class ActionBarManager {
+public class ActionBarManager implements ActionBarAPI {
     public static final int ACTION_BAR_COOLDOWN = 1000;
     private static ActionBarManager instance;
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -58,30 +59,33 @@ public class ActionBarManager {
         return MiniMessageUtils.miniMessage(formatCopy, placeholders);
     }
 
+    private static void sendActionBar(Player player, Component message) {
+        if (enabled) {
+            player.sendActionBar(message);
+        }
+    }
+
+    @Override
     public void actionBar(Player player, String alert){
         Component args = actionBarBuildAdventure(player, alert);
         sendActionBar(player, args);
         cooldown.startCooldown(player.getUniqueId());
     }
 
+    @Override
     public void actionBar(Player player, Component alert) {
         Component args = actionBarBuildAdventure(player, alert);
         sendActionBar(player, args);
         cooldown.startCooldown(player.getUniqueId());
     }
 
+    @Override
     public void actionBar(Player player){
         if (cooldown.getCurrentCooldown(player.getUniqueId()) < ACTION_BAR_COOLDOWN){
             return;
         }
         Component args = actionBarBuildAdventure(player);
         sendActionBar(player, args);
-    }
-
-    public static void sendActionBar(Player player, Component message) {
-        if (enabled) {
-            player.sendActionBar(message);
-        }
     }
 
     public static ActionBarManager getInstance() {

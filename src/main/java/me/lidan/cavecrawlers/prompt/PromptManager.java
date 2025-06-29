@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.prompt;
 
 import lombok.Getter;
+import me.lidan.cavecrawlers.api.PromptAPI;
 import me.lidan.cavecrawlers.utils.TitleBuilder;
 import org.bukkit.entity.Player;
 
@@ -9,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class PromptManager {
+public class PromptManager implements PromptAPI {
     @Getter
     private static final Map<UUID, PromptFuture> futureMap = new ConcurrentHashMap<>();
     public static final int TITLE_FADE_IN_AND_OUT = 500;
@@ -29,10 +30,12 @@ public class PromptManager {
         // Private constructor to prevent instantiation
     }
 
+    @Override
     public CompletableFuture<String> prompt(Player player, String promptTitle) {
         return prompt(player, promptTitle, PROMPT_SUBTITLE);
     }
 
+    @Override
     public CompletableFuture<String> prompt(Player player, String promptTitle, String promptSubtitle) {
         PromptFuture future = new PromptFuture(promptTitle);
         futureMap.put(player.getUniqueId(), future);
@@ -44,6 +47,7 @@ public class PromptManager {
         return future;
     }
 
+    @Override
     public CompletableFuture<Integer> promptNumber(Player player, String promptTitle) {
         return prompt(player, promptTitle)
                 .thenApply(response -> {
@@ -55,6 +59,7 @@ public class PromptManager {
                 });
     }
 
+    @Override
     public CompletableFuture<Integer> promptNumberMin(Player player, String promptTitle, int min) {
         return promptNumber(player, promptTitle)
                 .thenApply(response -> {

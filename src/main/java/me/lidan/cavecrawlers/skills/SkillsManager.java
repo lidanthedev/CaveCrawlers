@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Slf4j
 @Getter
-public class SkillsManager extends ConfigLoader<SkillInfo> {
+public class SkillsManager extends ConfigLoader<SkillInfo> implements me.lidan.cavecrawlers.api.SkillsAPI {
     private static final String DIR_NAME = "skills";
     private static SkillsManager instance;
     private Map<String, CustomConfig> skillConfigs = new HashMap<>();
@@ -40,11 +40,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         skillInfoMap.put(key, value);
     }
 
+    @Override
     public SkillInfo getSkillInfo(String key) {
         return skillInfoMap.get(key);
     }
 
 
+    @Override
     public void tryGiveXp(SkillInfo skillType, SkillAction reason, String material, Player player) {
         List<SkillObjective> objectives = skillType.getActionObjectives().get(reason);
         if (objectives == null) {
@@ -78,6 +80,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         tryGiveXp(skillType, reason, material.name(), player);
     }
 
+    @Override
     public void tryGiveXp(SkillAction reason, String material, Player player) {
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
         for (Skill skill : skills) {

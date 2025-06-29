@@ -1,27 +1,27 @@
 package me.lidan.cavecrawlers.entities;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.EntityAPI;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class EntityManager {
+public class EntityManager implements EntityAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private static final Logger log = LoggerFactory.getLogger(EntityManager.class);
     private static final boolean LOOT_SHARE_BY_DEFAULT = plugin.getConfig().getBoolean("loot-share-by-default", true);
     private static EntityManager instance;
     private final Map<UUID, EntityData> entityDataMap = new HashMap<>();
 
+    @Override
     public void setEntityData(UUID entityUuid, EntityData entityData) {
         entityDataMap.put(entityUuid, entityData);
     }
 
+    @Override
     public void addDamage(UUID playerUuid, Entity entity, double damage) {
         if (entity instanceof LivingEntity livingEntity) {
             EntityData entityData = entityDataMap.computeIfAbsent(entity.getUniqueId(), uuid -> {
@@ -36,6 +36,7 @@ public class EntityManager {
         }
     }
 
+    @Override
     public double getDamage(UUID playerUuid, Entity entity) {
         EntityData entityData = entityDataMap.get(entity.getUniqueId());
         if (entityData == null) {

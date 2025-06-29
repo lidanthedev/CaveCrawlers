@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
+import me.lidan.cavecrawlers.api.StatsAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
 import me.lidan.cavecrawlers.items.ItemType;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class StatsManager {
+public class StatsManager implements StatsAPI {
     public static final int SPEED_LIMIT = 500;
     public static final int ATTACK_SPEED_LIMIT = 100;
     private final Map<UUID, Stats> statsMap;
@@ -35,6 +36,7 @@ public class StatsManager {
         return instance;
     }
 
+    @Override
     public Stats getStats(UUID uuid){
         if (!statsMap.containsKey(uuid)){
             statsMap.put(uuid, new Stats());
@@ -42,6 +44,7 @@ public class StatsManager {
         return statsMap.get(uuid);
     }
 
+    @Override
     public Stats getStats(Player player){
         return getStats(player.getUniqueId());
     }
@@ -58,6 +61,7 @@ public class StatsManager {
         stats.get(StatType.MANA).setValue(value);
     }
 
+    @Override
     public void applyStats(Player player){
         Stats stats = calculateStats(player);
 
@@ -107,6 +111,7 @@ public class StatsManager {
         return stats;
     }
 
+    @Override
     public Stats calculateStats(Player player) {
         Stats oldStats = getStats(player);
         Stats stats = calculateBaseStats();

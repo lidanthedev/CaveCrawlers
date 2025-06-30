@@ -32,7 +32,14 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     }
 
     public void load(){
-        registerItemsFromFolder(fileDir);
+        load(fileDir);
+    }
+
+    public void load(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+        registerItemsFromFolder(dir);
     }
 
     public void registerItemsFromFolder(File dir) {

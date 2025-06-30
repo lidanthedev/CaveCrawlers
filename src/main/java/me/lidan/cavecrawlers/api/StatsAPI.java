@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.api;
 
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.entity.Player;
 
@@ -33,4 +34,12 @@ public interface StatsAPI {
      * @return The calculated Stats object.
      */
     Stats calculateStats(Player player);
+
+    /**
+     * Registers a stat type
+     *
+     * @param id       the unique identifier for the stat
+     * @param statType the StatType
+     */
+    void register(String id, StatType statType);
 }

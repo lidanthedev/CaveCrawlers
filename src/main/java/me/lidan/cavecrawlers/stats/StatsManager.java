@@ -142,6 +142,11 @@ public class StatsManager implements StatsAPI {
         return stats;
     }
 
+    @Override
+    public void register(String id, StatType statType) {
+        StatType.register(id, statType);
+    }
+
     private static Stats getStatsFromSkills(Player player) {
         return PlayerDataManager.getInstance().getStatsFromSkills(player);
     }

@@ -91,10 +91,16 @@ processResources {
     }
 }
 
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier = 'sources'
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifact shadowJar
+            artifact sourcesJar // Attach sources JAR
             groupId = project.group
             artifactId = project.name
             version = project.version

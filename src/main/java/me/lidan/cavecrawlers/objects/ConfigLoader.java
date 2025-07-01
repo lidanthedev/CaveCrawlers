@@ -35,9 +35,17 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         load(fileDir);
     }
 
+    /**
+     * Load items from a directory.
+     *
+     * @param dir the plugin data folder.
+     */
     public void load(File dir) {
         if (!dir.exists()) {
             return;
+        }
+        if (dir != fileDir) {
+            dir = new File(dir, fileDir.getName());
         }
         registerItemsFromFolder(dir);
     }

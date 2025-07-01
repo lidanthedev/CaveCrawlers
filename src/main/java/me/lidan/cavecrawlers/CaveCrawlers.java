@@ -91,13 +91,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerConfig();
 
         registerAbilities();
-        registerItems();
-        registerShops();
-        registerBlocks();
-        registerDrops();
-        registerBosses();
-        registerPerks();
-        registerAltars();
+        registerFromConfigs(this);
         registerSkills();
         registerLevels();
 
@@ -113,6 +107,17 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    @Override
+    public void registerFromConfigs(JavaPlugin plugin) {
+        registerItems(plugin);
+        registerShops(plugin);
+        registerBlocks(plugin);
+        registerDrops(plugin);
+        registerBosses(plugin);
+        registerPerks(plugin);
+        registerAltars(plugin);
     }
 
     /**
@@ -140,8 +145,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     /**
      * Register bosses
      */
-    private void registerBosses() {
-        BossLoader.getInstance().load();
+    private void registerBosses(JavaPlugin plugin) {
+        BossLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
@@ -156,23 +161,23 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     /**
      * Register drops
      */
-    private void registerDrops() {
-        DropLoader.getInstance().load();
+    private void registerDrops(JavaPlugin plugin) {
+        DropLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
      * Register blocks
      * Used by the custom mining system
      */
-    private void registerBlocks() {
-        BlockLoader.getInstance().load();
+    private void registerBlocks(JavaPlugin plugin) {
+        BlockLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
      * Register perks
      */
-    private void registerPerks() {
-        PerksLoader.getInstance().load();
+    private void registerPerks(JavaPlugin plugin) {
+        PerksLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
@@ -248,25 +253,25 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     /**
      * Register items
      */
-    public void registerItems() {
+    public void registerItems(JavaPlugin plugin) {
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
-        itemsLoader.load();
+        itemsLoader.load(plugin.getDataFolder());
     }
 
     /**
      * Register shops
      */
-    public void registerShops() {
+    public void registerShops(JavaPlugin plugin) {
         ShopLoader shopLoader = ShopLoader.getInstance();
-        shopLoader.load();
+        shopLoader.load(plugin.getDataFolder());
     }
 
     /**
      * Register altars
      */
-    public void registerAltars() {
+    public void registerAltars(JavaPlugin plugin) {
         AltarLoader altarLoader = AltarLoader.getInstance();
-        altarLoader.load();
+        altarLoader.load(plugin.getDataFolder());
     }
 
     /**

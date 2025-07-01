@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.api;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 /**
  * The main API interface for the CaveCrawlers plugin.
  * Provides access to all sub-APIs for abilities, action bars, bosses, damage, drops, entities, items, mining, prompts, skills, and stats.
@@ -59,4 +61,11 @@ public interface CaveCrawlersAPI {
      * @return The StatsAPI for managing player stats.
      */
     StatsAPI getStatsAPI();
+
+    /**
+     * Registers all configs from the plugin's folder.
+     *
+     * @param plugin the JavaPlugin instance to register configs from
+     */
+    void registerFromConfigs(JavaPlugin plugin);
 }

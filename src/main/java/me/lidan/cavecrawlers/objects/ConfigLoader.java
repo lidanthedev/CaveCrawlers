@@ -19,10 +19,10 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final Map<String, File> configMap;
     @Getter
     private final File fileDir;
-    private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
+    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
 
     protected ConfigLoader(Class<T> type, String dirName) {
-        this(type, new File(CaveCrawlers.getInstance().getDataFolder(), dirName));
+        this(type, new File(plugin.getDataFolder(), dirName));
     }
 
     protected ConfigLoader(Class<T> type, File fileDir) {

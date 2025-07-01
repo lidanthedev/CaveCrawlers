@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.drops;
 
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 
-// Todo: make this not a singleton and allow multiple loaders for adddon support
 public class DropLoader extends ConfigLoader<EntityDrops> {
 
     private static DropLoader instance;

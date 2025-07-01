@@ -2,6 +2,7 @@ server-damage-multiplier: 1.0
 menu:
   type: simple # simple or advanced or command to execute instead
   command: "openmenu"
+  item-enabled: false
 mining-blacklisted-worlds: []
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.

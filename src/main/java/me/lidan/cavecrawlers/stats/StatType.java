@@ -83,6 +83,7 @@ public class StatType {
     }
 
     public static void register(String id, StatType statType) {
+        id = id.toUpperCase();
         statType.id = id;
         stats.put(id, statType);
     }

@@ -102,13 +102,8 @@ public class ItemsManager implements ItemsAPI {
         ItemsLoader loader = ItemsLoader.getInstance();
         CustomConfig config = loader.getConfig(ID);
         config.load();
-        ItemInfo itemInfo = config.getObject(ID, ItemInfo.class);
-        if (itemInfo == null) {
-            return null;
-        }
-        itemInfo.setID(ID);
-        itemsMap.put(ID, itemInfo);
-        return itemInfo;
+        loader.registerItemsFromConfig(config);
+        return itemsMap.get(ID);
     }
 
     public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){

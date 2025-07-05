@@ -338,7 +338,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
-        registerEvent(new PotionsListener(200));
         registerEvent(new AntiExplodeListener());
         registerEvent(new AntiPlaceListener());
         registerEvent(new MiningListener());
@@ -377,6 +376,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
             });
+            ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
     }
 

@@ -87,14 +87,10 @@ public class ItemsManager implements ItemsAPI {
         if (itemInfo == null && !ID.isEmpty()){
             return null;
         }
-
-        if (itemInfo != null && !itemInfo.isFullyLoaded()) {
-            itemInfo = reloadItemByID(ID);
-        }
         return itemInfo;
     }
 
-    private @Nullable ItemInfo reloadItemByID(String ID) {
+    public @Nullable ItemInfo reloadItemByID(String ID) {
         ItemsLoader loader = ItemsLoader.getInstance();
         CustomConfig config = loader.getConfig(ID);
         config.load();
@@ -297,5 +293,15 @@ public class ItemsManager implements ItemsAPI {
             instance = new ItemsManager();
         }
         return instance;
+    }
+
+    public void loadNotFullyLoadedItems() {
+        ItemsLoader loader = ItemsLoader.getInstance();
+        for (String key : loader.getNotFullyLoadedItems().keySet()) {
+            ItemInfo itemInfo = reloadItemByID(key);
+            if (itemInfo != null && itemInfo.isFullyLoaded()) {
+                loader.getNotFullyLoadedItems().remove(key);
+            }
+        }
     }
 }

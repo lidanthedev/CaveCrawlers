@@ -18,14 +18,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
-    private static final Logger log = LoggerFactory.getLogger(ItemsManager.class);
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final ConfigurationSection vanillaConversion;
@@ -98,7 +95,6 @@ public class ItemsManager implements ItemsAPI {
     }
 
     private @Nullable ItemInfo reloadItemByID(String ID) {
-        log.warn("Reloading item with ID: {}", ID);
         ItemsLoader loader = ItemsLoader.getInstance();
         CustomConfig config = loader.getConfig(ID);
         config.load();

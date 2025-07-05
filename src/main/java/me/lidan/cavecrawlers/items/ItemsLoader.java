@@ -16,7 +16,8 @@ public class ItemsLoader extends ConfigLoader<ItemInfo> {
 
     @Override
     public void register(String key, ItemInfo value) {
-        if (!value.isFullyLoaded()) {
+        // Only warn once if the item is not fully loaded
+        if (!value.isFullyLoaded() && !itemsManager.getKeys().contains(key)) {
             log.warn("Item {} is not fully loaded", key);
         }
         itemsManager.registerItem(key, value);

@@ -30,10 +30,10 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     }
 
     public Stat get(StatType type){
-        if (stats.containsKey(type)){
-            return stats.get(type);
+        if (!stats.containsKey(type)) {
+            stats.put(type, new Stat(type));
         }
-        throw new IllegalArgumentException("Stat type " + type + " Does not exist!");
+        return stats.get(type);
     }
 
     public void set(StatType type, double amount){

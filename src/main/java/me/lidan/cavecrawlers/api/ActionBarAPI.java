@@ -25,9 +25,9 @@ public interface ActionBarAPI {
     void actionBar(Player player, Component alert);
 
     /**
-     * Clears the action bar for the player or displays a default message.
+     * Displays the default action bar.
      *
-     * @param player the player whose action bar will be affected
+     * @param player the player to send the action bar message to
      */
     void actionBar(Player player);
 }

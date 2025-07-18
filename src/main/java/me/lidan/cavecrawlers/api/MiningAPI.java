@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.api;
 
 import me.lidan.cavecrawlers.mining.BlockInfo;
-import me.lidan.cavecrawlers.mining.MiningProgress;
+import me.lidan.cavecrawlers.mining.MiningRunnable;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -26,15 +26,15 @@ public interface MiningAPI {
      * @param player the player whose mining progress is requested
      * @return the MiningProgress for the player
      */
-    MiningProgress getProgress(Player player);
+    MiningRunnable getProgress(Player player);
 
     /**
-     * Sets the mining progress for a player.
+     * Sets the mining-runnable object for a player.
      *
-     * @param player the player whose mining progress is to be set
-     * @param progress the MiningProgress to set (nullable)
+     * @param player the player whose mining runnable is to be set
+     * @param progress the MiningRunnable to set (nullable)
      */
-    void setProgress(Player player, @Nullable MiningProgress progress);
+    void setProgress(Player player, @Nullable MiningRunnable progress);
 
     /**
      * Breaks a block for a player using custom mining logic.

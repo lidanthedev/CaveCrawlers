@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.api;
 
 import me.lidan.cavecrawlers.entities.EntityData;
 import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -10,6 +11,15 @@ import java.util.UUID;
  * Implementations should provide methods for interacting with and managing entities.
  */
 public interface EntityAPI {
+
+    /**
+     * Retrieves custom data associated with an entity by its UUID.
+     *
+     * @param entityUuid the UUID of the entity
+     * @return the EntityData associated with the entity, or null if not found
+     */
+    @Nullable EntityData getEntityData(UUID entityUuid);
+    
     /**
      * Sets custom data for an entity by its UUID.
      *

@@ -12,6 +12,14 @@ import java.util.UUID;
  */
 public interface StatsAPI {
     /**
+     * Registers a stat type
+     *
+     * @param id       the unique identifier for the stat
+     * @param statType the StatType
+     */
+    void register(String id, StatType statType);
+
+    /**
      * Retrieves the Stats object for a player by UUID.
      *
      * @param uuid The UUID of the player.
@@ -34,12 +42,4 @@ public interface StatsAPI {
      * @return The calculated Stats object.
      */
     Stats calculateStats(Player player);
-
-    /**
-     * Registers a stat type
-     *
-     * @param id       the unique identifier for the stat
-     * @param statType the StatType
-     */
-    void register(String id, StatType statType);
 }

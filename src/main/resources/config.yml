@@ -3,6 +3,15 @@ menu:
   type: simple # simple or advanced or command to execute instead
   command: "openmenu"
   item-enabled: false
+
+# The following settings are for the loot share system.
+# Loot share allows players to share the loot of mobs they have damaged.
+# Players who deal at least the specified percentage of damage to a mob will receive a share of the loot.
+# This is useful for cooperative play, where players can work together to defeat mobs and share the rewards.
+loot-share:
+  enable-by-default: true # Should mob drops be loot shared by default?
+  damage-threshold: 10 # Minimum damage percent to be eligible for loot share
+
 mining-blacklisted-worlds: []
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.

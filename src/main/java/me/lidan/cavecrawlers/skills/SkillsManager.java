@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
@@ -22,11 +23,11 @@ import java.util.Map;
 
 @Slf4j
 @Getter
-public class SkillsManager extends ConfigLoader<SkillInfo> implements me.lidan.cavecrawlers.api.SkillsAPI {
+public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI {
     private static final String DIR_NAME = "skills";
     private static SkillsManager instance;
-    private Map<String, CustomConfig> skillConfigs = new HashMap<>();
-    private Map<String, SkillInfo> skillInfoMap = new HashMap<>();
+    private final Map<String, CustomConfig> skillConfigs = new HashMap<>();
+    private final Map<String, SkillInfo> skillInfoMap = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public SkillsManager() {

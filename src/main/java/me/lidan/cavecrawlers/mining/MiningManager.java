@@ -35,7 +35,7 @@ public class MiningManager implements MiningAPI {
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
-    private final Map<UUID, MiningProgress> progressMap = new HashMap<>();
+    private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, Map.of());
     private final Map<Block, Material> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
@@ -54,21 +54,21 @@ public class MiningManager implements MiningAPI {
     }
 
     @Override
-    public MiningProgress getProgress(Player player){
+    public MiningRunnable getProgress(Player player) {
         return getProgress(player.getUniqueId());
     }
 
-    public MiningProgress getProgress(UUID player){
+    public MiningRunnable getProgress(UUID player) {
         return progressMap.get(player);
     }
 
     @Override
-    public void setProgress(Player player, @Nullable MiningProgress progress){
+    public void setProgress(Player player, @Nullable MiningRunnable progress) {
         setProgress(player.getUniqueId(), progress);
     }
 
-    public void setProgress(UUID player, @Nullable MiningProgress progress){
-        MiningProgress oldProgress = getProgress(player);
+    public void setProgress(UUID player, @Nullable MiningRunnable progress) {
+        MiningRunnable oldProgress = getProgress(player);
         if (oldProgress != null) {
             oldProgress.cancel();
         }
@@ -106,7 +106,7 @@ public class MiningManager implements MiningAPI {
             return;
         }
         long required = getTicksToBreak(miningSpeed, blockInfo.getBlockStrength());
-        setProgress(player, new MiningProgress(player, block, required));
+        setProgress(player, new MiningRunnable(player, block, required));
     }
 
     public void handleBreak(BlockBreakEvent event) {

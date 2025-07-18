@@ -32,7 +32,8 @@ public interface DamageAPI {
     void setDamageCalculation(Player player, DamageCalculation calculation);
 
     /**
-     * Gets the attack cooldown for a player.
+     * Returns a Cooldown object that tracks attack cooldowns for mobs.
+     * The returned Cooldown class can be used to check how much cooldown time remains for a specific mob.
      *
      * @param player the player whose attack cooldown is requested
      * @return the Cooldown object for the player

@@ -21,10 +21,10 @@ public interface MiningAPI {
     void registerBlock(Material block, BlockInfo blockInfo);
 
     /**
-     * Gets the mining progress for a player.
+     * Gets the mining runnable for a player.
      *
-     * @param player the player whose mining progress is requested
-     * @return the MiningProgress for the player
+     * @param player the player whose mining runnable is requested
+     * @return the MiningRunnable for the player
      */
     MiningRunnable getProgress(Player player);
 

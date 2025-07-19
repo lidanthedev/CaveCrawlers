@@ -30,7 +30,7 @@ actionbar:
 # Change vanilla behavior that may not be desired in an RPG server.
 # If you don't know what you are doing, leave these settings as they are.
 vanilla:
-  allow_crafting: false # Allow players to craft items
+  crafting: false # Allow players to craft items
   anvil: false # Allow players to use anvils
   enchanting: false # Allow players to use enchanting tables
   drop: false # Allow players to drop items

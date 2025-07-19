@@ -15,7 +15,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 public class AntiStupidStuffListener implements Listener {
 
     public static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    public static final boolean ALLOW_CRAFTING = plugin.getConfig().getBoolean("vanilla.allow_crafting", false);
+    public static final boolean ALLOW_CRAFTING = plugin.getConfig().getBoolean("vanilla.crafting", false);
     public static final boolean ALLOW_ANVIL = plugin.getConfig().getBoolean("vanilla.anvil", false);
     public static final boolean ALLOW_ENCHANTING = plugin.getConfig().getBoolean("vanilla.enchanting", false);
     public static final boolean ALLOW_DROP = plugin.getConfig().getBoolean("vanilla.drop", false);

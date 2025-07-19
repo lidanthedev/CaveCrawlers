@@ -26,6 +26,17 @@ actionbar:
   # Text in [] will be replaced with the alert for a few seconds.
   enabled: true
   format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
+
+# Change vanilla behavior that may not be desired in an RPG server.
+# If you don't know what you are doing, leave these settings as they are.
+vanilla:
+  allow_crafting: false # Allow players to craft items
+  anvil: false # Allow players to use anvils
+  enchanting: false # Allow players to use enchanting tables
+  drop: false # Allow players to drop items
+  swap_hands: false # Allow players to swap hands
+  explosions: false # Allow explosions to damage blocks (HIGHLY RECOMMENDED OFF)
+
 skill-need-xp:
   - 100.0
   - 200.0

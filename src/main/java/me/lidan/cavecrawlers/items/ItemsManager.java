@@ -297,11 +297,15 @@ public class ItemsManager implements ItemsAPI {
 
     public void loadNotFullyLoadedItems() {
         ItemsLoader loader = ItemsLoader.getInstance();
+        List<String> toRemove = new ArrayList<>();
         for (String key : loader.getNotFullyLoadedItems().keySet()) {
             ItemInfo itemInfo = reloadItemByID(key);
             if (itemInfo != null && itemInfo.isFullyLoaded()) {
-                loader.getNotFullyLoadedItems().remove(key);
+                toRemove.add(key);
             }
+        }
+        for (String key : toRemove) {
+            loader.getNotFullyLoadedItems().remove(key);
         }
     }
 }

@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -18,16 +17,23 @@ public class MenuItemListener implements Listener {
 
     public static final String SERVER_GUIDE_NAME = "§6Server Guide §7(Right Click)";
     public static final String MENU = "menu";
+    public final static boolean IS_MENU_ENABLED = CaveCrawlers.getInstance().getConfig().getBoolean("menu.item-enabled", false);
 
-    ItemStack item;
+    ItemStack menuItem;
 
     public MenuItemListener() {
-        item = ItemBuilder.from(Material.NETHER_STAR).setName(SERVER_GUIDE_NAME).build();
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
+        menuItem = ItemBuilder.from(Material.NETHER_STAR).setName(SERVER_GUIDE_NAME).build();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(CaveCrawlers.getInstance(), this::playersTick, 0, 20);
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
         Player player = event.getPlayer();
         if (event.getItem() == null) {
             return;
@@ -43,6 +49,9 @@ public class MenuItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
         if (event.getItemDrop().getItemStack().getItemMeta().getDisplayName().equals(SERVER_GUIDE_NAME)) {
             event.setCancelled(true);
         }
@@ -50,14 +59,15 @@ public class MenuItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
         if (event.getCurrentItem() == null) {
             return;
         }
         if (event.getCurrentItem().getItemMeta() == null) {
             return;
         }
-        Player player = (Player) event.getWhoClicked();
-//        player.sendMessage("Slot: " + event.getSlot() + " Click: " + event.getClick() + " Type: " + event.getSlotType() + " Action: " + event.getAction() + " Cursor: " + event.getCursor() + " Current: " + event.getCurrentItem() + " Hotbar: " + event.getHotbarButton() + " RawSlot: " + event.getRawSlot() + " View: " + event.getView());
         if (event.getCurrentItem().getItemMeta().getDisplayName().equals(SERVER_GUIDE_NAME)) {
             event.setCancelled(true);
             if (event.getSlot() != 8){
@@ -67,14 +77,20 @@ public class MenuItemListener implements Listener {
     }
 
     public void putMenuInHotbar(Player player) {
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
         PlayerInventory playerInventory = player.getInventory();
         if (playerInventory.getItem(8) != null) {
             return;
         }
-        playerInventory.setItem(8, item);
+        playerInventory.setItem(8, menuItem);
     }
 
     public void playersTick() {
+        if (!IS_MENU_ENABLED) {
+            return;
+        }
         for (Player player : Bukkit.getOnlinePlayers()) {
             putMenuInHotbar(player);
         }

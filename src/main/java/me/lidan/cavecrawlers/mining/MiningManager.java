@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.mining;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.MiningAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -29,16 +30,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class MiningManager {
+public class MiningManager implements MiningAPI {
 
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
-    private final Map<UUID, MiningProgress> progressMap = new HashMap<>();
+    private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, Map.of());
     private final Map<Block, Material> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
 
+    @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
         if (blockInfo.getBlockPower() < 0){
             blockInfoMap.remove(block);
@@ -51,20 +53,22 @@ public class MiningManager {
         blockInfoMap.put(block, blockInfo);
     }
 
-    public MiningProgress getProgress(Player player){
+    @Override
+    public MiningRunnable getProgress(Player player) {
         return getProgress(player.getUniqueId());
     }
 
-    public MiningProgress getProgress(UUID player){
+    public MiningRunnable getProgress(UUID player) {
         return progressMap.get(player);
     }
 
-    public void setProgress(Player player, @Nullable MiningProgress progress){
+    @Override
+    public void setProgress(Player player, @Nullable MiningRunnable progress) {
         setProgress(player.getUniqueId(), progress);
     }
 
-    public void setProgress(UUID player, @Nullable MiningProgress progress){
-        MiningProgress oldProgress = getProgress(player);
+    public void setProgress(UUID player, @Nullable MiningRunnable progress) {
+        MiningRunnable oldProgress = getProgress(player);
         if (oldProgress != null) {
             oldProgress.cancel();
         }
@@ -74,6 +78,7 @@ public class MiningManager {
         }
     }
 
+    @Override
     public void breakBlock(Player player, Block block){
         applySlowDig(player);
         Stats stats = StatsManager.getInstance().getStats(player);
@@ -91,17 +96,17 @@ public class MiningManager {
             return;
         }
         if (brokenByBlockType != heldItemType){
-            actionBarManager.actionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
             return;
         }
         if (miningPower < blockInfo.getBlockPower()){
             if (miningPower != 0) {
-                actionBarManager.actionBar(player, ChatColor.RED + "Your Mining Power is too low!");
+                actionBarManager.showActionBar(player, ChatColor.RED + "Your Mining Power is too low!");
             }
             return;
         }
         long required = getTicksToBreak(miningSpeed, blockInfo.getBlockStrength());
-        setProgress(player, new MiningProgress(player, block, required));
+        setProgress(player, new MiningRunnable(player, block, required));
     }
 
     public void handleBreak(BlockBreakEvent event) {

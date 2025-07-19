@@ -5,18 +5,17 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.AbilityAPI;
 import org.bukkit.event.Listener;
-import org.json.simple.parser.JSONParser;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AbilityManager {
+public class AbilityManager implements AbilityAPI {
     private static AbilityManager instance;
     @Getter
     private final Map<String, ItemAbility> abilityMap;
-    private final JSONParser parser = new JSONParser();
     private final CaveCrawlers plugin;
 
 
@@ -31,6 +30,7 @@ public class AbilityManager {
      * @param ID      Ability ID
      * @param ability the ability object
      */
+    @Override
     public void registerAbility(String ID, ItemAbility ability) {
         abilityMap.put(ID, ability);
         if (ability instanceof Listener) {
@@ -38,7 +38,9 @@ public class AbilityManager {
         }
     }
 
-    public @Nullable ItemAbility getAbilityByID(String ID) {
+    @Nullable
+    @Override
+    public ItemAbility getAbilityByID(String ID) {
         if (ID == null) {
             return null;
         }
@@ -58,7 +60,6 @@ public class AbilityManager {
                     e.printStackTrace();
                     return null;
                 }
-                plugin.getLogger().info("Building " + IDWithoutSettings + " using settings: " + jo.toString());
                 ItemAbility itemAbility = ability.buildAbilityWithSettings(jo);
                 if (itemAbility == null) {
                     plugin.getLogger().warning("Failed to build ability with settings for ability: " + ID + " Using Default");
@@ -71,7 +72,9 @@ public class AbilityManager {
         return null;
     }
 
-    public @Nullable String getIDbyAbility(ItemAbility ability) {
+    @Nullable
+    @Override
+    public String getIDbyAbility(ItemAbility ability) {
         for (String ID : abilityMap.keySet()) {
             ItemAbility itemAbility = abilityMap.get(ID);
             if (itemAbility == ability) {

@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "8.1.1"
     id "io.freefair.lombok" version "8.11"
 }
@@ -39,9 +40,9 @@ dependencies {
     implementation('dev.triumphteam:triumph-gui:3.1.11') {
         exclude group: 'com.google.code.gson', module: 'gson'
     }
-    implementation 'com.github.Revxrsal.Lamp:common:3.2.1'
-    implementation 'com.github.Revxrsal.Lamp:brigadier:3.2.1'
-    implementation 'com.github.Revxrsal.Lamp:bukkit:3.2.1'
+    implementation 'com.github.Revxrsal.Lamp:common:3.3.6'
+    implementation 'com.github.Revxrsal.Lamp:brigadier:3.3.6'
+    implementation 'com.github.Revxrsal.Lamp:bukkit:3.3.6'
     compileOnly 'com.github.tr7zw.Item-NBT-API:item-nbt-api-plugin:2.11.3'
     compileOnly 'com.comphenix.protocol:ProtocolLib:5.1.0'
     compileOnly 'com.googlecode.json-simple:json-simple:1.1.1'
@@ -87,5 +88,22 @@ processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
+    }
+}
+
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.allSource
+    archiveClassifier = 'sources'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact shadowJar
+            artifact sourcesJar // Attach sources JAR
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
+        }
     }
 }

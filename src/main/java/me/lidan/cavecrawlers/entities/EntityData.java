@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.entities;
 
+import lombok.Getter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -18,6 +18,7 @@ import java.util.UUID;
 public class EntityData {
     private static final Logger log = LoggerFactory.getLogger(EntityData.class);
     protected final LivingEntity entity;
+    @Getter
     protected final Map<UUID, Double> damageMap = new HashMap<>();
 
     public EntityData(LivingEntity entity) {

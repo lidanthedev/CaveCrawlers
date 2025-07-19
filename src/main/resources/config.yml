@@ -2,6 +2,16 @@ server-damage-multiplier: 1.0
 menu:
   type: simple # simple or advanced or command to execute instead
   command: "openmenu"
+  item-enabled: false
+
+# The following settings are for the loot share system.
+# Loot share allows players to share the loot of mobs they have damaged.
+# Players who deal at least the specified percentage of damage to a mob will receive a share of the loot.
+# This is useful for cooperative play, where players can work together to defeat mobs and share the rewards.
+loot-share:
+  enable-by-default: true # Should mob drops be loot shared by default?
+  damage-threshold: 10 # Minimum damage percent to be eligible for loot share
+
 mining-blacklisted-worlds: []
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
@@ -16,6 +26,17 @@ actionbar:
   # Text in [] will be replaced with the alert for a few seconds.
   enabled: true
   format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
+
+# Change vanilla behavior that may not be desired in an RPG server.
+# If you don't know what you are doing, leave these settings as they are.
+vanilla:
+  crafting: false # Allow players to craft items
+  anvil: false # Allow players to use anvils
+  enchanting: false # Allow players to use enchanting tables
+  drop: false # Allow players to drop items
+  swap_hands: false # Allow players to swap hands
+  explosions: false # Allow explosions to damage blocks (HIGHLY RECOMMENDED OFF)
+
 skill-need-xp:
   - 100.0
   - 200.0
@@ -67,13 +88,3 @@ skill-need-xp:
   - 4800.0
   - 4900.0
   - 5000.0
-griffin: # Warning! This is a work in progress and may not be fully functional yet.
-  world: "griffin"
-  start-location:
-    x: 0
-    y: 0
-    z: 0
-  end-location:
-    x: 0
-    y: 0
-    z: 0

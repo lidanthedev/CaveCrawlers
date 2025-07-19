@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
@@ -22,11 +23,11 @@ import java.util.Map;
 
 @Slf4j
 @Getter
-public class SkillsManager extends ConfigLoader<SkillInfo> {
+public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI {
     private static final String DIR_NAME = "skills";
     private static SkillsManager instance;
-    private Map<String, CustomConfig> skillConfigs = new HashMap<>();
-    private Map<String, SkillInfo> skillInfoMap = new HashMap<>();
+    private final Map<String, CustomConfig> skillConfigs = new HashMap<>();
+    private final Map<String, SkillInfo> skillInfoMap = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     public SkillsManager() {
@@ -40,11 +41,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         skillInfoMap.put(key, value);
     }
 
+    @Override
     public SkillInfo getSkillInfo(String key) {
         return skillInfoMap.get(key);
     }
 
 
+    @Override
     public void tryGiveXp(SkillInfo skillType, SkillAction reason, String material, Player player) {
         List<SkillObjective> objectives = skillType.getActionObjectives().get(reason);
         if (objectives == null) {
@@ -78,6 +81,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         tryGiveXp(skillType, reason, material.name(), player);
     }
 
+    @Override
     public void tryGiveXp(SkillAction reason, String material, Player player) {
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
         for (Skill skill : skills) {
@@ -102,7 +106,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> {
         playerSkills.tryLevelUp(skillType);
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
-            ActionBarManager.getInstance().actionBar(player, component);
+            ActionBarManager.getInstance().showActionBar(player, component);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }
     }

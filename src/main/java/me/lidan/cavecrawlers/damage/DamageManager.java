@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.damage;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.DamageAPI;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -15,13 +16,12 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class DamageManager {
+public class DamageManager implements DamageAPI {
 
     public static final int BASE_ATTACK_COOLDOWN = 500;
     public static final float MINIMUM_ATTACK_COOLDOWN = 250f;
@@ -31,6 +31,7 @@ public class DamageManager {
     private final Map<UUID, Cooldown<UUID>> attackMap = new HashMap<>();
     private final Map<UUID, DamageCalculation> damageMap = new HashMap<>();
 
+    @Override
     public DamageCalculation getDamageCalculation(Player player){
         if (!damageMap.containsKey(player.getUniqueId())){
             return new PlayerDamageCalculation(player);
@@ -40,10 +41,12 @@ public class DamageManager {
         return damageCalculation;
     }
 
+    @Override
     public void setDamageCalculation(Player player, DamageCalculation calculation){
         damageMap.put(player.getUniqueId(), calculation);
     }
 
+    @Override
     public Cooldown<UUID> getAttackCooldown(Player player){
         if (!attackMap.containsKey(player.getUniqueId())){
             attackMap.put(player.getUniqueId(), new Cooldown<>());
@@ -51,6 +54,7 @@ public class DamageManager {
         return attackMap.get(player.getUniqueId());
     }
 
+    @Override
     public boolean canAttack(Player player, Mob mob){
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
@@ -63,15 +67,18 @@ public class DamageManager {
         return true;
     }
 
+    @Override
     public void resetAttackCooldown(Player player){
         attackMap.remove(player.getUniqueId());
     }
 
+    @Override
     public void resetAttackCooldownForMob(Player player, Mob mob){
         Cooldown<UUID> cooldown = getAttackCooldown(player);
         cooldown.setCooldown(mob.getUniqueId(), 0L);
     }
 
+    @Override
     public <T extends Projectile > T launchProjectile(ProjectileSource source, Class<? extends T> projectile, DamageCalculation calculation, Vector velocity){
         double calculated = calculation.calculate();
 
@@ -80,6 +87,7 @@ public class DamageManager {
         return launchedProjectile;
     }
 
+    @Override
     public <T extends Projectile > T launchProjectile(ProjectileSource source, Class<? extends T> projectile, DamageCalculation calculation){
         double calculated = calculation.calculate();
 

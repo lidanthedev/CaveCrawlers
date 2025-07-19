@@ -8,21 +8,16 @@ import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarLoader;
 import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.api.*;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
+import me.lidan.cavecrawlers.bosses.BossManager;
 import me.lidan.cavecrawlers.commands.*;
-import me.lidan.cavecrawlers.drops.Drop;
-import me.lidan.cavecrawlers.drops.DropLoader;
-import me.lidan.cavecrawlers.drops.EntityDrops;
-import me.lidan.cavecrawlers.drops.SimpleDrop;
-import me.lidan.cavecrawlers.griffin.GriffinDrop;
-import me.lidan.cavecrawlers.griffin.GriffinDrops;
-import me.lidan.cavecrawlers.griffin.GriffinLoader;
-import me.lidan.cavecrawlers.items.ItemInfo;
-import me.lidan.cavecrawlers.items.ItemType;
-import me.lidan.cavecrawlers.items.ItemsLoader;
-import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.drops.*;
+import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.listeners.*;
@@ -36,9 +31,11 @@ import me.lidan.cavecrawlers.objects.TitleOptions;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksLoader;
+import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.*;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -65,7 +62,8 @@ import java.util.Arrays;
 
 @Slf4j
 @Getter
-public final class CaveCrawlers extends JavaPlugin {
+public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
+    public static final int TICKS_TO_SECOND = 20;
     public static Economy economy = null;
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
@@ -93,14 +91,7 @@ public final class CaveCrawlers extends JavaPlugin {
         registerConfig();
 
         registerAbilities();
-        registerItems();
-        registerShops();
-        registerBlocks();
-        registerDrops();
-        registerBosses();
-        registerGriffin();
-        registerPerks();
-        registerAltars();
+        registerFromConfigs(this);
         registerSkills();
         registerLevels();
 
@@ -116,6 +107,17 @@ public final class CaveCrawlers extends JavaPlugin {
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    @Override
+    public void registerFromConfigs(JavaPlugin plugin) {
+        registerItems(plugin);
+        registerShops(plugin);
+        registerBlocks(plugin);
+        registerDrops(plugin);
+        registerBosses(plugin);
+        registerPerks(plugin);
+        registerAltars(plugin);
     }
 
     /**
@@ -143,8 +145,8 @@ public final class CaveCrawlers extends JavaPlugin {
     /**
      * Register bosses
      */
-    private void registerBosses() {
-        BossLoader.getInstance().load();
+    private void registerBosses(JavaPlugin plugin) {
+        BossLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
@@ -159,34 +161,23 @@ public final class CaveCrawlers extends JavaPlugin {
     /**
      * Register drops
      */
-    private void registerDrops() {
-        DropLoader.getInstance().load();
+    private void registerDrops(JavaPlugin plugin) {
+        DropLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
      * Register blocks
      * Used by the custom mining system
      */
-    private void registerBlocks() {
-        BlockLoader.getInstance().load();
-    }
-
-    /**
-     * Register griffin
-     */
-    private void registerGriffin() {
-        if (mythicBukkit == null) {
-            log.warn("MythicMobs not found, disabling griffin feature");
-            return;
-        }
-        GriffinLoader.getInstance().load();
+    private void registerBlocks(JavaPlugin plugin) {
+        BlockLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
      * Register perks
      */
-    private void registerPerks() {
-        PerksLoader.getInstance().load();
+    private void registerPerks(JavaPlugin plugin) {
+        PerksLoader.getInstance().load(plugin.getDataFolder());
     }
 
     /**
@@ -209,8 +200,6 @@ public final class CaveCrawlers extends JavaPlugin {
         ConfigurationSerialization.registerClass(Cuboid.class);
         ConfigurationSerialization.registerClass(Skill.class);
         ConfigurationSerialization.registerClass(Skills.class);
-        ConfigurationSerialization.registerClass(GriffinDrop.class);
-        ConfigurationSerialization.registerClass(GriffinDrops.class);
         ConfigurationSerialization.registerClass(BossDrop.class);
         ConfigurationSerialization.registerClass(BossDrops.class);
         ConfigurationSerialization.registerClass(Perk.class);
@@ -249,7 +238,6 @@ public final class CaveCrawlers extends JavaPlugin {
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
         if (mythicBukkit != null) {
             abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
-            abilityManager.registerAbility("SPADE", new SpadeAbility());
         }
         abilityManager.registerAbility("HULK", new HulkAbility());
         abilityManager.registerAbility("POTION", new PotionAbility("Potion", "Edit this!", 10, 1000, 1, 1, PotionEffectType.GLOWING, 10, "players"));
@@ -265,25 +253,25 @@ public final class CaveCrawlers extends JavaPlugin {
     /**
      * Register items
      */
-    public void registerItems() {
+    public void registerItems(JavaPlugin plugin) {
         ItemsLoader itemsLoader = ItemsLoader.getInstance();
-        itemsLoader.load();
+        itemsLoader.load(plugin.getDataFolder());
     }
 
     /**
      * Register shops
      */
-    public void registerShops() {
+    public void registerShops(JavaPlugin plugin) {
         ShopLoader shopLoader = ShopLoader.getInstance();
-        shopLoader.load();
+        shopLoader.load(plugin.getDataFolder());
     }
 
     /**
      * Register altars
      */
-    public void registerAltars() {
+    public void registerAltars(JavaPlugin plugin) {
         AltarLoader altarLoader = AltarLoader.getInstance();
-        altarLoader.load();
+        altarLoader.load(plugin.getDataFolder());
     }
 
     /**
@@ -350,7 +338,6 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
         registerEvent(new UpdateItemsListener());
-        registerEvent(new PotionsListener(200));
         registerEvent(new AntiExplodeListener());
         registerEvent(new AntiPlaceListener());
         registerEvent(new MiningListener());
@@ -358,8 +345,6 @@ public final class CaveCrawlers extends JavaPlugin {
         registerEvent(new SkillXpGainingListener());
         registerEvent(new MenuItemListener());
         registerEvent(new EntityChangeBlockListener());
-        if (mythicBukkit != null)
-            registerEvent(new GriffinListener());
         registerEvent(new WorldChangeListener());
         registerEvent(new InfoclickListener());
         registerEvent(new RightClickPlayerViewer());
@@ -391,7 +376,8 @@ public final class CaveCrawlers extends JavaPlugin {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
             });
-        }, 0, 20);
+            ItemsManager.getInstance().loadNotFullyLoadedItems();
+        }, 0, TICKS_TO_SECOND);
     }
 
     /**
@@ -486,11 +472,70 @@ public final class CaveCrawlers extends JavaPlugin {
         }
     }
 
+    public static CaveCrawlersAPI getAPI() {
+        return CaveCrawlers.getInstance();
+    }
+
+    @Override
+    public AbilityAPI getAbilityAPI() {
+        return AbilityManager.getInstance();
+    }
+
+    @Override
+    public ActionBarAPI getActionBarAPI() {
+        return ActionBarManager.getInstance();
+    }
+
+    @Override
+    public BossAPI getBossAPI() {
+        return BossManager.getInstance();
+    }
+
+    @Override
+    public DamageAPI getDamageAPI() {
+        return DamageManager.getInstance();
+    }
+
+    @Override
+    public DropsAPI getDropsAPI() {
+        return DropsManager.getInstance();
+    }
+
+    @Override
+    public EntityAPI getEntityAPI() {
+        return EntityManager.getInstance();
+    }
+
+    @Override
+    public ItemsAPI getItemsAPI() {
+        return ItemsManager.getInstance();
+    }
+
+    @Override
+    public MiningAPI getMiningAPI() {
+        return MiningManager.getInstance();
+    }
+
+    @Override
+    public PromptAPI getPromptAPI() {
+        return PromptManager.getInstance();
+    }
+
+    @Override
+    public SkillsAPI getSkillsAPI() {
+        return SkillsManager.getInstance();
+    }
+
     /**
      * Get the plugin instance
      * @return the plugin instance
      */
     public static CaveCrawlers getInstance() {
         return CaveCrawlers.getPlugin(CaveCrawlers.class);
+    }
+
+    @Override
+    public StatsAPI getStatsAPI() {
+        return StatsManager.getInstance();
     }
 }

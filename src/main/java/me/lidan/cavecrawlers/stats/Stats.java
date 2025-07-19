@@ -19,7 +19,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
             this.stats.put(stat.getType(), stat);
         }
         for (StatType type : StatType.values()) {
-            if (!stats.containsKey(type)){
+            if (!stats.containsKey(type)) {
                 stats.put(type, new Stat(type));
             }
         }
@@ -29,30 +29,39 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         this(new ArrayList<>());
     }
 
-    public Stat get(StatType type){
-        if (stats.containsKey(type)){
-            return stats.get(type);
+    public static Stats deserialize(Map<String, Object> map) {
+        Stats stats = new Stats();
+        for (String key : map.keySet()) {
+            StatType type = StatType.valueOf(key);
+            Double value = (Double) map.get(key);
+            stats.set(type, value);
         }
-        throw new IllegalArgumentException("Stat type " + type + " Does not exist!");
+        return stats;
     }
 
-    public void set(StatType type, double amount){
+    public Stat get(StatType type) throws IllegalArgumentException {
+        if (stats.containsKey(type)) {
+            return stats.get(type);
+        }
+        throw new IllegalArgumentException("Stat type " + type.getId() + " does not exist.");
+    }
+
+    public void set(StatType type, double amount) {
+        if (!stats.containsKey(type)) {
+            stats.put(type, new Stat(type));
+        }
         get(type).setValue(amount);
     }
 
-    public void add(StatType type, double amount){
-        if (type == StatType.MANA){
+    public void add(StatType type, double amount) {
+        if (type == StatType.MANA) {
             type = StatType.INTELLIGENCE;
         }
         get(type).add(amount);
     }
 
-    public void remove(StatType type, double amount){
+    public void remove(StatType type, double amount) {
         get(type).remove(amount);
-    }
-
-    public void multiply(StatType type, double amount){
-        get(type).multiply(amount);
     }
 
     public void multiply(double multiplier) {
@@ -61,15 +70,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         }
     }
 
-    public void reset(){
-        for (Stat stat : this) {
-            stat.setValue(stat.getType().getBase());
-        }
+    public void multiply(StatType type, double amount) {
+        get(type).multiply(amount);
     }
 
-    public void zero(){
+    public void reset() {
         for (Stat stat : this) {
-            stat.setValue(0);
+            stat.setValue(stat.getType().getBase());
         }
     }
 
@@ -83,7 +90,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         return new ArrayList<>(stats.values());
     }
 
-    public String toFormatString(){
+    public void zero() {
+        for (Stat stat : this) {
+            stat.setValue(0);
+        }
+    }
+
+    public String toFormatString() {
         StringBuilder str = new StringBuilder();
         for (StatType type : StatType.getStats()) {
             Stat stat = get(type);
@@ -91,19 +104,6 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
             str.append("\n");
         }
         return str.toString();
-    }
-
-    public List<String> toLoreList(){
-        List<String> lore = new ArrayList<>();
-        for (StatType type : StatType.getStats()) {
-            Stat stat = get(type);
-            double value = stat.getValue();
-            if (value > 0){
-                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
-                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
-            }
-        }
-        return lore;
     }
 
     @Override
@@ -143,14 +143,17 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         return map;
     }
 
-    public static Stats deserialize(Map<String, Object> map){
-        Stats stats = new Stats();
-        for (String key : map.keySet()) {
-            StatType type = StatType.valueOf(key);
-            Double value = (Double) map.get(key);
-            stats.set(type, value);
+    public List<String> toLoreList() {
+        List<String> lore = new ArrayList<>();
+        for (StatType type : StatType.getStats()) {
+            Stat stat = get(type);
+            double value = stat.getValue();
+            if (value > 0) {
+                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+            }
         }
-        return stats;
+        return lore;
     }
 
     @Override

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.ItemsAPI;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ItemsManager {
+public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
@@ -87,6 +88,14 @@ public class ItemsManager {
             return null;
         }
         return itemInfo;
+    }
+
+    public @Nullable ItemInfo reloadItemByID(String ID) {
+        ItemsLoader loader = ItemsLoader.getInstance();
+        CustomConfig config = loader.getConfig(ID);
+        config.load();
+        loader.registerItemsFromConfig(config);
+        return itemsMap.get(ID);
     }
 
     public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
@@ -284,5 +293,19 @@ public class ItemsManager {
             instance = new ItemsManager();
         }
         return instance;
+    }
+
+    public void loadNotFullyLoadedItems() {
+        ItemsLoader loader = ItemsLoader.getInstance();
+        List<String> toRemove = new ArrayList<>();
+        for (String key : loader.getNotFullyLoadedItems().keySet()) {
+            ItemInfo itemInfo = reloadItemByID(key);
+            if (itemInfo != null && itemInfo.isFullyLoaded()) {
+                toRemove.add(key);
+            }
+        }
+        for (String key : toRemove) {
+            loader.getNotFullyLoadedItems().remove(key);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package me.lidan.cavecrawlers.mining;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import org.bukkit.block.Block;
@@ -9,13 +7,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 @Getter
-public class MiningProgress extends BukkitRunnable {
+public class MiningRunnable extends BukkitRunnable {
     private final Player player;
     private final Block block;
     private long countTicks;
     private final long requiredTicks;
 
-    public MiningProgress(Player player, Block block, long requiredTicks) {
+    public MiningRunnable(Player player, Block block, long requiredTicks) {
         this.player = player;
         this.block = block;
         this.countTicks = 0;

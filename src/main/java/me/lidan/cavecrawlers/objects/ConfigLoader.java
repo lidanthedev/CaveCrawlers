@@ -19,10 +19,10 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final Map<String, File> configMap;
     @Getter
     private final File fileDir;
-    private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
+    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
 
     protected ConfigLoader(Class<T> type, String dirName) {
-        this(type, new File(CaveCrawlers.getInstance().getDataFolder(), dirName));
+        this(type, new File(plugin.getDataFolder(), dirName));
     }
 
     protected ConfigLoader(Class<T> type, File fileDir) {
@@ -32,7 +32,22 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     }
 
     public void load(){
-        registerItemsFromFolder(fileDir);
+        load(fileDir);
+    }
+
+    /**
+     * Load items from a directory.
+     *
+     * @param dir the plugin data folder.
+     */
+    public void load(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+        if (dir != fileDir) {
+            dir = new File(dir, fileDir.getName());
+        }
+        registerItemsFromFolder(dir);
     }
 
     public void registerItemsFromFolder(File dir) {

@@ -88,7 +88,7 @@ public class StatsManager implements StatsAPI {
         double manaRegen = intel * 0.02;
         manaStat.setValue(Math.min(mana + manaRegen, intel));
 
-        ActionBarManager.getInstance().actionBar(player);
+        ActionBarManager.getInstance().showActionBar(player);
     }
 
     public static void healPlayerPercent(Player player, double percent){

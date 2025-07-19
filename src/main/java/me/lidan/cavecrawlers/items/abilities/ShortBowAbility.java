@@ -42,7 +42,7 @@ public class ShortBowAbility extends ClickAbility {
         getAbilityCooldown().startCooldown(player.getUniqueId());
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
-        ActionBarManager.getInstance().actionBar(player, msg);
+        ActionBarManager.getInstance().showActionBar(player, msg);
         useAbility(playerEvent);
     }
 

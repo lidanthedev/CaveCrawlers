@@ -54,7 +54,7 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
         if (titleOptions != null)
             player.sendTitle(titleOptions.getTitle(), titleOptions.getSubtitle(), titleOptions.getFadeIn(), titleOptions.getStay(), titleOptions.getFadeOut());
         if (actionbar != null && !actionbar.isEmpty())
-            ActionBarManager.getInstance().actionBar(player, actionbar);
+            ActionBarManager.getInstance().showActionBar(player, actionbar);
         if (sound != null)
             player.playSound(player.getLocation(), sound.getSound(), sound.getVolume(), sound.getPitch());
     }

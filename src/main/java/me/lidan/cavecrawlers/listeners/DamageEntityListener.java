@@ -135,7 +135,7 @@ public class DamageEntityListener implements Listener {
         event.setDamage(damage);
 
         Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            ActionBarManager.getInstance().actionBar(player);
+            ActionBarManager.getInstance().showActionBar(player);
         }, 1L);
     }
 }

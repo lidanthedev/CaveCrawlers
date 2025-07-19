@@ -77,7 +77,7 @@ public class LevelConfigManager {
     private void checkLevelUp(Player player, int xp) {
         int currentLevel = getPlayerLevel(player.getUniqueId().toString());
         String message = ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + ChatColor.GRAY + "/" + ChatColor.DARK_AQUA + maxXP;
-        ActionBarManager.getInstance().actionBar(player, message);
+        ActionBarManager.getInstance().showActionBar(player, message);
         if (xp >= maxXP) {
             int newLevel = currentLevel + 1;
             setPlayerLevel(player.getUniqueId().toString(), newLevel);

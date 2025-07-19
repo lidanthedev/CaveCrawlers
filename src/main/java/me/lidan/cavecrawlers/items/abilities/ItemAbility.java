@@ -57,19 +57,19 @@ public abstract class ItemAbility implements Cloneable {
             abilityCooldown.startCooldown(player.getUniqueId());
             manaStat.setValue(manaStat.getValue() - getCost());
             String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
-            ActionBarManager.getInstance().actionBar(player, msg);
+            ActionBarManager.getInstance().showActionBar(player, msg);
         }
     }
 
     public void abilityFailedNoMana(Player player){
         String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
-        ActionBarManager.getInstance().actionBar(player, msg);
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
     public void abilityFailedCooldown(Player player){
         double diff = (cooldown - abilityCooldown.getCurrentCooldown(player.getUniqueId()))/1000.0;
         String msg = ChatColor.RED + "Still on cooldown! (%ss Left)".formatted(diff);
-        ActionBarManager.getInstance().actionBar(player, msg);
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
     public boolean hasAbility(ItemStack itemStack){

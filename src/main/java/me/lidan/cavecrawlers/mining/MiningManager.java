@@ -96,12 +96,12 @@ public class MiningManager implements MiningAPI {
             return;
         }
         if (brokenByBlockType != heldItemType){
-            actionBarManager.actionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
             return;
         }
         if (miningPower < blockInfo.getBlockPower()){
             if (miningPower != 0) {
-                actionBarManager.actionBar(player, ChatColor.RED + "Your Mining Power is too low!");
+                actionBarManager.showActionBar(player, ChatColor.RED + "Your Mining Power is too low!");
             }
             return;
         }

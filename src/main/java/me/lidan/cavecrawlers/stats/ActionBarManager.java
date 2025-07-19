@@ -66,21 +66,21 @@ public class ActionBarManager implements ActionBarAPI {
     }
 
     @Override
-    public void actionBar(Player player, String alert){
+    public void showActionBar(Player player, String alert) {
         Component args = actionBarBuildAdventure(player, alert);
         sendActionBar(player, args);
         cooldown.startCooldown(player.getUniqueId());
     }
 
     @Override
-    public void actionBar(Player player, Component alert) {
+    public void showActionBar(Player player, Component alert) {
         Component args = actionBarBuildAdventure(player, alert);
         sendActionBar(player, args);
         cooldown.startCooldown(player.getUniqueId());
     }
 
     @Override
-    public void actionBar(Player player){
+    public void showActionBar(Player player) {
         if (cooldown.getCurrentCooldown(player.getUniqueId()) < ACTION_BAR_COOLDOWN){
             return;
         }

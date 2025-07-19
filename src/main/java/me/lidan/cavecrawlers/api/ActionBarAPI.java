@@ -14,7 +14,7 @@ public interface ActionBarAPI {
      * @param player the player to send the action bar message to
      * @param alert  the message to display
      */
-    void actionBar(Player player, String alert);
+    void showActionBar(Player player, String alert);
 
     /**
      * Sends an action bar message to the player using a Component alert.
@@ -22,12 +22,12 @@ public interface ActionBarAPI {
      * @param player the player to send the action bar message to
      * @param alert  the Component message to display
      */
-    void actionBar(Player player, Component alert);
+    void showActionBar(Player player, Component alert);
 
     /**
      * Displays the default action bar.
      *
      * @param player the player to send the action bar message to
      */
-    void actionBar(Player player);
+    void showActionBar(Player player);
 }

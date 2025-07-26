@@ -7,7 +7,8 @@ adventures or custom survival worlds.
 ## Screenshots
 Creating and editing items
 
-![CaveCrawlers-item-create](https://github.com/user-attachments/assets/1b98ca40-43c0-497a-b858-e8e5b09182a2)
+![CaveCrawlers-item-create](https://github.com/user-attachments/assets/667da10b-52e5-4be8-b521-523341979857)
+
 
 
 ## Features

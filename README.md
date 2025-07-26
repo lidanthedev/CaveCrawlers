@@ -9,6 +9,10 @@ Creating and editing items
 
 ![CaveCrawlers-item-create-optimize](https://github.com/user-attachments/assets/8bbd0b55-e199-40ae-a6d4-af1e5506f1f7)
 
+Demo item
+
+![CaveCrawlers-item-create-result](https://github.com/user-attachments/assets/a3945f4c-cc73-45f9-9fc6-34b75b4a6964)
+
 Shop editor
 
 ![CaveCrawlers-shop-editor-optimize](https://github.com/user-attachments/assets/c3b0ae12-2032-4383-b4c2-e24b3704df95)

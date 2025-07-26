@@ -22,7 +22,7 @@ public class GoldenLaserAbility extends ClickAbility implements Listener  {
         loc = loc.add(vector);
         for(int i = 0 ; i < 100 ; i++) {
             loc = loc.multiply(0.1);
-            world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0);
+            world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0);
         }
         return true;
     }

@@ -24,10 +24,10 @@ public class MiningListener implements Listener {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
         if (blacklistedWorlds.contains(name)) {
-            if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING)){
-                int duration = player.getPotionEffect(PotionEffectType.SLOW_DIGGING).getDuration();
+            if (player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
+                int duration = player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getDuration();
                 if (duration == -1){
-                    player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                    player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
                 }
             }
             return;

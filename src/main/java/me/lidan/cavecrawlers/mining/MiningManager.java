@@ -217,7 +217,7 @@ public class MiningManager implements MiningAPI {
     }
 
     public static void applySlowDig(Player player) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, -1, true, false, false), true);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, -1, -1, true, false, false), true);
     }
 
     public static long getTicksToBreak(double miningSpeed, int blockStrength){

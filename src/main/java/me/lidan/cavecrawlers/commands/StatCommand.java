@@ -60,7 +60,7 @@ public class StatCommand {
 
     @Subcommand("health")
     public void health(Player sender){
-        sender.sendMessage("%s/%s".formatted(sender.getHealth(), sender.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+        sender.sendMessage("%s/%s".formatted(sender.getHealth(), sender.getAttribute(Attribute.MAX_HEALTH).getValue()));
     }
 
     @Subcommand("apply")

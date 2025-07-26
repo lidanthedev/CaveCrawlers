@@ -58,7 +58,7 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
-        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
         if (player.getHealth() >= maxHealth){
             return false;
         }

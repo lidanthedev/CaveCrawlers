@@ -32,7 +32,7 @@ public class SoulReaperAbility extends ScalingClickAbility implements Listener {
         Player player = playerEvent.getPlayer();
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
         BukkitUtils.teleportForward(player, blocks);
-        player.spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 1);
+        player.spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 5));
 //        player.sendMessage("ERROR Absorption");
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);

@@ -303,6 +303,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.registerValueResolver(StatType.class, valueResolverContext -> {
             return StatType.valueOf(valueResolverContext.pop());
         });
+        commandHandler.registerValueResolver(Sound.class, valueResolverContext -> {
+            return Registry.SOUNDS.get(NamespacedKey.minecraft(valueResolverContext.pop()));
+        });
     }
 
     /**
@@ -311,7 +314,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return Arrays.stream(Sound.values()).map(Enum::name).toList();
+            return Registry.SOUNDS.stream().map(sound -> Registry.SOUNDS.getKey(sound).getKey()).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
             return Arrays.stream(Material.values()).map(Enum::name).toList();

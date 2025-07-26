@@ -1,8 +1,13 @@
-# CaveCrawlers Plugin
+# CaveCrawlers
 
 CaveCrawlers is a powerful Minecraft plugin that adds custom items, shops, and mining mechanics to your server. It
 features advanced item management, player progression, and seamless integration with MythicMobs, making it ideal for RPG
 adventures or custom survival worlds.
+
+## Screenshots
+Creating and editing items
+![CaveCrawlers-item-create](https://github.com/user-attachments/assets/1b98ca40-43c0-497a-b858-e8e5b09182a2)
+
 
 ## Features
 

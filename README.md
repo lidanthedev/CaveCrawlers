@@ -55,7 +55,7 @@ adventures or custom survival worlds.
 
 ## Development
 
-Clone the repository and import into your IDE. Build using Gradle:
+Clone the repository and import it into your IDE. Build using Gradle:
 
 ```
 gradlew build

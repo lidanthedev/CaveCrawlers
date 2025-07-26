@@ -1,16 +1,21 @@
 # CaveCrawlers Plugin
 
-A Minecraft plugin that makes creating mmorpg server easy with custom items, shops, mining, and more. Below are the
-available commands and their usage.
+## Features
 
-## Main Commands
+- Custom items with stats, abilities, and rarities
+- Shops with editor and browser
+- Mining system with block info and hardness
+- Coin and player data management
+- Integration with MythicMobs
 
+## Commands
+
+### Main Commands
 - `/ct help` — Show this help message
 - `/ct item` — Item commands
 - `/ct shop` — Shop commands
 
-## Item Commands
-
+### Item Commands
 - `/ct item give <player> <Item id> [amount]` — Give a player an item
 - `/ct item get <Item ID> [amount]` — Give yourself an item
 - `/ct item browse` — Open the item browser
@@ -26,19 +31,36 @@ available commands and their usage.
 - `/ct item edit baseItemToHand <id>` — Edit an item's base item to the item in your hand
 - `/ct item import <id>` — Import the item in your hand (advanced)
 
-## Shop Commands
-
+### Shop Commands
 - `/ct shop create <name>` — Create a shop item
 - `/ct shop open <shop-name>` — Open the shop
 - `/ct shop editor <shop-name>` — Open the shop editor
 
-## Other Features
+## Installation
 
-- Reload items, shops, blocks, drops, and plugin
-- Mining commands for block info and hardness
-- Player data management
-- Integration with MythicMobs for custom abilities
+1. Download the latest CaveCrawlers jar from the releases.
+2. Place the jar file in your server's `plugins` folder.
+3. Start or restart your server.
+4. Configure items, shops, and other features in the config files.
 
----
+## Requirements
 
-For more details, use `/ct help` in-game or check the source code for advanced usage and customization.
+- Paper Minecraft server
+- Java 17+
+- (Optional) MythicMobs for advanced features
+
+## Development
+
+Clone the repository and import into your IDE. Build using Gradle:
+
+```
+gradlew build
+```
+
+## Contributing
+
+Contributions are welcome! Please open issues or pull requests for improvements and bug fixes.
+
+## License
+
+This project is licensed under the MIT License.

@@ -333,7 +333,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register events
      */
     public void registerEvents() {
-        registerEvent(new AntiBanListener());
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());

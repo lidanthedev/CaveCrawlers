@@ -99,9 +99,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     public String toFormatString() {
         StringBuilder str = new StringBuilder();
         for (StatType type : StatType.getStats()) {
-            Stat stat = get(type);
-            str.append(stat.getType().getFormatName()).append(": ").append(Math.round(stat.getValue() * 100.0f) / 100.0f);
-            str.append("\n");
+            try {
+                Stat stat = get(type);
+                str.append(stat.getType().getFormatName()).append(": ").append(Math.round(stat.getValue() * 100.0f) / 100.0f);
+                str.append("\n");
+            } catch (IllegalArgumentException ignored) {
+                // If the stat type does not exist, we ignore it
+            }
         }
         return str.toString();
     }
@@ -146,11 +150,15 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     public List<String> toLoreList() {
         List<String> lore = new ArrayList<>();
         for (StatType type : StatType.getStats()) {
-            Stat stat = get(type);
-            double value = stat.getValue();
-            if (value > 0) {
-                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
-                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+            try {
+                Stat stat = get(type);
+                double value = stat.getValue();
+                if (value > 0) {
+                    String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                    lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+                }
+            } catch (IllegalArgumentException ignored) {
+                // If the stat type does not exist, we ignore it
             }
         }
         return lore;

@@ -132,7 +132,6 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct help", "show this message"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item", "item commands"));
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop", "shop commands"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar", "altar commands"));
     }
 
     @Subcommand("help item")

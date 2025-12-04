@@ -121,7 +121,7 @@ public class DamageEntityListener implements Listener {
             Entity attacker = event.getDamager();
             if (attacker instanceof Projectile projectile){
                 if (projectile.getShooter() instanceof Mob mob) {
-                    damage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue();
+                    damage = mob.getAttribute(Attribute.ATTACK_DAMAGE).getValue();
                 }
             }
         }

@@ -23,7 +23,7 @@ public class HulkAbility extends ScalingClickAbility{
         super("Hulk Smash", "Jump up and Smash down", 10, 1000, statToScale, baseAbilityDamage, abilityScaling);
         this.powerY = powerY;
         this.radius = radius;
-        particle = Particle.EXPLOSION_HUGE;
+        particle = Particle.EXPLOSION;
     }
 
     public HulkAbility() {

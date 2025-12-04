@@ -61,6 +61,17 @@ public class StatsManager implements StatsAPI {
         stats.get(StatType.MANA).setValue(value);
     }
 
+    public static void healPlayerPercent(Player player, double percent) {
+        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+        healPlayer(player, maxHealth / 100 * percent);
+    }
+
+    public static void healPlayer(Player player, double healthRegen) {
+        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+        double health = player.getHealth();
+        player.setHealth(Math.min(health + healthRegen, maxHealth));
+    }
+
     public void applyStats(Player player){
         Stats stats = calculateStats(player);
 
@@ -76,7 +87,7 @@ public class StatsManager implements StatsAPI {
 
         // health regen
         double maxHealth = stats.get(StatType.HEALTH).getValue();
-        player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
+        player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
         double healthRegen = ((maxHealth * 0.01) + 1.5);
         healPlayer(player, healthRegen);
         player.setFoodLevel(200);
@@ -89,17 +100,6 @@ public class StatsManager implements StatsAPI {
         manaStat.setValue(Math.min(mana + manaRegen, intel));
 
         ActionBarManager.getInstance().showActionBar(player);
-    }
-
-    public static void healPlayerPercent(Player player, double percent){
-        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        healPlayer(player, maxHealth / 100 *percent);
-    }
-
-    public static void healPlayer(Player player, double healthRegen) {
-        double maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        double health = player.getHealth();
-        player.setHealth(Math.min(health + healthRegen, maxHealth));
     }
 
     public Stats calculateBaseStats() {

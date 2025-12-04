@@ -45,7 +45,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
                 newLocation.add(newLocation.getDirection().multiply(0.5));
 
                 if (lastLocation != null && lastLocation.distance(bat.getLocation()) < 1.7) {
-                    player.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, bat.getLocation(), 10, 0, 0, 0, 3);
+                    player.getWorld().spawnParticle(Particle.EXPLOSION, bat.getLocation(), 10, 0, 0, 0, 3);
 
                     BukkitUtils.getNearbyMobs(bat.getLocation(), radius).forEach(mob -> {
                         if (mob.getScoreboardTags().contains(TAG)) return;

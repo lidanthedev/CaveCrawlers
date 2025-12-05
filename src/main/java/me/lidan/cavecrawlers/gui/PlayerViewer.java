@@ -58,12 +58,6 @@ public class PlayerViewer {
         }
         // Bank
         gui.setItem(15, ItemBuilder.from(Material.GOLD_INGOT).setName(ChatColor.GRAY + "Money: " + ChatColor.GOLD + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());
-        // Level
-        String playerId = player.getUniqueId().toString();
-        int level = levelconfigManager.getPlayerLevel(playerId);
-        String colorName = levelconfigManager.getLevelColor(level);
-        ChatColor levelColor = ChatColor.valueOf(colorName);
-        gui.setItem(16, ItemBuilder.from(Material.EMERALD).setName(ChatColor.GRAY + "Level: " + ChatColor.DARK_GRAY + "[" + levelColor + level + ChatColor.DARK_GRAY + "]").asGuiItem());
         // Rank
         gui.setItem(24, ItemBuilder.from(Material.GOLD_BLOCK).setName(ChatColor.GRAY + "Rank: " + LuckPermsUtils.getPlayerPrefix(player)).asGuiItem());
         // glass

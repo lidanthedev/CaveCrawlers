@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.objects;
+package me.lidan.cavecrawlers.integration;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.lidan.cavecrawlers.CaveCrawlers;
@@ -6,8 +6,11 @@ import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
+import me.lidan.cavecrawlers.skills.Skill;
+import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -15,12 +18,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CaveCrawlersExpansion extends PlaceholderExpansion {
 
-    private static final Logger log = LoggerFactory.getLogger(CaveCrawlersExpansion.class);
     private final StatsManager statsManager;
     private CaveCrawlers plugin;
 
@@ -104,6 +104,45 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                         break;
                 }
             }
+        } else if (args[0].equalsIgnoreCase("skill")) {
+            // Expected formats:
+            // cavecrawlers_skill_<skillName>_level
+            // cavecrawlers_skill_<skillName>_xp
+            // cavecrawlers_skill_<skillName>_needed
+            // cavecrawlers_skill_<skillName>_progress
+            if (args.length < 3) {
+                return null;
+            }
+            if (!(player instanceof Player online)) {
+                return null;
+            }
+            Skills skills = PlayerDataManager.getInstance().getSkills(online);
+            String skillName = args[1];
+            String field = args[2].toLowerCase();
+
+            for (Skill skill : skills) {
+                if (skill.getType().getName().equalsIgnoreCase(skillName)) {
+                    switch (field) {
+                        case "level":
+                            return String.valueOf(skill.getLevel());
+                        case "xp":
+                            return StringUtils.getNumberFormat(skill.getXp());
+                        case "needed":
+                            return StringUtils.getShortNumber(skill.getXpToLevel());
+                        case "needed_raw":
+                            return String.valueOf(skill.getXpToLevel());
+                        case "progress":
+                            double pct = 0;
+                            if (skill.getXpToLevel() > 0) {
+                                pct = skill.getXp() / skill.getXpToLevel() * 100;
+                            }
+                            return StringUtils.getNumberFormat(pct);
+                        default:
+                            return null;
+                    }
+                }
+            }
+            return null;
         }
         return null;
     }

@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.drops;
 
-import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import lombok.Data;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -74,57 +73,78 @@ public class Drop implements ConfigurationSerializable {
         }
     }
 
-    private double getNewDropChance(Player player) {
-        if (chanceModifier == null){
-            return chance;
+    /**
+     * Parse the value from the config to get the item drop info
+     * Format: [itemID] [amount]
+     *
+     * @param value the value to parse
+     * @return the item drop info
+     */
+    public static @Nullable ItemDropInfo getItemDropInfo(String value) {
+        int amount = 1;
+        String itemID = value;
+        if (value.contains(" ")) {
+            String[] split = value.split(" ");
+            itemID = split[0];
+            Range range = new Range(split[1]);
+            amount = range.getRandom();
         }
-        Stats stats = statsManager.getStats(player);
-        Stat magicFind = stats.get(chanceModifier);
-        return chance * (1 + magicFind.getValue()/100);
+        ItemInfo itemInfo = itemsManager.getItemByID(itemID);
+        if (itemInfo == null) {
+            log.error("Item with ID {} not found", itemID);
+            return null;
+        }
+        return new ItemDropInfo(amount, itemInfo);
     }
 
-    private int getNewAmount(Player player, int amount) {
-        if (amountModifier == null){
-            return amount;
+    public static Drop deserialize(Map<String, Object> map) {
+        if (map.containsKey("itemID")) {
+            // legacy support
+            String itemID = (String) map.get("itemID");
+            String amountStr = map.get("amount").toString();
+            ConfigMessage announce = null;
+            if (map.getOrDefault("announce", false).equals(true)) {
+                announce = RARE_DROP_MESSAGE;
+            }
+            return new Drop(DropType.ITEM, (double) map.get("chance"), itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
         }
-        Stats stats = statsManager.getStats(player);
-        double value = stats.get(amountModifier).getValue();
-        int multi = 1 + (int) value/100;
-        int remain = (int) (value % 100);
-        if (RandomUtils.chanceOf(remain)){
-            multi++;
-        }
-        amount *= multi;
-        return amount;
+
+        return new Drop(
+                DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT)),
+                (double) map.get("chance"),
+                (String) map.get("value"),
+                ConfigMessage.getMessage((String) map.get("announce")),
+                map.containsKey("chanceModifier") ? StatType.valueOf((String) map.get("chanceModifier")) : null,
+                map.containsKey("amountModifier") ? StatType.valueOf((String) map.get("amountModifier")) : null
+        );
     }
 
     public boolean rollChance(Player player) {
         return RandomUtils.chanceOf(getNewDropChance(player));
     }
 
-    public void drop(Player player){
-        drop(player, player.getLocation());
+    private double getNewDropChance(Player player) {
+        if (chanceModifier == null) {
+            return chance;
+        }
+        Stats stats = statsManager.getStats(player);
+        Stat magicFind = stats.get(chanceModifier);
+        return chance * (1 + magicFind.getValue() / 100);
     }
 
-    public void drop(Player player, Location location){
-        if (announce != null){
-            placeholders.clear();
-            placeholders.put("player", player.getName());
-            placeholders.put("chance", StringUtils.getNumberFormat(chance));
-            placeholders.put("newChance", StringUtils.getNumberFormat(getNewDropChance(player)));
+    private int getNewAmount(Player player, int amount) {
+        if (amountModifier == null) {
+            return amount;
         }
-
-        switch (type){
-            case ITEM:
-                giveItem(player);
-                break;
-            case MOB:
-                giveMob(player, location);
-                break;
-            case COINS:
-                giveCoins(player);
-                break;
+        Stats stats = statsManager.getStats(player);
+        double value = stats.get(amountModifier).getValue();
+        int multi = 1 + (int) value / 100;
+        int remain = (int) (value % 100);
+        if (RandomUtils.chanceOf(remain)) {
+            multi++;
         }
+        amount *= multi;
+        return amount;
     }
 
     protected void giveItem(Player player) {
@@ -142,49 +162,33 @@ public class Drop implements ConfigurationSerializable {
         }
     }
 
-    /**
-     * Parse the value from the config to get the item drop info
-     * Format: [itemID] [amount]
-     *
-     * @param value the value to parse
-     * @return the item drop info
-     */
-    public static @Nullable ItemDropInfo getItemDropInfo(String value) {
-        int amount = 1;
-        String itemID = value;
-        if (value.contains(" ")){
-            String[] split = value.split(" ");
-            itemID = split[0];
-            Range range = new Range(split[1]);
-            amount = range.getRandom();
-        }
-        ItemInfo itemInfo = itemsManager.getItemByID(itemID);
-        if (itemInfo == null){
-            log.error("Item with ID {} not found", itemID);
-            return null;
-        }
-        return new ItemDropInfo(amount, itemInfo);
+    public void drop(Player player) {
+        drop(player, player.getLocation());
     }
 
     protected void sendAnnounceMessage(Player player) {
         announce.sendMessage(player, placeholders);
     }
 
-    protected Entity giveMob(Player player, Location location) {
-        try {
-            location = location.clone().add(0.5, 0, 0.5);
-            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
-
-            if (announce != null) {
-                placeholders.put("name", entity.getName());
-                sendAnnounceMessage(player);
-            }
-
-            return entity;
-        } catch (InvalidMobTypeException e) {
-            log.error("Failed to spawn mobs", e);
+    public void drop(Player player, Location location) {
+        if (announce != null) {
+            placeholders.clear();
+            placeholders.put("player", player.getName());
+            placeholders.put("chance", StringUtils.getNumberFormat(chance));
+            placeholders.put("newChance", StringUtils.getNumberFormat(getNewDropChance(player)));
         }
-        return null;
+
+        switch (type) {
+            case ITEM:
+                giveItem(player);
+                break;
+            case MOB:
+                giveMob(player, location);
+                break;
+            case COINS:
+                giveCoins(player);
+                break;
+        }
     }
 
     protected void giveCoins(Player player) {
@@ -211,25 +215,20 @@ public class Drop implements ConfigurationSerializable {
         return map;
     }
 
-    public static Drop deserialize(Map<String, Object> map) {
-        if (map.containsKey("itemID")){
-            // legacy support
-            String itemID = (String) map.get("itemID");
-            String amountStr = map.get("amount").toString();
-            ConfigMessage announce = null;
-            if (map.getOrDefault("announce", false).equals(true)){
-                announce = RARE_DROP_MESSAGE;
-            }
-            return new Drop(DropType.ITEM, (double) map.get("chance"), itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
-        }
+    protected Entity giveMob(Player player, Location location) {
+        try {
+            location = location.clone().add(0.5, 0, 0.5);
+            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
 
-        return new Drop(
-                DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT)),
-                (double) map.get("chance"),
-                (String) map.get("value"),
-                ConfigMessage.getMessage((String) map.get("announce")),
-                map.containsKey("chanceModifier") ? StatType.valueOf((String) map.get("chanceModifier")) : null,
-                map.containsKey("amountModifier") ? StatType.valueOf((String) map.get("amountModifier")) : null
-        );
+            if (announce != null) {
+                placeholders.put("name", entity.getName());
+                sendAnnounceMessage(player);
+            }
+
+            return entity;
+        } catch (Exception e) {
+            log.error("Failed to spawn mobs", e);
+        }
+        return null;
     }
 }

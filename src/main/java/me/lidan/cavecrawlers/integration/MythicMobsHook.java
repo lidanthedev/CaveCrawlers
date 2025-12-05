@@ -19,7 +19,7 @@ public class MythicMobsHook {
         try {
             return mythicAPIHelper.spawnMythicMob(mob, location);
         } catch (InvalidMobTypeException e) {
-            plugin.getLogger().severe("Failed to spawn mobs");
+            plugin.getLogger().warning("Failed to spawn mobs %s at %s".formatted(mob, location));
         }
         return null;
     }

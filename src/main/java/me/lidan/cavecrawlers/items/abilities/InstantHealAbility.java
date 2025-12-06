@@ -1,11 +1,11 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.XAttribute;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
@@ -58,7 +58,7 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
         if (player.getHealth() >= maxHealth){
             return false;
         }

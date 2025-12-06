@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.mining;
 
+import com.cryptomorin.xseries.XPotion;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.MiningAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -21,7 +22,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -217,7 +217,7 @@ public class MiningManager implements MiningAPI {
     }
 
     public static void applySlowDig(Player player) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, -1, -1, true, false, false), true);
+        player.addPotionEffect(new PotionEffect(XPotion.MINING_FATIGUE.get(), -1, -1, true, false, false), true);
     }
 
     public static long getTicksToBreak(double miningSpeed, int blockStrength){

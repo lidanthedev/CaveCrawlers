@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers;
 
+import com.cryptomorin.xseries.XSound;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
@@ -314,7 +315,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return Registry.SOUNDS.stream().map(sound -> Registry.SOUNDS.getKey(sound).getKey()).toList();
+            return XSound.getValues().stream().map(sound -> sound.get().toString()).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
             return Arrays.stream(Material.values()).map(Enum::name).toList();

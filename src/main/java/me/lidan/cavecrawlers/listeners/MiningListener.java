@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.listeners;
 
+import com.cryptomorin.xseries.XPotion;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import org.bukkit.GameMode;
@@ -9,7 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageAbortEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
@@ -24,10 +24,10 @@ public class MiningListener implements Listener {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
         if (blacklistedWorlds.contains(name)) {
-            if (player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
-                int duration = player.getPotionEffect(PotionEffectType.MINING_FATIGUE).getDuration();
+            if (player.hasPotionEffect(XPotion.MINING_FATIGUE.get())) {
+                int duration = player.getPotionEffect(XPotion.MINING_FATIGUE.get()).getDuration();
                 if (duration == -1){
-                    player.removePotionEffect(PotionEffectType.MINING_FATIGUE);
+                    player.removePotionEffect(XPotion.MINING_FATIGUE.get());
                 }
             }
             return;

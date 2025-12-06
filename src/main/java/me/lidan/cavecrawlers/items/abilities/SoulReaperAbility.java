@@ -1,11 +1,11 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import com.google.gson.JsonObject;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -32,7 +32,7 @@ public class SoulReaperAbility extends ScalingClickAbility implements Listener {
         Player player = playerEvent.getPlayer();
         player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
         BukkitUtils.teleportForward(player, blocks);
-        player.spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
+        player.spawnParticle(XParticle.EXPLOSION.get(), player.getLocation(), 1);
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 5));
 //        player.sendMessage("ERROR Absorption");
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);

@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
-import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -23,7 +23,7 @@ public class BoomAbility extends ScalingClickAbility implements Listener {
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
-        player.spawnParticle(Particle.EXPLOSION, player.getLocation(), 1);
+        player.spawnParticle(XParticle.EXPLOSION.get(), player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
         AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);
         for (Entity entity : nearbyEntities) {

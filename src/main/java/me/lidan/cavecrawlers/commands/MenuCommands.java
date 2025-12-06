@@ -29,7 +29,7 @@ public class MenuCommands {
         }
     }
 
-    @Command("ctmenu")
+    @Command({"ctmenu","ccmenu"})
     public void menu(Player sender) {
         showMenu(sender);
     }

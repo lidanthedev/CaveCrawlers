@@ -230,6 +230,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
         abilityManager.registerAbility("SHIELD_THROW", new MidasAbility(10000, 2));
+        abilityManager.registerAbility("MIDAS_STAFF", new MidasAbility(10000, 2));
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));

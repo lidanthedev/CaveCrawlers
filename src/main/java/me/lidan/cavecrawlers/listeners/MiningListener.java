@@ -1,9 +1,12 @@
 package me.lidan.cavecrawlers.listeners;
 
+import com.cryptomorin.xseries.XAttribute;
 import com.cryptomorin.xseries.XPotion;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import org.bukkit.GameMode;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,6 +31,13 @@ public class MiningListener implements Listener {
                 int duration = player.getPotionEffect(XPotion.MINING_FATIGUE.get()).getDuration();
                 if (duration == -1){
                     player.removePotionEffect(XPotion.MINING_FATIGUE.get());
+                }
+                Attribute attribute = XAttribute.BLOCK_BREAK_SPEED.get();
+                if (attribute != null) {
+                    AttributeInstance playerAttribute = player.getAttribute(attribute);
+                    if (playerAttribute.getBaseValue() == 0.0) {
+                        playerAttribute.setBaseValue(1.0);
+                    }
                 }
             }
             return;

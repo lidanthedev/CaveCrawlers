@@ -1,7 +1,7 @@
 # This is an example shop file. You can create your own shop files by following this format.
-# or you can use the in-game command to create a shop file. /ct shop create <shop-name>
-# to add items to the shop use /ct shop add <shop-name> <ingredient-item> <amount>
-# to open the shop use /ct shop open <shop-name>
+# or you can use the in-game command to create a shop file. /cc shop create <shop-name>
+# to add items to the shop use /cc shop add <shop-name> <ingredient-item> <amount>
+# to open the shop use /cc shop open <shop-name>
 # middle-click the item to edit the item in the shop.
 
 example:

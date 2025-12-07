@@ -6,8 +6,6 @@ import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.gui.SimpleMenuGui;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.entity.Player;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -18,10 +16,8 @@ public class MenuCommands {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final String MENU_TYPE = plugin.getConfig().getString("menu.type", MENU_TYPE_SIMPLE);
     private static final String MENU_COMMAND = plugin.getConfig().getString("menu.command", "openmenu");
-    private static final Logger log = LoggerFactory.getLogger(MenuCommands.class);
 
-    @Command("menu")
-    public void menu(Player sender) {
+    public static void showMenu(Player sender) {
         if(MENU_TYPE.equalsIgnoreCase(MENU_TYPE_SIMPLE)) {
             new SimpleMenuGui(sender).open();
         }
@@ -31,6 +27,11 @@ public class MenuCommands {
         else{
             sender.performCommand(MENU_COMMAND);
         }
+    }
+
+    @Command({"ctmenu","ccmenu"})
+    public void menu(Player sender) {
+        showMenu(sender);
     }
 
     @Command({"playerviewer","profile","myprofile"})

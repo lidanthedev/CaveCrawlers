@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
@@ -23,7 +24,7 @@ public class HulkAbility extends ScalingClickAbility{
         super("Hulk Smash", "Jump up and Smash down", 10, 1000, statToScale, baseAbilityDamage, abilityScaling);
         this.powerY = powerY;
         this.radius = radius;
-        particle = Particle.EXPLOSION;
+        particle = XParticle.EXPLOSION.get();
     }
 
     public HulkAbility() {

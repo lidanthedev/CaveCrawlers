@@ -15,7 +15,12 @@ public class LuckPermsUtils {
      * @return the player prefix
      */
     public static String getPlayerPrefix(Player player) {
-        LuckPerms luckPerms = LuckPermsProvider.get();
+        LuckPerms luckPerms = null;
+        try {
+            luckPerms = LuckPermsProvider.get();
+        } catch (IllegalStateException | NoClassDefFoundError e) {
+            return "";
+        }
         // Get the LuckPerms User object for the player
         User user = luckPerms.getUserManager().getUser(player.getUniqueId());
         if (user == null) {

@@ -129,9 +129,9 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Help", ""));
         sender.sendMessage("");
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct help", "show this message"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item", "item commands"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop", "shop commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc help", "show this message"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item", "item commands"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop", "shop commands"));
     }
 
     @Subcommand("help item")
@@ -140,21 +140,21 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Help", ""));
         sender.sendMessage("");
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item give <player> <Item id> [amount]", "give a player an item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item get <Item ID> [amount]", "give yourself an item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item browse", "open the item browser"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item give <player> <Item id> [amount]", "give a player an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item get <Item ID> [amount]", "give yourself an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item browse", "open the item browser"));
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Editor Help", ""));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item create <id> <material>", "create an item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item clone <originId> <id>", "clone an item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit stat <stat> <number>", "edit an item's stat"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit ability <ability>", "edit an item's ability"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit name <name>", "edit an item's name"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit description <description>", "edit an item's description"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit type <type>", "edit an item's type"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit rarity <rarity>", "edit an item's rarity"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItem <material>", "edit an item's base item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct item import <id>", "import the item in your hand (advanced)"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item create <id> <material>", "create an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item clone <originId> <id>", "clone an item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit stat <stat> <number>", "edit an item's stat"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit ability <ability>", "edit an item's ability"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit name <name>", "edit an item's name"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit description <description>", "edit an item's description"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit type <type>", "edit an item's type"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit rarity <rarity>", "edit an item's rarity"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit baseItem <material>", "edit an item's base item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item edit baseItemToHand <id>", "edit an item's base item to the item in your hand"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item import <id>", "import the item in your hand (advanced)"));
     }
 
     @Subcommand("help shop")
@@ -163,9 +163,9 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
         sender.sendMessage("");
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop create <name>", "create a shop item"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop open <shop-name>", "open the shop"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct shop editor <shop-name>", "open the shop editor"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop create <name>", "create a shop item"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop open <shop-name>", "open the shop"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop editor <shop-name>", "open the shop editor"));
     }
 
     @Subcommand("help altar")
@@ -173,20 +173,20 @@ public class CaveCrawlersMainCommand {
     public void altarHelp(CommandSender sender) {
         /*
         Altar commands:
-        /ct altar create <name> - create an altar
-        /ct altar addspawn <altar-name> <mob-name> <chance> - add a mob spawn to an altar
-        /ct altar addsummonblock <altar-name> - adds the block you are looking at as a summon block
-        /ct altar setspawnlocation <altar-name> - sets the spawn location for the altar
-        /ct altar info <altar-name> - get info about an altar
+        /cc altar create <name> - create an altar
+        /cc altar addspawn <altar-name> <mob-name> <chance> - add a mob spawn to an altar
+        /cc altar addsummonblock <altar-name> - adds the block you are looking at as a summon block
+        /cc altar setspawnlocation <altar-name> - sets the spawn location for the altar
+        /cc altar info <altar-name> - get info about an altar
          */
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Altar Help", ""));
         sender.sendMessage("");
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar create <name>", "create an altar"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addspawn <altar-name> <mob-name> <chance>", "add a mob spawn to an altar"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar addsummonblock <altar-name>", "adds the block you are looking at as a summon block"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar setspawnlocation <altar-name>", "sets the spawn location for the altar"));
-        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/ct altar info <altar-name>", "get info about an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar create <name>", "create an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar addspawn <altar-name> <mob-name> <chance>", "add a mob spawn to an altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar addsummonblock <altar-name>", "adds the block you are looking at as a summon block"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar setspawnlocation <altar-name>", "sets the spawn location for the altar"));
+        sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar info <altar-name>", "get info about an altar"));
     }
 
     @NotNull
@@ -319,7 +319,7 @@ public class CaveCrawlersMainCommand {
         ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (oldInfo != null) {
             sender.sendMessage("ERROR! Item already has id!");
-            sender.sendMessage("Don't want that? remove with the id /ct item remove-id");
+            sender.sendMessage("Don't want that? remove with the id /cc item remove-id");
             return;
         }
 
@@ -700,7 +700,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("shop create")
     public void shopCreate(CommandSender sender, String shopId) {
         if (shopManager.getShop(shopId) != null) {
-            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /ct shop editor <shop-name>"));
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /cc shop editor <shop-name>"));
             return;
         }
         ShopMenu shop = shopManager.createShop(shopId);

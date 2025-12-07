@@ -1,8 +1,8 @@
-server-damage-multiplier: 1.0
+server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
-  type: simple # simple or advanced or command to execute instead
+  type: command # simple or advanced or command to execute instead
   command: "openmenu"
-  item-enabled: false
+  item-enabled: false # Should the menu item be given to players? NOT RECOMMENDED
 
 # The following settings are for the loot share system.
 # Loot share allows players to share the loot of mobs they have damaged.
@@ -37,6 +37,7 @@ vanilla:
   swap_hands: false # Allow players to swap hands
   explosions: false # Allow explosions to damage blocks (HIGHLY RECOMMENDED OFF)
 
+# Experience needed for each skill level from 1 to 50 (default values)
 skill-need-xp:
   - 100.0
   - 200.0

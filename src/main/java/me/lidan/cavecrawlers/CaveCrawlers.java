@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers;
 
+import com.cryptomorin.xseries.XSound;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -24,7 +26,6 @@ import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
-import me.lidan.cavecrawlers.objects.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.objects.SoundOptions;
 import me.lidan.cavecrawlers.objects.TitleOptions;
@@ -229,6 +230,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
         abilityManager.registerAbility("SHIELD_THROW", new MidasAbility(10000, 2));
+        abilityManager.registerAbility("MIDAS_STAFF", new MidasAbility(10000, 2));
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
         abilityManager.registerAbility("TRANSMISSION", new TransmissionAbility(8));
@@ -314,7 +316,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return Registry.SOUNDS.stream().map(sound -> Registry.SOUNDS.getKey(sound).getKey()).toList();
+            return XSound.getValues().stream().map(sound -> sound.get().toString()).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
             return Arrays.stream(Material.values()).map(Enum::name).toList();

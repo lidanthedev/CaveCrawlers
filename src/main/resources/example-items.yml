@@ -1,7 +1,7 @@
 # This file is an example of how you can define items in CaveCrawlers
 # You can create your own items by following this format.
-# or you can use the in-game command to create an item file. /ct item create <item-name>
-# to edit the item hold it and use /ct item edit
+# or you can use the in-game command to create an item file. /cc item create <item-name>
+# to edit the item hold it and use /cc item edit
 
 ERROR_SCYTHE:
   ==: me.lidan.cavecrawlers.items.ItemInfo

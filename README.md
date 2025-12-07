@@ -28,30 +28,30 @@ Shop editor
 ## Commands
 
 ### Main Commands
-- `/ct help` — Show this help message
-- `/ct item` — Item commands
-- `/ct shop` — Shop commands
+- `/cc help` — Show this help message
+- `/cc item` — Item commands
+- `/cc shop` — Shop commands
 
 ### Item Commands
-- `/ct item give <player> <Item id> [amount]` — Give a player an item
-- `/ct item get <Item ID> [amount]` — Give yourself an item
-- `/ct item browse` — Open the item browser
-- `/ct item create <id> <material>` — Create an item
-- `/ct item clone <originId> <id>` — Clone an item
-- `/ct item edit stat <stat> <number>` — Edit an item's stat
-- `/ct item edit ability <ability>` — Edit an item's ability
-- `/ct item edit name <name>` — Edit an item's name
-- `/ct item edit description <description>` — Edit an item's description
-- `/ct item edit type <type>` — Edit an item's type
-- `/ct item edit rarity <rarity>` — Edit an item's rarity
-- `/ct item edit baseItem <material>` — Edit an item's base item
-- `/ct item edit baseItemToHand <id>` — Edit an item's base item to the item in your hand
-- `/ct item import <id>` — Import the item in your hand (advanced)
+- `/cc item give <player> <Item id> [amount]` — Give a player an item
+- `/cc item get <Item ID> [amount]` — Give yourself an item
+- `/cc item browse` — Open the item browser
+- `/cc item create <id> <material>` — Create an item
+- `/cc item clone <originId> <id>` — Clone an item
+- `/cc item edit stat <stat> <number>` — Edit an item's stat
+- `/cc item edit ability <ability>` — Edit an item's ability
+- `/cc item edit name <name>` — Edit an item's name
+- `/cc item edit description <description>` — Edit an item's description
+- `/cc item edit type <type>` — Edit an item's type
+- `/cc item edit rarity <rarity>` — Edit an item's rarity
+- `/cc item edit baseItem <material>` — Edit an item's base item
+- `/cc item edit baseItemToHand <id>` — Edit an item's base item to the item in your hand
+- `/cc item import <id>` — Import the item in your hand (advanced)
 
 ### Shop Commands
-- `/ct shop create <name>` — Create a shop item
-- `/ct shop open <shop-name>` — Open the shop
-- `/ct shop editor <shop-name>` — Open the shop editor
+- `/cc shop create <name>` — Create a shop item
+- `/cc shop open <shop-name>` — Open the shop
+- `/cc shop editor <shop-name>` — Open the shop editor
 
 ## Installation
 

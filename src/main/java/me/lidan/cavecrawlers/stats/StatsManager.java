@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
+import com.cryptomorin.xseries.XAttribute;
 import me.lidan.cavecrawlers.api.StatsAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
@@ -7,7 +8,6 @@ import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import org.bukkit.Bukkit;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -62,12 +62,12 @@ public class StatsManager implements StatsAPI {
     }
 
     public static void healPlayerPercent(Player player, double percent) {
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
         healPlayer(player, maxHealth / 100 * percent);
     }
 
     public static void healPlayer(Player player, double healthRegen) {
-        double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
+        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
         double health = player.getHealth();
         player.setHealth(Math.min(health + healthRegen, maxHealth));
     }
@@ -87,7 +87,7 @@ public class StatsManager implements StatsAPI {
 
         // health regen
         double maxHealth = stats.get(StatType.HEALTH).getValue();
-        player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
+        player.getAttribute(XAttribute.MAX_HEALTH.get()).setBaseValue(maxHealth);
         double healthRegen = ((maxHealth * 0.01) + 1.5);
         healPlayer(player, healthRegen);
         player.setFoodLevel(200);

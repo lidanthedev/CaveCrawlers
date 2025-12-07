@@ -61,10 +61,11 @@ public class ActionBarManager implements ActionBarAPI {
     }
 
     private static void sendActionBar(Player player, Component message) {
-        if (enabled) {
-            try (BukkitAudiences adventure = BukkitAudiences.builder(CaveCrawlers.getInstance()).build()) {
-                adventure.player(player).sendActionBar(message);
-            }
+        if (!enabled) {
+            return;
+        }
+        try (BukkitAudiences adventure = BukkitAudiences.builder(CaveCrawlers.getInstance()).build()) {
+            adventure.player(player).sendActionBar(message);
         }
     }
 

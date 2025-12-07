@@ -65,7 +65,7 @@ public class SellMenu {
         List<Component> lore = new ArrayList<>();
         getPrices().forEach((item) -> lore.add(MiniMessageUtils.miniMessage("<gray><formatted-name> <gold><price>", Map.of(
                 "formatted-name", item.itemInfo().getFormattedNameWithAmount(item.amount()),
-                "price", StringUtils.getNumberFormat(item.price())
+                "price", StringUtils.getNumberFormat(item.price() * item.amount())
         ))));
         return lore;
     }
@@ -113,6 +113,9 @@ public class SellMenu {
     }
 
     public double getPrice(String Id){
+        if (prices == null || !prices.contains(Id)) {
+            return 0;
+        }
         return prices.getDouble(Id, 0);
     }
 }

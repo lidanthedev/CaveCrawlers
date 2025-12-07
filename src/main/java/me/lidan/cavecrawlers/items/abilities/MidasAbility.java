@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
@@ -80,13 +81,11 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
 
     public void summonFallingBlock(Location loc) {
         World world = loc.getWorld();
-        world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0);
-        world.spawn(loc, FallingBlock.class, fallingBlock -> {
-            fallingBlock.setBlockData(Bukkit.createBlockData(material));
-            fallingBlock.setVelocity(new Vector(0, 0.3, 0));
-            fallingBlock.setDropItem(false);
-            fallingBlock.addScoreboardTag(SHIELD_TAG);
-        });
+        world.spawnParticle(XParticle.EXPLOSION.get(), loc, 1, 0, 0, 0, 0);
+        FallingBlock fallingBlock = world.spawnFallingBlock(loc, Bukkit.createBlockData(material));
+        fallingBlock.setVelocity(new Vector(0, 0.3, 0));
+        fallingBlock.setDropItem(false);
+        fallingBlock.addScoreboardTag(SHIELD_TAG);
     }
 
     @Override

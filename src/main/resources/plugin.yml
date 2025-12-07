@@ -8,3 +8,5 @@ depend:
 softdepend:
   - MythicMobs
   - PlaceholderAPI
+  - LuckPerms
+  - Plugman

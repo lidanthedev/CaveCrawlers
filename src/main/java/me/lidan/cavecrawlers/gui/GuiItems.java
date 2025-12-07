@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.gui;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import me.lidan.cavecrawlers.commands.MenuCommands;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,8 +22,7 @@ public class GuiItems {
 
     public static final @NotNull GuiItem BACK_MENU_ITEM = BACK_ITEM.asGuiItem((event -> {
         Player sender = (Player) event.getWhoClicked();
-        MenuGui menuGui = new MenuGui(sender);
-        menuGui.open();
+        MenuCommands.showMenu(sender);
     }));
     public static final @NotNull GuiItem GLASS_ITEM = ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem();
 

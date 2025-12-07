@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class ItemInfo implements ConfigurationSerializable {
+public class ItemInfo implements ConfigurationSerializable, Cloneable {
     private String name;
     private String description;
     private Stats stats;
@@ -119,4 +119,20 @@ public class ItemInfo implements ConfigurationSerializable {
         return itemInfo;
     }
 
+    @Override
+    public ItemInfo clone() {
+        try {
+            ItemInfo clone = (ItemInfo) super.clone();
+            clone.stats = this.stats.clone();
+            clone.abilityID = this.abilityID;
+            clone.baseItem = this.baseItem.clone();
+            clone.name = this.name;
+            clone.description = this.description;
+            clone.type = this.type;
+            clone.rarity = this.rarity;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }

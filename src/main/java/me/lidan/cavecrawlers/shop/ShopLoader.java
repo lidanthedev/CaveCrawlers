@@ -6,7 +6,7 @@ public class ShopLoader extends ConfigLoader<ShopMenu> {
     private static ShopLoader instance;
     private final ShopManager shopManager;
 
-    public ShopLoader() {
+    private ShopLoader() {
         super(ShopMenu.class, "shops");
         shopManager = ShopManager.getInstance();
     }

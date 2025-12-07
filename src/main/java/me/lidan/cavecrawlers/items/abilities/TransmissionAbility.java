@@ -15,11 +15,12 @@ public class TransmissionAbility extends ClickAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
 
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
         BukkitUtils.teleportForward(player, blocks);
+        return true;
     }
 
     @Override

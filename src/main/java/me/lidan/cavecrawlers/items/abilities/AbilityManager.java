@@ -5,51 +5,52 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.api.AbilityAPI;
 import org.bukkit.event.Listener;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AbilityManager {
+public class AbilityManager implements AbilityAPI {
     private static AbilityManager instance;
     @Getter
     private final Map<String, ItemAbility> abilityMap;
-    private final JSONParser parser = new JSONParser();
     private final CaveCrawlers plugin;
 
 
-    public AbilityManager() {
+    private AbilityManager() {
         this.abilityMap = new HashMap<>();
         this.plugin = CaveCrawlers.getInstance();
     }
 
     /**
      * register ability and if it's a Bukkit Listener it will also register it as Listener
-     * @param ID Ability ID
+     *
+     * @param ID      Ability ID
      * @param ability the ability object
      */
-    public void registerAbility(String ID, ItemAbility ability){
+    @Override
+    public void registerAbility(String ID, ItemAbility ability) {
         abilityMap.put(ID, ability);
-        if (ability instanceof Listener){
+        if (ability instanceof Listener) {
             CaveCrawlers.getInstance().registerEvent((Listener) ability);
         }
     }
 
-    public @Nullable ItemAbility getAbilityByID(String ID){
-        if (ID == null){
+    @Nullable
+    @Override
+    public ItemAbility getAbilityByID(String ID) {
+        if (ID == null) {
             return null;
         }
-        if (abilityMap.containsKey(ID)){
+        if (abilityMap.containsKey(ID)) {
             return abilityMap.get(ID);
         }
-        if (ID.contains("{")){
+        if (ID.contains("{")) {
             String IDWithoutSettings = ID.substring(0, ID.indexOf("{"));
             String settings = ID.substring(ID.indexOf("{"));
-            if (abilityMap.containsKey(IDWithoutSettings)){
+            if (abilityMap.containsKey(IDWithoutSettings)) {
                 ItemAbility ability = abilityMap.get(IDWithoutSettings);
                 JsonObject jo;
                 try {
@@ -59,9 +60,8 @@ public class AbilityManager {
                     e.printStackTrace();
                     return null;
                 }
-                plugin.getLogger().info("Building " + IDWithoutSettings + " using settings: " + jo.toString());
                 ItemAbility itemAbility = ability.buildAbilityWithSettings(jo);
-                if (itemAbility == null){
+                if (itemAbility == null) {
                     plugin.getLogger().warning("Failed to build ability with settings for ability: " + ID + " Using Default");
                     return abilityMap.get(IDWithoutSettings);
                 }
@@ -72,10 +72,12 @@ public class AbilityManager {
         return null;
     }
 
-    public @Nullable String getIDbyAbility(ItemAbility ability){
+    @Nullable
+    @Override
+    public String getIDbyAbility(ItemAbility ability) {
         for (String ID : abilityMap.keySet()) {
             ItemAbility itemAbility = abilityMap.get(ID);
-            if (itemAbility == ability){
+            if (itemAbility == ability) {
                 return ID;
             }
         }
@@ -83,7 +85,7 @@ public class AbilityManager {
     }
 
     public static AbilityManager getInstance() {
-        if (instance == null){
+        if (instance == null) {
             instance = new AbilityManager();
         }
         return instance;

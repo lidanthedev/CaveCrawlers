@@ -1,10 +1,10 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XAttribute;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.Optional;
@@ -60,7 +60,7 @@ public class StatCommand {
 
     @Subcommand("health")
     public void health(Player sender){
-        sender.sendMessage("%s/%s".formatted(sender.getHealth(), sender.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+        sender.sendMessage("%s/%s".formatted(sender.getHealth(), sender.getAttribute(XAttribute.MAX_HEALTH.get()).getValue()));
     }
 
     @Subcommand("apply")

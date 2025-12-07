@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.skills;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -13,7 +14,7 @@ import java.util.*;
 
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
-    private final Map<SkillType, Skill> skills;
+    private final Map<SkillInfo, Skill> skills;
     @Getter @Setter
     private UUID uuid;
 
@@ -22,8 +23,8 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         for (Skill skill : skillList) {
             this.skills.put(skill.getType(), skill);
         }
-        for (SkillType type : SkillType.values()) {
-            if (!skills.containsKey(type)){
+        for (SkillInfo type : SkillsManager.getInstance().getSkillInfoMap().values()) {
+            if (!skills.containsKey(type)) {
                 skills.put(type, new Skill(type, 0));
             }
         }
@@ -33,29 +34,35 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         this(new ArrayList<>());
     }
 
-    public Skill get(SkillType type){
-        return skills.get(type);
+    public Skill get(SkillInfo type) {
+        return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 
-    public void addXp(SkillType type, double amount){
+    public void set(SkillInfo type, Skill skill) {
+        skills.put(type, skill);
+    }
+
+    public void addXp(SkillInfo type, double amount) {
         get(type).addXp(amount);
     }
 
-    public void addXp(SkillType type, double amount, double multiplier){
+    public void addXp(SkillInfo type, double amount, double multiplier) {
         get(type).addXp(amount * multiplier);
     }
 
-    public void tryLevelUp(SkillType type){
+    public void tryLevelUp(SkillInfo type) {
         Skill skill = get(type);
-        if (skill.levelUp()){
+        int leveled = skill.levelUp(true);
+        if (leveled > 0) {
             Player player = Bukkit.getPlayer(uuid);
+            LevelConfigManager.getInstance().givePlayerXP(player, 10 * leveled);
             if (player != null)
                 skill.sendLevelUpMessage(player);
         }
     }
 
     public Stats getStats(){
-        Stats stats = new Stats(true);
+        Stats stats = new Stats();
         for (Skill skill : skills.values()) {
             stats.add(skill.getStats());
         }
@@ -65,17 +72,27 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public String toFormatString() {
         StringBuilder builder = new StringBuilder();
         for (Skill skill : skills.values()) {
-            builder.append(skill.getType()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
+            builder.append(skill.getType().getName()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
         }
         return builder.toString();
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+        for (Map.Entry<SkillInfo, Skill> entry : skills.entrySet()) {
+            Skill skill = entry.getValue();
+            if (skill != null) {
+                skill.setUuid(uuid);
+            }
+        }
     }
 
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        for (SkillType statType : skills.keySet()) {
-            map.put(statType.name(), get(statType));
+        for (SkillInfo skillInfo : skills.keySet()) {
+            map.put(skillInfo.getId(), get(skillInfo));
         }
         return map;
     }
@@ -87,7 +104,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
                 continue;
             }
             Object value = map.get(key);
-            SkillType type = SkillType.valueOf(key);
+            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
+            if (type == null) {
+                continue;
+            }
             Skill skill = (Skill) value;
             skills.skills.put(type, skill);
         }

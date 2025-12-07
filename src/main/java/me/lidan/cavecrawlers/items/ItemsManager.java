@@ -3,9 +3,7 @@ package me.lidan.cavecrawlers.items;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.items.abilities.AbilityManager;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.api.ItemsAPI;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -13,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,14 +21,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ItemsManager {
+public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final ConfigurationSection vanillaConversion;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
-    public ItemsManager() {
+    private ItemsManager() {
         itemsMap = new HashMap<>();
         vanillaConversion = CaveCrawlers.getInstance().getConfig().getConfigurationSection("vanilla-convert");
     }
@@ -49,14 +48,19 @@ public class ItemsManager {
 
     public ItemStack buildItem(ItemInfo info, int amount){
         List<String> infoList = info.toList();
+        ItemStack clonedBaseItem = info.getBaseItem().clone();
         if (infoList == null){
-            return ItemBuilder.from(info.getBaseItem().clone()).amount(amount).build();
+            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
         }
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
+        if (clonedBaseItem.getType() == Material.AIR || clonedBaseItem.getItemMeta() == null) {
+            clonedBaseItem = new ItemStack(Material.PAPER);
+            lore.add(0, ChatColor.RED + "base item is missing");
+        }
 
         return ItemBuilder
-                .from(info.getBaseItem().clone())
+                .from(clonedBaseItem)
                 .setName(name)
                 .setLore(lore)
                 .unbreakable()
@@ -84,6 +88,14 @@ public class ItemsManager {
             return null;
         }
         return itemInfo;
+    }
+
+    public @Nullable ItemInfo reloadItemByID(String ID) {
+        ItemsLoader loader = ItemsLoader.getInstance();
+        CustomConfig config = loader.getConfig(ID);
+        config.load();
+        loader.registerItemsFromConfig(config);
+        return itemsMap.get(ID);
     }
 
     public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
@@ -170,10 +182,15 @@ public class ItemsManager {
     }
 
     public Map<ItemInfo, Integer> getAllItems(Player player) {
+        return getAllItems(player.getInventory());
+    }
+
+    public Map<ItemInfo, Integer> getAllItems(Inventory inventory) {
         Map<ItemInfo, Integer> items = new HashMap<>();
-        for (ItemStack item : player.getInventory().getContents()) {
+        for (ItemStack item : inventory.getStorageContents()) {
             if (item == null) continue;
             ItemInfo ID = getItemFromItemStack(item);
+            if (ID == null) continue;
             items.put(ID, items.getOrDefault(ID, 0) + item.getAmount());
         }
         return items;
@@ -276,5 +293,19 @@ public class ItemsManager {
             instance = new ItemsManager();
         }
         return instance;
+    }
+
+    public void loadNotFullyLoadedItems() {
+        ItemsLoader loader = ItemsLoader.getInstance();
+        List<String> toRemove = new ArrayList<>();
+        for (String key : loader.getNotFullyLoadedItems().keySet()) {
+            ItemInfo itemInfo = reloadItemByID(key);
+            if (itemInfo != null && itemInfo.isFullyLoaded()) {
+                toRemove.add(key);
+            }
+        }
+        for (String key : toRemove) {
+            loader.getNotFullyLoadedItems().remove(key);
+        }
     }
 }

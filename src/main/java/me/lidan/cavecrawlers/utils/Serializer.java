@@ -9,7 +9,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
+/**
+ * Serializer class to manage serialization
+ * Designed to serialize and deserialize Bukkit objects
+ */
 public class Serializer {
+    /**
+     * Serialize an object to a string
+     *
+     * @param object the object to serialize
+     * @return the serialized object as a string in Base64
+     */
     public static String serialize(Object object) {
         try {
             ByteArrayOutputStream io = new ByteArrayOutputStream();
@@ -26,6 +36,12 @@ public class Serializer {
         return "";
     }
 
+    /**
+     * Deserialize a string to an object
+     * @param object the serialized object as a string in Base64
+     * @return the deserialized object
+     * @param <T> the type of the object
+     */
     public static <T> T deserialize(String object) {
         try {
             byte[] deserialized = Base64.getDecoder().decode(object);

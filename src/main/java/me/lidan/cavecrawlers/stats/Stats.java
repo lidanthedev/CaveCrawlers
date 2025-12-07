@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class Stats implements Iterable<Stat>, ConfigurationSerializable {
-    private final Map<StatType, Stat> stats;
+public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneable {
+    private Map<StatType, Stat> stats;
 
     public Stats(List<Stat> statList) {
         this.stats = new HashMap<>();
@@ -19,7 +19,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
             this.stats.put(stat.getType(), stat);
         }
         for (StatType type : StatType.values()) {
-            if (!stats.containsKey(type)){
+            if (!stats.containsKey(type)) {
                 stats.put(type, new Stat(type));
             }
         }
@@ -29,37 +29,39 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         this(new ArrayList<>());
     }
 
-    public Stats(boolean zero){
-        this();
-        if (zero){
-            zero();
+    public static Stats deserialize(Map<String, Object> map) {
+        Stats stats = new Stats();
+        for (String key : map.keySet()) {
+            StatType type = StatType.valueOf(key);
+            Double value = (Double) map.get(key);
+            stats.set(type, value);
         }
+        return stats;
     }
 
-    public Stat get(StatType type){
-        if (stats.containsKey(type)){
+    public Stat get(StatType type) throws IllegalArgumentException {
+        if (stats.containsKey(type)) {
             return stats.get(type);
         }
-        throw new IllegalArgumentException("Stat type " + type + " Does not exist!");
+        throw new IllegalArgumentException("Stat type " + type.getId() + " does not exist.");
     }
 
-    public void set(StatType type, double amount){
+    public void set(StatType type, double amount) {
+        if (!stats.containsKey(type)) {
+            stats.put(type, new Stat(type));
+        }
         get(type).setValue(amount);
     }
 
-    public void add(StatType type, double amount){
-        if (type == StatType.MANA){
+    public void add(StatType type, double amount) {
+        if (type == StatType.MANA) {
             type = StatType.INTELLIGENCE;
         }
         get(type).add(amount);
     }
 
-    public void remove(StatType type, double amount){
+    public void remove(StatType type, double amount) {
         get(type).remove(amount);
-    }
-
-    public void multiply(StatType type, double amount){
-        get(type).multiply(amount);
     }
 
     public void multiply(double multiplier) {
@@ -68,15 +70,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         }
     }
 
-    public void reset(){
-        for (Stat stat : this) {
-            stat.setValue(stat.getType().getBase());
-        }
+    public void multiply(StatType type, double amount) {
+        get(type).multiply(amount);
     }
 
-    public void zero(){
+    public void reset() {
         for (Stat stat : this) {
-            stat.setValue(0);
+            stat.setValue(stat.getType().getBase());
         }
     }
 
@@ -90,27 +90,24 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         return new ArrayList<>(stats.values());
     }
 
-    public String toFormatString(){
-        StringBuilder str = new StringBuilder();
-        for (StatType type : StatType.getStats()) {
-            Stat stat = get(type);
-            str.append(stat.getType().getFormatName()).append(": ").append(stat.getValue());
-            str.append("\n");
+    public void zero() {
+        for (Stat stat : this) {
+            stat.setValue(0);
         }
-        return str.toString();
     }
 
-    public List<String> toLoreList(){
-        List<String> lore = new ArrayList<>();
+    public String toFormatString() {
+        StringBuilder str = new StringBuilder();
         for (StatType type : StatType.getStats()) {
-            Stat stat = get(type);
-            double value = stat.getValue();
-            if (value > 0){
-                String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
-                lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+            try {
+                Stat stat = get(type);
+                str.append(stat.getType().getFormatName()).append(": ").append(Math.round(stat.getValue() * 100.0f) / 100.0f);
+                str.append("\n");
+            } catch (IllegalArgumentException ignored) {
+                // If the stat type does not exist, we ignore it
             }
         }
-        return lore;
+        return str.toString();
     }
 
     @Override
@@ -150,13 +147,34 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable {
         return map;
     }
 
-    public static Stats deserialize(Map<String, Object> map){
-        Stats stats = new Stats();
-        for (String key : map.keySet()) {
-            StatType type = StatType.valueOf(key);
-            Double value = (Double) map.get(key);
-            stats.set(type, value);
+    public List<String> toLoreList() {
+        List<String> lore = new ArrayList<>();
+        for (StatType type : StatType.getStats()) {
+            try {
+                Stat stat = get(type);
+                double value = stat.getValue();
+                if (value > 0) {
+                    String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                    lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+                }
+            } catch (IllegalArgumentException ignored) {
+                // If the stat type does not exist, we ignore it
+            }
         }
-        return stats;
+        return lore;
+    }
+
+    @Override
+    public Stats clone() {
+        try {
+            Stats clone = (Stats) super.clone();
+            clone.stats = new HashMap<>();
+            for (Stat stat : this) {
+                clone.stats.put(stat.getType(), new Stat(stat.getType(), stat.getValue()));
+            }
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

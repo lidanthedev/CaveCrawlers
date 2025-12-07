@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import lombok.Data;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -20,17 +21,18 @@ import java.util.Map;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
+    private final ConfigMessage BUY_ITEM_MESSAGE = ConfigMessage.getMessageOrDefault("buy_item", "&eYou bought %formatted_name%&e for &6%price% coins");
     private ItemInfo result;
     private int resultAmount;
     private double price;
-    private Map<ItemInfo, Integer> itemsMap;
+    private Map<ItemInfo, Integer> ingredientsMap;
     private ItemsManager itemsManager;
 
-    public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> itemsMap) {
+    public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> ingredientsMap) {
         this.result = result;
         this.resultAmount = resultAmount;
         this.price = price;
-        this.itemsMap = itemsMap;
+        this.ingredientsMap = ingredientsMap;
         itemsManager = ItemsManager.getInstance();
     }
 
@@ -49,13 +51,17 @@ public class ShopItem implements ConfigurationSerializable {
 
         list.add("");
         list.add(ChatColor.GRAY + "Cost");
-        if (price > 0){
-            list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
-        }
-        for (ItemInfo itemInfo : itemsMap.keySet()) {
-            int amount = itemsMap.get(itemInfo);
-            String name = itemInfo.getFormattedName();
-            list.add(formatName(name, amount));
+        if (price <= 0 && ingredientsMap.isEmpty()) {
+            list.add(ChatColor.GOLD + "Free");
+        } else {
+            if (price > 0) {
+                list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
+            }
+            for (ItemInfo itemInfo : ingredientsMap.keySet()) {
+                int amount = ingredientsMap.get(itemInfo);
+                String name = itemInfo.getFormattedName();
+                list.add(formatName(name, amount));
+            }
         }
         list.add("");
         list.add(ChatColor.YELLOW + "Click to Trade");
@@ -71,7 +77,7 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     @NotNull
-    public String formatName(String name, int amount) {
+    public static String formatName(String name, int amount) {
         name += " " + ChatColor.DARK_GRAY + "x" + amount;
         return name;
     }
@@ -79,16 +85,22 @@ public class ShopItem implements ConfigurationSerializable {
     public boolean buy(Player player) {
         if (canBuy(player)){
             VaultUtils.takeCoins(player, price);
-            itemsManager.removeItems(player, itemsMap);
-            ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-            player.getInventory().addItem(itemStack);
+            itemsManager.removeItems(player, ingredientsMap);
+            itemsManager.giveItem(player, result, resultAmount);
+            Map<String, String> placeholders = Map.of(
+                    "item", result.getFormattedName(),
+                    "amount", String.valueOf(resultAmount),
+                    "price", StringUtils.getNumberFormat(price),
+                    "formatted_name", formatName(result.getFormattedName(), resultAmount)
+            );
+            BUY_ITEM_MESSAGE.sendMessage(player, placeholders);
             return true;
         }
         return false;
     }
 
     public boolean canBuy(Player player) {
-        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, itemsMap);
+        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
     }
 
     @NotNull
@@ -98,8 +110,7 @@ public class ShopItem implements ConfigurationSerializable {
         map.put("result", result.getID());
         map.put("resultAmount", resultAmount);
         map.put("price", price);
-
-        map.put("item-cost", itemsManager.itemMapToStringMap(itemsMap));
+        map.put("item-cost", itemsManager.itemMapToStringMap(ingredientsMap));
         return map;
     }
 
@@ -111,7 +122,7 @@ public class ShopItem implements ConfigurationSerializable {
 
         double price = (double) map.get("price");
 
-        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.get("item-cost");
+        Map<String, Integer> itemIdMap = (Map<String, Integer>) map.getOrDefault("item-cost", new HashMap<>());
         Map<ItemInfo, Integer> itemsMap = ItemsManager.getInstance().stringMapToItemMap(itemIdMap);
 
         return new ShopItem(result, resultAmount, price, itemsMap);

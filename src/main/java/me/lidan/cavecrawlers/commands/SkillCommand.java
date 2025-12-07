@@ -1,24 +1,27 @@
 package me.lidan.cavecrawlers.commands;
 
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.gui.SkillsGui;
-import me.lidan.cavecrawlers.skills.SkillType;
-import me.lidan.cavecrawlers.skills.Skills;
+import me.lidan.cavecrawlers.skills.*;
+import me.lidan.cavecrawlers.stats.Stat;
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
-import revxrsal.commands.annotation.Command;
-import revxrsal.commands.annotation.Optional;
-import revxrsal.commands.annotation.Subcommand;
+import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 @Command({"skills", "myskills", "skilladmin"})
 @CommandPermission("cavecrawlers.skills")
 public class SkillCommand {
 
+    public static final CustomConfig TEST_SKILL_CONFIG = new CustomConfig("testskill.yml");
     private final PlayerDataManager playerDataManager;
 
     public SkillCommand() {
@@ -46,32 +49,26 @@ public class SkillCommand {
         }
     }
 
-    @Subcommand("add")
-    public void add(Player sender, SkillType type, int amount){
-        Skills skills = playerDataManager.getSkills(sender);
-        skills.get(type).add(amount);
-        sender.sendMessage("add stat %s to %s".formatted(type, amount));
-    }
-
     @Subcommand("addxp")
-    public void addXp(Player sender, SkillType type, int amount){
+    public void addXp(Player sender, SkillInfo type, double amount) {
+        SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
-        skills.addXp(type, amount);
-        sender.sendMessage("add xp to %s".formatted(type));
+        skillsManager.giveXp(sender, type, amount, true);
+        sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
-    @Subcommand("set")
-    public void set(Player sender, SkillType type, int amount){
+    @Subcommand("setXp")
+    public void setXp(Player sender, SkillInfo type, int amount) {
         Skills stats = playerDataManager.getSkills(sender);
-        stats.get(type).setValue(amount);
-        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
+        stats.get(type).setXpOfCurrentLevel(amount);
+        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type.getName(), amount));
     }
 
     @Subcommand("test")
     public void test(Player sender){
         // save skills to custom config
         Skills skills = playerDataManager.getSkills(sender);
-        CustomConfig config = new CustomConfig("testskill.yml");
+        CustomConfig config = TEST_SKILL_CONFIG;
         config.set("skills", skills);
         config.save();
         // load skills from custom config
@@ -86,7 +83,7 @@ public class SkillCommand {
     @Subcommand("testLoad")
     public void testLoad(Player sender){
         // load skills from custom config
-        CustomConfig config = new CustomConfig("testskill.yml");
+        CustomConfig config = TEST_SKILL_CONFIG;
         Skills loadedSkills = (Skills) config.get("skills");
         if (loadedSkills == null) {
             sender.sendMessage("Failed to load skills from config file.");
@@ -96,7 +93,33 @@ public class SkillCommand {
     }
 
     @Subcommand("gui")
+    @DefaultFor("skills")
     public void openGui(Player sender){
         new SkillsGui(sender).open();
+    }
+
+    @Subcommand("testBetaSkill")
+    public void testBetaSkill(Player sender, @Default("1") int level) {
+        HashMap<Integer, List<SkillReward>> rewards = new HashMap<>();
+        rewards.put(1, List.of(new StatSkillReward(new Stat(StatType.STRENGTH, 10))));
+        rewards.put(5, List.of(new StatSkillReward(new Stat(StatType.STRENGTH, 20))));
+        SkillInfo skillInfo = new SkillInfo("BetaSkill", rewards, true);
+        skillInfo.getRewards().get(level).forEach(reward -> {
+            reward.applyReward(sender);
+            sender.sendMessage("Applied reward %s".formatted(reward));
+            sender.sendMessage("Stats: %s".formatted(skillInfo.getStats(level).toFormatString()));
+        });
+        TEST_SKILL_CONFIG.set("BetaSkill", skillInfo);
+        TEST_SKILL_CONFIG.save();
+    }
+
+    @Subcommand("testBetaSkillLoad")
+    public void testBetaSkillLoad(Player sender) {
+        SkillInfo skillInfo = (SkillInfo) TEST_SKILL_CONFIG.get("BetaSkill");
+        if (skillInfo == null) {
+            sender.sendMessage("Failed to load skill from config file.");
+            return;
+        }
+        log.info("Loaded skill: {}", skillInfo);
     }
 }

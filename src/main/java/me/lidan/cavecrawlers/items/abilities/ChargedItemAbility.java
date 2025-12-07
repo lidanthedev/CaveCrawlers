@@ -80,7 +80,7 @@ public abstract class ChargedItemAbility extends ClickAbility {
         setPlayerCharges(player, charges);
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
-        ActionBarManager.getInstance().actionBar(player, msg);
+        ActionBarManager.getInstance().showActionBar(player, msg);
         useAbility(playerEvent);
     }
 

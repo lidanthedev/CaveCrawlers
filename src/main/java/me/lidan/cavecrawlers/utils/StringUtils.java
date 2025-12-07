@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Locale;
 
 public class StringUtils {
+    /**
+     * Capitalize the first letter of every word in a string
+     *
+     * @param text the text
+     * @return the text with the first letter of every word capitalized
+     */
     public static String setTitleCase(String text) {
         if (text == null || text.isEmpty()) {
             return text;
@@ -32,10 +38,25 @@ public class StringUtils {
         return converted.toString();
     }
 
+    /**
+     * Get the progress bar
+     * @param current the current
+     * @param max the max
+     * @param length the length
+     * @return the progress bar
+     */
     public static String progressBar(double current, double max, int length) {
         return progressBar(current, max, length, "-");
     }
 
+    /**
+     * Get the progress bar with an icon
+     * @param current the current
+     * @param max the max
+     * @param length the length
+     * @param icon the icon
+     * @return the progress bar
+     */
     public static String progressBar(double current, double max, int length, String icon) {
         StringBuilder progressBar = new StringBuilder();
         double percent = current / max * 100d;
@@ -50,7 +71,13 @@ public class StringUtils {
         return progressBar.toString();
     }
 
-    public static String getWhatAfterNumber(int num) {
+    /**
+     * Get the ordinal suffix of a number
+     *
+     * @param num the number
+     * @return the ordinal suffix of the number
+     */
+    public static String getNumberOrdinalSuffix(int num) {
         int last = Integer.parseInt(((num + "").charAt((num + "").length() - 1)) + "");
         if (last == 1) return "st";
         else if (last == 2) return "nd";
@@ -58,6 +85,11 @@ public class StringUtils {
         else return "th";
     }
 
+    /**
+     * Get rainbow text
+     * @param text the text
+     * @return the rainbow text
+     */
     public static String rainbowText(String text){
         StringBuilder b = new StringBuilder();
         ChatColor[] ch = {ChatColor.WHITE, ChatColor.YELLOW, ChatColor.GOLD, ChatColor.RED, ChatColor.RED, ChatColor.WHITE};
@@ -70,6 +102,14 @@ public class StringUtils {
         return b.toString();
     }
 
+    /**
+     * Get the plural of a word
+     * Why plural words are so complicated
+     * Also, this is not perfect, but it works for most cases
+     * @param text the text
+     * @param num the number if bigger than 1, it will be plural
+     * @return the plural of the word
+     */
     public static String getPlural(String text, int num) {
         if (num == 1) return text;
         String[] texts = text.split("");
@@ -155,44 +195,39 @@ public class StringUtils {
         return text;
     }
 
+    /**
+     * Get the color name
+     * @param color the color
+     * @return the color name
+     */
     public static String getColorName(int color) {
-        switch (color) {
-            case 0:
-                return "White";
-            case 1:
-                return "Orange";
-            case 2:
-                return "Magenta";
-            case 3:
-                return "Light BLue";
-            case 4:
-                return "Yellow";
-            case 5:
-                return "Lime";
-            case 6:
-                return "Pink";
-            case 7:
-                return "Gray";
-            case 8:
-                return "Light Gray";
-            case 9:
-                return "Cyan";
-            case 10:
-                return "Purple";
-            case 11:
-                return "Blue";
-            case 12:
-                return "Brown";
-            case 13:
-                return "Green";
-            case 14:
-                return "Red";
-            case 15:
-                return "Black";
-        }
-        return "";
+        return switch (color) {
+            case 0 -> "White";
+            case 1 -> "Orange";
+            case 2 -> "Magenta";
+            case 3 -> "Light BLue";
+            case 4 -> "Yellow";
+            case 5 -> "Lime";
+            case 6 -> "Pink";
+            case 7 -> "Gray";
+            case 8 -> "Light Gray";
+            case 9 -> "Cyan";
+            case 10 -> "Purple";
+            case 11 -> "Blue";
+            case 12 -> "Brown";
+            case 13 -> "Green";
+            case 14 -> "Red";
+            case 15 -> "Black";
+            default -> "";
+        };
     }
 
+    /**
+     * Get the number without a dot
+     * I recommend using formatNumber instead for most cases
+     * @param value the number
+     * @return the number without a dot
+     */
     @NotNull
     public static String getNumberWithoutDot(double value) {
         String strValue = "" + value;
@@ -200,6 +235,14 @@ public class StringUtils {
         return splitValue[0];
     }
 
+    /**
+     * Build lore for an item
+     * The method will split the lore into lines based on the number of characters but will make sure to not split words
+     * @param lore the lore
+     * @param color the color
+     * @param num the number of characters
+     * @return the lore
+     */
     public static List<String> loreBuilder(String lore, ChatColor color, int num) {
         String[] lores = lore.split(" ");
         int l = 0;
@@ -229,14 +272,50 @@ public class StringUtils {
         return list;
     }
 
+    /**
+     * Build lore for an item quickly
+     * @param lore the lore
+     * @return the lore
+     */
     public static List<String> loreBuilder(String lore) {
         return loreBuilder(lore, ChatColor.GRAY, 30);
     }
 
+    /**
+     * Get value of an object but if it is a number, format it
+     * @param value the value
+     * @return the value
+     * @param <T> the type of the value
+     */
+    public static <T> String valueOf(T value) {
+        if (value instanceof Number) {
+            return getNumberFormat((Number) value);
+        } else {
+            return String.valueOf(value);
+        }
+    }
+
+    /**
+     * Get the number format
+     * @param num the number
+     * @return the formatted number
+     * @param <T> the type of the number
+     */
     public static <T> String getNumberFormat(Number num) {
         return NumberFormat.getNumberInstance(Locale.US).format(num);
     }
 
+    /**
+     * Get the short number
+     * 1k = 1,000
+     * 1m = 1,000,000
+     * 1b = 1,000,000,000
+     * 1t = 1,000,000,000,000
+     * 1q = 1,000,000,000,000,000
+     * Anything above 1q will be formatted normally
+     * @param num the number
+     * @return the short number
+     */
     public static String getShortNumber(double num) {
         double signum = Math.signum(num);
         num = Math.abs(num);

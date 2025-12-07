@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.HashMap;
@@ -16,11 +17,11 @@ public class PlayerDataManager {
 
     private Map<UUID, PlayerData> uuidPlayerDataMap;
 
-    public PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
+    private PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
         this.uuidPlayerDataMap = uuidPlayerDataMap;
     }
 
-    public PlayerDataManager() {
+    private PlayerDataManager() {
         this.uuidPlayerDataMap = new HashMap<>();
         File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
         if (!dir.exists()) {
@@ -72,5 +73,13 @@ public class PlayerDataManager {
 
     public Skills getSkills(Player player) {
         return getPlayerData(player).getSkills();
+    }
+
+    public void resetPlayerData(@NotNull UUID uniqueId) {
+        Skills skills = new Skills();
+        skills.setUuid(uniqueId);
+        PlayerData playerData = new PlayerData(skills);
+        playerData.savePlayer(uniqueId);
+        uuidPlayerDataMap.put(uniqueId, playerData);
     }
 }

@@ -1,17 +1,15 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
+import me.lidan.cavecrawlers.damage.DamageCalculation;
+import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 
@@ -60,7 +58,8 @@ public class MultiShotAbility extends ItemAbility implements Listener {
         int yaw = 0;
         for (int i = 0; i < amount; i++) {
             Vector vector = BukkitUtils.getVector(player, yaw, 0, multiplier);
-            Arrow arrow = player.launchProjectile(Arrow.class, vector);
+            DamageCalculation calculation = new PlayerDamageCalculation(player);
+            Arrow arrow = DamageManager.getInstance().launchProjectile(player, Arrow.class, calculation, vector);
             arrow.addScoreboardTag(BOW_TAG);
             if (i % 2 == 0) {
                 yaw = Math.abs(yaw) + yawDiff;
@@ -89,8 +88,8 @@ public class MultiShotAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
-
+    protected boolean useAbility(PlayerEvent playerEvent) {
+        return true;
     }
 
     @Override

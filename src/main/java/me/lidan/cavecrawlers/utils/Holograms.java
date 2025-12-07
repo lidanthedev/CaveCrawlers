@@ -5,12 +5,12 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Mob;
 
 public class Holograms {
 
     public static final double Y_OFFSET = 2.5;
+    public static final String HOLOGRAM_TAG = "HologramCaveCrawlers";
 
     /**
      * Spawns a temporary armor stand with text at the specified location.
@@ -21,7 +21,7 @@ public class Holograms {
      */
     public static void spawnTempArmorStand(Location location, String text, int delay) {
         ArmorStand armorStand = location.getWorld().spawn(location, ArmorStand.class, stand -> {
-            stand.addScoreboardTag("HologramCaveCrawlers");
+            stand.addScoreboardTag(HOLOGRAM_TAG);
             stand.setCustomName(text);
             stand.setCustomNameVisible(true);
             stand.setInvulnerable(true);
@@ -33,6 +33,13 @@ public class Holograms {
         Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), armorStand::remove, delay);
     }
 
+    /**
+     * Shows a damage hologram above the mob.
+     *
+     * @param mob         The mob to show the hologram above.
+     * @param finalDamage The final damage dealt to the mob.
+     * @param crit        Whether the damage was a critical hit.
+     */
     public static void showDamageHologram(Mob mob, int finalDamage, boolean crit) {
         String prettyDamage = StringUtils.getNumberFormat(finalDamage);
 

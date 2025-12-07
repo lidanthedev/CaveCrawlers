@@ -1,15 +1,19 @@
 package me.lidan.cavecrawlers.listeners;
 
+import com.cryptomorin.xseries.XAttribute;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
-import me.lidan.cavecrawlers.stats.*;
+import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
+import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.Holograms;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -25,11 +29,17 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DamageEntityListener implements Listener {
 
     private static final boolean PROJECTILE_DAMAGE_FIX = true;
-    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
+    private static final EntityManager entityManager = EntityManager.getInstance();
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final double VOID_DAMAGE = 1000000000;
+    private static double serverDamageMultiplier = plugin.getConfig().getDouble("server-damage-multiplier", 1);
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -48,6 +58,16 @@ public class DamageEntityListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDamage(EntityDamageEvent event) {
+        double damage = event.getDamage();
+        if (event.getCause() == EntityDamageEvent.DamageCause.VOID){
+            damage = VOID_DAMAGE;
+        }
+
+        event.setDamage(damage);
+    }
+
     private void onPlayerDamageMobProjectile(EntityDamageByEntityEvent event, Projectile projectile, Player player, Mob mob){
         if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) {
             onPlayerDamageMob(event, player, mob);
@@ -61,7 +81,8 @@ public class DamageEntityListener implements Listener {
             onPlayerDamageMob(event, player, mob);
             return;
         }
-        damageMobAfterCalculation(event, mob, calculated, crit);
+        calculated *= serverDamageMultiplier;
+        damageMobAfterCalculation(event, player, mob, calculated, crit);
     }
 
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
@@ -82,12 +103,14 @@ public class DamageEntityListener implements Listener {
         DamageCalculation calculation = damageManager.getDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
-        damageMobAfterCalculation(event, mob, damage, crit);
+        damage *= serverDamageMultiplier;
+        damageMobAfterCalculation(event, player, mob, damage, crit);
     }
 
-    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Mob mob, double damage, boolean crit) {
+    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Player player, Mob mob, double damage, boolean crit) {
         event.setDamage(damage);
         int finalDamage = (int) event.getFinalDamage();
+        entityManager.addDamage(player.getUniqueId(), mob, finalDamage);
         Holograms.showDamageHologram(mob, finalDamage, crit);
     }
 
@@ -95,10 +118,10 @@ public class DamageEntityListener implements Listener {
         double damage = event.getDamage();
 
         if (event.getCause() == EntityDamageEvent.DamageCause.PROJECTILE && PROJECTILE_DAMAGE_FIX){
-            Entity damager = event.getDamager();
-            if (damager instanceof Projectile projectile){
+            Entity attacker = event.getDamager();
+            if (attacker instanceof Projectile projectile){
                 if (projectile.getShooter() instanceof Mob mob) {
-                    damage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue();
+                    damage = mob.getAttribute(XAttribute.ATTACK_DAMAGE.get()).getValue();
                 }
             }
         }
@@ -112,7 +135,7 @@ public class DamageEntityListener implements Listener {
         event.setDamage(damage);
 
         Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            ActionBarManager.getInstance().actionBar(player);
+            ActionBarManager.getInstance().showActionBar(player);
         }, 1L);
     }
 }

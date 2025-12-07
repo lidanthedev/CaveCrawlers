@@ -4,5 +4,9 @@ main: me.lidan.cavecrawlers.CaveCrawlers
 api-version: '1.19'
 depend:
   - Vault
+  - ProtocolLib
 softdepend:
   - MythicMobs
+  - PlaceholderAPI
+  - LuckPerms
+  - Plugman

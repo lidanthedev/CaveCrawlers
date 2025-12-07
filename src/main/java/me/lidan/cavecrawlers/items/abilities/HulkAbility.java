@@ -1,11 +1,11 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -24,7 +24,7 @@ public class HulkAbility extends ScalingClickAbility{
         super("Hulk Smash", "Jump up and Smash down", 10, 1000, statToScale, baseAbilityDamage, abilityScaling);
         this.powerY = powerY;
         this.radius = radius;
-        particle = Particle.EXPLOSION_HUGE;
+        particle = XParticle.EXPLOSION.get();
     }
 
     public HulkAbility() {
@@ -32,7 +32,7 @@ public class HulkAbility extends ScalingClickAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         // push the player up
         Player player = playerEvent.getPlayer();
         player.setVelocity(player.getVelocity().setY(powerY));
@@ -51,6 +51,7 @@ public class HulkAbility extends ScalingClickAbility{
                 task.cancel();
             }
         }, 10, 5);
+        return true;
     }
 
     @Override

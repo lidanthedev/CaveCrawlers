@@ -52,21 +52,24 @@ public abstract class ItemAbility implements Cloneable {
             return;
         }
 
-        abilityCooldown.startCooldown(player.getUniqueId());
-        manaStat.setValue(manaStat.getValue() - getCost());
-        String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
-        ActionBarManager.getInstance().actionBar(player, msg);
-        useAbility(playerEvent);
+        boolean success = useAbility(playerEvent);
+        if (success) {
+            abilityCooldown.startCooldown(player.getUniqueId());
+            manaStat.setValue(manaStat.getValue() - getCost());
+            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
+            ActionBarManager.getInstance().showActionBar(player, msg);
+        }
     }
 
     public void abilityFailedNoMana(Player player){
         String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
-        ActionBarManager.getInstance().actionBar(player, msg);
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
     public void abilityFailedCooldown(Player player){
-        String msg = ChatColor.RED + "Still on cooldown!";
-        ActionBarManager.getInstance().actionBar(player, msg);
+        double diff = (cooldown - abilityCooldown.getCurrentCooldown(player.getUniqueId()))/1000.0;
+        String msg = ChatColor.RED + "Still on cooldown! (%ss Left)".formatted(diff);
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
     public boolean hasAbility(ItemStack itemStack){
@@ -75,7 +78,7 @@ public abstract class ItemAbility implements Cloneable {
         return itemInfo != null && itemInfo.getAbility() == this;
     }
 
-    protected abstract void useAbility(PlayerEvent playerEvent);
+    protected abstract boolean useAbility(PlayerEvent playerEvent);
 
     public List<String> toList(){
         List<String> list = new ArrayList<>();

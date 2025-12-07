@@ -21,6 +21,15 @@ public class BukkitUtils {
 
     public static final int MAX_RETRIES = 100_000;
 
+    /**
+     * Get the vector of the player
+     *
+     * @param player       the player
+     * @param yawDegrees   the yaw degrees
+     * @param pitchDegrees the pitch degrees
+     * @param multiplayer  the multiplayer
+     * @return the vector rotated by the yaw and pitch
+     */
     public static Vector getVector(Entity player, double yawDegrees, double pitchDegrees, double multiplayer) {
         Vector vector = new Vector();
 
@@ -37,16 +46,22 @@ public class BukkitUtils {
         return vector.multiply(multiplayer);
     }
 
-    public static List<Block> loopBlocks(Location center, int size) {
+    /**
+     * Get blocks in a radius
+     * @param center the center location of the blocks
+     * @param radius the radius around the center
+     * @return the blocks in the radius
+     */
+    public static List<Block> loopBlocks(Location center, int radius) {
         ArrayList<Block> blocks = new ArrayList<>();
         int X = center.getBlockX();
         int Y = center.getBlockY();
         int Z = center.getBlockZ();
-        for (int x = X - size; x <= X + size; x++) {
-            for (int y = Y - size; y <= Y + size; y++) {
-                for (int z = Z - size; z <= Z + size; z++) {
+        for (int x = X - radius; x <= X + radius; x++) {
+            for (int y = Y - radius; y <= Y + radius; y++) {
+                for (int z = Z - radius; z <= Z + radius; z++) {
                     Block blockAt = center.getWorld().getBlockAt(x, y, z);
-                    if (center.distanceSquared(blockAt.getLocation()) <= (double) size * size) {
+                    if (center.distanceSquared(blockAt.getLocation()) <= (double) radius * radius) {
                         blocks.add(blockAt);
                     }
                 }
@@ -55,18 +70,28 @@ public class BukkitUtils {
         return blocks;
     }
 
-    public static boolean isSolid(Block b) {
-        Material t = b.getType();
-        return t.isSolid();
+    /**
+     * Check if a block is solid
+     * @param block the block
+     * @return true if the block is solid
+     */
+    public static boolean isSolid(Block block) {
+        Material type = block.getType();
+        return type.isSolid();
     }
 
+    /**
+     * Teleport the player forward by a number of blocks with safeguards
+     * @param player the player
+     * @param blocks the number of blocks
+     */
     public static void teleportForward(Player player, double blocks) {
         int tp = 0;
         player.teleport(player.getLocation().add(0, 1, 0));
         Location l = player.getLocation().clone();
         for (int i = 0; i <= blocks; i++) {
             l.add(player.getLocation().getDirection().multiply(1)).getBlock();
-            if (!isSolid(l.getBlock()) && !isSolid(l.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
+            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
                 tp++;
             } else {
                 player.sendMessage(ChatColor.RED + "There is a block there!");
@@ -79,22 +104,42 @@ public class BukkitUtils {
         }
     }
 
-    public static void getLineBetweenTwoPoints(Location point1, Location point2, double space, Consumer<Location> consumer) {
+    /**
+     * Run a callback every jump between two points
+     * @param point1 the first point
+     * @param point2 the second point
+     * @param space the space between the jumps
+     * @param callback action to perform on every point in the line
+     */
+    public static void runCallbackBetweenTwoPoints(Location point1, Location point2, double space, Consumer<Location> callback) {
         double distance = point1.distance(point2);
         Vector p1 = point1.toVector();
         Vector p2 = point2.toVector();
         Vector vector = p2.clone().subtract(p1).normalize().multiply(space);
         for (double i = 0; i < distance; i += space) {
             Location loc = p1.clone().add(vector.clone().multiply(i)).toLocation(point1.getWorld());
-            consumer.accept(loc);
+            callback.accept(loc);
         }
     }
 
-    public static void getLineWithVector(Location start, Vector vector, double space, Consumer<Location> consumer) {
+    /**
+     * Run a callback every jump between point with a vector
+     * @param start the start
+     * @param vector the vector
+     * @param space the space between the jumps
+     * @param consumer the action to perform on every point in the line
+     */
+    public static void runCallbackBetweenPointWithVector(Location start, Vector vector, double space, Consumer<Location> consumer) {
         Location finish = start.clone().add(vector);
-        getLineBetweenTwoPoints(start, finish, space, consumer);
+        runCallbackBetweenTwoPoints(start, finish, space, consumer);
     }
 
+    /**
+     * Get the target entity
+     * @param sender the sender entity
+     * @param range max range
+     * @return the target entity
+     */
     public static Entity getTargetEntity(LivingEntity sender, int range) {
         Location location = sender.getEyeLocation();
         Vector vector = location.getDirection();
@@ -111,6 +156,13 @@ public class BukkitUtils {
         return null;
     }
 
+    /**
+     * Get random block in a region
+     * @param pos1 the first position
+     * @param pos2 the second position
+     * @param filter what blocks to filter
+     * @return the random block in the region
+     */
     public static Block getRandomBlockFilter(Location pos1, Location pos2, Predicate<Block> filter){
         Block block = null;
         int c = 0;
@@ -129,6 +181,12 @@ public class BukkitUtils {
         return block;
     }
 
+    /**
+     * Get random block in a region
+     * @param pos1 the first position
+     * @param pos2 the second position
+     * @return the random block in the region
+     */
     @NotNull
     public static Block getRandomBlock(Location pos1, Location pos2) {
         Block block;
@@ -145,21 +203,41 @@ public class BukkitUtils {
         return block;
     }
 
-    public static <T extends Entity> List<T> getNearbyEntities(Location target, int radius, Class<? extends Entity> clazz) {
+    /**
+     * Get nearby entities around a location with a filter
+     * @param center the center location
+     * @param radius the radius
+     * @param entityFilter the entity class to cast into (Ex: LivingEntity.class)
+     * @return the nearby entities
+     * @param <T> the type of entity
+     */
+    public static <T extends Entity> List<T> getNearbyEntities(Location center, int radius, Class<? extends T> entityFilter) {
         List<T> entities = new ArrayList<>();
-        for (Entity entity : target.getWorld().getNearbyEntities(target, radius, radius, radius)) {
-            if (clazz.isInstance(entity)){
-                entities.add((T) entity);
+        for (Entity entity : center.getWorld().getNearbyEntities(center, radius, radius, radius)) {
+            if (entityFilter.isInstance(entity)) {
+                entities.add(entityFilter.cast(entity));
             }
         }
         return entities;
     }
 
-    public static List<LivingEntity> getNearbyEntities(Location target, int radius) {
-        return getNearbyEntities(target, radius, LivingEntity.class);
+    /**
+     * Get nearby living entities around a location
+     * @param center the center location
+     * @param radius the radius
+     * @return the nearby living entities around the center within radius distance
+     */
+    public static List<LivingEntity> getNearbyEntities(Location center, int radius) {
+        return getNearbyEntities(center, radius, LivingEntity.class);
     }
 
-    public static List<Mob> getNearbyMobs(Location target, int radius) {
-        return getNearbyEntities(target, radius, Mob.class);
+    /**
+     * Get nearby mobs around a location
+     * @param center the center location
+     * @param radius the radius
+     * @return the nearby mobs around the center within radius distance
+     */
+    public static List<Mob> getNearbyMobs(Location center, int radius) {
+        return getNearbyEntities(center, radius, Mob.class);
     }
 }

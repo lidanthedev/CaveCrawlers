@@ -30,11 +30,11 @@ public class PotionAbility extends ClickAbility{
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         if (range == 0) {
             player.addPotionEffect(potionEffectType.createEffect(duration, amplifier));
-            return;
+            return true;
         }
         for (Entity entity : player.getNearbyEntities(range, range, range)) {
             if (!(entity instanceof LivingEntity livingEntity)){
@@ -44,6 +44,7 @@ public class PotionAbility extends ClickAbility{
                 livingEntity.addPotionEffect(potionEffectType.createEffect(duration, amplifier));
             }
         }
+        return true;
     }
 
     @Override

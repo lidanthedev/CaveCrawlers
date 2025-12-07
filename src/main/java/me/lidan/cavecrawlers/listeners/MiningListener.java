@@ -1,15 +1,18 @@
 package me.lidan.cavecrawlers.listeners;
 
+import com.cryptomorin.xseries.XAttribute;
+import com.cryptomorin.xseries.XPotion;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import org.bukkit.GameMode;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageAbortEvent;
 import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.List;
 
@@ -24,10 +27,17 @@ public class MiningListener implements Listener {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
         if (blacklistedWorlds.contains(name)) {
-            if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING)){
-                int duration = player.getPotionEffect(PotionEffectType.SLOW_DIGGING).getDuration();
+            if (player.hasPotionEffect(XPotion.MINING_FATIGUE.get())) {
+                int duration = player.getPotionEffect(XPotion.MINING_FATIGUE.get()).getDuration();
                 if (duration == -1){
-                    player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                    player.removePotionEffect(XPotion.MINING_FATIGUE.get());
+                }
+                Attribute attribute = XAttribute.BLOCK_BREAK_SPEED.get();
+                if (attribute != null) {
+                    AttributeInstance playerAttribute = player.getAttribute(attribute);
+                    if (playerAttribute.getBaseValue() == 0.0) {
+                        playerAttribute.setBaseValue(1.0);
+                    }
                 }
             }
             return;

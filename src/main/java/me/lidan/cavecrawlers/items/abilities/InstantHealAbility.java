@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.XAttribute;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -55,10 +56,15 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
+        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
+        if (player.getHealth() >= maxHealth){
+            return false;
+        }
         StatsManager.healPlayer(player, healAmount);
         StatsManager.healPlayerPercent(player, healPercent);
         player.getWorld().spawnParticle(Particle.HEART, player.getEyeLocation(), 1);
+        return true;
     }
 }

@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -17,25 +16,38 @@ import java.util.Set;
 public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private final Class<T> type;
     @Getter
-    private final Map<String, File> itemIDFileMap;
+    private final Map<String, File> configMap;
     @Getter
     private final File fileDir;
-    private final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(this.getClass());
+    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
 
-    public ConfigLoader(Class<T> type, String dirName) {
-        this(type, new File(CaveCrawlers.getInstance().getDataFolder(), dirName));
+    protected ConfigLoader(Class<T> type, String dirName) {
+        this(type, new File(plugin.getDataFolder(), dirName));
     }
 
-    public ConfigLoader(Class<T> type, File fileDir) {
+    protected ConfigLoader(Class<T> type, File fileDir) {
         this.type = type;
         this.fileDir = fileDir;
-        this.itemIDFileMap = new HashMap<>();
+        this.configMap = new HashMap<>();
     }
 
-
-
     public void load(){
-        registerItemsFromFolder(fileDir);
+        load(fileDir);
+    }
+
+    /**
+     * Load items from a directory.
+     *
+     * @param dir the plugin data folder.
+     */
+    public void load(File dir) {
+        if (!dir.exists()) {
+            return;
+        }
+        if (dir != fileDir) {
+            dir = new File(dir, fileDir.getName());
+        }
+        registerItemsFromFolder(dir);
     }
 
     public void registerItemsFromFolder(File dir) {
@@ -56,10 +68,17 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     }
 
     public void registerItemsFromFile(File file) {
-        CustomConfig customConfig = new CustomConfig(file);
-        Set<String> registered = registerItemsFromConfig(customConfig);
-        for (String s : registered) {
-            itemIDFileMap.put(s, file);
+        if (!file.getName().endsWith(".yml")) {
+            return;
+        }
+        try {
+            CustomConfig customConfig = new CustomConfig(file);
+            Set<String> registered = registerItemsFromConfig(customConfig);
+            for (String s : registered) {
+                configMap.put(s, file);
+            }
+        } catch (Exception e) {
+            CaveCrawlers.getInstance().getLogger().warning("Failed to Load File: " + file.getPath());
         }
     }
 
@@ -78,17 +97,23 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         return registeredItems;
     }
 
-    public CustomConfig getConfig(String ID){
-        Map<String, File> idFileMap = getItemIDFileMap();
-        File file = idFileMap.get(ID);
+    public CustomConfig getConfig(String Id){
+        Map<String, File> idFileMap = getConfigMap();
+        File file = idFileMap.get(Id);
         if (file == null){
-            file = new File(getFileDir(), ID + ".yml");
+            file = new File(getFileDir(), Id + ".yml");
         }
         return new CustomConfig(file);
     }
 
+    public void update(String Id, T value) {
+        CustomConfig config = getConfig(Id);
+        config.set(Id, value);
+        config.save();
+    }
+
     public void clear(){
-        itemIDFileMap.clear();
+        configMap.clear();
     }
 
     public abstract void register(String key, T value);

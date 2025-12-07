@@ -1,12 +1,15 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
-import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.*;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
@@ -28,7 +31,7 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    protected void useAbility(PlayerEvent playerEvent) {
+    protected boolean useAbility(PlayerEvent playerEvent) {
         Player player = playerEvent.getPlayer();
         Location loc =  player.getLocation();
         Vector vector = loc.clone().getDirection();
@@ -73,14 +76,16 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
                 bukkitTask.cancel();
             }
         }, 0, 3L);
+        return true;
     }
 
     public void summonFallingBlock(Location loc) {
         World world = loc.getWorld();
-        world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0,0,0,0);
-        FallingBlock block = world.spawnFallingBlock(loc, material, (byte) 0);
-        block.setVelocity(new Vector(0,0.3,0));
-        block.setDropItem(false);
+        world.spawnParticle(XParticle.EXPLOSION.get(), loc, 1, 0, 0, 0, 0);
+        FallingBlock fallingBlock = world.spawnFallingBlock(loc, Bukkit.createBlockData(material));
+        fallingBlock.setVelocity(new Vector(0, 0.3, 0));
+        fallingBlock.setDropItem(false);
+        fallingBlock.addScoreboardTag(SHIELD_TAG);
     }
 
     @Override

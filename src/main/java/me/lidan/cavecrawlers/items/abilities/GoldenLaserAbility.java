@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.items.abilities;
 
+import com.cryptomorin.xseries.particles.XParticle;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -14,7 +14,7 @@ public class GoldenLaserAbility extends ClickAbility implements Listener  {
     }
 
     @Override
-    protected void useAbility(PlayerEvent event) {
+    protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
         Location loc = player.getLocation();
         Vector vector = loc.clone().getDirection();
@@ -22,7 +22,8 @@ public class GoldenLaserAbility extends ClickAbility implements Listener  {
         loc = loc.add(vector);
         for(int i = 0 ; i < 100 ; i++) {
             loc = loc.multiply(0.1);
-            world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0);
+            world.spawnParticle(XParticle.EXPLOSION.get(), loc, 1, 0, 0, 0, 0);
         }
+        return true;
     }
 }

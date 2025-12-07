@@ -937,11 +937,13 @@ public class CaveCrawlersMainCommand {
         for (String part : parts) {
             setId = setId.replace(part, "");
         }
+        ItemStack originBaseItem = itemInfo.getBaseItem();
         for (String part : parts) {
             String id = setId + part;
             ItemInfo clonedInfo = itemInfo.clone();
             XMaterial materialOpt = XMaterial.matchXMaterial(materialType + "_" + part).orElseThrow();
             ItemStack baseItem = new ItemStack(materialOpt.get());
+            baseItem.setItemMeta(originBaseItem.getItemMeta());
             clonedInfo.setBaseItem(baseItem);
             String name = StringUtils.setTitleCase(id.replace("_", " "));
             clonedInfo.setName(name);

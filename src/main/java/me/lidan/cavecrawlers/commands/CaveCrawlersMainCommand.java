@@ -395,7 +395,7 @@ public class CaveCrawlersMainCommand {
             return;
         }
 
-        itemsManager.setItem(id, itemInfo);
+        itemsManager.setItem(id, itemInfo.clone());
         ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);
         sender.sendMessage("Cloned Item!");

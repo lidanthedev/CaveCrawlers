@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XMaterial;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -916,6 +917,38 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("An error occurred: " + throwable.getMessage());
             return null;
         });
+    }
+
+    @Subcommand("test armorset")
+    @AutoComplete("@itemID LEATHER|IRON|GOLD|DIAMOND|NETHERITE|CHAINMAIL *")
+    public void testArmorSet(Player sender, String originId, String materialType) {
+        ItemInfo itemInfo = itemsManager.getItemByID(originId);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        XMaterial material = XMaterial.matchXMaterial(materialType + "_HELMET").orElseThrow();
+        if (!material.isSupported()) {
+            sender.sendMessage("ERROR! MATERIAL TYPE NOT SUPPORTED!");
+            return;
+        }
+        String[] parts = {"HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"};
+        String setId = originId;
+        for (String part : parts) {
+            setId = setId.replace(part, "");
+        }
+        for (String part : parts) {
+            String id = setId + part;
+            ItemInfo clonedInfo = itemInfo.clone();
+            XMaterial materialOpt = XMaterial.matchXMaterial(materialType + "_" + part).orElseThrow();
+            ItemStack baseItem = new ItemStack(materialOpt.get());
+            clonedInfo.setBaseItem(baseItem);
+            String name = StringUtils.setTitleCase(id.replace("_", " "));
+            clonedInfo.setName(name);
+            itemsManager.setItem(id, clonedInfo);
+            ItemStack itemStack = itemsManager.buildItem(id, 1);
+            sender.getInventory().addItem(itemStack);
+        }
     }
 
     @Subcommand("mythic skill")

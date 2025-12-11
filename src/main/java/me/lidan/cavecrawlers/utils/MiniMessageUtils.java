@@ -9,7 +9,9 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -157,5 +159,13 @@ public class MiniMessageUtils {
             progressBar.append(icon);
         }
         return MINI_MESSAGE.deserialize(progressBar.toString());
+    }
+
+    public static @Nullable List<Component> miniMessageList(List<String> messages) {
+        return messages.stream().map(MiniMessageUtils::miniMessage).toList();
+    }
+
+    public static @Nullable List<Component> miniMessageList(String... messages) {
+        return miniMessageList(List.of(messages));
     }
 }

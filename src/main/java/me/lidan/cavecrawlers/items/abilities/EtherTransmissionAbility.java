@@ -12,7 +12,7 @@ public class EtherTransmissionAbility extends TransmissionAbility {
     private int maxDistance = 60;
 
     public EtherTransmissionAbility(double blocks) {
-        super(blocks);
+        super("Ether Transmission", "Teleport ahead of you or to targeted block while sneaking", 50, 50, blocks);
     }
 
     @Override

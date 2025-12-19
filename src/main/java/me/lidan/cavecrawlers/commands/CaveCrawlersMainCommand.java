@@ -957,6 +957,16 @@ public class CaveCrawlersMainCommand {
         }
     }
 
+    @Subcommand("test cooldown")
+    public void testCooldown(Player sender) {
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        if (hand.getType() == Material.AIR) {
+            sender.sendMessage("Hold an item in your hand!");
+            return;
+        }
+        PacketManager.getInstance().setCooldown(sender, hand.getType(), 100);
+    }
+
     @Subcommand("mythic skill")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {

@@ -206,7 +206,7 @@ public class Drop implements ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("type", type);
+        map.put("type", type.name());
         map.put("chance", chance);
         map.put("value", value);
         map.put("announce", ConfigMessage.getIdOfMessage(announce));

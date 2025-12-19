@@ -51,12 +51,9 @@ public class BossDrops implements ConfigurationSerializable {
 
     public static BossDrops deserialize(Map<String, Object> map) {
         List<BossDrop> deserializedDrops = new ArrayList<>();
-        List<Map<String, Object>> dropsList = (List<Map<String, Object>>) map.get("drops");
-        for (Map<String, Object> dropMap : dropsList) {
-            deserializedDrops.add(BossDrop.deserialize(dropMap));
-        }
+        List<BossDrop> dropsList = (List<BossDrop>) map.get("drops");
         String entityName = (String) map.get("entityName");
-        ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
+        ConfigMessage announce = ConfigMessage.getMessage((String) map.getOrDefault("announce", ""));
         List<Integer> bonusPoints = (List<Integer>) map.getOrDefault("bonusPoints", List.of(300, 250, 200, 150, 100));
         return new BossDrops(deserializedDrops, entityName, announce, bonusPoints);
     }

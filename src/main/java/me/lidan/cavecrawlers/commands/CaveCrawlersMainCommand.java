@@ -376,7 +376,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
-
+        id = id.toUpperCase();
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats();

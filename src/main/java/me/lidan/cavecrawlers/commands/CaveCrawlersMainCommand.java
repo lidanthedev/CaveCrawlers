@@ -704,6 +704,10 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /cc shop editor <shop-name>"));
             return;
         }
+        if (shopId.contains(" ")) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ID CANNOT CONTAIN SPACES!"));
+            return;
+        }
         ShopMenu shop = shopManager.createShop(shopId);
         if (sender instanceof Player player) {
             new ShopEditor(player, shop).open();

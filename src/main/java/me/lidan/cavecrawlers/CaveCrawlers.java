@@ -237,6 +237,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("GOLDEN_LASER", new GoldenLaserAbility());
         abilityManager.registerAbility("PORTABLE_SHOP", new PortableShopAbility());
         abilityManager.registerAbility("SUPER_PORTABLE_SHOP", new AutoPortableShopAbility());
+        abilityManager.registerAbility("AUTO_PORTABLE_SHOP", new AutoPortableShopAbility());
+        abilityManager.registerAbility("AUTO_FULL_SHOP", new AutoFullShopAbility());
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
         if (mythicBukkit != null) {
             abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));

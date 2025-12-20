@@ -2,6 +2,8 @@ package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.entities.EntityData;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillsManager;
 import org.bukkit.GameMode;
@@ -18,6 +20,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.UUID;
 
 
 public class SkillXpGainingListener implements Listener {
@@ -67,6 +71,18 @@ public class SkillXpGainingListener implements Listener {
                 type = activeMob.getType().getInternalName();
             }
         }
+        EntityData entityData = EntityManager.getInstance().getEntityData(event.getEntity().getUniqueId());
+        if (entityData != null) {
+            for (UUID uuid : entityData.getDamageMap().keySet()) {
+                Player damager = plugin.getServer().getPlayer(uuid);
+                if (damager != null) {
+                    // Give XP to damagers who contributed to the kill
+                    skillsManager.tryGiveXp(SkillAction.KILL, type, damager);
+                }
+            }
+            return;
+        }
+        // Give XP to the killer if no entity data is found
         skillsManager.tryGiveXp(SkillAction.KILL, type, player);
     }
 

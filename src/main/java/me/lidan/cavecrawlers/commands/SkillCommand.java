@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.*;
@@ -38,6 +39,7 @@ public class SkillCommand {
     }
 
     @Subcommand("lore")
+    @CommandPermission("cavecrawlers.skills.lore")
     public void loreStats(Player sender, @Optional Player arg){
         if(arg == null) {
             arg = sender;
@@ -50,6 +52,7 @@ public class SkillCommand {
     }
 
     @Subcommand("addxp")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void addXp(Player sender, SkillInfo type, double amount) {
         SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
@@ -58,6 +61,7 @@ public class SkillCommand {
     }
 
     @Subcommand("setXp")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void setXp(Player sender, SkillInfo type, int amount) {
         Skills stats = playerDataManager.getSkills(sender);
         stats.get(type).setXpOfCurrentLevel(amount);
@@ -65,6 +69,7 @@ public class SkillCommand {
     }
 
     @Subcommand("test")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void test(Player sender){
         // save skills to custom config
         Skills skills = playerDataManager.getSkills(sender);
@@ -81,6 +86,7 @@ public class SkillCommand {
     }
 
     @Subcommand("testLoad")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void testLoad(Player sender){
         // load skills from custom config
         CustomConfig config = TEST_SKILL_CONFIG;
@@ -99,6 +105,7 @@ public class SkillCommand {
     }
 
     @Subcommand("testBetaSkill")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void testBetaSkill(Player sender, @Default("1") int level) {
         HashMap<Integer, List<SkillReward>> rewards = new HashMap<>();
         rewards.put(1, List.of(new StatSkillReward(new Stat(StatType.STRENGTH, 10))));
@@ -114,6 +121,7 @@ public class SkillCommand {
     }
 
     @Subcommand("testBetaSkillLoad")
+    @CommandPermission("cavecrawlers.skills.admin")
     public void testBetaSkillLoad(Player sender) {
         SkillInfo skillInfo = (SkillInfo) TEST_SKILL_CONFIG.get("BetaSkill");
         if (skillInfo == null) {
@@ -121,5 +129,13 @@ public class SkillCommand {
             return;
         }
         log.info("Loaded skill: {}", skillInfo);
+    }
+
+    @Subcommand("reset")
+    @CommandPermission("cavecrawlers.skills.admin")
+    public void resetSkills(Player sender) {
+        Skills skills = playerDataManager.getSkills(sender);
+        skills.resetAllSkills();
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>All skills have been reset."));
     }
 }

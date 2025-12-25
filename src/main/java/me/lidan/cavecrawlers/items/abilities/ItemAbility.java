@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Setter
 @ToString
 public abstract class ItemAbility implements Cloneable {
+    private static boolean EXPERIMENTAL_ENABLE_COOLDOWN_ANIMATION = CaveCrawlers.getInstance().getConfig().getBoolean("experimental.enable-cooldown-animation", false);
     private String name;
     private String description;
     private double cost;
@@ -55,6 +58,9 @@ public abstract class ItemAbility implements Cloneable {
         boolean success = useAbility(playerEvent);
         if (success) {
             abilityCooldown.startCooldown(player.getUniqueId());
+            if (EXPERIMENTAL_ENABLE_COOLDOWN_ANIMATION) {
+                PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) (cooldown / 1000 * 20));
+            }
             manaStat.setValue(manaStat.getValue() - getCost());
             String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
             ActionBarManager.getInstance().showActionBar(player, msg);

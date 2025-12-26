@@ -98,6 +98,10 @@ public class ShopMenu implements ConfigurationSerializable {
             return;
         }
         if (itemInfo.getAbility() instanceof AutoPortableShopAbility portableShopAbility) {
+            if (portableShopAbility.getShopId() != null) {
+                // Already set manually by admin
+                return;
+            }
             ItemNbt.setString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM, String.valueOf(slotId));
             player.sendMessage("Portable shop item set to " + shopItem.getResult().getFormattedName());
             player.closeInventory();

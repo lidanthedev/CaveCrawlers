@@ -96,9 +96,9 @@ public class BukkitUtils {
         player.teleport(player.getLocation().add(0, 1, 0));
         Location l = player.getLocation().clone();
         for (int i = 0; i <= blocks; i++) {
-            Location oL = l.clone();
+            Location originLocation = l.clone();
             l.add(player.getLocation().getDirection().multiply(1)).getBlock();
-            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ())) && !isCorner(oL.getBlock(), player.getLocation())) {
+            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ())) && !isCorner(originLocation.getBlock(), player.getLocation())) {
                 tp++;
             } else {
                 player.sendMessage(ChatColor.RED + "There is a block there!");

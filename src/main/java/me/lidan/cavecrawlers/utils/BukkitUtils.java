@@ -111,8 +111,9 @@ public class BukkitUtils {
             lCentered.setYaw(player.getLocation().getYaw());
             lCentered.setPitch(player.getLocation().getPitch());
             player.teleport(lCentered);
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -128,7 +129,7 @@ public class BukkitUtils {
         if (yaw >=0 && yaw <= 90) {
             return block.getRelative(BlockFace.SOUTH).getType().isSolid() &&
                     block.getRelative(BlockFace.WEST).getType().isSolid();
-        } else if (yaw >= 90 && yaw <= 180) {
+        } else if (yaw > 90 && yaw <= 180) {
             return block.getRelative(BlockFace.WEST).getType().isSolid() &&
                     block.getRelative(BlockFace.NORTH).getType().isSolid();
         } else if (yaw >= -180 && yaw <= -90) {

@@ -19,8 +19,7 @@ public class TransmissionAbility extends ClickAbility{
         Player player = event.getPlayer();
 
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-        BukkitUtils.teleportForward(player, blocks);
-        return true;
+        return BukkitUtils.teleportForward(player, blocks);
     }
 
     @Override

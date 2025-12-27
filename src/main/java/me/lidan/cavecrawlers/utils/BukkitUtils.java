@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -85,13 +86,19 @@ public class BukkitUtils {
      * @param player the player
      * @param blocks the number of blocks
      */
-    public static void teleportForward(Player player, double blocks) {
+    public static boolean teleportForward(Player player, double blocks) {
         int tp = 0;
+        Location blockAbove = player.getLocation().clone().add(0, 2, 0);
+        if (blockAbove.getBlock().isSolid()) {
+            player.sendMessage(ChatColor.RED + "There is a block there!");
+            return false;
+        }
         player.teleport(player.getLocation().add(0, 1, 0));
         Location l = player.getLocation().clone();
         for (int i = 0; i <= blocks; i++) {
+            Location originLocation = l.clone();
             l.add(player.getLocation().getDirection().multiply(1)).getBlock();
-            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ()))) {
+            if (!isSolid(l.getBlock()) && !isSolid(player.getWorld().getBlockAt(l.getBlockX(), l.getBlockY() + 1, l.getBlockZ())) && !isCorner(originLocation.getBlock(), player.getLocation())) {
                 tp++;
             } else {
                 player.sendMessage(ChatColor.RED + "There is a block there!");
@@ -100,8 +107,39 @@ public class BukkitUtils {
         }
         if (tp != 0) {
             l = player.getLocation().clone().add(player.getLocation().getDirection().multiply(tp));
-            player.teleport(l);
+            Location lCentered = l.getBlock().getLocation().add(0.5, 0, 0.5);
+            lCentered.setYaw(player.getLocation().getYaw());
+            lCentered.setPitch(player.getLocation().getPitch());
+            player.teleport(lCentered);
+            return true;
         }
+        return false;
+    }
+
+    /**
+     * Check if a block is a corner based on player location
+     *
+     * @param block     the block
+     * @param pLocation the player location
+     * @return true if the block is a corner
+     */
+    public static boolean isCorner(Block block, Location pLocation) {
+        float yaw = pLocation.getYaw();
+
+        if (yaw >=0 && yaw <= 90) {
+            return block.getRelative(BlockFace.SOUTH).getType().isSolid() &&
+                    block.getRelative(BlockFace.WEST).getType().isSolid();
+        } else if (yaw > 90 && yaw <= 180) {
+            return block.getRelative(BlockFace.WEST).getType().isSolid() &&
+                    block.getRelative(BlockFace.NORTH).getType().isSolid();
+        } else if (yaw >= -180 && yaw <= -90) {
+            return block.getRelative(BlockFace.NORTH).getType().isSolid() &&
+                    block.getRelative(BlockFace.EAST).getType().isSolid();
+        } else {
+            return block.getRelative(BlockFace.EAST).getType().isSolid() &&
+                    block.getRelative(BlockFace.SOUTH).getType().isSolid();
+        }
+
     }
 
     /**

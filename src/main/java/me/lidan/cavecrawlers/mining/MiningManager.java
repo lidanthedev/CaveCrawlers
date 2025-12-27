@@ -99,7 +99,9 @@ public class MiningManager implements MiningAPI {
             return;
         }
         if (brokenByBlockType != heldItemType){
-            actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            if (!heldItemType.isWeapon()) {
+                actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            }
             return;
         }
         if (miningPower < blockInfo.getBlockPower()){

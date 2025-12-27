@@ -33,4 +33,8 @@ public enum ItemType {
         this.name = name;
         this.slot = slot;
     }
+
+    public boolean isWeapon() {
+        return this == WEAPON || this == SWORD || this == BOW || this == WAND;
+    }
 }

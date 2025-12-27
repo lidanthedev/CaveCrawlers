@@ -28,22 +28,17 @@ import java.util.Map;
 
 @Data
 public class Drop implements ConfigurationSerializable {
-    public record ItemDropInfo(int amount, ItemInfo itemInfo) {
-    }
-
+    public static final ConfigMessage RARE_DROP_MESSAGE = ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
     private static final Logger log = LoggerFactory.getLogger(Drop.class);
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    public static final ConfigMessage RARE_DROP_MESSAGE = ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
     private static final StatsManager statsManager = StatsManager.getInstance();
-
     protected DropType type;
     protected double chance;
     protected String value;
     protected @Nullable ConfigMessage announce; // config message for announcing the drop
     protected @Nullable StatType chanceModifier;
     protected @Nullable StatType amountModifier;
-
     protected Map<String, String> placeholders = new HashMap<>();
 
     public Drop(DropType type, double chance, String value, @Nullable ConfigMessage announce, @Nullable StatType chanceModifier, @Nullable StatType amountModifier) {
@@ -65,12 +60,6 @@ public class Drop implements ConfigurationSerializable {
 
     public Drop(String type, double chance, String value) {
         this(type, chance, value, null);
-    }
-
-    public void roll(Player player) {
-        if (rollChance(player)) {
-            drop(player);
-        }
     }
 
     /**
@@ -109,14 +98,13 @@ public class Drop implements ConfigurationSerializable {
             return new Drop(DropType.ITEM, (double) map.get("chance"), itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
         }
 
-        return new Drop(
-                DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT)),
-                (double) map.get("chance"),
-                (String) map.get("value"),
-                ConfigMessage.getMessage((String) map.get("announce")),
-                map.containsKey("chanceModifier") ? StatType.valueOf((String) map.get("chanceModifier")) : null,
-                map.containsKey("amountModifier") ? StatType.valueOf((String) map.get("amountModifier")) : null
-        );
+        return new Drop(DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT)), (double) map.get("chance"), (String) map.get("value"), ConfigMessage.getMessage((String) map.get("announce")), map.containsKey("chanceModifier") ? StatType.valueOf((String) map.get("chanceModifier")) : null, map.containsKey("amountModifier") ? StatType.valueOf((String) map.get("amountModifier")) : null);
+    }
+
+    public void roll(Player player) {
+        if (rollChance(player)) {
+            drop(player);
+        }
     }
 
     public boolean rollChance(Player player) {
@@ -154,10 +142,7 @@ public class Drop implements ConfigurationSerializable {
         itemsManager.giveItem(player, result.itemInfo(), amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
-            placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount),
-                    "name", result.itemInfo().getFormattedName(),
-                    "rarity", result.itemInfo().getRarity().toString(),
-                    "dropRarity", dropRarity.toString()));
+            placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount), "name", result.itemInfo().getFormattedName(), "rarity", result.itemInfo().getRarity().toString(), "dropRarity", dropRarity.toString()));
             sendAnnounceMessage(player);
         }
     }
@@ -188,6 +173,9 @@ public class Drop implements ConfigurationSerializable {
             case COINS:
                 giveCoins(player);
                 break;
+            case COMMAND:
+                giveCommand(player);
+                break;
         }
     }
 
@@ -200,19 +188,6 @@ public class Drop implements ConfigurationSerializable {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
             sendAnnounceMessage(player);
         }
-    }
-
-    @NotNull
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("type", type.name());
-        map.put("chance", chance);
-        map.put("value", value);
-        map.put("announce", ConfigMessage.getIdOfMessage(announce));
-        map.put("chanceModifier", chanceModifier);
-        map.put("amountModifier", amountModifier);
-        return map;
     }
 
     protected Entity giveMob(Player player, Location location) {
@@ -230,5 +205,29 @@ public class Drop implements ConfigurationSerializable {
             log.error("Failed to spawn mobs", e);
         }
         return null;
+    }
+
+    protected void giveCommand(Player player) {
+        String command = value.replace("%player%", player.getName());
+        plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command);
+        if (announce != null) {
+            sendAnnounceMessage(player);
+        }
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("type", type.name());
+        map.put("chance", chance);
+        map.put("value", value);
+        map.put("announce", ConfigMessage.getIdOfMessage(announce));
+        map.put("chanceModifier", chanceModifier);
+        map.put("amountModifier", amountModifier);
+        return map;
+    }
+
+    public record ItemDropInfo(int amount, ItemInfo itemInfo) {
     }
 }

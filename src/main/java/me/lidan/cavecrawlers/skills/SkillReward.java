@@ -18,11 +18,13 @@ public abstract class SkillReward implements ConfigurationSerializable {
         // for stat: STAT <stat> <value>
         // for item: ITEM <item>
         // for coins: COINS <amount>
+        // for command: COMMAND <command>
         String[] split = type.split(" ");
         return switch (split[0]) {
             case "STAT" -> StatSkillReward.deserialize(Map.of("stat", split[1] + " " + split[2]));
             case "ITEM" -> ItemSkillReward.deserialize(Map.of("item", split[1]));
             case "COINS" -> new CoinSkillReward(Integer.parseInt(split[1]));
+            case "COMMAND" -> new CommandSkillReward(type.substring(8)); // remove "COMMAND "
             default -> null;
         };
     }

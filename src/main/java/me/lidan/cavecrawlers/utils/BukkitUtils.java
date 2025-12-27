@@ -115,6 +115,13 @@ public class BukkitUtils {
         return true;
     }
 
+    /**
+     * Check if a block is a corner based on player location
+     *
+     * @param block     the block
+     * @param pLocation the player location
+     * @return true if the block is a corner
+     */
     public static boolean isCorner(Block block, Location pLocation) {
         float yaw = pLocation.getYaw();
 

@@ -53,6 +53,9 @@ public class MiniMessageUtils {
      * @return the MiniMessage Component
      */
     public static Component miniMessage(String message, Map<String, Object> placeholders) {
+        if (message.contains(String.valueOf(ChatColor.COLOR_CHAR))) {
+            message = fromLegacy(message);
+        }
         if (placeholders.isEmpty()) {
             return miniMessageString(message);
         }
@@ -167,5 +170,10 @@ public class MiniMessageUtils {
 
     public static @Nullable List<Component> miniMessageList(String... messages) {
         return miniMessageList(List.of(messages));
+    }
+
+    public static String fromLegacy(String message) {
+        Component component = LEGACY_SECTION.deserialize(message);
+        return MINI_MESSAGE.serialize(component).replace("\\<", "<");
     }
 }

@@ -3,13 +3,16 @@ package me.lidan.cavecrawlers.bosses;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
+import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,12 @@ public class BossDrop extends Drop implements ConfigurationSerializable {
     private static final Logger log = LoggerFactory.getLogger(BossDrop.class);
     private int requiredPoints;
     private String track;
+
+    public BossDrop(DropType type, double chance, String value, @Nullable ConfigMessage announce, @Nullable StatType chanceModifier, @Nullable StatType amountModifier, int requiredPoints, String track) {
+        super(type, chance, value, announce, chanceModifier, amountModifier);
+        this.requiredPoints = requiredPoints;
+        this.track = track;
+    }
 
     public BossDrop(String type, double chance, String value, int requiredPoints, String track, ConfigMessage announce) {
         super(type, chance, value, announce);
@@ -88,7 +97,9 @@ public class BossDrop extends Drop implements ConfigurationSerializable {
         String value = (String) map.get("value");
         int requiredPoints = (int) map.get("requiredPoints");
         String track = (String) map.get("track");
+        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOf((String) map.get("chanceModifier")) : null;
+        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOf((String) map.get("amountModifier")) : null;
         ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
-        return new BossDrop(type, chance, value, requiredPoints, track, announce);
+        return new BossDrop(DropType.valueOf(type), chance, value, announce, chanceModifier, amountModifier, requiredPoints, track);
     }
 }

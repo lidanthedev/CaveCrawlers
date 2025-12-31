@@ -87,6 +87,7 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public static Drop deserialize(Map<String, Object> map) {
+        double chance = (double) map.get("chance");
         if (map.containsKey("itemID")) {
             // legacy support
             String itemID = (String) map.get("itemID");
@@ -95,10 +96,15 @@ public class Drop implements ConfigurationSerializable {
             if (map.getOrDefault("announce", false).equals(true)) {
                 announce = RARE_DROP_MESSAGE;
             }
-            return new Drop(DropType.ITEM, (double) map.get("chance"), itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
+            return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
         }
 
-        return new Drop(DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT)), (double) map.get("chance"), (String) map.get("value"), ConfigMessage.getMessage((String) map.get("announce")), map.containsKey("chanceModifier") ? StatType.valueOf((String) map.get("chanceModifier")) : null, map.containsKey("amountModifier") ? StatType.valueOf((String) map.get("amountModifier")) : null);
+        DropType dropType = DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT));
+        String value = (String) map.get("value");
+        ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
+        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOf((String) map.get("chanceModifier")) : null;
+        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOf((String) map.get("amountModifier")) : null;
+        return new Drop(dropType, chance, value, announce, chanceModifier, amountModifier);
     }
 
     public void roll(Player player) {

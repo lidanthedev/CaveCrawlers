@@ -51,6 +51,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import revxrsal.commands.CommandHandler;
@@ -237,9 +238,26 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload plugin")
-    public void ReloadPlugin(CommandSender sender) {
+    public void reloadPlugin(CommandSender sender) {
         Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
         sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+    }
+
+    @Subcommand("reload addons")
+    public void reloadAddons(CommandSender sender) {
+        @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
+        for (Plugin plugin : plugins) {
+            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
+                Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + plugin.getName());
+                sender.sendMessage(ChatColor.GREEN + plugin.getName() + " reloaded!");
+            }
+        }
+    }
+
+    @Subcommand("reload all")
+    public void reloadAll(CommandSender sender) {
+        reloadPlugin(sender);
+        reloadAddons(sender);
     }
 
 

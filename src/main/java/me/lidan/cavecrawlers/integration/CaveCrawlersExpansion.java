@@ -48,10 +48,9 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         String[] args = params.split("_");
         if (args[0].equalsIgnoreCase("stat")) {
-            plugin.getLogger().info("Placeholder Stat");
-            if (args.length == 2) {
-                plugin.getLogger().info("Getting stat " + args[1] + " for " + player.getName());
-                StatType statType = StatType.valueOf(args[1]);
+            if (args.length >= 2) {
+                String statName = params.substring(5); // Remove "stat_" prefix
+                StatType statType = StatType.valueOf(statName);
                 return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
             }
         }

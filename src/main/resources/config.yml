@@ -27,6 +27,9 @@ actionbar:
   enabled: true
   format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
 
+night-vision: true # Enable night vision for players
+hunger-disabled: true # Disable hunger for players
+
 # Change vanilla behavior that may not be desired in an RPG server.
 # If you don't know what you are doing, leave these settings as they are.
 vanilla:

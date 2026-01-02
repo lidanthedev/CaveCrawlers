@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.stats;
 
 import com.cryptomorin.xseries.XAttribute;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.StatsAPI;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemSlot;
@@ -23,6 +24,7 @@ public class StatsManager implements StatsAPI {
     private final Map<UUID, Stats> statsMap;
     private final Map<UUID, Stats> statsAdder;
     private static StatsManager instance;
+    private static CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     private StatsManager() {
         this.statsMap = new HashMap<>();
@@ -90,8 +92,10 @@ public class StatsManager implements StatsAPI {
         player.getAttribute(XAttribute.MAX_HEALTH.get()).setBaseValue(maxHealth);
         double healthRegen = ((maxHealth * 0.01) + 1.5);
         healPlayer(player, healthRegen);
-        player.setFoodLevel(200);
-
+        // hunger disable
+        if (plugin.getConfig().getBoolean("hunger-disabled")) {
+            player.setFoodLevel(200);
+        }
         // mana regen
         double intel = stats.get(StatType.INTELLIGENCE).getValue();
         Stat manaStat = stats.get(StatType.MANA);

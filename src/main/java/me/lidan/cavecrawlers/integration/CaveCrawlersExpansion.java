@@ -133,7 +133,7 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                         case "progress":
                             double pct = 0;
                             if (skill.getXpToLevel() > 0) {
-                                pct = skill.getXp() / skill.getXpToLevel() * 100;
+                                pct = Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d;
                             }
                             return StringUtils.getNumberFormat(Math.min(pct, 100));
                         default:

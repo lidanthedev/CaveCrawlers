@@ -379,9 +379,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public void startTasks() {
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
-            });
+            if (getConfig().getBoolean("night-vision")) {
+                Bukkit.getOnlinePlayers().forEach(player -> {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
+                });
+            }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
     }

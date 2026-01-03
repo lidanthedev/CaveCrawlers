@@ -101,7 +101,7 @@ public class AutoPortableShopAbility extends PortableShopAbility {
 
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        AutoPortableShopAbility ability = (AutoFullShopAbility) super.buildAbilityWithSettings(map);
+        AutoPortableShopAbility ability = (AutoPortableShopAbility) super.buildAbilityWithSettings(map);
         if (map.has("slotId")) {
             ability.slotId = map.get("slotId").getAsInt();
         }

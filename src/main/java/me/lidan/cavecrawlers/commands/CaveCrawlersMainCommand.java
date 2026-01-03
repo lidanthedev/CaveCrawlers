@@ -110,7 +110,7 @@ public class CaveCrawlersMainCommand {
     private static Set<String> getFillID(Player player) {
         ItemStack hand = player.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
-        if (!meta.hasDisplayName()) {
+        if (meta == null || !meta.hasDisplayName()) {
             return Collections.singleton("");
         }
         String name = meta.getDisplayName();

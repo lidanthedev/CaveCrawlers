@@ -34,7 +34,7 @@ public class CommandSkillReward extends SkillReward {
 
     @Override
     public Component getRewardMessage() {
-        return MiniMessageUtils.miniMessageString("<green>+<gold><coins> <gray>Coins</green>", Map.of("coins", command));
+        return MiniMessageUtils.miniMessageString(""); // hidden command reward
     }
 
     @Override

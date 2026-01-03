@@ -140,7 +140,11 @@ public class Skill implements ConfigurationSerializable {
     public void resetSkill() {
         this.level = 0;
         this.xp = 0;
-        this.xpToLevel = type.getXpToLevelList().getFirst();
+        List<Double> xpList = type.getXpToLevelList();
+        this.xpToLevel = xpList.getFirst();
+        if (xpList.isEmpty()) {
+            throw new IllegalStateException("Skill type " + type.getName() + " has no XP levels defined");
+        }
         this.totalXp = 0;
     }
 }

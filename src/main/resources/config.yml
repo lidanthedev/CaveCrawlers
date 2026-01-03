@@ -92,3 +92,8 @@ skill-need-xp:
   - 4800.0
   - 4900.0
   - 5000.0
+
+
+experimental:
+  enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
+  enable-leveling: false # Enable experimental leveling system (may cause issues)

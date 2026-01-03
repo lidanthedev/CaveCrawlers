@@ -49,9 +49,16 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
         String[] args = params.split("_");
         if (args[0].equalsIgnoreCase("stat")) {
             if (args.length >= 2) {
-                String statName = params.substring(5); // Remove "stat_" prefix
-                StatType statType = StatType.valueOf(statName);
-                return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
+                String statName = params.substring("stat_".length()); // Remove "stat_" prefix
+                if (statName.isEmpty()) {
+                    return null;
+                }
+                try {
+                    StatType statType = StatType.valueOf(statName);
+                    return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
             }
         }
         else if (args[0].equalsIgnoreCase("level")) {

@@ -54,6 +54,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
@@ -68,12 +70,7 @@ import static org.bukkit.Bukkit.getConsoleSender;
 @Command({"ct", "cc", "cavecrawlers"})
 @CommandPermission("cavecrawlers.test")
 public class CaveCrawlersMainCommand {
-    enum HelpCommandType {
-        LINE,
-        COMMAND,
-        TITLE
-    }
-
+    private static final Logger log = LoggerFactory.getLogger(CaveCrawlersMainCommand.class);
     private final ShopManager shopManager = ShopManager.getInstance();
     private final ItemsManager itemsManager = ItemsManager.getInstance();
     private final StatsManager statsManager = StatsManager.getInstance();
@@ -83,11 +80,10 @@ public class CaveCrawlersMainCommand {
     private final EntityManager entityManager = EntityManager.getInstance();
     private final AltarManager altarManager = AltarManager.getInstance();
     private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
-    private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-
+    private CustomConfig config = new CustomConfig("test");
     public CaveCrawlersMainCommand(CommandHandler handler) {
         this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
@@ -108,6 +104,20 @@ public class CaveCrawlersMainCommand {
             handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
         }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+    }
+
+    @NotNull
+    private static Set<String> getFillID(Player player) {
+        ItemStack hand = player.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (!meta.hasDisplayName()) {
+            return Collections.singleton("");
+        }
+        String name = meta.getDisplayName();
+        name = ChatColor.stripColor(name);
+        name = name.toUpperCase(Locale.ROOT);
+        name = name.replaceAll(" ", "_");
+        return Collections.singleton(name);
     }
 
     private Component getHelpMessage(HelpCommandType type, String command, String description) {
@@ -191,20 +201,6 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar info <altar-name>", "get info about an altar"));
     }
 
-    @NotNull
-    private static Set<String> getFillID(Player player) {
-        ItemStack hand = player.getEquipment().getItemInMainHand();
-        ItemMeta meta = hand.getItemMeta();
-        if (!meta.hasDisplayName()) {
-            return Collections.singleton("");
-        }
-        String name = meta.getDisplayName();
-        name = ChatColor.stripColor(name);
-        name = name.toUpperCase(Locale.ROOT);
-        name = name.replaceAll(" ", "_");
-        return Collections.singleton(name);
-    }
-
     @Subcommand("reload items")
     public void reloadItems(CommandSender sender) {
         ItemsLoader loader = ItemsLoader.getInstance();
@@ -239,12 +235,20 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("reload plugin")
     public void reloadPlugin(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
         Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
         sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
     }
 
     @Subcommand("reload addons")
     public void reloadAddons(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
         @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
         for (Plugin plugin : plugins) {
             if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
@@ -256,10 +260,13 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("reload all")
     public void reloadAll(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
         reloadPlugin(sender);
         reloadAddons(sender);
     }
-
 
     @Subcommand("config saveStats")
     public void saveStats(Player sender) {
@@ -965,7 +972,11 @@ public class CaveCrawlersMainCommand {
             ItemInfo clonedInfo = itemInfo.clone();
             XMaterial materialOpt = XMaterial.matchXMaterial(materialType + "_" + part).orElseThrow();
             ItemStack baseItem = new ItemStack(materialOpt.get());
-            baseItem.setItemMeta(originBaseItem.getItemMeta());
+            try {
+                baseItem.setItemMeta(originBaseItem.getItemMeta());
+            } catch (IllegalArgumentException error) {
+                log.warn("Could not set item meta for {}, using default meta.", id);
+            }
             clonedInfo.setBaseItem(baseItem);
             String name = StringUtils.setTitleCase(id.replace("_", " "));
             clonedInfo.setName(name);
@@ -1150,5 +1161,11 @@ public class CaveCrawlersMainCommand {
     public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
+    }
+
+    enum HelpCommandType {
+        LINE,
+        COMMAND,
+        TITLE
     }
 }

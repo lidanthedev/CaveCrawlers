@@ -59,7 +59,10 @@ public abstract class ItemAbility implements Cloneable {
         if (success) {
             abilityCooldown.startCooldown(player.getUniqueId());
             if (EXPERIMENTAL_ENABLE_COOLDOWN_ANIMATION) {
-                PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) (cooldown / 1000 * 20));
+                double cooldownSeconds = cooldown / 1000d * 20;
+                if (cooldownSeconds >= 1) {
+                    PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) cooldownSeconds);
+                }
             }
             manaStat.setValue(manaStat.getValue() - getCost());
             String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());

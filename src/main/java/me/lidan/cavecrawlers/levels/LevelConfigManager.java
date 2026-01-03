@@ -15,7 +15,7 @@ public class LevelConfigManager {
 
     private LevelConfigManager() {
         this.config = new CustomConfig("levels.yml");
-        this.enabled = config.getBoolean("enable-leveling", false);
+        this.enabled = config.getBoolean("experimental.enable-leveling", false);
         saveDefaultConfig();
     }
 

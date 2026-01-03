@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class AutoFullShopAbility extends AutoPortableShopAbility {
     public AutoFullShopAbility() {
-        super("Auto Full Shop", "Open a portable shop. automatically buys all items Requires Rank", 0, 1000);
+        super("Auto Full Shop", "Open a portable shop. automatically buys all items. Requires Rank", 0, 1000);
     }
 
     @Override

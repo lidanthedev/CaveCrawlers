@@ -82,7 +82,11 @@ public class AutoPortableShopAbility extends PortableShopAbility {
         if (itemSlotStr == null) {
             return NO_SLOT_ID;
         }
-        return Integer.parseInt(itemSlotStr);
+        try {
+            return Integer.parseInt(itemSlotStr);
+        } catch (NumberFormatException e) {
+            return NO_SLOT_ID;
+        }
     }
 
     public List<ItemStack> getItemsWithAbility(Player player) {

@@ -34,13 +34,14 @@ import java.util.UUID;
 
 public class MiningManager implements MiningAPI {
 
+    public static final long HAMMER_COOLDOWN = 500;
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, Map.of());
     private final Map<Block, Material> brokenBlocks = new HashMap<>();
-    private final Cooldown<UUID> hammerCooldown = new Cooldown<>();
+    private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
 
     @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
@@ -98,7 +99,9 @@ public class MiningManager implements MiningAPI {
             return;
         }
         if (brokenByBlockType != heldItemType){
-            actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            if (!heldItemType.isWeapon()) {
+                actionBarManager.showActionBar(player, ChatColor.RED + "You can't break this block with that item!");
+            }
             return;
         }
         if (miningPower < blockInfo.getBlockPower()){
@@ -168,7 +171,7 @@ public class MiningManager implements MiningAPI {
 
 
     private void handleHammer(Player player, Block origin) {
-        if (hammerCooldown.getCurrentCooldown(player.getUniqueId()) < 100){
+        if (hammerCooldown.getCurrentCooldown(player.getUniqueId()) < HAMMER_COOLDOWN) {
             return;
         }
         hammerCooldown.startCooldown(player.getUniqueId());

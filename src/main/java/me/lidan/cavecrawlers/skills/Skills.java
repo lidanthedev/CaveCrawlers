@@ -119,4 +119,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public Iterator<Skill> iterator() {
         return skills.values().iterator();
     }
+
+    public void resetAllSkills() {
+        for (Skill skill : skills.values()) {
+            skill.resetSkill();
+        }
+    }
 }

@@ -79,6 +79,10 @@ public class ShopMenu implements ConfigurationSerializable {
             return;
         }
         if (itemInfo.getAbility() instanceof PortableShopAbility portableShopAbility) {
+            if (portableShopAbility.getShopId() != null) {
+                // Already set manually by admin
+                return;
+            }
             ItemNbt.setString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID, id);
             if (ItemNbt.getString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM) != null) {
                 ItemNbt.removeTag(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM);
@@ -94,6 +98,10 @@ public class ShopMenu implements ConfigurationSerializable {
             return;
         }
         if (itemInfo.getAbility() instanceof AutoPortableShopAbility portableShopAbility) {
+            if (portableShopAbility.getShopId() != null) {
+                // Already set manually by admin
+                return;
+            }
             ItemNbt.setString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM, String.valueOf(slotId));
             player.sendMessage("Portable shop item set to " + shopItem.getResult().getFormattedName());
             player.closeInventory();

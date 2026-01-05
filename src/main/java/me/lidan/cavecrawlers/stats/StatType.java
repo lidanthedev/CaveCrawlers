@@ -6,13 +6,13 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Getter
 public class StatType {
-    private static final Map<String, StatType> stats = new HashMap<>();
+    private static final Map<String, StatType> stats = new LinkedHashMap<>();
 
     public static final StatType HEALTH = new StatType("Health", "❤", ChatColor.RED, 100, ChatColor.RED);
     public static final StatType DEFENSE = new StatType("Defense", "❈", ChatColor.GREEN, 0, ChatColor.GREEN);

@@ -237,6 +237,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("GOLDEN_LASER", new GoldenLaserAbility());
         abilityManager.registerAbility("PORTABLE_SHOP", new PortableShopAbility());
         abilityManager.registerAbility("SUPER_PORTABLE_SHOP", new AutoPortableShopAbility());
+        abilityManager.registerAbility("AUTO_PORTABLE_SHOP", new AutoPortableShopAbility());
+        abilityManager.registerAbility("AUTO_FULL_SHOP", new AutoFullShopAbility());
         abilityManager.registerAbility("FREEZE", new FreezeAbility());
         if (mythicBukkit != null) {
             abilityManager.registerAbility("MYTHIC_SKILL", new MythicSkillAbility("SummonSkeletons"));
@@ -377,9 +379,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public void startTasks() {
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
             StatsManager.getInstance().statLoop();
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
-            });
+            if (getConfig().getBoolean("night-vision")) {
+                Bukkit.getOnlinePlayers().forEach(player -> {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, -1, 1, true, false, false));
+                });
+            }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
     }

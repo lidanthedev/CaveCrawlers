@@ -94,7 +94,7 @@ public class ShopItemEditor {
                 }
                 shopManager.removeShopItem(shopMenu, slotID);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Shop item deleted successfully!"));
-                gui.close(player);
+                new ShopEditor(player, shopMenu).open();
             }, () -> {
                 player.sendMessage(MiniMessageUtils.miniMessage("<red>Deletion cancelled."));
                 reopen();

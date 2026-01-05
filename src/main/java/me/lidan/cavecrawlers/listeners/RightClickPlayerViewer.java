@@ -19,9 +19,8 @@ public class RightClickPlayerViewer implements Listener {
 
         if (item.getType().isAir()) {
             Player clickedPlayer = Bukkit.getPlayer(event.getRightClicked().getName());
-            if (clickedPlayer != null && clickedPlayer.isOnline()) {
+            if (clickedPlayer != null && clickedPlayer.isOnline() && !player.isSneaking()) {
                 player.performCommand(COMMAND + clickedPlayer.getName());
-
             }
         }
     }

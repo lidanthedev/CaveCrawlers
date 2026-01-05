@@ -11,9 +11,11 @@ public class LevelConfigManager {
     private final CustomConfig config;
     private final ActionBarManager actionBarManager = ActionBarManager.getInstance();
     private static final int maxXP = 100;
+    private boolean enabled = false;
 
     private LevelConfigManager() {
         this.config = new CustomConfig("levels.yml");
+        this.enabled = config.getBoolean("experimental.enable-leveling", false);
         saveDefaultConfig();
     }
 
@@ -75,6 +77,9 @@ public class LevelConfigManager {
     }
 
     private void checkLevelUp(Player player, int xp) {
+        if (!enabled) {
+            return;
+        }
         int currentLevel = getPlayerLevel(player.getUniqueId().toString());
         String message = ChatColor.DARK_AQUA + "Skyblock Level XP " + xp + ChatColor.GRAY + "/" + ChatColor.DARK_AQUA + maxXP;
         ActionBarManager.getInstance().showActionBar(player, message);

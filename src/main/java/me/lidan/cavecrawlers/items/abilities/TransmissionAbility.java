@@ -14,6 +14,11 @@ public class TransmissionAbility extends ClickAbility{
         this.blocks = blocks;
     }
 
+    public TransmissionAbility(String name, String description, double cost, long cooldown, double blocks) {
+        super(name, description, cost, cooldown);
+        this.blocks = blocks;
+    }
+
     @Override
     protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();

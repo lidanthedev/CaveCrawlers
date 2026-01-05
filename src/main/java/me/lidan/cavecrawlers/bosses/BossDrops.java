@@ -27,15 +27,12 @@ public class BossDrops implements ConfigurationSerializable {
         drop(player, player.getLocation(), points);
     }
 
-    public void drop(Player player, Location location, int points) {
-        Set<String> gotDrops = new HashSet<>();
-        for (BossDrop drop : drops) {
-            String track = drop.getTrack();
-            if (!gotDrops.contains(track) && points >= drop.getRequiredPoints() && drop.rollChance(player)) {
-                gotDrops.add(track);
-                drop.drop(player, location);
-            }
-        }
+    public static BossDrops deserialize(Map<String, Object> map) {
+        List<BossDrop> dropsList = (List<BossDrop>) map.get("drops");
+        String entityName = (String) map.get("entityName");
+        ConfigMessage announce = ConfigMessage.getMessage((String) map.getOrDefault("announce", ""));
+        List<Integer> bonusPoints = (List<Integer>) map.getOrDefault("bonusPoints", List.of(300, 250, 200, 150, 100));
+        return new BossDrops(dropsList, entityName, announce, bonusPoints);
     }
 
     @NotNull
@@ -49,15 +46,16 @@ public class BossDrops implements ConfigurationSerializable {
         return serialized;
     }
 
-    public static BossDrops deserialize(Map<String, Object> map) {
-        List<BossDrop> deserializedDrops = new ArrayList<>();
-        List<Map<String, Object>> dropsList = (List<Map<String, Object>>) map.get("drops");
-        for (Map<String, Object> dropMap : dropsList) {
-            deserializedDrops.add(BossDrop.deserialize(dropMap));
+    public void drop(Player player, Location location, int points) {
+        Set<String> gotDrops = new HashSet<>();
+        for (BossDrop drop : drops) {
+            String track = drop.getTrack();
+            if (!gotDrops.contains(track) && points >= drop.getRequiredPoints() && drop.rollChance(player)) {
+                if (track != null) {
+                    gotDrops.add(track);
+                }
+                drop.drop(player, location);
+            }
         }
-        String entityName = (String) map.get("entityName");
-        ConfigMessage announce = ConfigMessage.getMessage(map.getOrDefault("announce", "").toString());
-        List<Integer> bonusPoints = (List<Integer>) map.getOrDefault("bonusPoints", List.of(300, 250, 200, 150, 100));
-        return new BossDrops(deserializedDrops, entityName, announce, bonusPoints);
     }
 }

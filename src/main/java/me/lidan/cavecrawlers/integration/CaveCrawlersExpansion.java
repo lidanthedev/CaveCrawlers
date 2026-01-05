@@ -48,11 +48,17 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         String[] args = params.split("_");
         if (args[0].equalsIgnoreCase("stat")) {
-            plugin.getLogger().info("Placeholder Stat");
-            if (args.length == 2) {
-                plugin.getLogger().info("Getting stat " + args[1] + " for " + player.getName());
-                StatType statType = StatType.valueOf(args[1]);
-                return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
+            if (args.length >= 2) {
+                String statName = params.substring("stat_".length()); // Remove "stat_" prefix
+                if (statName.isEmpty()) {
+                    return null;
+                }
+                try {
+                    StatType statType = StatType.valueOf(statName);
+                    return String.valueOf(statsManager.getStats(player.getUniqueId()).get(statType).getValue());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
             }
         }
         else if (args[0].equalsIgnoreCase("level")) {
@@ -134,9 +140,9 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
                         case "progress":
                             double pct = 0;
                             if (skill.getXpToLevel() > 0) {
-                                pct = skill.getXp() / skill.getXpToLevel() * 100;
+                                pct = Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d;
                             }
-                            return StringUtils.getNumberFormat(pct);
+                            return StringUtils.getNumberFormat(Math.min(pct, 100));
                         default:
                             return null;
                     }

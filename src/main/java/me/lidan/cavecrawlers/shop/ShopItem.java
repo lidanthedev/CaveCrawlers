@@ -83,6 +83,10 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean buy(Player player) {
+        return buy(player, false);
+    }
+
+    public boolean buy(Player player, boolean silent) {
         if (canBuy(player)){
             VaultUtils.takeCoins(player, price);
             itemsManager.removeItems(player, ingredientsMap);
@@ -93,7 +97,9 @@ public class ShopItem implements ConfigurationSerializable {
                     "price", StringUtils.getNumberFormat(price),
                     "formatted_name", formatName(result.getFormattedName(), resultAmount)
             );
-            BUY_ITEM_MESSAGE.sendMessage(player, placeholders);
+            if (!silent) {
+                BUY_ITEM_MESSAGE.sendMessage(player, placeholders);
+            }
             return true;
         }
         return false;

@@ -62,9 +62,11 @@ Shop editor
 
 ## Requirements
 
-- Paper Minecraft server
-- Java 17+
-- (Optional) MythicMobs for advanced features
+- Java 21+
+- [Paper](https://papermc.io/) Minecraft server
+- [Vault](https://www.spigotmc.org/resources/vault.34315/)
+- [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
+- [MythicMobs](https://mythiccraft.io/index.php?resources/mythicmobs.1/)
 
 ## Development
 

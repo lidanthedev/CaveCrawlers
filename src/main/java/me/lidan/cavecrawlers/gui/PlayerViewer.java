@@ -19,7 +19,6 @@ public class PlayerViewer {
     private final Player player;
     private final Gui gui;
     private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
-
     public PlayerViewer(Player player) {
         this.player = player;
         this.gui = Gui.gui()

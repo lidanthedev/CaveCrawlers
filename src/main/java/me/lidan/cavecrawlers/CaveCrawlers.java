@@ -124,7 +124,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 long delayDiff = System.currentTimeMillis() - delayStart;
                 getLogger().info("Loaded data! Took " + delayDiff + " ms");
             }
-        }.runTaskLater(this, 1L);
+        }.runTask(this);
     }
 
     @Override

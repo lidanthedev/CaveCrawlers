@@ -156,6 +156,9 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
                 if (value > 0) {
                     String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
                     lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+                } else if (value < 0) {
+                    String numberWithoutDot = StringUtils.getNumberWithoutDot(-value);
+                    lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "-" + numberWithoutDot);
                 }
             } catch (IllegalArgumentException ignored) {
                 // If the stat type does not exist, we ignore it

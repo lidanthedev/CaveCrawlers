@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.objects;
 
+import dev.dejvokep.boostedyaml.settings.Settings;
 import lombok.Getter;
+import lombok.Setter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.utils.BoostedConfiguration;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
@@ -18,12 +20,16 @@ import java.util.Set;
 
 public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private static final Logger log = LoggerFactory.getLogger(ConfigLoader.class);
+    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
+
     private final Class<T> type;
     @Getter
     private final Map<String, File> configMap;
     @Getter
     private final File fileDir;
-    private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
+    @Getter
+    @Setter
+    private Settings[] settings;
 
     protected ConfigLoader(Class<T> type, String dirName) {
         this(type, new File(plugin.getDataFolder(), dirName));
@@ -76,7 +82,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             return;
         }
         try {
-            BoostedCustomConfig customConfig = new BoostedCustomConfig(file);
+            BoostedCustomConfig customConfig = new BoostedCustomConfig(file, settings);
             Set<String> registered = registerItemsFromConfig(customConfig);
             for (String s : registered) {
                 configMap.put(s, file);
@@ -108,7 +114,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             file = new File(getFileDir(), Id + ".yml");
         }
         try {
-            return new BoostedCustomConfig(file);
+            return new BoostedCustomConfig(file, settings);
         } catch (IOException e) {
             log.error("Failed to get config for ID: {}", Id, e);
             throw new RuntimeException(e);

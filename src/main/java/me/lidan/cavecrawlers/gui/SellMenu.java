@@ -58,7 +58,7 @@ public class SellMenu {
     }
 
     public void update(){
-        gui.updateItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell")).lore(toLore()).build());
+        gui.updateItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell <gold><total>", Map.of("total", StringUtils.getNumberFormat(getTotalPrice())))).lore(toLore()).build());
     }
 
     public List<Component> toLore() {
@@ -92,6 +92,14 @@ public class SellMenu {
 
     public void open() {
         gui.open(player);
+    }
+
+    public double getTotalPrice() {
+        double total = 0;
+        for (SellItem item : getPrices()) {
+            total += item.price() * item.amount();
+        }
+        return total;
     }
 
     public List<SellItem> getPrices() {

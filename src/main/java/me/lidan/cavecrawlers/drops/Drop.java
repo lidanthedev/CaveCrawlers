@@ -229,8 +229,8 @@ public class Drop implements ConfigurationSerializable {
         map.put("chance", chance);
         map.put("value", value);
         map.put("announce", ConfigMessage.getIdOfMessage(announce));
-        map.put("chanceModifier", chanceModifier);
-        map.put("amountModifier", amountModifier);
+        map.put("chanceModifier", chanceModifier != null ? chanceModifier.name() : null);
+        map.put("amountModifier", amountModifier != null ? amountModifier.name() : null);
         return map;
     }
 

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
 /**
@@ -26,16 +27,23 @@ import java.util.Arrays;
 public class BoostedCustomConfig extends BoostedConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BoostedCustomConfig.class);
     private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(BoostedCustomConfig.class);
-    private final File file;
 
     /**
-     * Create a new CustomConfig
+     * Create a new BoostedCustomConfig with defaults
+     *
+     * @param file the file
+     */
+    public BoostedCustomConfig(File file, InputStream defaults, Settings... settings) throws IOException {
+        super(file, defaults, getSettingsWithExtensions(settings));
+    }
+
+    /**
+     * Create a new BoostedCustomConfig
      *
      * @param file the file
      */
     public BoostedCustomConfig(File file, Settings... settings) throws IOException {
-        super(file, null, getSettingsWithExtensions(settings));
-        this.file = file;
+        this(file, null, settings);
     }
 
     public BoostedCustomConfig(File file) throws IOException {
@@ -43,7 +51,7 @@ public class BoostedCustomConfig extends BoostedConfiguration {
     }
 
     /**
-     * Create a new CustomConfig
+     * Create a new BoostedCustomConfig
      * The file will be created in the plugin data folder if it doesn't exist
      *
      * @param name the name of the file
@@ -71,10 +79,10 @@ public class BoostedCustomConfig extends BoostedConfiguration {
      */
     public boolean save() {
         try {
-            this.save(file);
+            super.save();
             return true;
         } catch (IOException e) {
-            log.warn("Couldn't save file {}", file.getName(), e);
+            log.warn("Couldn't save file {}", getFile().getName(), e);
         }
         return false;
     }
@@ -89,7 +97,7 @@ public class BoostedCustomConfig extends BoostedConfiguration {
         try {
             this.reload();
         } catch (IOException e) {
-            log.warn("Failed to load BoostedCustomConfig {}", file.getName(), e);
+            log.warn("Failed to load BoostedCustomConfig {}", getFile().getName(), e);
         }
         return this;
     }

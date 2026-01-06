@@ -5,7 +5,6 @@ import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import lombok.Getter;
 import lombok.Setter;
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.BoostedConfiguration;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
@@ -91,11 +90,13 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             BoostedCustomConfig customConfig = openConfig(file);
             Set<String> registered = registerItemsFromConfig(customConfig);
             for (String s : registered) {
+                if (configMap.containsKey(s)) {
+                    log.warn("Duplicate ID Found: {} in file: {} and file {}", s, file.getPath(), configMap.get(s).getPath());
+                }
                 configMap.put(s, file);
             }
         } catch (Exception e) {
-            CaveCrawlers.getInstance().getLogger().warning("Failed to Load File: " + file.getPath());
-            log.error("Failed to load config file: {}", file.getPath(), e);
+            log.warn("Failed to load config file: {}", file.getPath(), e);
         }
     }
 
@@ -111,7 +112,9 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
                 registeredItems.add(key);
                 register(key, itemInfo);
             } else {
-                CaveCrawlers.getInstance().getLogger().warning("Failed to Load Item: " + key);
+                if (configuration.getFile() != null) {
+                    log.warn("Failed to load item for key: {} in config: {}", key, configuration.getFile().getPath());
+                }
             }
         }
         return registeredItems;
@@ -150,7 +153,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
 
     public void setupMigrations(Consumer<UpdaterSettings.Builder> updaterSettingsSupplier) {
         BasicDefaultVersioning versioning = new BasicDefaultVersioning(VERSION_KEY);
-        UpdaterSettings.Builder updaterBuilder = UpdaterSettings.builder().setVersioning(versioning).setKeepAll(true);
+        UpdaterSettings.Builder updaterBuilder = UpdaterSettings.builder().setVersioning(versioning).setKeepAll(true).setOptionSorting(UpdaterSettings.OptionSorting.NONE);
         updaterSettingsSupplier.accept(updaterBuilder);
         Settings[] settings = new Settings[]{
                 LoaderSettings.builder().setAutoUpdate(true).build(),

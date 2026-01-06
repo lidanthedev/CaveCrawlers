@@ -38,6 +38,7 @@ import java.util.UUID;
 public class MiningManager implements MiningAPI {
 
     public static final long HAMMER_COOLDOWN = 500;
+    public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
@@ -170,6 +171,14 @@ public class MiningManager implements MiningAPI {
         int hammerSize = (int) Math.min((hammerLeft/50)+1, 6);
         List<Block> blocks = BukkitUtils.loopBlocks(origin.getLocation(), hammerSize);
         Material originType = origin.getType();
+        if (plugin.getConfig().getBoolean(EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE, false)) {
+            blocks.sort((b1, b2) -> {
+                double dist1 = b1.getLocation().distanceSquared(origin.getLocation());
+                double dist2 = b2.getLocation().distanceSquared(origin.getLocation());
+                return Double.compare(dist1, dist2);
+            });
+        }
+
         for (Block block : blocks) {
             if (block == origin) continue;
             if (block.getType() == originType){

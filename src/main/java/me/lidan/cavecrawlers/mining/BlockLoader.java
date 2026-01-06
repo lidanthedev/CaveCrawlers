@@ -11,6 +11,8 @@ public class BlockLoader extends ConfigLoader<BlockInfo> {
 
     private BlockLoader() {
         super(BlockInfo.class, "blocks");
+        setupMigrations(builder -> {
+        });
     }
 
     @Override

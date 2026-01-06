@@ -97,3 +97,4 @@ skill-need-xp:
 experimental:
   enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
   enable-leveling: false # Enable experimental leveling system (may cause issues)
+  hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)

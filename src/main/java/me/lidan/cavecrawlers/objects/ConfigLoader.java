@@ -1,9 +1,12 @@
 package me.lidan.cavecrawlers.objects;
 
 import dev.dejvokep.boostedyaml.settings.Settings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import lombok.Getter;
 import lombok.Setter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.BoostedConfiguration;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -17,10 +20,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     private static final Logger log = LoggerFactory.getLogger(ConfigLoader.class);
     private static final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(ConfigLoader.class);
+    public static final String VERSION_KEY = "version";
 
     private final Class<T> type;
     @Getter
@@ -30,6 +35,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
     @Getter
     @Setter
     private Settings[] settings;
+    private BasicDefaultVersioning versioning;
 
     protected ConfigLoader(Class<T> type, String dirName) {
         this(type, new File(plugin.getDataFolder(), dirName));
@@ -82,13 +88,14 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             return;
         }
         try {
-            BoostedCustomConfig customConfig = new BoostedCustomConfig(file, settings);
+            BoostedCustomConfig customConfig = openConfig(file);
             Set<String> registered = registerItemsFromConfig(customConfig);
             for (String s : registered) {
                 configMap.put(s, file);
             }
         } catch (Exception e) {
             CaveCrawlers.getInstance().getLogger().warning("Failed to Load File: " + file.getPath());
+            log.error("Failed to load config file: {}", file.getPath(), e);
         }
     }
 
@@ -96,6 +103,9 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         Set<String> registeredItems = new HashSet<>();
         Set<String> keys = configuration.getKeys(false);
         for (String key : keys) {
+            if (key.equals(VERSION_KEY)) {
+                continue;
+            }
             T itemInfo = configuration.getObject(key, type);
             if (itemInfo != null) {
                 registeredItems.add(key);
@@ -114,7 +124,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             file = new File(getFileDir(), Id + ".yml");
         }
         try {
-            return new BoostedCustomConfig(file, settings);
+            return openConfig(file);
         } catch (IOException e) {
             log.error("Failed to get config for ID: {}", Id, e);
             throw new RuntimeException(e);
@@ -127,8 +137,35 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         config.save();
     }
 
+    public void remove(String Id) {
+        BoostedCustomConfig config = getConfig(Id);
+        config.remove(Id);
+        config.save();
+        configMap.remove(Id);
+    }
+
     public void clear(){
         configMap.clear();
+    }
+
+    public void setupMigrations(Consumer<UpdaterSettings.Builder> updaterSettingsSupplier) {
+        BasicDefaultVersioning versioning = new BasicDefaultVersioning(VERSION_KEY);
+        UpdaterSettings.Builder updaterBuilder = UpdaterSettings.builder().setVersioning(versioning).setKeepAll(true);
+        updaterSettingsSupplier.accept(updaterBuilder);
+        Settings[] settings = new Settings[]{
+                LoaderSettings.builder().setAutoUpdate(true).build(),
+                updaterBuilder.build()
+        };
+        setSettings(settings);
+        this.versioning = versioning;
+    }
+
+    private BoostedCustomConfig openConfig(File file) throws IOException {
+        if (this.versioning != null) {
+            return new BoostedCustomConfig(file, versioning.getVirtualDefaults(), settings);
+        } else {
+            return new BoostedCustomConfig(file, settings);
+        }
     }
 
     public abstract void register(String key, T value);

@@ -18,11 +18,6 @@ public class BasicDefaultVersioning extends BasicVersioning {
         this.route = route;
     }
 
-//    @Override
-//    public @Nullable Version getDocumentVersion(@NonNull Section document, boolean defaults) {
-//        return super.getDocumentVersion(document, defaults) != null ? super.getDocumentVersion(document, defaults) : getFirstVersion();
-//    }
-
     public ByteArrayInputStream getVirtualDefaults() {
         String id = getFirstVersion().asID();
         return new ByteArrayInputStream((route + ": " + id).getBytes());

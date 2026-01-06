@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.commands;
 
 import com.cryptomorin.xseries.XMaterial;
+import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -61,6 +62,8 @@ import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -994,6 +997,21 @@ public class CaveCrawlersMainCommand {
             return;
         }
         PacketManager.getInstance().setCooldown(sender, hand.getType(), 100);
+    }
+
+    @Subcommand("test boostedyaml")
+    public void testBoostedYaml(Player sender) {
+        try {
+            BoostedCustomConfig document = new BoostedCustomConfig(new File(plugin.getDataFolder(), "boosted.yml"), DumperSettings.builder().setStartMarker(true).build());
+            ShopMenu shopMenu = ShopManager.getInstance().getShop("floor7");
+            document.set("shop", shopMenu);
+            document.save();
+            sender.sendMessage("Saved location to boosted.yml");
+            ShopMenu loadedShop = document.getAs("shop", ShopMenu.class);
+            sender.sendMessage("Loaded shop from boosted.yml: " + loadedShop.getTitle());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Subcommand("mythic skill")

@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.altar;
 
 import org.bukkit.Location;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AltarManager {
+    private static final Logger log = LoggerFactory.getLogger(AltarManager.class);
     private static AltarManager instance;
     private Map<String, Altar> altars = new HashMap<>();
 

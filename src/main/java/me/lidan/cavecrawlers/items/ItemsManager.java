@@ -4,7 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.ItemsAPI;
-import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -92,7 +92,7 @@ public class ItemsManager implements ItemsAPI {
 
     public @Nullable ItemInfo reloadItemByID(String ID) {
         ItemsLoader loader = ItemsLoader.getInstance();
-        CustomConfig config = loader.getConfig(ID);
+        BoostedCustomConfig config = loader.getConfig(ID);
         config.load();
         loader.registerItemsFromConfig(config);
         return itemsMap.get(ID);
@@ -282,7 +282,7 @@ public class ItemsManager implements ItemsAPI {
 
     public void setItem(String Id, ItemInfo itemInfo){
         ItemsLoader loader = ItemsLoader.getInstance();
-        CustomConfig config = loader.getConfig(Id);
+        BoostedCustomConfig config = loader.getConfig(Id);
         config.set(Id, itemInfo);
         config.save();
         registerItem(Id, itemInfo);

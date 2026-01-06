@@ -2,18 +2,22 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
-import me.lidan.cavecrawlers.utils.CustomConfig;
-import org.bukkit.configuration.file.FileConfiguration;
+import me.lidan.cavecrawlers.utils.BoostedConfiguration;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public abstract class ConfigLoader<T extends ConfigurationSerializable> {
+    private static final Logger log = LoggerFactory.getLogger(ConfigLoader.class);
     private final Class<T> type;
     @Getter
     private final Map<String, File> configMap;
@@ -72,7 +76,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
             return;
         }
         try {
-            CustomConfig customConfig = new CustomConfig(file);
+            BoostedCustomConfig customConfig = new BoostedCustomConfig(file);
             Set<String> registered = registerItemsFromConfig(customConfig);
             for (String s : registered) {
                 configMap.put(s, file);
@@ -82,7 +86,7 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         }
     }
 
-    public Set<String> registerItemsFromConfig(FileConfiguration configuration) {
+    public Set<String> registerItemsFromConfig(BoostedConfiguration configuration) {
         Set<String> registeredItems = new HashSet<>();
         Set<String> keys = configuration.getKeys(false);
         for (String key : keys) {
@@ -97,17 +101,22 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         return registeredItems;
     }
 
-    public CustomConfig getConfig(String Id){
+    public BoostedCustomConfig getConfig(String Id) {
         Map<String, File> idFileMap = getConfigMap();
         File file = idFileMap.get(Id);
         if (file == null){
             file = new File(getFileDir(), Id + ".yml");
         }
-        return new CustomConfig(file);
+        try {
+            return new BoostedCustomConfig(file);
+        } catch (IOException e) {
+            log.error("Failed to get config for ID: {}", Id, e);
+            throw new RuntimeException(e);
+        }
     }
 
     public void update(String Id, T value) {
-        CustomConfig config = getConfig(Id);
+        BoostedCustomConfig config = getConfig(Id);
         config.set(Id, value);
         config.save();
     }

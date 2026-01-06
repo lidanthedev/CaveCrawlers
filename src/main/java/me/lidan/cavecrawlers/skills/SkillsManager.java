@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -111,7 +112,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
     }
 
-    public CustomConfig getConfig(SkillInfo type) {
+    public BoostedCustomConfig getConfig(SkillInfo type) {
         return getConfig(type.getName());
     }
 

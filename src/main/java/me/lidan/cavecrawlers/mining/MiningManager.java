@@ -4,6 +4,8 @@ import com.cryptomorin.xseries.XAttribute;
 import com.cryptomorin.xseries.XPotion;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.MiningAPI;
+import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -21,6 +23,7 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.potion.PotionEffect;
@@ -39,8 +42,8 @@ public class MiningManager implements MiningAPI {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
-    private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, Map.of());
-    private final Map<Block, Material> brokenBlocks = new HashMap<>();
+    private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());
+    private final Map<Block, BlockData> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
 
     @Override
@@ -118,6 +121,7 @@ public class MiningManager implements MiningAPI {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         Material originType = block.getType();
+        BlockData originBlockData = block.getBlockData();
         BlockInfo blockInfo = getBlockInfo(originType);
         event.setCancelled(true);
         if (blockInfo == UNBREAKABLE_BLOCK){
@@ -129,42 +133,27 @@ public class MiningManager implements MiningAPI {
         skillsManager.tryGiveXp(SkillAction.MINE, originType, player);
         handleBlockDrops(player, blockInfo.getDrops());
         handleHammer(player, block);
-        handleBlockRegen(block, originType);
+        handleBlockRegen(block, originBlockData, blockInfo);
     }
 
-    private void handleBlockDrops(Player player, Map<ItemInfo, Integer> drops){
-        for (ItemInfo itemInfo : drops.keySet()) {
-            int amount = drops.get(itemInfo);
-            handleBlockDrop(player, itemInfo, amount);
-        }
+    private void handleBlockDrops(Player player, List<Drop> drops) {
+        DropsManager.getInstance().rollDropsForPlayer(player, drops);
     }
 
-    private void handleBlockDrop(Player player, ItemInfo itemInfo, int amount){
-        Stats stats = StatsManager.getInstance().getStats(player);
-        double value = stats.get(StatType.MINING_FORTUNE).getValue();
-        int multi = 1 + (int) value/100;
-        int remain = (int) (value % 100);
-        if (RandomUtils.chanceOf(remain)){
-            multi++;
-        }
-        amount *= multi;
-        ItemsManager.getInstance().giveItem(player, itemInfo, amount);
-    }
-
-    private void handleBlockRegen(Block block, Material originType) {
-        brokenBlocks.put(block, originType);
-        block.setType(Material.BLACK_WOOL);
+    private void handleBlockRegen(Block block, BlockData originBlockData, BlockInfo blockInfo) {
+        brokenBlocks.put(block, originBlockData);
+        block.setBlockData(blockInfo.getReplacementBlockData());
 
         Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            block.setType(originType);
+            block.setBlockData(originBlockData);
             brokenBlocks.remove(block);
         }, 100);
     }
 
     public void regenBlocks(){
         for (Block block : brokenBlocks.keySet()) {
-            Material material = brokenBlocks.get(block);
-            block.setType(material);
+            BlockData material = brokenBlocks.get(block);
+            block.setBlockData(material);
         }
         brokenBlocks.clear();
     }

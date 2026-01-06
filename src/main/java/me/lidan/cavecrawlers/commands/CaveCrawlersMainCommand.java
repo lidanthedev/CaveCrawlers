@@ -47,6 +47,7 @@ import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -817,7 +818,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("mining setHardness")
     public void miningSetHardness(Player sender, int strength, int power) {
         Block targetBlock = sender.getTargetBlock(null, 10);
-        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
+        BlockInfo blockInfo = new BlockInfo(strength, power, new ArrayList<>());
         Material type = targetBlock.getType();
         if (type == Material.AIR) return;
         miningManager.setBlockInfo(type.name(), blockInfo);
@@ -1036,6 +1037,33 @@ public class CaveCrawlersMainCommand {
 
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Subcommand("test blockdata")
+    public void testBlockData(Player sender) {
+        try {
+            BoostedCustomConfig document = new BoostedCustomConfig(
+                    new File(plugin.getDataFolder(), "boosted.yml"));
+            Block targetBlock = sender.getTargetBlock(null, 10);
+            BlockData blockData = targetBlock.getBlockData();
+            sender.sendMessage("Block data: " + blockData.getAsString());
+            document.set("testBlockData", blockData.getAsString());
+            document.save();
+            BlockData loadedBlockData = Bukkit.createBlockData(document.getString("testBlockData"));
+            sender.sendMessage("Loaded block data: " + loadedBlockData.getAsString());
+        } catch (IOException e) {
+            log.error("Error handling boosted.yml", e);
+        }
+    }
+
+    @Subcommand("test createBlockData")
+    public void testCreateBlockData(Player sender, String blockDataString) {
+        try {
+            BlockData blockData = Bukkit.createBlockData(blockDataString);
+            sender.sendMessage("Created block data: " + blockData.getAsString());
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage("Error creating block data: " + e.getMessage());
         }
     }
 

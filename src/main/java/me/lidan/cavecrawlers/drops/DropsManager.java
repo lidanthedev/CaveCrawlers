@@ -2,8 +2,10 @@ package me.lidan.cavecrawlers.drops;
 
 import me.lidan.cavecrawlers.api.DropsAPI;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DropsManager implements DropsAPI {
@@ -20,6 +22,12 @@ public class DropsManager implements DropsAPI {
     @Override
     public EntityDrops getEntityDrops(String entityName){
         return entityDropsMap.get(entityName);
+    }
+
+    public void rollDropsForPlayer(Player player, List<Drop> drops) {
+        for (Drop drop : drops) {
+            drop.roll(player);
+        }
     }
 
     public void clear(){

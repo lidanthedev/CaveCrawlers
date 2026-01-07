@@ -52,7 +52,7 @@ public class AntiStupidStuffListener implements Listener {
                 <red>You can't drop items!
                 Use <gold><hover:show_text:'<yellow>Click to trade</yellow>'><click:suggest_command:'/trade '>/trade</click></hover> <red>to trade items with other players
                 Use <gold><hover:show_text:'<yellow>Click to sell'><click:run_command:'/sell'>/sell</click></hover> <red>to sell items
-                Use <gold><hover:show_text:'<yellow>Click to trash'><click:run_command:'/trash'>/trash</click></hover> <red>to get rid off items"""));
+                Use <gold><hover:show_text:'<yellow>Click to trash'><click:run_command:'/trash'>/trash</click></hover> <red>to get rid of items"""));
     }
 
     @EventHandler(ignoreCancelled = true)

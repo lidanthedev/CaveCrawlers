@@ -71,6 +71,9 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         }
 
         File[] files = dir.listFiles();
+        if (files == null) {
+            return;
+        }
 
         // loop through files
         for (File file : files) {

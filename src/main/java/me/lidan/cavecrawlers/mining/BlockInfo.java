@@ -40,8 +40,8 @@ public class BlockInfo implements ConfigurationSerializable {
     }
 
     public static BlockInfo deserialize(Map<String, Object> map) {
-        int blockStrength = (int)map.get("blockStrength");
-        int blockPower = (int)map.get("blockPower");
+        int blockStrength = (int) map.getOrDefault("blockStrength", 0);
+        int blockPower = (int) map.getOrDefault("blockPower", 0);
         List<Drop> drops = new ArrayList<>();
         try {
             // Legacy support for serialized drops as lists

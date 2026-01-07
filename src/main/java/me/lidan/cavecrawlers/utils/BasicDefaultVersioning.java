@@ -4,6 +4,7 @@ import dev.dejvokep.boostedyaml.dvs.versioning.BasicVersioning;
 import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 public class BasicDefaultVersioning extends BasicVersioning {
     private final String route;
@@ -20,6 +21,6 @@ public class BasicDefaultVersioning extends BasicVersioning {
 
     public ByteArrayInputStream getVirtualDefaults() {
         String id = getFirstVersion().asID();
-        return new ByteArrayInputStream((route + ": " + id).getBytes());
+        return new ByteArrayInputStream((route + ": " + id).getBytes(StandardCharsets.UTF_8));
     }
 }

@@ -1036,7 +1036,7 @@ public class CaveCrawlersMainCommand {
         if (first == null) {
             return;
         }
-        Component component = indexItemGenerator.resolveDropValue(first);
+        Component component = indexItemGenerator.dropToComponent(first);
         sender.sendMessage(component);
     }
 

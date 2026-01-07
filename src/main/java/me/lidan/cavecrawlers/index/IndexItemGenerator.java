@@ -65,7 +65,7 @@ public class IndexItemGenerator {
         return mob.getDisplayName().get();
     }
 
-    public Component resolveDropValue(Drop drop) {
+    private Component resolveDropValue(Drop drop) {
         if (drop.getType() == DropType.ITEM) {
             return resolveItemDrop(drop);
         } else if (drop.getType() == DropType.MOB) {

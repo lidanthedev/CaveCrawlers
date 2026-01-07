@@ -82,6 +82,10 @@ public class StatType {
         return color + name;
     }
 
+    public String getColoredIcon() {
+        return color + icon;
+    }
+
     public static void register(String id, StatType statType) {
         id = id.toUpperCase();
         statType.id = id;

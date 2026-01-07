@@ -8,11 +8,13 @@ import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
+import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.index.IndexItemGenerator;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -1024,6 +1026,18 @@ public class CaveCrawlersMainCommand {
         } catch (IllegalArgumentException e) {
             sender.sendMessage("Error creating block data: " + e.getMessage());
         }
+    }
+
+    @Subcommand("test index")
+    public void testIndex(Player sender) {
+        IndexItemGenerator indexItemGenerator = new IndexItemGenerator();
+        BlockInfo blockInfo = MiningManager.getInstance().getBlockInfo(Material.RED_STAINED_GLASS_PANE);
+        Drop first = blockInfo.getDrops().getFirst();
+        if (first == null) {
+            return;
+        }
+        Component component = indexItemGenerator.resolveDropValue(first);
+        sender.sendMessage(component);
     }
 
     @Subcommand("mythic skill")

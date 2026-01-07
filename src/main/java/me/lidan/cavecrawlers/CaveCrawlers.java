@@ -67,6 +67,7 @@ import java.util.Arrays;
 public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static final int TICKS_TO_SECOND = 20;
     public static Economy economy = null;
+    public static boolean usePlaceholderAPI = false;
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
@@ -386,7 +387,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             caveCrawlersExpansion = new CaveCrawlersExpansion(this);
             caveCrawlersExpansion.register();
-            ConfigMessage.usePlaceholderAPI = true;
+            usePlaceholderAPI = true;
         }
     }
 

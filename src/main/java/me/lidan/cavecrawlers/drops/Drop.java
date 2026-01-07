@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.drops;
 
 import lombok.Data;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -214,6 +215,9 @@ public class Drop implements ConfigurationSerializable {
 
     protected void giveCommand(Player player) {
         String command = value.replace("%player%", player.getName());
+        if (CaveCrawlers.usePlaceholderAPI) {
+            command = PlaceholderAPI.setPlaceholders(player, command);
+        }
         plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command);
         if (announce != null) {
             sendAnnounceMessage(player);

@@ -1032,7 +1032,7 @@ public class CaveCrawlersMainCommand {
     public void testIndex(Player sender) {
         IndexItemGenerator indexItemGenerator = new IndexItemGenerator();
         BlockInfo blockInfo = MiningManager.getInstance().getBlockInfo(Material.RED_STAINED_GLASS_PANE);
-        Drop first = blockInfo.getDrops().getFirst();
+        Drop first = blockInfo.getDrops().get(1);
         if (first == null) {
             return;
         }

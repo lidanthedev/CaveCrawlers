@@ -24,7 +24,8 @@ public enum ItemType {
     UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
     OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
     ACCESSORY("Accessory", ItemSlot.INVENTORY),
-    PET("Pet", ItemSlot.OFF_HAND)
+    PET("Pet", ItemSlot.OFF_HAND),
+    HOTBAR("Hotbar", ItemSlot.HOTBAR)
 
     ;
 

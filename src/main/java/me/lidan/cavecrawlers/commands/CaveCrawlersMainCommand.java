@@ -1,9 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
 import com.cryptomorin.xseries.XMaterial;
-import dev.dejvokep.boostedyaml.dvs.Version;
-import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
-import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -12,8 +9,6 @@ import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
-import me.lidan.cavecrawlers.drops.DropsManager;
-import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
@@ -1002,42 +997,6 @@ public class CaveCrawlersMainCommand {
             return;
         }
         PacketManager.getInstance().setCooldown(sender, hand.getType(), 100);
-    }
-
-    @Subcommand("test boostedyaml")
-    public void testBoostedYaml(Player sender) {
-        try {
-            BasicDefaultVersioning versioning = new BasicDefaultVersioning("version");
-            log.info("versioning First: {}", versioning.getFirstVersion());
-
-            BoostedCustomConfig document = new BoostedCustomConfig(
-                    new File(plugin.getDataFolder(), "boosted.yml"),
-
-                    // 2. Pass the virtual defaults here!
-                    versioning.getVirtualDefaults(),
-
-                    LoaderSettings.builder().setAutoUpdate(true).build(),
-                    UpdaterSettings.builder()
-                            .setVersioning(versioning)
-                            .setKeepAll(true)
-                            .addCustomLogic("1", doc -> {
-                                // Your custom migration logic runs here!
-                                plugin.getLogger().info("Migrating skeleton.yml to version 1...");
-                            })
-                            .build()
-            );
-            EntityDrops realDrops = DropsManager.getInstance().getEntityDrops("§8[Level 1] §7Skeleton");
-            log.info("real drops: {}", realDrops.serialize());
-            document.set("FLOOR_1_SKELETON", realDrops);
-            Version documentVersion = versioning.getDocumentVersion(document, true);
-            log.info("document version: {}", documentVersion);
-            EntityDrops drops = document.getAs("FLOOR_1_SKELETON", EntityDrops.class);
-            log.info("Loaded drops from boosted.yml: {}", drops.serialize());
-            document.update();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Subcommand("test blockdata")

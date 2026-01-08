@@ -21,6 +21,9 @@ public class IndexMainMenu {
         gui.setItem(3, 6, ItemBuilder.from(Material.DRAGON_HEAD).name(MiniMessageUtils.miniMessage("<red>Bosses")).asGuiItem(event -> new IndexBossesCategoryMenu(player, "").open()));
         gui.setItem(3, 8, ItemBuilder.from(Material.END_PORTAL_FRAME).name(MiniMessageUtils.miniMessage("<aqua>Altars")).asGuiItem(event -> new IndexAltarsCategoryMenu(player, "").open()));
         gui.setItem(6, 5, GuiItems.CLOSE_ITEM);
+        if (player.hasPermission(IndexBaseCategoryMenu.CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+            gui.setItem(6, 3, ItemBuilder.from(Material.REDSTONE).name(MiniMessageUtils.miniMessage("<red>Hidden Values")).asGuiItem(event -> new IndexHiddenMenu(player).open()));
+        }
     }
 
     public void open() {

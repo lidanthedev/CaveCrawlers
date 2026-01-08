@@ -67,11 +67,6 @@ public class IndexManager {
         return hiddenDrops.contains(dropIdentifier);
     }
 
-    public void setHiddenDrop(Drop drop, boolean hidden) {
-        String dropIdentifier = getDropIdentifier(drop);
-        setHiddenDrop(HIDDEN_DROPS_KEY, dropIdentifier, hidden);
-    }
-
     public void setHiddenDrop(String hiddenDropsKey, String dropIdentifier, boolean hidden) {
         List<String> hiddenDrops = config.getStringList(hiddenDropsKey, new ArrayList<>());
         if (hidden) {
@@ -96,6 +91,10 @@ public class IndexManager {
 
     public List<String> getAllHiddenEntries() {
         return config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
+    }
+
+    public boolean isHideCommands() {
+        return config.getBoolean("hide-commands", true);
     }
 
     private static Component resolveCommandDrop(Drop drop) {
@@ -386,6 +385,9 @@ public class IndexManager {
         List<Component> components = new ArrayList<>();
         for (Drop drop : drops) {
             if (isHiddenDrop(drop)) {
+                continue;
+            }
+            if (drop.getType() == DropType.COMMAND && isHideCommands()) {
                 continue;
             }
             components.add(dropToComponent(drop));

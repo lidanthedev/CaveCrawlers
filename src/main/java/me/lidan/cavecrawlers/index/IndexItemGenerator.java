@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.index;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -157,7 +158,7 @@ public class IndexItemGenerator {
         return resolveDropValue(drop);
     }
 
-    public List<Component> dropsToComponents(List<Drop> drops) {
+    public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {
         List<Component> components = new ArrayList<>();
         for (Drop drop : drops) {
             components.add(dropToComponent(drop));
@@ -165,11 +166,15 @@ public class IndexItemGenerator {
         return components;
     }
 
-    public List<Component> dropsToLore(List<Drop> drops) {
+    public <T extends Drop> List<Component> dropsToLore(List<T> drops) {
+        return dropsToLore(drops, "Drops");
+    }
+
+    public <T extends Drop> List<Component> dropsToLore(List<T> drops, String header) {
         List<Component> lore = new ArrayList<>();
-        lore.add(MiniMessageUtils.miniMessage("<gray>-- Drops --"));
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- <header> --", Map.of("header", header)));
         if (drops.isEmpty()) {
-            lore.add(MiniMessageUtils.miniMessage("<red>No Drops"));
+            lore.add(MiniMessageUtils.miniMessage("<red>No <header>", Map.of("header", header)));
         } else {
             for (Component dropComponent : dropsToComponents(drops)) {
                 lore.add(MiniMessageUtils.miniMessage("<gray>- </gray>").append(dropComponent));
@@ -210,5 +215,22 @@ public class IndexItemGenerator {
     public ItemStack entityDropsToItemStack(EntityDrops entityDrops) {
         List<Component> lore = entityDropsToLore(entityDrops);
         return ItemBuilder.from(Material.ZOMBIE_HEAD).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityDrops.getEntityName())))).lore(lore).build();
+    }
+
+    public List<Component> altarToLore(Altar altar) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Altar Info --"));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Points per Item: <yellow><points_per_item>", Map.of("points_per_item", StringUtils.getNumberFormat(altar.getPointsPerItem()))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Item To Spawn: <white><item_name>", Map.of("item_name", altar.getItemToSpawn() != null ? altar.getItemToSpawn().getFormattedName() : "None")));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Recharge Time: <yellow><recharge_time> seconds", Map.of("recharge_time", StringUtils.getNumberFormat(altar.getAltarRechargeTime() / CaveCrawlers.TICKS_TO_SECOND))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Required Altars: <yellow><altar_count>", Map.of("altar_count", StringUtils.getNumberFormat(altar.getAltarLocations().size()))));
+        lore.add(Component.empty());
+        lore.addAll(dropsToLore(altar.getSpawns(), "Spawns"));
+        return lore;
+    }
+
+    public ItemStack altarToItemStack(Altar altar) {
+        List<Component> lore = altarToLore(altar);
+        return ItemBuilder.from(altar.getAltarMaterial()).name(MiniMessageUtils.miniMessage("<gray><name>", Map.of("name", StringUtils.setTitleCase(altar.getId().replace("_", " "))))).lore(lore).build();
     }
 }

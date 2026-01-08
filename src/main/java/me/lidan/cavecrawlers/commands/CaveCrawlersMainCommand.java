@@ -9,6 +9,8 @@ import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
+import me.lidan.cavecrawlers.drops.DropsManager;
+import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
@@ -1030,8 +1032,14 @@ public class CaveCrawlersMainCommand {
     @Subcommand("test index")
     public void testIndex(Player sender) {
         IndexItemGenerator indexItemGenerator = new IndexItemGenerator();
-        BlockInfo blockInfo = MiningManager.getInstance().getBlockInfo(Material.RED_STAINED_GLASS_PANE);
-        sender.getInventory().addItem(indexItemGenerator.blockInfoToItemStack(blockInfo));
+        String entityName = "&8[Level 7] &7Ender Guard";
+        entityName = ChatColor.translateAlternateColorCodes('&', entityName);
+        EntityDrops entityDrops = DropsManager.getInstance().getEntityDrops(entityName);
+        if (entityDrops == null) {
+            sender.sendMessage("Entity drops not found for " + entityName);
+            return;
+        }
+        sender.getInventory().addItem(indexItemGenerator.entityDropsToItemStack(entityDrops));
     }
 
     @Subcommand("mythic skill")

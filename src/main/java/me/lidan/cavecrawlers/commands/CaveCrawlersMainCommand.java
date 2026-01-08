@@ -14,6 +14,7 @@ import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.index.IndexBlocksCategoryMenu;
+import me.lidan.cavecrawlers.index.IndexBossesCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexMobsCategoryMenu;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
@@ -1204,6 +1205,12 @@ public class CaveCrawlersMainCommand {
     @Subcommand("index blocks")
     public void indexBlocks(Player sender, @Default("") String query) {
         IndexBlocksCategoryMenu menu = new IndexBlocksCategoryMenu(sender, query);
+        menu.open();
+    }
+
+    @Subcommand("index bosses")
+    public void indexBosses(Player sender, @Default("") String query) {
+        IndexBossesCategoryMenu menu = new IndexBossesCategoryMenu(sender, query);
         menu.open();
     }
 

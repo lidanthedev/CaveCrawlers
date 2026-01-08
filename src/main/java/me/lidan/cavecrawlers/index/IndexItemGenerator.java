@@ -194,7 +194,7 @@ public class IndexItemGenerator {
     public Component dropToComponent(Drop drop) {
         Component component = resolveDropValue(drop);
         if (drop instanceof BossDrop bossDrop && bossDrop.getTrack() != null) {
-            component = MiniMessageUtils.miniMessage(getTrackIcon(bossDrop.getTrack())).append(component);
+            component = MiniMessageUtils.miniMessage(getTrackIcon(bossDrop.getTrack())).append(component).append(MiniMessageUtils.miniMessage("<gold> ><points>", Map.of("points", StringUtils.getNumberFormat(bossDrop.getRequiredPoints()))));
         }
         return component;
     }
@@ -307,6 +307,14 @@ public class IndexItemGenerator {
 
     public ItemStack bossDropsToItemStack(BossDrops bossDrops) {
         List<Component> lore = bossDropsToLore(bossDrops);
-        return ItemBuilder.from(Material.DRAGON_HEAD).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', bossDrops.getEntityName())))).lore(lore).build();
+        ItemStack baseMaterial = new ItemStack(Material.DRAGON_HEAD);
+        try {
+            MythicMob mob = getMobByName(bossDrops.getEntityName());
+            if (mob != null) {
+                baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
+            }
+        } catch (Exception ignored) {
+        }
+        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', bossDrops.getEntityName())))).lore(lore).build();
     }
 }

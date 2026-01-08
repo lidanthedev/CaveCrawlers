@@ -4,6 +4,8 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.bosses.BossDrop;
+import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -20,6 +22,7 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -154,8 +157,46 @@ public class IndexItemGenerator {
         return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon>", placeholders);
     }
 
+    /**
+     * Generates a consistent, deterministic icon gradient based on the input string.
+     * Example output: <gradient:#ff0000:#ffaa00>■</gradient>
+     */
+    public static String getTrackIcon(String trackId) {
+        // 1. Generate a seed from the string
+        int hash = trackId.hashCode();
+
+        // 2. Calculate the base Hue (0.0 to 1.0)
+        // We use absolute value to handle negative hashes
+        float hue = (Math.abs(hash) % 360) / 360f;
+
+        // 3. Define Saturation and Brightness (Keep these high for "Cool" neon look)
+        float saturation = 0.85f; // 85% Saturation (Vibrant)
+        float brightness = 1.0f;  // 100% Brightness (Readable)
+
+        // 4. Create the two colors for the gradient
+        // Color 1: The base color
+        Color c1 = Color.getHSBColor(hue, saturation, brightness);
+
+        // Color 2: Shift the hue slightly (e.g., +45 degrees) for a nice analog gradient
+        // The % 1.0f wraps it around if it goes over 360 degrees
+        Color c2 = Color.getHSBColor((hue + 0.125f) % 1.0f, saturation, brightness);
+
+        // 5. Convert to Hex
+        String hex1 = String.format("#%06x", c1.getRGB() & 0x00FFFFFF);
+        String hex2 = String.format("#%06x", c2.getRGB() & 0x00FFFFFF);
+
+        // 6. Return the MiniMessage string
+        // You can change "●" to whatever 1-char icon you prefer (e.g. ✦, ■, or the first letter)
+        return "<gradient:" + hex1 + ":" + hex2 + ">●</gradient>";
+    }
+
+
     public Component dropToComponent(Drop drop) {
-        return resolveDropValue(drop);
+        Component component = resolveDropValue(drop);
+        if (drop instanceof BossDrop bossDrop && bossDrop.getTrack() != null) {
+            component = MiniMessageUtils.miniMessage(getTrackIcon(bossDrop.getTrack())).append(component);
+        }
+        return component;
     }
 
     public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {
@@ -175,11 +216,13 @@ public class IndexItemGenerator {
         lore.add(MiniMessageUtils.miniMessage("<gray>-- <header> --", Map.of("header", header)));
         if (drops.isEmpty()) {
             lore.add(MiniMessageUtils.miniMessage("<red>No <header>", Map.of("header", header)));
-        } else {
-            for (Component dropComponent : dropsToComponents(drops)) {
-                lore.add(MiniMessageUtils.miniMessage("<gray>- </gray>").append(dropComponent));
-            }
+            return lore;
         }
+
+        for (Component dropComponent : dropsToComponents(drops)) {
+            lore.add(MiniMessageUtils.miniMessage("<gray>- </gray>").append(dropComponent));
+        }
+
         return lore;
     }
 
@@ -199,14 +242,19 @@ public class IndexItemGenerator {
         return ItemBuilder.from(blockInfo.getBlock()).lore(lore).build();
     }
 
-    public List<Component> entityDropsToLore(EntityDrops entityDrops) {
+    private List<Component> mobInfoToLore(String bossDrops) {
         List<Component> lore = new ArrayList<>();
-        MythicMob mob = getMobByName(entityDrops.getEntityName());
+        MythicMob mob = getMobByName(bossDrops);
         if (mob != null) {
             lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
             lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
             lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
         }
+        return lore;
+    }
+
+    public List<Component> entityDropsToLore(EntityDrops entityDrops) {
+        List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getEntityName()));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(entityDrops.getDropList()));
         return lore;
@@ -232,5 +280,24 @@ public class IndexItemGenerator {
     public ItemStack altarToItemStack(Altar altar) {
         List<Component> lore = altarToLore(altar);
         return ItemBuilder.from(altar.getAltarMaterial()).name(MiniMessageUtils.miniMessage("<gray><name>", Map.of("name", StringUtils.setTitleCase(altar.getId().replace("_", " "))))).lore(lore).build();
+    }
+
+    public List<Component> bossDropsToLore(BossDrops bossDrops) {
+        List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getEntityName()));
+        lore.add(Component.empty());
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Bonus Points --"));
+        int pos = 1;
+        for (Integer bonusPoint : bossDrops.getBonusPoints()) {
+            lore.add(MiniMessageUtils.miniMessage("<yellow>#<position> - <gold><points> Points", Map.of("position", StringUtils.getNumberFormat(pos), "points", StringUtils.getNumberFormat(bonusPoint))));
+            pos++;
+        }
+        lore.add(Component.empty());
+        lore.addAll(dropsToLore(bossDrops.getDrops()));
+        return lore;
+    }
+
+    public ItemStack bossDropsToItemStack(BossDrops bossDrops) {
+        List<Component> lore = bossDropsToLore(bossDrops);
+        return ItemBuilder.from(Material.DRAGON_HEAD).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', bossDrops.getEntityName())))).lore(lore).build();
     }
 }

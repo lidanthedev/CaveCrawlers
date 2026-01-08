@@ -114,6 +114,40 @@ public class StatsManager implements StatsAPI {
         return stats;
     }
 
+    public static Stats getStatsFromInventory(Player player) {
+        Stats stats = new Stats();
+        ItemStack[] contents = player.getInventory().getContents();
+        for (ItemStack itemStack : contents) {
+            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.INVENTORY);
+            if (itemStats != null) {
+                stats.add(itemStats);
+            }
+        }
+        return stats;
+    }
+
+    @Override
+    public void register(String id, StatType statType) {
+        StatType.register(id, statType);
+    }
+
+    private static Stats getStatsFromSkills(Player player) {
+        return PlayerDataManager.getInstance().getStatsFromSkills(player);
+    }
+
+    public static Stats getStatsFromHotBar(Player player) {
+        Stats stats = new Stats();
+        ItemStack[] hotbar = new ItemStack[9];
+        System.arraycopy(player.getInventory().getContents(), 0, hotbar, 0, 9);
+        for (ItemStack itemStack : hotbar) {
+            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.HOTBAR);
+            if (itemStats != null) {
+                stats.add(itemStats);
+            }
+        }
+        return stats;
+    }
+
     @Override
     public Stats calculateStats(Player player) {
         Stats oldStats = getStats(player);
@@ -130,6 +164,8 @@ public class StatsManager implements StatsAPI {
         stats.add(statsFromEquipment);
         stats.add(statsFromSkills);
         stats.add(getStatsAdder(player));
+        stats.add(getStatsFromInventory(player));
+        stats.add(getStatsFromHotBar(player));
 
         // stat limits
         Stat speedStat = stats.get(StatType.SPEED);
@@ -144,15 +180,6 @@ public class StatsManager implements StatsAPI {
         Bukkit.getPluginManager().callEvent(event);
 
         return stats;
-    }
-
-    @Override
-    public void register(String id, StatType statType) {
-        StatType.register(id, statType);
-    }
-
-    private static Stats getStatsFromSkills(Player player) {
-        return PlayerDataManager.getInstance().getStatsFromSkills(player);
     }
 
     public Stats getStatsFromPlayerEquipment(Player player){

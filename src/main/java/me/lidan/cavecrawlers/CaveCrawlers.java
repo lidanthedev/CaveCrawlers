@@ -53,6 +53,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
 import java.io.File;
@@ -69,6 +70,14 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
+
+    /**
+     * Get the plugin instance
+     * @return the plugin instance
+     */
+    public static CaveCrawlers getInstance() {
+        return CaveCrawlers.getPlugin(CaveCrawlers.class);
+    }
 
     /**
      * Runs when the plugin is enabled
@@ -91,23 +100,31 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveDefaultResources();
         registerConfig();
 
-        registerAbilities();
-        registerFromConfigs(this);
-        registerSkills();
-        registerLevels();
-
         registerCommandResolvers();
         registerCommandCompletions();
         registerCommands();
         registerEvents();
-        registerPlaceholders();
 
-        startTasks();
-
-        StatsManager.getInstance().loadAllPlayers();
+        loadDelayedData();
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void loadDelayedData() {
+        // Delay loading from data dir to allow other plugins/addons to load first
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                long delayStart = System.currentTimeMillis();
+                registerFromDataDir();
+                StatsManager.getInstance().loadAllPlayers();
+                registerPlaceholders();
+                startTasks();
+                long delayDiff = System.currentTimeMillis() - delayStart;
+                getLogger().info("Loaded data! Took " + delayDiff + " ms");
+            }
+        }.runTask(this);
     }
 
     @Override
@@ -534,16 +551,15 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         return SkillsManager.getInstance();
     }
 
-    /**
-     * Get the plugin instance
-     * @return the plugin instance
-     */
-    public static CaveCrawlers getInstance() {
-        return CaveCrawlers.getPlugin(CaveCrawlers.class);
-    }
-
     @Override
     public StatsAPI getStatsAPI() {
         return StatsManager.getInstance();
+    }
+
+    private void registerFromDataDir() {
+        registerAbilities();
+        registerFromConfigs(this);
+        registerSkills();
+        registerLevels();
     }
 }

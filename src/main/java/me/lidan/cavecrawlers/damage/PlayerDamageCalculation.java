@@ -1,13 +1,13 @@
 package me.lidan.cavecrawlers.damage;
 
 import lombok.Getter;
-import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import org.bukkit.entity.Player;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 public class PlayerDamageCalculation implements DamageCalculation {
@@ -37,7 +37,7 @@ public class PlayerDamageCalculation implements DamageCalculation {
         double critChance = stats.get(StatType.CRIT_CHANCE).getValue();
 
         // Generate random number between 0 and 100
-        Random rnd = new Random();
+        Random rnd = ThreadLocalRandom.current();
         int random = rnd.nextInt(100) + 1;
 
         // Check if random is less than crit chance

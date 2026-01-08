@@ -2,14 +2,17 @@ package me.lidan.cavecrawlers.shop;
 
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.utils.CustomConfig;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ShopManager {
+    private static final Logger log = LoggerFactory.getLogger(ShopManager.class);
     private static ShopManager instance;
 
     private final Map<String, ShopMenu> menuMap = new HashMap<>();
@@ -26,7 +29,7 @@ public class ShopManager {
         return menuMap.get(ID);
     }
 
-    public CustomConfig getConfig(String ID){
+    public BoostedCustomConfig getConfig(String ID) {
         ShopLoader shopLoader = ShopLoader.getInstance();
         return shopLoader.getConfig(ID);
     }
@@ -130,7 +133,7 @@ public class ShopManager {
             shopMenu.buildGui();
             menuMap.put(shopID, shopMenu);
         }
-        CustomConfig shopConfig = getConfig(shopID);
+        BoostedCustomConfig shopConfig = getConfig(shopID);
         shopConfig.set(shopID, shopMenu);
         shopConfig.save();
     }

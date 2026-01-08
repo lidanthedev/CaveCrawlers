@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.listeners;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -47,9 +48,11 @@ public class AntiStupidStuffListener implements Listener {
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
         event.setCancelled(true);
-        player.sendMessage("§cYou can't drop items!");
-        player.sendMessage("§cUse /trade to trade items with other players!");
-        player.sendMessage("§cUse /trash get rid off items!");
+        player.sendMessage(MiniMessageUtils.miniMessage("""
+                <red>You can't drop items!
+                Use <gold><hover:show_text:'<yellow>Click to trade</yellow>'><click:suggest_command:'/trade '>/trade</click></hover> <red>to trade items with other players
+                Use <gold><hover:show_text:'<yellow>Click to sell'><click:run_command:'/sell'>/sell</click></hover> <red>to sell items
+                Use <gold><hover:show_text:'<yellow>Click to trash'><click:run_command:'/trash'>/trash</click></hover> <red>to get rid of items"""));
     }
 
     @EventHandler(ignoreCancelled = true)

@@ -28,26 +28,32 @@ public class EntityDrops implements ConfigurationSerializable {
         }
     }
 
+    public static EntityDrops deserialize(Map<String, Object> map){
+        String entityName = (String) map.get("entityName");
+        int xp = (int) map.get("xp");
+
+        List<Drop> drops = null;
+        try {
+            // Legacy support for serialized drops as maps
+            List<Map<String, Object>> dropsList = (List<Map<String, Object>>) map.get("drops");
+
+            drops = dropsList.stream()
+                    .map(Drop::deserialize)
+                    .toList();
+        } catch (ClassCastException e) {
+            drops = (List<Drop>) map.get("drops");
+        }
+
+        return new EntityDrops(entityName, drops, xp);
+    }
+
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         map.put("entityName", entityName);
         map.put("xp", xp);
-        map.put("drops", dropList.stream().map(Drop::serialize).toList());
+        map.put("drops", dropList);
         return map;
-    }
-
-    public static EntityDrops deserialize(Map<String, Object> map){
-        String entityName = (String) map.get("entityName");
-        int xp = (int) map.get("xp");
-
-        List<Map<String, Object>> dropsList = (List<Map<String, Object>>) map.get("drops");
-
-        List<Drop> drops = dropsList.stream()
-                .map(Drop::deserialize)
-                .toList();
-
-        return new EntityDrops(entityName, drops, xp);
     }
 }

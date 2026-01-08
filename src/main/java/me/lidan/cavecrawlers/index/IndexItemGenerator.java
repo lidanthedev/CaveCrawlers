@@ -193,8 +193,13 @@ public class IndexItemGenerator {
 
     public Component dropToComponent(Drop drop) {
         Component component = resolveDropValue(drop);
-        if (drop instanceof BossDrop bossDrop && bossDrop.getTrack() != null) {
-            component = MiniMessageUtils.miniMessage(getTrackIcon(bossDrop.getTrack())).append(component).append(MiniMessageUtils.miniMessage("<gold> ><points>", Map.of("points", StringUtils.getNumberFormat(bossDrop.getRequiredPoints()))));
+        if (drop instanceof BossDrop bossDrop) {
+            if (bossDrop.getTrack() != null) {
+                component = MiniMessageUtils.miniMessage(getTrackIcon(bossDrop.getTrack())).append(component);
+            }
+            if (bossDrop.getRequiredPoints() > 0) {
+                component = component.append(MiniMessageUtils.miniMessage("<gold> >=<points>", Map.of("points", StringUtils.getNumberFormat(bossDrop.getRequiredPoints()))));
+            }
         }
         return component;
     }

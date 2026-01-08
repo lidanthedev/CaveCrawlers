@@ -1077,6 +1077,7 @@ public class CaveCrawlersMainCommand {
         Altar altar = new Altar();
         altar.setItemToSpawn(itemInfo);
         altar.setSpawnLocation(sender.getLocation());
+        altarManager.registerAltar(altarName, altar);
         altarManager.updateAltar(altarName, altar);
         sender.sendMessage(ChatColor.GREEN + "Created Alter named %s".formatted(altarName));
     }

@@ -57,6 +57,7 @@ public class MiningManager implements MiningAPI {
             blockInfoMap.remove(block);
             return;
         }
+        blockInfo.setBlock(block);
         blockInfoMap.put(block, blockInfo);
     }
 

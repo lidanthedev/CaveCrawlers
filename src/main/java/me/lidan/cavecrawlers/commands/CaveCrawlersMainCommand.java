@@ -8,7 +8,6 @@ import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
-import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -1032,12 +1031,7 @@ public class CaveCrawlersMainCommand {
     public void testIndex(Player sender) {
         IndexItemGenerator indexItemGenerator = new IndexItemGenerator();
         BlockInfo blockInfo = MiningManager.getInstance().getBlockInfo(Material.RED_STAINED_GLASS_PANE);
-        Drop first = blockInfo.getDrops().get(1);
-        if (first == null) {
-            return;
-        }
-        Component component = indexItemGenerator.dropToComponent(first);
-        sender.sendMessage(component);
+        sender.getInventory().addItem(indexItemGenerator.blockInfoToItemStack(blockInfo));
     }
 
     @Subcommand("mythic skill")

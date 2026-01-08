@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.mining;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.items.ItemInfo;
@@ -21,6 +22,8 @@ import java.util.Map;
 @Getter
 public class BlockInfo implements ConfigurationSerializable {
     public static final @NotNull BlockData DEFAULT_REPLACEMENT_BLOCK = Material.BLACK_WOOL.createBlockData();
+    @Setter
+    private Material block;
     private final int blockStrength;
     private final int blockPower;
     private final ItemType brokenBy;

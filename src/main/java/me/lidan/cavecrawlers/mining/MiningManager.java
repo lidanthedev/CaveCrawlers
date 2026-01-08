@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.mining;
 
 import com.cryptomorin.xseries.XAttribute;
 import com.cryptomorin.xseries.XPotion;
+import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.MiningAPI;
 import me.lidan.cavecrawlers.drops.Drop;
@@ -41,6 +42,7 @@ public class MiningManager implements MiningAPI {
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
     private static MiningManager instance;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());

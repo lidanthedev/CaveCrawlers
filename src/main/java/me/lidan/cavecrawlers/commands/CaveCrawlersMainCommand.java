@@ -13,6 +13,7 @@ import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.index.IndexAltarsCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexBlocksCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexBossesCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexMobsCategoryMenu;
@@ -1211,6 +1212,12 @@ public class CaveCrawlersMainCommand {
     @Subcommand("index bosses")
     public void indexBosses(Player sender, @Default("") String query) {
         IndexBossesCategoryMenu menu = new IndexBossesCategoryMenu(sender, query);
+        menu.open();
+    }
+
+    @Subcommand("index altars")
+    public void indexAltars(Player sender, @Default("") String query) {
+        IndexAltarsCategoryMenu menu = new IndexAltarsCategoryMenu(sender, query);
         menu.open();
     }
 

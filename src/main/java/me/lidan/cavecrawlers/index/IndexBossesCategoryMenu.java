@@ -9,9 +9,6 @@ import org.bukkit.entity.Player;
 import java.util.Map;
 
 public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
-    public IndexBossesCategoryMenu(Player player) {
-        this(player, "");
-    }
 
     public IndexBossesCategoryMenu(Player player, String query) {
         super(player, IndexCategory.BOSSES, query);

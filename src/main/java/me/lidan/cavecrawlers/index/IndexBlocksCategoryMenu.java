@@ -21,13 +21,13 @@ public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<Material, BlockInfo> dropsEntry : dropsMap.entrySet()) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            gui.addItem(ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem());
         }
     }
 
     @Override
-    public void search(String query) {
-        if (this.query.equals(query)) {
+    public void search(String query, boolean force) {
+        if (this.query.equals(query) && !force) {
             // Same query, do nothing
             return;
         }

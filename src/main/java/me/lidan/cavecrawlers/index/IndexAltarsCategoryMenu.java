@@ -20,13 +20,13 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
         for (String name : names) {
             Altar altar = AltarManager.getInstance().getAltar(name);
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            gui.addItem(ItemBuilder.from(itemGenerator.altarToItemStack(altar)).asGuiItem());
+            addItem(name, ItemBuilder.from(itemGenerator.altarToItemStack(altar)).asGuiItem());
         }
     }
 
     @Override
-    public void search(String query) {
-        if (this.query.equals(query)) {
+    public void search(String query, boolean force) {
+        if (this.query.equals(query) && !force) {
             // Same query, do nothing
             return;
         }

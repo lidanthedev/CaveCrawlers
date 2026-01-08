@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +33,62 @@ import java.util.Map;
 
 public class IndexItemGenerator {
     public static final Component UNKNOWN_DROP = MiniMessageUtils.miniMessage("<yellow>Unknown Drop Type");
+    public static final String HIDDEN_DROPS_KEY = "hidden-drops";
+    public static final String HIDDEN_ENTRIES_KEY = "hidden-entries";
+    private static IndexItemGenerator INSTANCE;
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final Logger log = LoggerFactory.getLogger(IndexItemGenerator.class);
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
+    private final BoostedCustomConfig config;
+
+    private IndexItemGenerator() {
+        try {
+            this.config = new BoostedCustomConfig("index.yml");
+        } catch (IOException e) {
+            log.warn("Failed to load index config", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static @NonNull String getDropIdentifier(Drop drop) {
+        return drop.getType().name() + ":" + drop.getValue();
+    }
+
+    public static IndexItemGenerator getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new IndexItemGenerator();
+        }
+        return INSTANCE;
+    }
+
+    public boolean isHiddenDrop(Drop drop) {
+        List<String> hiddenDrops = config.getStringList(HIDDEN_DROPS_KEY, new ArrayList<>());
+        String dropIdentifier = getDropIdentifier(drop);
+        return hiddenDrops.contains(dropIdentifier);
+    }
+
+    public void setHiddenDrop(Drop drop, boolean hidden) {
+        List<String> hiddenDrops = config.getStringList(HIDDEN_DROPS_KEY, new ArrayList<>());
+        String dropIdentifier = getDropIdentifier(drop);
+        if (hidden) {
+            if (!hiddenDrops.contains(dropIdentifier)) {
+                hiddenDrops.add(dropIdentifier);
+            }
+        } else {
+            hiddenDrops.remove(dropIdentifier);
+        }
+        config.set(HIDDEN_DROPS_KEY, hiddenDrops);
+        config.save();
+    }
+
+    public List<String> getAllHiddenDrops() {
+        return config.getStringList(HIDDEN_DROPS_KEY, new ArrayList<>());
+    }
+
+    public boolean isHiddenEntry(String entryId) {
+        List<String> hiddenEntries = config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
+        return hiddenEntries.contains(entryId);
+    }
 
     private static Component resolveCommandDrop(Drop drop) {
         Map<String, Object> placeholders = getPlaceholdersForCommandDrop(drop);
@@ -204,12 +259,17 @@ public class IndexItemGenerator {
         return component;
     }
 
-    public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {
-        List<Component> components = new ArrayList<>();
-        for (Drop drop : drops) {
-            components.add(dropToComponent(drop));
+    public void setHiddenEntry(String entryId, boolean hidden) {
+        List<String> hiddenEntries = config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
+        if (hidden) {
+            if (!hiddenEntries.contains(entryId)) {
+                hiddenEntries.add(entryId);
+            }
+        } else {
+            hiddenEntries.remove(entryId);
         }
-        return components;
+        config.set(HIDDEN_ENTRIES_KEY, hiddenEntries);
+        config.save();
     }
 
     public <T extends Drop> List<Component> dropsToLore(List<T> drops) {
@@ -321,5 +381,21 @@ public class IndexItemGenerator {
         } catch (Exception ignored) {
         }
         return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', bossDrops.getEntityName())))).lore(lore).build();
+    }
+
+    public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {
+        List<Component> components = new ArrayList<>();
+        for (Drop drop : drops) {
+            if (isHiddenDrop(drop)) {
+                continue;
+            }
+            components.add(dropToComponent(drop));
+        }
+        return components;
+    }
+
+    public void toggleHiddenEntry(String fullEntry) {
+        boolean currentlyHidden = isHiddenEntry(fullEntry);
+        setHiddenEntry(fullEntry, !currentlyHidden);
     }
 }

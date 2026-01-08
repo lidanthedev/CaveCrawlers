@@ -8,8 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class IndexMainMenu {
-    private Player player;
-    private Gui gui;
+    private final Player player;
+    private final Gui gui;
 
     public IndexMainMenu(Player player) {
         this.player = player;

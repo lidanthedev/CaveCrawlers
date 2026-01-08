@@ -20,13 +20,13 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<String, EntityDrops> dropsEntry : dropsMap.entrySet()) {
             String mobName = dropsEntry.getKey();
             if (!ChatColor.stripColor(mobName.toLowerCase()).contains(query)) continue;
-            gui.addItem(ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(mobName, ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem());
         }
     }
 
     @Override
-    public void search(String query) {
-        if (this.query.equals(query)) {
+    public void search(String query, boolean force) {
+        if (this.query.equals(query) && !force) {
             // Same query, do nothing
             return;
         }

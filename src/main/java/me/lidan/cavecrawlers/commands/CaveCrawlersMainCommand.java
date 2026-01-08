@@ -13,7 +13,6 @@ import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
-import me.lidan.cavecrawlers.index.*;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -1192,36 +1191,6 @@ public class CaveCrawlersMainCommand {
     public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
-    }
-
-    @Subcommand("index mobs")
-    public void indexMobs(Player sender, @Default("") String query) {
-        IndexMobsCategoryMenu menu = new IndexMobsCategoryMenu(sender, query);
-        menu.open();
-    }
-
-    @Subcommand("index blocks")
-    public void indexBlocks(Player sender, @Default("") String query) {
-        IndexBlocksCategoryMenu menu = new IndexBlocksCategoryMenu(sender, query);
-        menu.open();
-    }
-
-    @Subcommand("index bosses")
-    public void indexBosses(Player sender, @Default("") String query) {
-        IndexBossesCategoryMenu menu = new IndexBossesCategoryMenu(sender, query);
-        menu.open();
-    }
-
-    @Subcommand("index altars")
-    public void indexAltars(Player sender, @Default("") String query) {
-        IndexAltarsCategoryMenu menu = new IndexAltarsCategoryMenu(sender, query);
-        menu.open();
-    }
-
-    @Subcommand("index menu")
-    public void indexMenu(Player sender) {
-        IndexMainMenu menu = new IndexMainMenu(sender);
-        menu.open();
     }
 
     enum HelpCommandType {

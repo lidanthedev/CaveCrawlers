@@ -11,6 +11,7 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
@@ -328,9 +329,14 @@ public class CaveCrawlersMainCommand {
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
     public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
-        ItemStack exampleSword = itemsManager.buildItem(id, 1);
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        ItemStack givenItem = itemsManager.buildItem(itemInfo, 1);
         for (int i = 0; i < amount; i++) {
-            itemsManager.giveItemStacks(player, exampleSword);
+            itemsManager.giveItemStacks(player, givenItem);
         }
     }
 
@@ -359,7 +365,7 @@ public class CaveCrawlersMainCommand {
 
         ItemInfo itemInfo;
         try {
-            ItemExporter exporter = new ItemExporter(hand);
+            ItemImporter exporter = new ItemImporter(hand);
             itemInfo = exporter.toItemInfo();
         } catch (Exception error) {
             sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
@@ -373,7 +379,7 @@ public class CaveCrawlersMainCommand {
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
 
-        sender.sendMessage("Exported Item with id " + id);
+        sender.sendMessage("Imported Item with id " + id);
     }
 
     @Subcommand("item remove-id")
@@ -381,6 +387,25 @@ public class CaveCrawlersMainCommand {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.removeTag(hand, ItemsManager.ITEM_ID);
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
+    }
+
+    @Subcommand("item remove")
+    @AutoComplete("@itemID *")
+    public void itemRemove(CommandSender sender, @Named("Item ID") String id, @Default("false") boolean confirm) {
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        if (sender instanceof Player player && !confirm) {
+            new ConfirmGui(player, MiniMessageUtils.miniMessage("<red>Remove <id>?", Map.of("id", id)), () -> {
+                itemsManager.removeItem(id);
+                player.sendMessage("Removed Item!");
+            }).open();
+            return;
+        }
+        itemsManager.removeItem(id);
+        sender.sendMessage("Removed Item!");
     }
 
     @Subcommand("item browse")

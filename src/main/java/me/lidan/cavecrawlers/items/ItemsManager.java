@@ -270,6 +270,13 @@ public class ItemsManager implements ItemsAPI {
         }
     }
 
+    @Override
+    public void removeItem(String id) {
+        unregisterItem(id);
+        ItemsLoader loader = ItemsLoader.getInstance();
+        loader.remove(id);
+    }
+
     public void removeItems(Player player, Map<ItemInfo, Integer> items) {
         for (ItemInfo material : items.keySet()) {
             this.removeItems(player, material, items.get(material));

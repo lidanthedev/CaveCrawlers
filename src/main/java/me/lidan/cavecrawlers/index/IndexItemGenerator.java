@@ -145,15 +145,9 @@ public class IndexItemGenerator {
         return components;
     }
 
-    public List<Component> blockInfoToLore(BlockInfo blockInfo) {
+    public List<Component> dropsToLore(List<Drop> drops) {
         List<Component> lore = new ArrayList<>();
-        lore.add(MiniMessageUtils.miniMessage("<gray>-- Block Info --"));
-        lore.add(MiniMessageUtils.miniMessage("<gray>Power: <green><block_power>", Map.of("block_power", StringUtils.getNumberFormat(blockInfo.getBlockPower()))));
-        lore.add(MiniMessageUtils.miniMessage("<gray>Strength: <yellow><strength>", Map.of("strength", StringUtils.getNumberFormat(blockInfo.getBlockStrength()))));
-        lore.add(MiniMessageUtils.miniMessage("<gray>Required Tool: <white><tool>", Map.of("tool", blockInfo.getBrokenBy().getName())));
-        lore.add(Component.empty());
         lore.add(MiniMessageUtils.miniMessage("<gray>-- Drops --"));
-        List<Drop> drops = blockInfo.getDrops();
         if (drops.isEmpty()) {
             lore.add(MiniMessageUtils.miniMessage("<red>No Drops"));
         } else {
@@ -161,6 +155,17 @@ public class IndexItemGenerator {
                 lore.add(MiniMessageUtils.miniMessage("<gray>- </gray>").append(dropComponent));
             }
         }
+        return lore;
+    }
+
+    public List<Component> blockInfoToLore(BlockInfo blockInfo) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Block Info --"));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Power: <green><block_power>", Map.of("block_power", StringUtils.getNumberFormat(blockInfo.getBlockPower()))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Strength: <yellow><strength>", Map.of("strength", StringUtils.getNumberFormat(blockInfo.getBlockStrength()))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Required Tool: <white><tool>", Map.of("tool", blockInfo.getBrokenBy().getName())));
+        lore.add(Component.empty());
+        lore.addAll(dropsToLore(blockInfo.getDrops()));
         return lore;
     }
 

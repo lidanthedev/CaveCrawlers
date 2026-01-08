@@ -133,7 +133,7 @@ public class ItemsManager implements ItemsAPI {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            String itemId = ItemNbt.getString(itemStack, ITEM_ID);
+            String itemId = itemStack.getPersistentDataContainer().get(new NamespacedKey(plugin, ITEM_ID), PersistentDataType.STRING);
             if (itemId == null){
                 return vanillaConversion.getString(itemStack.getType().name());
             }

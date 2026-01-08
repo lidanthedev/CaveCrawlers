@@ -41,7 +41,7 @@ public class DamageEntityListener implements Listener {
     private static final double VOID_DAMAGE = 1000000000;
     private static double serverDamageMultiplier = plugin.getConfig().getDouble("server-damage-multiplier", 1);
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player) {
             if (event.getEntity() instanceof Mob mob) {

@@ -30,7 +30,7 @@ public abstract class IndexBaseCategoryMenu {
         // filler
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
         // Close item
-        gui.setItem(6, 5, GuiItems.CLOSE_ITEM);
+        gui.setItem(6, 5, GuiItems.BACK_ITEM.asGuiItem(event -> new IndexMainMenu(player).open()));
         gui.setItem(6, 9, INDEX_GUIDE.asGuiItem());
         gui.setItem(1, 5, SEARCH_ITEM.asGuiItem(event -> {
             if (event.isRightClick()) {

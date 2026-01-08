@@ -79,12 +79,13 @@ public class ShopItemIngredientsEditor {
                         shopManager.updateShop(shopMenu, shopItem, itemInfo, 0);
                         reopen();
                     } else if (event.isLeftClick()) {
-                        PromptManager.getInstance().promptNumber(player, "Enter new amount").thenAccept(newAmount -> {
-                            if (newAmount < 0) {
-                                player.sendMessage(MiniMessageUtils.miniMessage("<red>Amount cannot be negative!"));
-                                return;
-                            }
+                        PromptManager.getInstance().promptNumberMin(player, "Enter new amount", 0).thenAccept(newAmount -> {
                             shopManager.updateShop(shopMenu, shopItem, itemInfo, newAmount);
+                        }).exceptionally(throwable -> {
+                            Throwable root = throwable.getCause() != null ? throwable.getCause() : throwable;
+                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Error! <message>", Map.of("message", root.getMessage())));
+                            return null;
+                        }).whenComplete((unused, throwable) -> {
                             reopen();
                         });
                     }

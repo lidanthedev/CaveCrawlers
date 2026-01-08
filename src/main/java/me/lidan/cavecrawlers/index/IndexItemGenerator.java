@@ -16,6 +16,7 @@ import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
@@ -84,7 +85,6 @@ public class IndexItemGenerator {
         return reverseMobNameCache.computeIfAbsent(name, mobName -> {
             for (MythicMob mob : plugin.getMythicBukkit().getMobManager().getMobTypes()) {
                 if (mob.getDisplayName() != null && mob.getDisplayName().isPresent()) {
-                    log.info("Checking mob {}: {}", mob.getInternalName(), mob.getDisplayName().get());
                     if (mob.getDisplayName().get().equalsIgnoreCase(mobName))
                         return mob;
                 }
@@ -262,7 +262,16 @@ public class IndexItemGenerator {
 
     public ItemStack entityDropsToItemStack(EntityDrops entityDrops) {
         List<Component> lore = entityDropsToLore(entityDrops);
-        return ItemBuilder.from(Material.ZOMBIE_HEAD).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityDrops.getEntityName())))).lore(lore).build();
+        ItemStack baseMaterial = new ItemStack(Material.SKELETON_SKULL);
+        try {
+            MythicMob mob = getMobByName(entityDrops.getEntityName());
+            if (mob != null) {
+                baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
+            }
+        } catch (Exception ignored) {
+        }
+
+        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityDrops.getEntityName())))).lore(lore).build();
     }
 
     public List<Component> altarToLore(Altar altar) {

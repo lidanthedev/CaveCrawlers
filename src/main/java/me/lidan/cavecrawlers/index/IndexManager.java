@@ -31,17 +31,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class IndexItemGenerator {
+public class IndexManager {
     public static final Component UNKNOWN_DROP = MiniMessageUtils.miniMessage("<yellow>Unknown Drop Type");
     public static final String HIDDEN_DROPS_KEY = "hidden-drops";
     public static final String HIDDEN_ENTRIES_KEY = "hidden-entries";
-    private static IndexItemGenerator INSTANCE;
+    private static final Logger log = LoggerFactory.getLogger(IndexManager.class);
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private static final Logger log = LoggerFactory.getLogger(IndexItemGenerator.class);
+    private static IndexManager INSTANCE;
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
     private final BoostedCustomConfig config;
 
-    private IndexItemGenerator() {
+    private IndexManager() {
         try {
             this.config = new BoostedCustomConfig("index.yml");
         } catch (IOException e) {
@@ -54,9 +54,9 @@ public class IndexItemGenerator {
         return drop.getType().name() + ":" + drop.getValue();
     }
 
-    public static IndexItemGenerator getInstance() {
+    public static IndexManager getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new IndexItemGenerator();
+            INSTANCE = new IndexManager();
         }
         return INSTANCE;
     }
@@ -68,8 +68,12 @@ public class IndexItemGenerator {
     }
 
     public void setHiddenDrop(Drop drop, boolean hidden) {
-        List<String> hiddenDrops = config.getStringList(HIDDEN_DROPS_KEY, new ArrayList<>());
         String dropIdentifier = getDropIdentifier(drop);
+        setHiddenDrop(HIDDEN_DROPS_KEY, dropIdentifier, hidden);
+    }
+
+    public void setHiddenDrop(String hiddenDropsKey, String dropIdentifier, boolean hidden) {
+        List<String> hiddenDrops = config.getStringList(hiddenDropsKey, new ArrayList<>());
         if (hidden) {
             if (!hiddenDrops.contains(dropIdentifier)) {
                 hiddenDrops.add(dropIdentifier);
@@ -77,7 +81,7 @@ public class IndexItemGenerator {
         } else {
             hiddenDrops.remove(dropIdentifier);
         }
-        config.set(HIDDEN_DROPS_KEY, hiddenDrops);
+        config.set(hiddenDropsKey, hiddenDrops);
         config.save();
     }
 
@@ -88,6 +92,10 @@ public class IndexItemGenerator {
     public boolean isHiddenEntry(String entryId) {
         List<String> hiddenEntries = config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
         return hiddenEntries.contains(entryId);
+    }
+
+    public List<String> getAllHiddenEntries() {
+        return config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
     }
 
     private static Component resolveCommandDrop(Drop drop) {
@@ -260,16 +268,7 @@ public class IndexItemGenerator {
     }
 
     public void setHiddenEntry(String entryId, boolean hidden) {
-        List<String> hiddenEntries = config.getStringList(HIDDEN_ENTRIES_KEY, new ArrayList<>());
-        if (hidden) {
-            if (!hiddenEntries.contains(entryId)) {
-                hiddenEntries.add(entryId);
-            }
-        } else {
-            hiddenEntries.remove(entryId);
-        }
-        config.set(HIDDEN_ENTRIES_KEY, hiddenEntries);
-        config.save();
+        setHiddenDrop(HIDDEN_ENTRIES_KEY, entryId, hidden);
     }
 
     public <T extends Drop> List<Component> dropsToLore(List<T> drops) {

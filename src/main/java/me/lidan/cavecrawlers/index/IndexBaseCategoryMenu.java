@@ -22,12 +22,12 @@ public abstract class IndexBaseCategoryMenu {
     protected final IndexCategory category;
     protected final PaginatedGui gui;
     protected final String query;
-    protected final IndexItemGenerator itemGenerator;
+    protected final IndexManager itemGenerator;
 
     public IndexBaseCategoryMenu(Player player, IndexCategory category, String query) {
         this.player = player;
         this.category = category;
-        this.itemGenerator = IndexItemGenerator.getInstance();
+        this.itemGenerator = IndexManager.getInstance();
         this.gui = Gui.paginated()
                 .title(category.getTitle())
                 .rows(6)
@@ -94,7 +94,6 @@ public abstract class IndexBaseCategoryMenu {
     public void open() {
         gui.open(player);
     }
-
 
     public void search(String query) {
         search(query, false);

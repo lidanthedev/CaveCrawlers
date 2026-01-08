@@ -5,8 +5,8 @@ api-version: '1.19'
 depend:
   - Vault
   - ProtocolLib
-softdepend:
   - MythicMobs
+softdepend:
   - PlaceholderAPI
   - LuckPerms
   - Plugman

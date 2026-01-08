@@ -8,11 +8,11 @@ import revxrsal.commands.annotation.DefaultFor;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
-@Command({"index", "drops", "bestiary"})
+@Command({"index", "drops", "bestiary", "wiki"})
 @CommandPermission("cavecrawlers.index.view")
 public class IndexCommand {
     @Subcommand("menu")
-    @DefaultFor({"index", "drops", "bestiary"})
+    @DefaultFor({"index", "drops", "bestiary", "wiki"})
     public void indexMenu(Player player) {
         new IndexMainMenu(player).open();
     }
@@ -35,5 +35,11 @@ public class IndexCommand {
     @Subcommand("altars")
     public void indexAltars(Player sender, @Default("") String query) {
         new IndexAltarsCategoryMenu(sender, query).open();
+    }
+
+    @Subcommand("hidden")
+    @CommandPermission("cavecrawlers.index.admin")
+    public void indexHidden(Player sender) {
+        new IndexHiddenMenu(sender).open();
     }
 }

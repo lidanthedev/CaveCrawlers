@@ -306,6 +306,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.register(new QolCommand());
         commandHandler.register(new MenuCommands());
         commandHandler.register(new SellCommand());
+        commandHandler.register(new IndexCommand());
         commandHandler.registerBrigadier();
     }
 

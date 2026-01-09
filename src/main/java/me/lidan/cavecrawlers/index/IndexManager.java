@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillInfo;
@@ -42,7 +43,6 @@ public class IndexManager {
     private static final Logger log = LoggerFactory.getLogger(IndexManager.class);
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static IndexManager INSTANCE;
-    private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
     private final BoostedCustomConfig config;
 
     private IndexManager() {
@@ -146,19 +146,6 @@ public class IndexManager {
         placeholders.put("amount_modifier_icon", amountModifierIcon);
     }
 
-    private MythicMob getMobByName(String name) {
-        name = ChatColor.translateAlternateColorCodes('&', name);
-        return reverseMobNameCache.computeIfAbsent(name, mobName -> {
-            for (MythicMob mob : plugin.getMythicBukkit().getMobManager().getMobTypes()) {
-                if (mob.getDisplayName() != null && mob.getDisplayName().isPresent()) {
-                    if (mob.getDisplayName().get().equalsIgnoreCase(mobName))
-                        return mob;
-                }
-            }
-            return null;
-        });
-    }
-
     private static @NonNull Map<String, Object> getPlaceholdersForItemDrop(Drop drop, Drop.ItemDropInfo result) {
         Map<String, Object> placeholders = new HashMap<>();
         placeholders.put("value", result.itemInfo().getFormattedName());
@@ -168,11 +155,7 @@ public class IndexManager {
     }
 
     public @Nullable String getMobNameByID(String id) {
-        MythicMob mob = plugin.getMythicBukkit().getAPIHelper().getMythicMob(id);
-        if (mob == null) {
-            return null;
-        }
-        return mob.getDisplayName().get();
+        return MythicMobsHook.getInstance().getMobNameByID(id);
     }
 
     private Component resolveDropValue(Drop drop) {
@@ -347,6 +330,10 @@ public class IndexManager {
             lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
         }
         return lore;
+    }
+
+    private MythicMob getMobByName(String mobName) {
+        return MythicMobsHook.getInstance().getMobByName(mobName);
     }
 
     public List<Component> entityDropsToLore(EntityDrops entityDrops) {

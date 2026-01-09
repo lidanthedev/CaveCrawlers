@@ -88,6 +88,7 @@ public class CaveCrawlersMainCommand {
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private CustomConfig config = new CustomConfig("test");
+
     public CaveCrawlersMainCommand(CommandHandler handler) {
         this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
@@ -1158,16 +1159,54 @@ public class CaveCrawlersMainCommand {
     @Subcommand("altar info")
     public void altarInfo(Player sender, Altar altar) {
         // show the info in a pretty way
-        sender.sendMessage("Altar Info:");
-        sender.sendMessage("ID: " + altar.getId());
-        sender.sendMessage("Item to Spawn: " + altar.getItemToSpawn().getName());
-        sender.sendMessage("Altar Material: " + altar.getAltarMaterial());
-        sender.sendMessage("Used Material: " + altar.getAlterUsedMaterial());
-        sender.sendMessage("Spawns: ");
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Altar Info:
+                <yellow>ID: <gold><id>
+                <yellow>Item to Spawn: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawnitem <id> <item_to_spawn_id>'><item_to_spawn></click></hover>
+                <yellow>Altar Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setmaterial <id> <material>'><material></click></hover>
+                <yellow>Used Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setusedmaterial <id> <used_material>'><used_material></click></hover>""", Map.of(
+                "id", altar.getId(),
+                "item_to_spawn", altar.getItemToSpawn().getFormattedName(),
+                "item_to_spawn_id", altar.getItemToSpawn().getID(),
+                "material", altar.getAltarMaterial().name(),
+                "used_material", altar.getAlterUsedMaterial().name()
+        )));
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Points Per Item: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setpointsperitem <id> <points>'><points></click></hover>
+                <yellow>Altar Recharge Time: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setaltarrechargetime <id> <time>'><time></click></hover> ticks""", Map.of(
+                "id", altar.getId(),
+                "points", String.valueOf(altar.getPointsPerItem()),
+                "time", String.valueOf(altar.getAltarRechargeTime())
+        )));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<yellow>Spawns:"));
+        int index = 0;
         for (AltarDrop spawn : altar.getSpawns()) {
-            sender.sendMessage("  - " + spawn.getValue() + " with chance " + spawn.getChance());
+            // <yellow><index>. <gold><mob><yellow> with <green><chance>%
+            sender.sendMessage(MiniMessageUtils.miniMessage("""
+                    <yellow>  <index>. <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawn <id> <index> <mob> <chance>'><mob></click></hover> <yellow>with <green><chance>%""", Map.of(
+                    "index", String.valueOf(index),
+                    "id", altar.getId(),
+                    "mob", spawn.getValue(),
+                    "chance", String.valueOf(spawn.getChance())
+            )));
+            index++;
         }
+        // <green>Click to add spawn
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <hover:show_text:'<yellow>Click To Add'><click:suggest_command:'/cc altar addspawn <id> '><green><bold>Click to add spawn</click></hover>""", Map.of(
+                "id", altar.getId()
+        )));
 
+        // show spawn locations count and click to show them
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Spawn Locations: <gold><count> <hover:show_text:'<yellow>Click To Show Locations'><click:suggest_command:'/cc altar showlocations <id>'><gold><bold>SHOW</click></hover>""", Map.of(
+                "count", String.valueOf(altar.getAltarLocations().size()),
+                "id", altar.getId()
+        )));
+    }
+
+    @Subcommand("altar showLocations")
+    public void altarLocationsShow(Player sender, Altar altar) {
         sender.sendMessage("Locations are shown visually with fake blocks");
         for (Location altarLocation : altar.getAltarLocations()) {
             sender.sendBlockChange(altarLocation, Material.PINK_CONCRETE.createBlockData());

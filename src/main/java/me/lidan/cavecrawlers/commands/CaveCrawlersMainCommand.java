@@ -510,7 +510,7 @@ public class CaveCrawlersMainCommand {
         if (description.equals("reset")) {
             description = null;
         }
-        itemInfo.setDescription(description);
+        itemInfo.setDescription(ChatColor.translateAlternateColorCodes('&', description));
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
         sender.sendMessage("Updated Description!");

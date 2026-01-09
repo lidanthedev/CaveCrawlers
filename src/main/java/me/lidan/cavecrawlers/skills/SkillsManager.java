@@ -91,6 +91,26 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
     }
 
+    public Map<SkillInfo, List<SkillObjective>> getObjectivesMatching(SkillAction action, String material) {
+        Map<SkillInfo, List<SkillObjective>> result = new HashMap<>();
+        for (SkillInfo skillInfo : skillInfoMap.values()) {
+            List<SkillObjective> objectives = skillInfo.getActionObjectives().get(action);
+            if (objectives == null) {
+                continue;
+            }
+            List<SkillObjective> matches = new ArrayList<>();
+            for (SkillObjective objective : objectives) {
+                if (objective.getObjective().equalsIgnoreCase(material)) {
+                    matches.add(objective);
+                }
+            }
+            if (!matches.isEmpty()) {
+                result.put(skillInfo, matches);
+            }
+        }
+        return result;
+    }
+
     public void tryGiveXp(SkillAction reason, Material material, Player player) {
         tryGiveXp(reason, material.name(), player);
     }

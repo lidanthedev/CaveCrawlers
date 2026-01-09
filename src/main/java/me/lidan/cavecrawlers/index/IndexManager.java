@@ -10,6 +10,10 @@ import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.mining.BlockInfo;
+import me.lidan.cavecrawlers.skills.SkillAction;
+import me.lidan.cavecrawlers.skills.SkillInfo;
+import me.lidan.cavecrawlers.skills.SkillObjective;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.Range;
@@ -289,6 +293,33 @@ public class IndexManager {
         return lore;
     }
 
+    private static List<Component> skillObjectivesToComponent(List<SkillObjective> skillObjectives, SkillInfo skillInfo) {
+        List<Component> components = new ArrayList<>();
+        for (SkillObjective skillObjective : skillObjectives) {
+            // <gray> <blue>+<amount> <skill_name></blue>
+            components.add(MiniMessageUtils.miniMessage("<gray>- </gray><blue>+<amount> <skill_name></blue>", Map.of("amount", StringUtils.getNumberFormat(skillObjective.getAmount()), "skill_name", StringUtils.setTitleCase(skillInfo.getName()))));
+        }
+        return components;
+    }
+
+    public List<Component> skillObjectivesToLore(SkillAction skillAction, String material, String header) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- <header> --", Map.of("header", header)));
+        Map<SkillInfo, List<SkillObjective>> objectives = SkillsManager.getInstance().getObjectivesMatching(skillAction, material);
+        if (objectives.isEmpty()) {
+            lore.add(MiniMessageUtils.miniMessage("<red>No <header>", Map.of("header", header)));
+            return lore;
+        }
+
+        for (Map.Entry<SkillInfo, List<SkillObjective>> skillInfoListEntry : objectives.entrySet()) {
+            SkillInfo skillInfo = skillInfoListEntry.getKey();
+            List<SkillObjective> skillObjectives = skillInfoListEntry.getValue();
+            lore.addAll(skillObjectivesToComponent(skillObjectives, skillInfo));
+        }
+
+        return lore;
+    }
+
     public List<Component> blockInfoToLore(BlockInfo blockInfo) {
         List<Component> lore = new ArrayList<>();
         lore.add(MiniMessageUtils.miniMessage("<gray>-- Block Info --"));
@@ -297,6 +328,8 @@ public class IndexManager {
         lore.add(MiniMessageUtils.miniMessage("<gray>Required Tool: <white><tool>", Map.of("tool", blockInfo.getBrokenBy().getName())));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(blockInfo.getDrops()));
+        lore.add(Component.empty());
+        lore.addAll(skillObjectivesToLore(SkillAction.MINE, blockInfo.getBlock().name(), "Skills"));
         return lore;
     }
 
@@ -320,21 +353,31 @@ public class IndexManager {
         List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getEntityName()));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(entityDrops.getDropList()));
+        lore.add(Component.empty());
+        MythicMob mob = getMobByName(entityDrops.getEntityName());
+        if (mob != null) {
+            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
+        }
         return lore;
     }
 
     public ItemStack entityDropsToItemStack(EntityDrops entityDrops) {
         List<Component> lore = entityDropsToLore(entityDrops);
         ItemStack baseMaterial = new ItemStack(Material.SKELETON_SKULL);
+        return entityDropsToItemStack(lore, baseMaterial, entityDrops.getEntityName());
+    }
+
+    @NonNull
+    private ItemStack entityDropsToItemStack(List<Component> lore, ItemStack baseMaterial, String entityName) {
         try {
-            MythicMob mob = getMobByName(entityDrops.getEntityName());
+            MythicMob mob = getMobByName(entityName);
             if (mob != null) {
                 baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
             }
         } catch (Exception ignored) {
         }
 
-        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityDrops.getEntityName())))).lore(lore).build();
+        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityName)))).lore(lore).build();
     }
 
     public List<Component> altarToLore(Altar altar) {
@@ -365,20 +408,18 @@ public class IndexManager {
         }
         lore.add(Component.empty());
         lore.addAll(dropsToLore(bossDrops.getDrops()));
+        lore.add(Component.empty());
+        MythicMob mob = getMobByName(bossDrops.getEntityName());
+        if (mob != null) {
+            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
+        }
         return lore;
     }
 
     public ItemStack bossDropsToItemStack(BossDrops bossDrops) {
         List<Component> lore = bossDropsToLore(bossDrops);
         ItemStack baseMaterial = new ItemStack(Material.DRAGON_HEAD);
-        try {
-            MythicMob mob = getMobByName(bossDrops.getEntityName());
-            if (mob != null) {
-                baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
-            }
-        } catch (Exception ignored) {
-        }
-        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', bossDrops.getEntityName())))).lore(lore).build();
+        return entityDropsToItemStack(lore, baseMaterial, bossDrops.getEntityName());
     }
 
     public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {

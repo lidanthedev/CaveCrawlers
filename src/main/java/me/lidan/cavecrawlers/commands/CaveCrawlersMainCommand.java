@@ -575,6 +575,7 @@ public class CaveCrawlersMainCommand {
         itemInfo.setBaseItem(new ItemStack(hand));
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
+        itemsManager.updatePlayerInventory(sender);
         sender.sendMessage("Updated Base Item!");
     }
 

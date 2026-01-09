@@ -2,6 +2,8 @@ package me.lidan.cavecrawlers.listeners;
 
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,7 +20,9 @@ public class AltarListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) return;
-        Altar altar = altarManager.getAltarAtLocation(clickedBlock.getLocation());
+        ItemInfo itemInHand = ItemsManager.getInstance().getItemFromItemStackSafe(event.getItem());
+        if (itemInHand == null) return;
+        Altar altar = altarManager.getAltarAtLocation(clickedBlock.getLocation(), itemInHand);
         if (altar == null) return;
         event.setCancelled(true);
         altar.onPlayerInteract(event);

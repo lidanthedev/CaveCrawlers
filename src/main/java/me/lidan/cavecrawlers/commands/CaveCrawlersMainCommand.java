@@ -1143,6 +1143,18 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(ChatColor.GREEN + "Success add spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
     }
 
+    @Subcommand("altar setSpawn")
+    @AutoComplete("* * @mobID *")
+    public void altarSetSpawn(Player sender, Altar altar, int index, String mob, double chance) {
+        if (index < 0 || index >= altar.getSpawns().size()) {
+            sender.sendMessage(ChatColor.RED + "Invalid index!");
+            return;
+        }
+        altar.getSpawns().set(index, new AltarDrop(chance, mob));
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
+    }
+
     @Subcommand("altar info")
     public void altarInfo(Player sender, Altar altar) {
         // show the info in a pretty way

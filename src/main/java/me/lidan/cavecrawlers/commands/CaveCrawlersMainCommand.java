@@ -1199,8 +1199,14 @@ public class CaveCrawlersMainCommand {
 
         // show spawn locations count and click to show them
         sender.sendMessage(MiniMessageUtils.miniMessage("""
-                <yellow>Spawn Locations: <gold><count> <hover:show_text:'<yellow>Click To Show Locations'><click:suggest_command:'/cc altar showlocations <id>'><gold><bold>SHOW</click></hover>""", Map.of(
+                <yellow>Altars Locations: <gold><count> <hover:show_text:'<yellow>Click To Show Locations'><click:suggest_command:'/cc altar showlocations <id>'><gold><bold>SHOW</click></hover>""", Map.of(
                 "count", String.valueOf(altar.getAltarLocations().size()),
+                "id", altar.getId()
+        )));
+        // show spawn location and click to edit
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Spawn Location: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawnlocation <id>'><location></click></hover>""", Map.of(
+                "location", String.format("X: %.1f Y: %.1f Z: %.1f", altar.getSpawnLocation().getX(), altar.getSpawnLocation().getY(), altar.getSpawnLocation().getZ()),
                 "id", altar.getId()
         )));
     }

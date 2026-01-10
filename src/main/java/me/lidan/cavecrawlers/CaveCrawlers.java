@@ -61,6 +61,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Getter
@@ -403,6 +404,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
+        getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
+            PlayerDataManager.getInstance().saveAll();
+        }, 0, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
     }
 
     /**

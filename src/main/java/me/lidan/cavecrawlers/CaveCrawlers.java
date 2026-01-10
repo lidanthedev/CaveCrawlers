@@ -405,6 +405,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
+            log.info("Auto saving player data...");
             PlayerDataManager.getInstance().saveAll();
         }, 0, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
     }

@@ -1,4 +1,4 @@
-version: "1" # DO NOT EDIT!
+version: "2" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -101,3 +101,4 @@ experimental:
   enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
   enable-leveling: false # Enable experimental leveling system (may cause issues)
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
+  hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)

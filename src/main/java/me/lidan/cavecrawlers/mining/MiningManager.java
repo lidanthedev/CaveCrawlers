@@ -24,6 +24,7 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -40,11 +41,13 @@ public class MiningManager implements MiningAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static final long HAMMER_COOLDOWN = 500;
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
+    public static final String EXPERIMENTAL_HAMMER_SORT_BY_FACE = "experimental.hammer-sort-by-face";
     public static final int HAMMER_LEFT = plugin.getConfig().getInt("mining.hammer-per-block", 5);
     private static MiningManager instance;
     @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
+    private final Map<Block, BlockFace> lastBrokenBlockFace = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());
     private final Map<Block, BlockData> brokenBlocks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
@@ -89,7 +92,12 @@ public class MiningManager implements MiningAPI {
     }
 
     @Override
-    public void breakBlock(Player player, Block block){
+    public void breakBlock(Player player, Block block) {
+        breakBlock(player, block, BlockFace.UP);
+    }
+
+    public void breakBlock(Player player, Block block, BlockFace face) {
+        lastBrokenBlockFace.put(block, face);
         applySlowDig(player);
         Stats stats = StatsManager.getInstance().getStats(player);
         double miningSpeed = stats.get(StatType.MINING_SPEED).getValue();
@@ -174,7 +182,57 @@ public class MiningManager implements MiningAPI {
         int hammerSize = (int) Math.min((hammerLeft/50)+1, 6);
         List<Block> blocks = BukkitUtils.loopBlocks(origin.getLocation(), hammerSize);
         Material originType = origin.getType();
-        if (plugin.getConfig().getBoolean(EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE, false)) {
+        if (plugin.getConfig().getBoolean(EXPERIMENTAL_HAMMER_SORT_BY_FACE, false)) {
+            // 1. Pre-cache origin coordinates (Primitive ints are faster than Location objects)
+            final int originX = origin.getX();
+            final int originY = origin.getY();
+            final int originZ = origin.getZ();
+
+            // 2. Determine which axis to prioritize based on the BlockFace
+            // getModX/Y/Z returns -1, 0, or 1 depending on the face direction.
+            // If modY is not 0 (UP/DOWN), we prioritize the Y layer.
+            BlockFace face = lastBrokenBlockFace.getOrDefault(origin, BlockFace.UP);
+            final boolean checkX = face.getModX() != 0;
+            final boolean checkY = face.getModY() != 0;
+            final boolean checkZ = face.getModZ() != 0;
+
+            blocks.sort((b1, b2) -> {
+                // --- PRIORITY 1: The "Face" Layer ---
+                // We check if the block lies on the same plane as the origin relative to the clicked face.
+                boolean b1OnLayer = false;
+                boolean b2OnLayer = false;
+
+                if (checkY) {
+                    b1OnLayer = (b1.getY() == originY);
+                    b2OnLayer = (b2.getY() == originY);
+                } else if (checkX) {
+                    b1OnLayer = (b1.getX() == originX);
+                    b2OnLayer = (b2.getX() == originX);
+                } else if (checkZ) {
+                    b1OnLayer = (b1.getZ() == originZ);
+                    b2OnLayer = (b2.getZ() == originZ);
+                }
+
+                // XOR Check: If one is on the layer and the other isn't, the one on the layer wins (-1)
+                if (b1OnLayer != b2OnLayer) {
+                    return b1OnLayer ? -1 : 1;
+                }
+
+                // --- PRIORITY 2: Distance (Center Outward) ---
+                // Optimization: Use simple multiplication instead of Math.pow() for performance
+                double dx1 = b1.getX() - originX;
+                double dy1 = b1.getY() - originY;
+                double dz1 = b1.getZ() - originZ;
+                double dist1 = (dx1 * dx1) + (dy1 * dy1) + (dz1 * dz1);
+
+                double dx2 = b2.getX() - originX;
+                double dy2 = b2.getY() - originY;
+                double dz2 = b2.getZ() - originZ;
+                double dist2 = (dx2 * dx2) + (dy2 * dy2) + (dz2 * dz2);
+
+                return Double.compare(dist1, dist2);
+            });
+        } else if (plugin.getConfig().getBoolean(EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE, false)) {
             blocks.sort((b1, b2) -> {
                 double dist1 = b1.getLocation().distanceSquared(origin.getLocation());
                 double dist2 = b2.getLocation().distanceSquared(origin.getLocation());

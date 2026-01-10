@@ -43,6 +43,7 @@ import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -1052,6 +1053,13 @@ public class CaveCrawlersMainCommand {
         } catch (IllegalArgumentException e) {
             sender.sendMessage("Error creating block data: " + e.getMessage());
         }
+    }
+
+    @Subcommand("test getface")
+    public void testGetFace(Player sender) {
+        Block targetBlock = sender.getTargetBlock(null, 10);
+        BlockFace face = targetBlock.getFace(sender.getLocation().getBlock());
+        sender.sendMessage("Looking face: " + face);
     }
 
     @Subcommand("mythic skill")

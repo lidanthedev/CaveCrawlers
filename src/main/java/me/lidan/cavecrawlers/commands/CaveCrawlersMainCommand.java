@@ -507,10 +507,11 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
+        description = ChatColor.translateAlternateColorCodes('&', description);
         if (description.equals("reset")) {
             description = null;
         }
-        itemInfo.setDescription(ChatColor.translateAlternateColorCodes('&', description));
+        itemInfo.setDescription(description);
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
         sender.sendMessage("Updated Description!");

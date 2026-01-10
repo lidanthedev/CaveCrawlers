@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class MiningManager implements MiningAPI {
-
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static final long HAMMER_COOLDOWN = 500;
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
+    public static final int HAMMER_LEFT = plugin.getConfig().getInt("mining.hammer-per-block", 5);
     private static MiningManager instance;
-    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
@@ -192,7 +192,7 @@ public class MiningManager implements MiningAPI {
                     player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, SoundCategory.BLOCKS, 0.1f, 1f);
                     player.breakBlock(block);
                 }
-                hammerLeft -= 5;
+                hammerLeft -= HAMMER_LEFT;
             }
         }
     }

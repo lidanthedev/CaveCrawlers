@@ -1,3 +1,4 @@
+version: "1" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -13,6 +14,8 @@ loot-share:
   damage-threshold: 10 # Minimum damage percent to be eligible for loot share
 
 mining-blacklisted-worlds: []
+mining:
+  hammer-per-block: 5 # hammer lost per block broken
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:

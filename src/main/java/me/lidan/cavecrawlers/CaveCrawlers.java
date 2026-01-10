@@ -1,6 +1,11 @@
 package me.lidan.cavecrawlers;
 
 import com.cryptomorin.xseries.XSound;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.spigot.SpigotSerializer;
 import dev.triumphteam.gui.guis.BaseGui;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
@@ -41,6 +46,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import me.lidan.cavecrawlers.utils.Holograms;
 import net.md_5.bungee.api.ChatColor;
@@ -172,8 +178,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register config
      */
     private void registerConfig() {
-        getConfig().options().copyDefaults(true);
-        saveDefaultConfig();
+        try {
+            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning("version")).build(), LoaderSettings.builder().setAutoUpdate(true).build());
+        } catch (IOException | NullPointerException e) {
+            log.error("Failed to load config.yml", e);
+            throw new RuntimeException(e);
+        }
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
     }
 

@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -49,6 +50,14 @@ public class SkillCommand {
         for (String line : lore) {
             sender.sendMessage(line);
         }
+    }
+
+    @Subcommand("giveXp")
+    @CommandPermission("cavecrawlers.skills.admin")
+    public void giveXp(CommandSender sender, Player target, SkillInfo type, double amount) {
+        SkillsManager skillsManager = SkillsManager.getInstance();
+        skillsManager.giveXp(target, type, amount, true);
+        sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
     @Subcommand("addxp")

@@ -15,7 +15,7 @@ public class PlayerDataManager {
     private static final String DIR_NAME = "players";
     private static PlayerDataManager instance;
 
-    private Map<UUID, PlayerData> uuidPlayerDataMap;
+    private final Map<UUID, PlayerData> uuidPlayerDataMap;
 
     private PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
         this.uuidPlayerDataMap = uuidPlayerDataMap;

@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
+import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.Drop;
@@ -386,19 +387,47 @@ public class IndexManager {
 
     public List<Component> bossDropsToLore(BossDrops bossDrops) {
         List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getEntityName()));
+        MythicMob mob = getMobByName(bossDrops.getEntityName());
+        if (mob != null) {
+            lore.addAll(altarPointsToLore(mob));
+        }
         lore.add(Component.empty());
-        lore.add(MiniMessageUtils.miniMessage("<gray>-- Bonus Points --"));
+        lore.addAll(bossBonusPointsToLore(bossDrops));
+        lore.add(Component.empty());
+        lore.addAll(dropsToLore(bossDrops.getDrops()));
+        lore.add(Component.empty());
+        if (mob != null) {
+            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
+        }
+        return lore;
+    }
+
+    private List<Component> altarPointsToLore(MythicMob mob) {
+        List<Component> lore = new ArrayList<>();
+        List<Altar> altarsWithMob = AltarManager.getInstance().getAltarsWithMob(mob.getInternalName());
+        if (altarsWithMob.isEmpty()) {
+            return lore;
+        }
+        lore.add(Component.empty());
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Altar Points --"));
+        for (Altar altar : altarsWithMob) {
+            // <yellow>- <altar_name>: <points> Points per <summon_item>
+            lore.add(MiniMessageUtils.miniMessage("<yellow>- <altar_name>: <gold><points> Points<yellow> per Item", Map.of(
+                    "altar_name", StringUtils.setTitleCase(altar.getId().replace("_", " ")),
+                    "points", StringUtils.getNumberFormat(altar.getPointsPerItem()),
+                    "summon_item", altar.getItemToSpawn() != null ? altar.getItemToSpawn().getFormattedName() : "None"
+            )));
+        }
+        return lore;
+    }
+
+    private List<Component> bossBonusPointsToLore(BossDrops bossDrops) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Placement Points --"));
         int pos = 1;
         for (Integer bonusPoint : bossDrops.getBonusPoints()) {
             lore.add(MiniMessageUtils.miniMessage("<yellow>#<position> - <gold><points> Points", Map.of("position", StringUtils.getNumberFormat(pos), "points", StringUtils.getNumberFormat(bonusPoint))));
             pos++;
-        }
-        lore.add(Component.empty());
-        lore.addAll(dropsToLore(bossDrops.getDrops()));
-        lore.add(Component.empty());
-        MythicMob mob = getMobByName(bossDrops.getEntityName());
-        if (mob != null) {
-            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
         }
         return lore;
     }

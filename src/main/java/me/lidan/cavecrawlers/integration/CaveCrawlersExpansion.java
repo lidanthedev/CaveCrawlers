@@ -43,7 +43,6 @@ public class CaveCrawlersExpansion extends PlaceholderExpansion {
     public @NotNull String getVersion() {
         return "1.0.0";
     }
-
     @Override
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         String[] args = params.split("_");

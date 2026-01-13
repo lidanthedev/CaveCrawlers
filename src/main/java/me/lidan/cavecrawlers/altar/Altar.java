@@ -139,6 +139,15 @@ public class Altar implements ConfigurationSerializable {
         resetAltarBlocks();
     }
 
+    public AltarDrop getDropByMobName(String mobName) {
+        for (AltarDrop spawn : spawns) {
+            if (spawn.getValue().equalsIgnoreCase(mobName)) {
+                return spawn;
+            }
+        }
+        return null;
+    }
+
     public void refundAltar() {
         for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
             Player player = Bukkit.getPlayer(uuidIntegerEntry.getKey());

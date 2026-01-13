@@ -33,6 +33,17 @@ public class AltarManager {
         return null;
     }
 
+    public List<Altar> getAltarsWithMob(String mobName) {
+        List<Altar> result = new ArrayList<>();
+        for (Altar altar : altars.values()) {
+            AltarDrop foundDrop = altar.getDropByMobName(mobName);
+            if (foundDrop != null) {
+                result.add(altar);
+            }
+        }
+        return result;
+    }
+
     public void updateAltar(String name, Altar altar) {
         altars.put(name, altar);
         AltarLoader.getInstance().update(name, altar);

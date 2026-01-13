@@ -412,7 +412,7 @@ public class IndexManager {
         lore.add(MiniMessageUtils.miniMessage("<gray>-- Altar Points --"));
         for (Altar altar : altarsWithMob) {
             // <yellow>- <altar_name>: <points> Points per <summon_item>
-            lore.add(MiniMessageUtils.miniMessage("<yellow>- <altar_name>: <gold><points> Points<yellow> per Item", Map.of(
+            lore.add(MiniMessageUtils.miniMessage("<gray>- <yellow><altar_name>: <gold><points> Points<yellow> per Item", Map.of(
                     "altar_name", StringUtils.setTitleCase(altar.getId().replace("_", " ")),
                     "points", StringUtils.getNumberFormat(altar.getPointsPerItem()),
                     "summon_item", altar.getItemToSpawn() != null ? altar.getItemToSpawn().getFormattedName() : "None"

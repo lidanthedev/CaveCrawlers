@@ -1167,7 +1167,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar info")
-    public void altarInfo(Player sender, Altar altar) {
+    public void altarInfo(CommandSender sender, Altar altar) {
         // show the info in a pretty way
         sender.sendMessage(MiniMessageUtils.miniMessage("""
                 <yellow>Altar Info:
@@ -1231,16 +1231,22 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar reset")
-    public void altarReset(Player sender, Altar altar) {
+    public void altarReset(CommandSender sender, Altar altar) {
         altar.resetAltar();
         sender.sendMessage("Reset Altar!");
     }
 
     @Subcommand("altar disable")
-    public void altarDisable(Player sender, Altar altar) {
+    public void altarDisable(CommandSender sender, Altar altar) {
         altar.refundAltar();
         altar.disableAltar();
         sender.sendMessage("Disabled Altar!");
+    }
+
+    @Subcommand("altar resetAll")
+    public void altarResetAll(CommandSender sender) {
+        altarManager.reset();
+        sender.sendMessage("Reset All Altars!");
     }
 
     @Subcommand("level send")

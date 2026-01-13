@@ -14,6 +14,7 @@ import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -47,6 +48,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -1060,6 +1062,13 @@ public class CaveCrawlersMainCommand {
         Block targetBlock = sender.getTargetBlock(null, 10);
         BlockFace face = targetBlock.getFace(sender.getLocation().getBlock());
         sender.sendMessage("Looking face: " + face);
+    }
+
+    @Subcommand("test getSkull")
+    public void testGetSkull(Player sender, EntityType entityHead) {
+        ItemStack skull = EntityHeads.fromEntityType(entityHead);
+        sender.getInventory().addItem(skull);
+        sender.sendMessage("Added skull to inventory!");
     }
 
     @Subcommand("mythic skill")

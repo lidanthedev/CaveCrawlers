@@ -12,6 +12,7 @@ import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -36,6 +37,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         instance = this;
     }
 
+    public static SkillsManager getInstance() {
+        if (instance == null) {
+            instance = new SkillsManager();
+        }
+        return instance;
+    }
+
     @Override
     public void register(String key, SkillInfo value) {
         value.setId(key);
@@ -46,7 +54,6 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
     public SkillInfo getSkillInfo(String key) {
         return skillInfoMap.get(key);
     }
-
 
     @Override
     public void tryGiveXp(SkillInfo skillType, SkillAction reason, String material, Player player) {
@@ -122,7 +129,12 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
             skill = new Skill(skillType, 0);
             playerSkills.set(skillType, skill);
         }
-        skill.addXp(xp);
+        SkillXpGainEvent event = new SkillXpGainEvent(player, skill, xp);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+        skill.addXp(event.getXpGained());
         String skillName = StringUtils.setTitleCase(skillType.getName());
         playerSkills.tryLevelUp(skillType);
         if (showMessage) {
@@ -134,12 +146,5 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     public BoostedCustomConfig getConfig(SkillInfo type) {
         return getConfig(type.getName());
-    }
-
-    public static SkillsManager getInstance() {
-        if (instance == null) {
-            instance = new SkillsManager();
-        }
-        return instance;
     }
 }

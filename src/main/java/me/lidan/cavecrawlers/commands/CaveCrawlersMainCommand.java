@@ -648,6 +648,10 @@ public class CaveCrawlersMainCommand {
         }
         PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
         for (NamespacedKey key : dataContainer.getKeys()) {
+            if (!dataContainer.has(key, PersistentDataType.STRING)) {
+                sender.sendMessage(key + ": NOT A STRING TYPE");
+                continue;
+            }
             String value = dataContainer.get(key, PersistentDataType.STRING);
             sender.sendMessage(key + ": " + value);
         }

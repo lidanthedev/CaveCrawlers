@@ -1,7 +1,7 @@
 name: CaveCrawlers
 version: '${version}'
 main: me.lidan.cavecrawlers.CaveCrawlers
-api-version: '1.19'
+api-version: '1.20'
 depend:
   - Vault
   - ProtocolLib

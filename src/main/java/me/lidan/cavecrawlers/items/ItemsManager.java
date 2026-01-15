@@ -23,6 +23,7 @@ import java.util.*;
 
 public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
+    public static final String NO_UPDATE = "NO_UPDATE";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final ConfigurationSection vanillaConversion;
@@ -133,7 +134,7 @@ public class ItemsManager implements ItemsAPI {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            String itemId = itemStack.getPersistentDataContainer().get(new NamespacedKey(plugin, ITEM_ID), PersistentDataType.STRING);
+            String itemId = itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, ITEM_ID), PersistentDataType.STRING);
             if (itemId == null){
                 return vanillaConversion.getString(itemStack.getType().name());
             }
@@ -146,6 +147,9 @@ public class ItemsManager implements ItemsAPI {
     public ItemStack updateItemStack(ItemStack itemStack){
         if (itemStack == null) {
             return null;
+        }
+        if (itemStack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, NO_UPDATE))) {
+            return itemStack;
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){

@@ -154,10 +154,10 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
                 Stat stat = get(type);
                 double value = stat.getValue();
                 if (value > 0) {
-                    String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                    String numberWithoutDot = StringUtils.getNumberFormat(value);
                     lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
                 } else if (value < 0) {
-                    String numberWithoutDot = StringUtils.getNumberWithoutDot(-value);
+                    String numberWithoutDot = StringUtils.getNumberFormat(-value);
                     lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "-" + numberWithoutDot);
                 }
             } catch (IllegalArgumentException ignored) {

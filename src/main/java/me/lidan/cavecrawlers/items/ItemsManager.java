@@ -157,15 +157,28 @@ public class ItemsManager implements ItemsAPI {
             if (itemMeta.hasEnchants()){
                 builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
             }
-
-            // preserve the custom nbt
-            for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
-                if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)){
-                    continue;
+            try {
+                ItemMeta builtItemMeta = builtItem.getItemMeta();
+                if (builtItemMeta == null) {
+                    return builtItem;
                 }
-                String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-                if (value != null) {
-                    builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
+                builtItem.setItemMeta(builtItemMeta);
+            } catch (Exception ignored) {
+                // kept for 1.19 compatibility
+                // WARNING: only copies string nbt values
+                // preserve the custom nbt
+                for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                    if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
+                        continue;
+                    }
+                    if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                        continue;
+                    }
+                    String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                    if (value != null) {
+                        builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                    }
                 }
             }
             return builtItem;

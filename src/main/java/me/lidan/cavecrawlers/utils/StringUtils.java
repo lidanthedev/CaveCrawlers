@@ -302,7 +302,9 @@ public class StringUtils {
      * @param <T> the type of the number
      */
     public static <T> String getNumberFormat(Number num) {
-        return NumberFormat.getNumberInstance(Locale.US).format(num);
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
+        numberFormat.setMaximumFractionDigits(2);
+        return numberFormat.format(num);
     }
 
     /**

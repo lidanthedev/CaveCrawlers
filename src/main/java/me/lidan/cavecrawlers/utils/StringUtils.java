@@ -308,6 +308,18 @@ public class StringUtils {
     }
 
     /**
+     * Get the number format without fractions
+     * @param num the number
+     * @return the formatted number
+     * @param <T> the type of the number
+     */
+    public static <T> String getNumberFormatNoFractions(Number num) {
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
+        numberFormat.setMaximumFractionDigits(0);
+        return numberFormat.format(num);
+    }
+
+    /**
      * Get the short number
      * 1k = 1,000
      * 1m = 1,000,000

@@ -40,8 +40,8 @@ public class Holograms {
      * @param finalDamage The final damage dealt to the mob.
      * @param crit        Whether the damage was a critical hit.
      */
-    public static void showDamageHologram(Mob mob, int finalDamage, boolean crit) {
-        String prettyDamage = StringUtils.getNumberFormat(finalDamage);
+    public static void showDamageHologram(Mob mob, double finalDamage, boolean crit) {
+        String prettyDamage = StringUtils.getNumberFormatNoFractions(finalDamage);
 
         StringBuilder msg = new StringBuilder();
         String formattedDamage;

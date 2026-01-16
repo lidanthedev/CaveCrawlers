@@ -7,6 +7,7 @@ import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.spigot.SpigotSerializer;
 import dev.triumphteam.gui.guis.BaseGui;
+import fr.robotv2.placeholderannotationlib.api.PlaceholderAnnotationProcessor;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -397,7 +398,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     public void registerPlaceholders() {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            caveCrawlersExpansion = new CaveCrawlersExpansion(this);
+            PlaceholderAnnotationProcessor processor = new PlaceholderAnnotationProcessor.Builder()
+                    .separator("_")
+                    .debug(false)
+                    .build();
+            caveCrawlersExpansion = new CaveCrawlersExpansion(processor);
             caveCrawlersExpansion.register();
             usePlaceholderAPI = true;
         }

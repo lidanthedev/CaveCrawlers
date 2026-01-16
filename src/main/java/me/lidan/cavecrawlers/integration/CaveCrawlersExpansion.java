@@ -48,7 +48,7 @@ public class CaveCrawlersExpansion extends BasePlaceholderExpansion {
             OfflinePlayer p = actor.getPlayer();
             if (p == null) return null;
 
-            return String.valueOf(statsManager.getStats(p.getUniqueId()).get(statType).getValue());
+            return StringUtils.getNumberFormat(statsManager.getStats(p.getUniqueId()).get(statType).getValue());
         } catch (IllegalArgumentException e) {
             return null;
         }

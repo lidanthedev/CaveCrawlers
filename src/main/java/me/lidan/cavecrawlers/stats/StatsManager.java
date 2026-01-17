@@ -40,10 +40,7 @@ public class StatsManager implements StatsAPI {
 
     @Override
     public Stats getStats(UUID uuid){
-        if (!statsMap.containsKey(uuid)){
-            statsMap.put(uuid, new Stats());
-        }
-        return statsMap.get(uuid);
+        return statsMap.computeIfAbsent(uuid, uuid1 -> new Stats());
     }
 
     @Override

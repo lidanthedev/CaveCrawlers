@@ -284,7 +284,7 @@ public class MiningManager implements MiningAPI {
         }
 
         for (Block block : blocks) {
-            if (block == origin) continue;
+            if (block.getLocation().equals(origin.getLocation())) continue;
             if (block.getType() == originType){
                 if (hammerLeft <= 1){
                     return;

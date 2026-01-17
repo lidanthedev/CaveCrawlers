@@ -148,7 +148,7 @@ public class ItemsManager implements ItemsAPI {
         if (itemStack == null) {
             return null;
         }
-        if (itemStack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, NO_UPDATE))) {
+        if (itemStack.hasItemMeta() && itemStack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, NO_UPDATE))) {
             return itemStack;
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);

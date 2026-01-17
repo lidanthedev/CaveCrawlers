@@ -1,9 +1,11 @@
-version: "2" # DO NOT EDIT!
+version: "3" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
   command: "openmenu"
   item-enabled: false # Should the menu item be given to players? NOT RECOMMENDED
+
+first-join-commands: [ ]
 
 # The following settings are for the loot share system.
 # Loot share allows players to share the loot of mobs they have damaged.

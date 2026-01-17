@@ -5,10 +5,7 @@ import org.bukkit.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AltarManager {
     private static final Logger log = LoggerFactory.getLogger(AltarManager.class);
@@ -26,7 +23,7 @@ public class AltarManager {
 
     public Altar getAltarAtLocation(Location location, ItemInfo itemInfo) {
         for (Altar altar : altars.values()) {
-            if (altar.isAltar(location) && altar.getItemToSpawn().equals(itemInfo)) {
+            if (altar.isAltar(location) && Objects.equals(altar.getItemToSpawn(), itemInfo)) {
                 return altar;
             }
         }

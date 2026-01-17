@@ -338,10 +338,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
             return;
         }
-        ItemStack givenItem = itemsManager.buildItem(itemInfo, 1);
-        for (int i = 0; i < amount; i++) {
-            itemsManager.giveItemStacks(player, givenItem);
-        }
+        itemsManager.giveItem(player, itemInfo, amount);
     }
 
     @Subcommand("item get")
@@ -1182,6 +1179,15 @@ public class CaveCrawlersMainCommand {
     @Subcommand("altar info")
     public void altarInfo(CommandSender sender, Altar altar) {
         // show the info in a pretty way
+        ItemInfo spawnItem = altar.getItemToSpawn();
+        String spawnItemName = spawnItem != null ? spawnItem.getFormattedName() : "None";
+        String spawnItemId = spawnItem != null ? spawnItem.getID() : "NONE";
+        Material altarMaterial = altar.getAltarMaterial() != null ? altar.getAltarMaterial() : Material.AIR;
+        Material usedMaterial = altar.getAlterUsedMaterial() != null ? altar.getAlterUsedMaterial() : altarMaterial;
+        Location spawnLoc = altar.getSpawnLocation();
+        String spawnLocText = spawnLoc != null
+                ? String.format("X: %.1f Y: %.1f Z: %.1f", spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ())
+                : "Not set";
         sender.sendMessage(MiniMessageUtils.miniMessage("""
                 <yellow>Altar Info:
                 <yellow>ID: <gold><id>
@@ -1189,10 +1195,10 @@ public class CaveCrawlersMainCommand {
                 <yellow>Altar Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setmaterial <id> <material>'><material></click></hover>
                 <yellow>Used Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setusedmaterial <id> <used_material>'><used_material></click></hover>""", Map.of(
                 "id", altar.getId(),
-                "item_to_spawn", altar.getItemToSpawn().getFormattedName(),
-                "item_to_spawn_id", altar.getItemToSpawn().getID(),
-                "material", altar.getAltarMaterial().name(),
-                "used_material", altar.getAlterUsedMaterial().name()
+                "item_to_spawn", spawnItemName,
+                "item_to_spawn_id", spawnItemId,
+                "material", altarMaterial.name(),
+                "used_material", usedMaterial.name()
         )));
         sender.sendMessage(MiniMessageUtils.miniMessage("""
                 <yellow>Points Per Item: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setpointsperitem <id> <points>'><points></click></hover>
@@ -1229,7 +1235,7 @@ public class CaveCrawlersMainCommand {
         // show spawn location and click to edit
         sender.sendMessage(MiniMessageUtils.miniMessage("""
                 <yellow>Spawn Location: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawnlocation <id>'><location></click></hover>""", Map.of(
-                "location", String.format("X: %.1f Y: %.1f Z: %.1f", altar.getSpawnLocation().getX(), altar.getSpawnLocation().getY(), altar.getSpawnLocation().getZ()),
+                "location", spawnLocText,
                 "id", altar.getId()
         )));
     }

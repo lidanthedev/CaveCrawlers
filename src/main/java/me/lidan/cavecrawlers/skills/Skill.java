@@ -79,8 +79,8 @@ public class Skill implements ConfigurationSerializable {
                 break;
             }
 
-            if (level - 1 < type.getXpToLevelList().size()) {
-                xpToLevel = type.getXpToLevelList().get(level - 1);
+            if (level < type.getXpToLevelList().size()) {
+                xpToLevel = type.getXpToLevelList().get(level);
             } else {
                 // YAML is missing levels but maxLevel is higher
                 break;

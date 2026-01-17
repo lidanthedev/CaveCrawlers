@@ -80,7 +80,7 @@ public abstract class IndexBaseCategoryMenu {
             }
             if (event.isRightClick()) {
                 itemGenerator.toggleHiddenEntry(fullEntry);
-                player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Entry <gray>" + entry + " <yellow>is now <red>hidden<yellow> from the index."));
+                player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Entry <gray>" + entry + " <yellow>visibility toggled."));
                 search(query, true);
                 return;
             }

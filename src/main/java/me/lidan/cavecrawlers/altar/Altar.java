@@ -15,6 +15,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -139,9 +140,10 @@ public class Altar implements ConfigurationSerializable {
         resetAltarBlocks();
     }
 
-    public AltarDrop getDropByMobName(String mobName) {
+    public AltarDrop getDropByMobName(@NonNull String mobName) {
         for (AltarDrop spawn : spawns) {
-            if (spawn.getValue().equalsIgnoreCase(mobName)) {
+            String value = spawn.getValue();
+            if (value != null && value.equalsIgnoreCase(mobName)) {
                 return spawn;
             }
         }

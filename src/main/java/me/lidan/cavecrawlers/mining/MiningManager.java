@@ -42,7 +42,7 @@ public class MiningManager implements MiningAPI {
     public static final long HAMMER_COOLDOWN = 500;
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_FACE = "experimental.hammer-sort-by-face";
-    public static final int HAMMER_LEFT = plugin.getConfig().getInt("mining.hammer-per-block", 5);
+    public static final String MINING_HAMMER_PER_BLOCK_KEY = "mining.hammer-per-block";
     private static MiningManager instance;
     @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
@@ -129,23 +129,8 @@ public class MiningManager implements MiningAPI {
         setProgress(player, new MiningRunnable(player, block, required));
     }
 
-    public void handleBreak(BlockBreakEvent event) {
-        Player player = event.getPlayer();
-        Block block = event.getBlock();
-        Material originType = block.getType();
-        BlockData originBlockData = block.getBlockData();
-        BlockInfo blockInfo = getBlockInfo(originType);
-        event.setCancelled(true);
-        if (blockInfo == UNBREAKABLE_BLOCK){
-            return;
-        }
-        player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
-        event.setDropItems(false);
-        SkillsManager skillsManager = SkillsManager.getInstance();
-        skillsManager.tryGiveXp(SkillAction.MINE, originType, player);
-        handleBlockDrops(player, blockInfo.getDrops());
-        handleHammer(player, block);
-        handleBlockRegen(block, originBlockData, blockInfo);
+    private static int getHammerPerBlock() {
+        return CaveCrawlers.getInstance().getConfig().getInt(MINING_HAMMER_PER_BLOCK_KEY, 5);
     }
 
     private void handleBlockDrops(Player player, List<Drop> drops) {
@@ -170,6 +155,64 @@ public class MiningManager implements MiningAPI {
         brokenBlocks.clear();
     }
 
+    public void handleBreak(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        Material originType = block.getType();
+        BlockData originBlockData = block.getBlockData();
+        BlockInfo blockInfo = getBlockInfo(originType);
+        event.setCancelled(true);
+        if (blockInfo == UNBREAKABLE_BLOCK){
+            return;
+        }
+        player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
+        event.setDropItems(false);
+        SkillsManager skillsManager = SkillsManager.getInstance();
+        skillsManager.tryGiveXp(SkillAction.MINE, originType, player);
+        handleBlockDrops(player, blockInfo.getDrops());
+        handleHammer(player, block);
+        handleBlockRegen(block, originBlockData, blockInfo);
+        lastBrokenBlockFace.remove(block);
+    }
+
+    public BlockInfo getBlockInfo(Material material) {
+        return blockInfoMap.getOrDefault(material, UNBREAKABLE_BLOCK);
+    }
+
+    public CustomConfig getConfig(String ID){
+        BlockLoader blockLoader = BlockLoader.getInstance();
+        Map<String, File> idFileMap = blockLoader.getConfigMap();
+        File file = idFileMap.get(ID);
+        if (file == null){
+            file = new File(blockLoader.getFileDir(), ID + ".yml");
+        }
+        return new CustomConfig(file);
+    }
+
+    public void setBlockInfo(String ID, BlockInfo blockInfo){
+        CustomConfig customConfig = getConfig(ID);
+        customConfig.set(ID, blockInfo);
+        customConfig.save();
+        registerBlock(Material.getMaterial(ID), blockInfo);
+    }
+
+    public void clear(){
+        blockInfoMap.clear();
+    }
+
+    public static void applySlowDig(Player player) {
+        player.addPotionEffect(new PotionEffect(XPotion.MINING_FATIGUE.get(), -1, -1, true, false, false));
+        Attribute attribute = XAttribute.BLOCK_BREAK_SPEED.get();
+        if (attribute != null) {
+            player.getAttribute(attribute).setBaseValue(0.0);
+        }
+    }
+
+    public static long getTicksToBreak(double miningSpeed, int blockStrength){
+        if (miningSpeed == 0)
+            miningSpeed = 1;
+        return (long) (1/(miningSpeed/blockStrength/30));
+    }
 
     private void handleHammer(Player player, Block origin) {
         if (hammerCooldown.getCurrentCooldown(player.getUniqueId()) < HAMMER_COOLDOWN) {
@@ -250,48 +293,9 @@ public class MiningManager implements MiningAPI {
                     player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, SoundCategory.BLOCKS, 0.1f, 1f);
                     player.breakBlock(block);
                 }
-                hammerLeft -= HAMMER_LEFT;
+                hammerLeft -= getHammerPerBlock();
             }
         }
-    }
-
-    public BlockInfo getBlockInfo(Material material) {
-        return blockInfoMap.getOrDefault(material, UNBREAKABLE_BLOCK);
-    }
-
-    public CustomConfig getConfig(String ID){
-        BlockLoader blockLoader = BlockLoader.getInstance();
-        Map<String, File> idFileMap = blockLoader.getConfigMap();
-        File file = idFileMap.get(ID);
-        if (file == null){
-            file = new File(blockLoader.getFileDir(), ID + ".yml");
-        }
-        return new CustomConfig(file);
-    }
-
-    public void setBlockInfo(String ID, BlockInfo blockInfo){
-        CustomConfig customConfig = getConfig(ID);
-        customConfig.set(ID, blockInfo);
-        customConfig.save();
-        registerBlock(Material.getMaterial(ID), blockInfo);
-    }
-
-    public void clear(){
-        blockInfoMap.clear();
-    }
-
-    public static void applySlowDig(Player player) {
-        player.addPotionEffect(new PotionEffect(XPotion.MINING_FATIGUE.get(), -1, -1, true, false, false));
-        Attribute attribute = XAttribute.BLOCK_BREAK_SPEED.get();
-        if (attribute != null) {
-            player.getAttribute(attribute).setBaseValue(0.0);
-        }
-    }
-
-    public static long getTicksToBreak(double miningSpeed, int blockStrength){
-        if (miningSpeed == 0)
-            miningSpeed = 1;
-        return (long) (1/(miningSpeed/blockStrength/30));
     }
 
     public static MiningManager getInstance() {

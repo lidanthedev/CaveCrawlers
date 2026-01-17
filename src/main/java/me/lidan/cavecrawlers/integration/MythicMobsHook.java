@@ -46,7 +46,7 @@ public class MythicMobsHook {
 
     public @Nullable String getMobNameByID(String id) {
         MythicMob mob = plugin.getMythicBukkit().getAPIHelper().getMythicMob(id);
-        if (mob == null) {
+        if (mob == null || !mob.getDisplayName().isPresent()) {
             return null;
         }
         return mob.getDisplayName().get();

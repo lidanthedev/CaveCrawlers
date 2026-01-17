@@ -88,7 +88,7 @@ public class CaveCrawlersExpansion extends BasePlaceholderExpansion {
     @Placeholder("altar")
     public String getAltar(@NotNull PlaceholderActor actor, String altarName, String subType, String field) {
         // For now altar only supports "boss" subtype
-        if (!subType.equalsIgnoreCase("boss")) {
+        if (subType == null || field == null || !subType.equalsIgnoreCase("boss")) {
             return null;
         }
 

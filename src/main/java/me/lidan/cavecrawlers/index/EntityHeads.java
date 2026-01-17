@@ -236,7 +236,12 @@ public enum EntityHeads {
         } else if (type == EntityType.WITHER_SKELETON) {
             return ItemBuilder.from(Material.WITHER_SKELETON_SKULL).build();
         }
-        return valueOf(type.name()).getSkull();
+        try {
+            return valueOf(type.name()).getSkull();
+        } catch (IllegalArgumentException e) {
+            // Fallback for unsupported entity types
+            return ItemBuilder.from(Material.PLAYER_HEAD).build();
+        }
     }
 
     public ItemStack getSkull() {

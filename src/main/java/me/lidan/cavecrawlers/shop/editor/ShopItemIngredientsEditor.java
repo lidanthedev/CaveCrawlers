@@ -83,7 +83,8 @@ public class ShopItemIngredientsEditor {
                             shopManager.updateShop(shopMenu, shopItem, itemInfo, newAmount);
                         }).exceptionally(throwable -> {
                             Throwable root = throwable.getCause() != null ? throwable.getCause() : throwable;
-                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Error! <message>", Map.of("message", root.getMessage())));
+                            String message = root.getMessage() != null ? root.getMessage() : root.toString();
+                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Error! <message>", Map.of("message", message)));
                             return null;
                         }).whenComplete((unused, throwable) -> {
                             reopen();

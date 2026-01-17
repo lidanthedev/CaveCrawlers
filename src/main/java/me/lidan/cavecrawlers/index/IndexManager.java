@@ -66,6 +66,112 @@ public class IndexManager {
         return INSTANCE;
     }
 
+    private static Component resolveCommandDrop(Drop drop) {
+        Map<String, Object> placeholders = getPlaceholdersForCommandDrop(drop);
+        return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon>", placeholders);
+    }
+
+    private static Component resolveCoinsDrop(Drop drop) {
+        Map<String, Object> placeholders = getPlaceholdersForCoinsDrop(drop);
+        return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon> <amount_modifier_icon>", placeholders);
+    }
+
+    private static @NonNull Map<String, Object> getPlaceholdersForCommandDrop(Drop drop) {
+        return getPlaceholdersForValue(drop, drop.getValue());
+    }
+
+    private static Component resolveItemDrop(Drop drop) {
+        Drop.ItemDropInfo result = Drop.getItemDropInfo(drop.getValue());
+        if (result == null || result.itemInfo() == null) {
+            return MiniMessageUtils.miniMessage("<red>Invalid Item");
+        }
+        Map<String, Object> placeholders = getPlaceholdersForItemDrop(drop, result);
+        return MiniMessageUtils.miniMessage("<gray><range> <value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon> <amount_modifier_icon>", placeholders);
+    }
+
+    private static @NonNull Map<String, Object> getPlaceholdersForCoinsDrop(Drop drop) {
+        Map<String, Object> placeholders = new HashMap<>();
+        try {
+            Range range = new Range(drop.getValue());
+            if (range.getMin() == range.getMax()) {
+                placeholders.put("value", ChatColor.GOLD + StringUtils.getNumberFormat(range.getMin()) + ChatColor.YELLOW + " Coins");
+            } else {
+                placeholders.put("value", ChatColor.GOLD + StringUtils.getNumberFormat(range.getMin()) + "-" + StringUtils.getNumberFormat(range.getMax()) + ChatColor.YELLOW + " Coins");
+            }
+        } catch (RuntimeException ex) {
+            placeholders.put("value", ChatColor.RED + "Invalid Coins");
+        }
+        addDropPlaceholders(drop, placeholders);
+        return placeholders;
+    }
+
+    private static void addDropPlaceholders(Drop drop, Map<String, Object> placeholders) {
+        placeholders.put("chance", String.format("%.2f%%", drop.getChance()));
+        String chanceModifierIcon = drop.getChanceModifier() != null ? drop.getChanceModifier().getColoredIcon() : ChatColor.RED + "✘";
+        String amountModifierIcon = drop.getAmountModifier() != null ? drop.getAmountModifier().getColoredIcon() : ChatColor.RED + "✘";
+        placeholders.put("chance_modifier", drop.getChanceModifier() != null ? drop.getChanceModifier().getFormatName() : "None");
+        placeholders.put("amount_modifier", drop.getAmountModifier() != null ? drop.getAmountModifier().getFormatName() : "None");
+        placeholders.put("chance_modifier_icon", chanceModifierIcon);
+        placeholders.put("amount_modifier_icon", amountModifierIcon);
+    }
+
+    private static @NonNull Map<String, Object> getPlaceholdersForItemDrop(Drop drop, Drop.ItemDropInfo result) {
+        Map<String, Object> placeholders = new HashMap<>();
+        placeholders.put("value", result.itemInfo().getFormattedName());
+        placeholders.put("range", result.range().toString());
+        addDropPlaceholders(drop, placeholders);
+        return placeholders;
+    }
+
+    private static @NonNull Map<String, Object> getPlaceholdersForValue(Drop drop, String mobName) {
+        Map<String, Object> placeholders = new HashMap<>();
+        placeholders.put("value", mobName);
+        addDropPlaceholders(drop, placeholders);
+        return placeholders;
+    }
+
+    /**
+     * Generates a consistent, deterministic icon gradient based on the input string.
+     * Example output: <gradient:#ff0000:#ffaa00>■</gradient>
+     */
+    public static String getTrackIcon(String trackId) {
+        // 1. Generate a seed from the string
+        int hash = trackId.hashCode();
+
+        // 2. Calculate the base Hue (0.0 to 1.0)
+        // We use absolute value to handle negative hashes
+        float hue = (Math.abs(hash) % 360) / 360f;
+
+        // 3. Define Saturation and Brightness (Keep these high for "Cool" neon look)
+        float saturation = 0.85f; // 85% Saturation (Vibrant)
+        float brightness = 1.0f;  // 100% Brightness (Readable)
+
+        // 4. Create the two colors for the gradient
+        // Color 1: The base color
+        Color c1 = Color.getHSBColor(hue, saturation, brightness);
+
+        // Color 2: Shift the hue slightly (e.g., +45 degrees) for a nice analog gradient
+        // The % 1.0f wraps it around if it goes over 360 degrees
+        Color c2 = Color.getHSBColor((hue + 0.125f) % 1.0f, saturation, brightness);
+
+        // 5. Convert to Hex
+        String hex1 = String.format("#%06x", c1.getRGB() & 0x00FFFFFF);
+        String hex2 = String.format("#%06x", c2.getRGB() & 0x00FFFFFF);
+
+        // 6. Return the MiniMessage string
+        // You can change "●" to whatever 1-char icon you prefer (e.g. ✦, ■, or the first letter)
+        return "<gradient:" + hex1 + ":" + hex2 + ">●</gradient>";
+    }
+
+    private static List<Component> skillObjectivesToComponent(List<SkillObjective> skillObjectives, SkillInfo skillInfo) {
+        List<Component> components = new ArrayList<>();
+        for (SkillObjective skillObjective : skillObjectives) {
+            // <gray> <blue>+<amount> <skill_name></blue>
+            components.add(MiniMessageUtils.miniMessage("<gray>- </gray><blue>+<amount> <skill_name></blue>", Map.of("amount", StringUtils.getNumberFormat(skillObjective.getAmount()), "skill_name", StringUtils.setTitleCase(skillInfo.getName()))));
+        }
+        return components;
+    }
+
     public boolean isHiddenDrop(Drop drop) {
         List<String> hiddenDrops = config.getStringList(HIDDEN_DROPS_KEY, new ArrayList<>());
         String dropIdentifier = getDropIdentifier(drop);
@@ -102,59 +208,6 @@ public class IndexManager {
         return config.getBoolean("hide-commands", true);
     }
 
-    private static Component resolveCommandDrop(Drop drop) {
-        Map<String, Object> placeholders = getPlaceholdersForCommandDrop(drop);
-        return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon>", placeholders);
-    }
-
-    private static Component resolveCoinsDrop(Drop drop) {
-        Map<String, Object> placeholders = getPlaceholdersForCoinsDrop(drop);
-        return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon> <amount_modifier_icon>", placeholders);
-    }
-
-    private static @NonNull Map<String, Object> getPlaceholdersForCommandDrop(Drop drop) {
-        return getPlaceholdersForValue(drop, drop.getValue());
-    }
-
-    private static Component resolveItemDrop(Drop drop) {
-        Drop.ItemDropInfo result = Drop.getItemDropInfo(drop.getValue());
-        if (result == null || result.itemInfo() == null) {
-            return MiniMessageUtils.miniMessage("<red>Invalid Item");
-        }
-        Map<String, Object> placeholders = getPlaceholdersForItemDrop(drop, result);
-        return MiniMessageUtils.miniMessage("<gray><range> <value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon> <amount_modifier_icon>", placeholders);
-    }
-
-    private static @NonNull Map<String, Object> getPlaceholdersForCoinsDrop(Drop drop) {
-        Map<String, Object> placeholders = new HashMap<>();
-        Range range = new Range(drop.getValue());
-        if (range.getMin() == range.getMax()) {
-            placeholders.put("value", ChatColor.GOLD + StringUtils.getNumberFormat(range.getMin()) + ChatColor.YELLOW + " Coins");
-        } else {
-            placeholders.put("value", ChatColor.GOLD + StringUtils.getNumberFormat(range.getMin()) + "-" + StringUtils.getNumberFormat(range.getMax()) + ChatColor.YELLOW + " Coins");
-        }
-        addDropPlaceholders(drop, placeholders);
-        return placeholders;
-    }
-
-    private static void addDropPlaceholders(Drop drop, Map<String, Object> placeholders) {
-        placeholders.put("chance", String.format("%.2f%%", drop.getChance()));
-        String chanceModifierIcon = drop.getChanceModifier() != null ? drop.getChanceModifier().getColoredIcon() : ChatColor.RED + "✘";
-        String amountModifierIcon = drop.getAmountModifier() != null ? drop.getAmountModifier().getColoredIcon() : ChatColor.RED + "✘";
-        placeholders.put("chance_modifier", drop.getChanceModifier() != null ? drop.getChanceModifier().getFormatName() : "None");
-        placeholders.put("amount_modifier", drop.getAmountModifier() != null ? drop.getAmountModifier().getFormatName() : "None");
-        placeholders.put("chance_modifier_icon", chanceModifierIcon);
-        placeholders.put("amount_modifier_icon", amountModifierIcon);
-    }
-
-    private static @NonNull Map<String, Object> getPlaceholdersForItemDrop(Drop drop, Drop.ItemDropInfo result) {
-        Map<String, Object> placeholders = new HashMap<>();
-        placeholders.put("value", result.itemInfo().getFormattedName());
-        placeholders.put("range", result.range().toString());
-        addDropPlaceholders(drop, placeholders);
-        return placeholders;
-    }
-
     public @Nullable String getMobNameByID(String id) {
         return MythicMobsHook.getInstance().getMobNameByID(id);
     }
@@ -170,13 +223,6 @@ public class IndexManager {
             return resolveCommandDrop(drop);
         }
         return UNKNOWN_DROP;
-    }
-
-    private static @NonNull Map<String, Object> getPlaceholdersForValue(Drop drop, String mobName) {
-        Map<String, Object> placeholders = new HashMap<>();
-        placeholders.put("value", mobName);
-        addDropPlaceholders(drop, placeholders);
-        return placeholders;
     }
 
     public Map<String, Object> getDropPlaceholders(Drop drop) {
@@ -207,40 +253,6 @@ public class IndexManager {
         return MiniMessageUtils.miniMessage("<gray><value> <gray>(<green><chance><gray>)<reset> <chance_modifier_icon>", placeholders);
     }
 
-    /**
-     * Generates a consistent, deterministic icon gradient based on the input string.
-     * Example output: <gradient:#ff0000:#ffaa00>■</gradient>
-     */
-    public static String getTrackIcon(String trackId) {
-        // 1. Generate a seed from the string
-        int hash = trackId.hashCode();
-
-        // 2. Calculate the base Hue (0.0 to 1.0)
-        // We use absolute value to handle negative hashes
-        float hue = (Math.abs(hash) % 360) / 360f;
-
-        // 3. Define Saturation and Brightness (Keep these high for "Cool" neon look)
-        float saturation = 0.85f; // 85% Saturation (Vibrant)
-        float brightness = 1.0f;  // 100% Brightness (Readable)
-
-        // 4. Create the two colors for the gradient
-        // Color 1: The base color
-        Color c1 = Color.getHSBColor(hue, saturation, brightness);
-
-        // Color 2: Shift the hue slightly (e.g., +45 degrees) for a nice analog gradient
-        // The % 1.0f wraps it around if it goes over 360 degrees
-        Color c2 = Color.getHSBColor((hue + 0.125f) % 1.0f, saturation, brightness);
-
-        // 5. Convert to Hex
-        String hex1 = String.format("#%06x", c1.getRGB() & 0x00FFFFFF);
-        String hex2 = String.format("#%06x", c2.getRGB() & 0x00FFFFFF);
-
-        // 6. Return the MiniMessage string
-        // You can change "●" to whatever 1-char icon you prefer (e.g. ✦, ■, or the first letter)
-        return "<gradient:" + hex1 + ":" + hex2 + ">●</gradient>";
-    }
-
-
     public Component dropToComponent(Drop drop) {
         Component component = resolveDropValue(drop);
         if (drop instanceof BossDrop bossDrop) {
@@ -265,25 +277,17 @@ public class IndexManager {
     public <T extends Drop> List<Component> dropsToLore(List<T> drops, String header) {
         List<Component> lore = new ArrayList<>();
         lore.add(MiniMessageUtils.miniMessage("<gray>-- <header> --", Map.of("header", header)));
-        if (drops.isEmpty()) {
+        List<Component> components = dropsToComponents(drops);
+        if (components.isEmpty()) {
             lore.add(MiniMessageUtils.miniMessage("<red>No <header>", Map.of("header", header)));
             return lore;
         }
 
-        for (Component dropComponent : dropsToComponents(drops)) {
+        for (Component dropComponent : components) {
             lore.add(MiniMessageUtils.miniMessage("<gray>- </gray>").append(dropComponent));
         }
 
         return lore;
-    }
-
-    private static List<Component> skillObjectivesToComponent(List<SkillObjective> skillObjectives, SkillInfo skillInfo) {
-        List<Component> components = new ArrayList<>();
-        for (SkillObjective skillObjective : skillObjectives) {
-            // <gray> <blue>+<amount> <skill_name></blue>
-            components.add(MiniMessageUtils.miniMessage("<gray>- </gray><blue>+<amount> <skill_name></blue>", Map.of("amount", StringUtils.getNumberFormat(skillObjective.getAmount()), "skill_name", StringUtils.setTitleCase(skillInfo.getName()))));
-        }
-        return components;
     }
 
     public List<Component> skillObjectivesToLore(SkillAction skillAction, String material, String header) {

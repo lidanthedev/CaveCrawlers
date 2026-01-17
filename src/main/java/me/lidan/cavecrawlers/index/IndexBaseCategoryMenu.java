@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public abstract class IndexBaseCategoryMenu {
     protected final String query;
     protected final IndexManager itemGenerator;
 
-    public IndexBaseCategoryMenu(Player player, IndexCategory category, String query) {
+    public IndexBaseCategoryMenu(Player player, IndexCategory category, @NonNull String query) {
         this.player = player;
         this.category = category;
         this.itemGenerator = IndexManager.getInstance();

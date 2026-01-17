@@ -23,6 +23,7 @@ import java.util.*;
 
 public class ItemsManager implements ItemsAPI {
     public static final String ITEM_ID = "ITEM_ID";
+    public static final String NO_UPDATE = "NO_UPDATE";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
     private final ConfigurationSection vanillaConversion;
@@ -133,7 +134,7 @@ public class ItemsManager implements ItemsAPI {
 
     public @Nullable String getIDofItemStack(ItemStack itemStack) {
         try {
-            String itemId = ItemNbt.getString(itemStack, ITEM_ID);
+            String itemId = itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, ITEM_ID), PersistentDataType.STRING);
             if (itemId == null){
                 return vanillaConversion.getString(itemStack.getType().name());
             }
@@ -147,6 +148,9 @@ public class ItemsManager implements ItemsAPI {
         if (itemStack == null) {
             return null;
         }
+        if (itemStack.hasItemMeta() && itemStack.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, NO_UPDATE))) {
+            return itemStack;
+        }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
             ItemStack builtItem = buildItem(itemInfo, itemStack.getAmount());
@@ -157,15 +161,28 @@ public class ItemsManager implements ItemsAPI {
             if (itemMeta.hasEnchants()){
                 builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
             }
-
-            // preserve the custom nbt
-            for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
-                if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)){
-                    continue;
+            try {
+                ItemMeta builtItemMeta = builtItem.getItemMeta();
+                if (builtItemMeta == null) {
+                    return builtItem;
                 }
-                String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-                if (value != null) {
-                    builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
+                builtItem.setItemMeta(builtItemMeta);
+            } catch (Exception ignored) {
+                // kept for 1.19 compatibility
+                // WARNING: only copies string nbt values
+                // preserve the custom nbt
+                for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                    if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
+                        continue;
+                    }
+                    if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                        continue;
+                    }
+                    String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                    if (value != null) {
+                        builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                    }
                 }
             }
             return builtItem;
@@ -268,6 +285,13 @@ public class ItemsManager implements ItemsAPI {
                 }
             }
         }
+    }
+
+    @Override
+    public void removeItem(String id) {
+        unregisterItem(id);
+        ItemsLoader loader = ItemsLoader.getInstance();
+        loader.remove(id);
     }
 
     public void removeItems(Player player, Map<ItemInfo, Integer> items) {

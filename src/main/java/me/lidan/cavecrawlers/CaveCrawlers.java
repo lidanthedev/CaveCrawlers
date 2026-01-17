@@ -1,7 +1,13 @@
 package me.lidan.cavecrawlers;
 
 import com.cryptomorin.xseries.XSound;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
+import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
+import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+import dev.dejvokep.boostedyaml.spigot.SpigotSerializer;
 import dev.triumphteam.gui.guis.BaseGui;
+import fr.robotv2.placeholderannotationlib.api.PlaceholderAnnotationProcessor;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +47,7 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import me.lidan.cavecrawlers.utils.Holograms;
 import net.md_5.bungee.api.ChatColor;
@@ -68,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static final int TICKS_TO_SECOND = 20;
     public static Economy economy = null;
+    public static boolean usePlaceholderAPI = false;
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
@@ -172,8 +180,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register config
      */
     private void registerConfig() {
-        getConfig().options().copyDefaults(true);
-        saveDefaultConfig();
+        try {
+            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning("version")).build(), LoaderSettings.builder().setAutoUpdate(true).build());
+        } catch (IOException | NullPointerException e) {
+            log.error("Failed to load config.yml", e);
+            throw new RuntimeException(e);
+        }
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
     }
 
@@ -306,6 +318,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.register(new QolCommand());
         commandHandler.register(new MenuCommands());
         commandHandler.register(new SellCommand());
+        commandHandler.register(new IndexCommand());
         commandHandler.registerBrigadier();
     }
 
@@ -385,9 +398,13 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     public void registerPlaceholders() {
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            caveCrawlersExpansion = new CaveCrawlersExpansion(this);
+            PlaceholderAnnotationProcessor processor = new PlaceholderAnnotationProcessor.Builder()
+                    .separator("_")
+                    .debug(false)
+                    .build();
+            caveCrawlersExpansion = new CaveCrawlersExpansion(processor);
             caveCrawlersExpansion.register();
-            ConfigMessage.usePlaceholderAPI = true;
+            usePlaceholderAPI = true;
         }
     }
 

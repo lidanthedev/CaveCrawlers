@@ -43,9 +43,10 @@ public class MiningListener implements Listener {
             return;
         }
 
-        if (player.getGameMode() == GameMode.SURVIVAL) {
-            miningManager.breakBlock(player, event.getBlock());
+        if (player.getGameMode() != GameMode.SURVIVAL) {
+            return;
         }
+        miningManager.breakBlock(player, event.getBlock(), event.getBlockFace());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -55,9 +56,10 @@ public class MiningListener implements Listener {
         if (blacklistedWorlds.contains(name)) {
             return;
         }
-        if (player.getGameMode() == GameMode.SURVIVAL) {
-            miningManager.handleBreak(event);
+        if (player.getGameMode() != GameMode.SURVIVAL) {
+            return;
         }
+        miningManager.handleBreak(event);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -67,8 +69,9 @@ public class MiningListener implements Listener {
         if (blacklistedWorlds.contains(name)) {
             return;
         }
-        if (player.getGameMode() == GameMode.SURVIVAL) {
-            miningManager.setProgress(player, null);
+        if (player.getGameMode() != GameMode.SURVIVAL) {
+            return;
         }
+        miningManager.setProgress(player, null);
     }
 }

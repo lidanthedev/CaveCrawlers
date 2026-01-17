@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.bosses;
 
+import lombok.Getter;
 import me.lidan.cavecrawlers.api.BossAPI;
 import net.md_5.bungee.api.ChatColor;
 
@@ -8,6 +9,7 @@ import java.util.Map;
 
 public class BossManager implements BossAPI {
     private static BossManager instance;
+    @Getter
     private final Map<String, BossDrops> dropsMap = new HashMap<>();
 
     @Override

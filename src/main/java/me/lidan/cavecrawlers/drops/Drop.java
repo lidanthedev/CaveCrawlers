@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.drops;
 
 import lombok.Data;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -70,20 +71,19 @@ public class Drop implements ConfigurationSerializable {
      * @return the item drop info
      */
     public static @Nullable ItemDropInfo getItemDropInfo(String value) {
-        int amount = 1;
+        Range range = new Range(1, 1);
         String itemID = value;
         if (value.contains(" ")) {
             String[] split = value.split(" ");
             itemID = split[0];
-            Range range = new Range(split[1]);
-            amount = range.getRandom();
+            range = new Range(split[1]);
         }
         ItemInfo itemInfo = itemsManager.getItemByID(itemID);
         if (itemInfo == null) {
             log.error("Item with ID {} not found", itemID);
             return null;
         }
-        return new ItemDropInfo(amount, itemInfo);
+        return new ItemDropInfo(itemInfo, range);
     }
 
     public static Drop deserialize(Map<String, Object> map) {
@@ -144,7 +144,7 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        int amount = getNewAmount(player, result.amount());
+        int amount = getNewAmount(player, result.range().getRandom());
         itemsManager.giveItem(player, result.itemInfo(), amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
@@ -215,6 +215,9 @@ public class Drop implements ConfigurationSerializable {
 
     protected void giveCommand(Player player) {
         String command = value.replace("%player%", player.getName());
+        if (CaveCrawlers.usePlaceholderAPI) {
+            command = PlaceholderAPI.setPlaceholders(player, command);
+        }
         plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), command);
         if (announce != null) {
             sendAnnounceMessage(player);
@@ -234,6 +237,6 @@ public class Drop implements ConfigurationSerializable {
         return map;
     }
 
-    public record ItemDropInfo(int amount, ItemInfo itemInfo) {
+    public record ItemDropInfo(ItemInfo itemInfo, Range range) {
     }
 }

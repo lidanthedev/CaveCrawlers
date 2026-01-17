@@ -107,4 +107,11 @@ public interface ItemsAPI {
      * @param amount   The amount of the item to remove.
      */
     void removeItems(Player player, ItemInfo material, int amount);
+
+    /**
+     * Removes an item from the registry by its unique ID.
+     *
+     * @param id The unique identifier of the item to remove.
+     */
+    void removeItem(String id);
 }

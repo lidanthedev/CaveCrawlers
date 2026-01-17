@@ -109,7 +109,7 @@ public class DamageEntityListener implements Listener {
 
     private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Player player, Mob mob, double damage, boolean crit) {
         event.setDamage(damage);
-        int finalDamage = (int) event.getFinalDamage();
+        double finalDamage = event.getFinalDamage();
         entityManager.addDamage(player.getUniqueId(), mob, finalDamage);
         Holograms.showDamageHologram(mob, finalDamage, crit);
     }

@@ -40,10 +40,7 @@ public class StatsManager implements StatsAPI {
 
     @Override
     public Stats getStats(UUID uuid){
-        if (!statsMap.containsKey(uuid)){
-            statsMap.put(uuid, new Stats());
-        }
-        return statsMap.get(uuid);
+        return statsMap.computeIfAbsent(uuid, uuid1 -> new Stats());
     }
 
     @Override
@@ -157,7 +154,6 @@ public class StatsManager implements StatsAPI {
         Stats statsFromSkills = getStatsFromSkills(player);
         double manaAmount = oldStats.get(StatType.MANA).getValue();
         stats.set(StatType.MANA, manaAmount);
-        statsMap.put(player.getUniqueId(), stats);
         if (!statsAdder.containsKey(player.getUniqueId())){
             statsAdder.put(player.getUniqueId(), new Stats());
         }
@@ -176,8 +172,10 @@ public class StatsManager implements StatsAPI {
         if (attackSpeedStat.getValue() > ATTACK_SPEED_LIMIT){
             attackSpeedStat.setValue(ATTACK_SPEED_LIMIT);
         }
+
         StatsCalculateEvent event = new StatsCalculateEvent(player, stats);
         Bukkit.getPluginManager().callEvent(event);
+        statsMap.put(player.getUniqueId(), stats);
 
         return stats;
     }

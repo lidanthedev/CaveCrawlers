@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ItemExporter {
+public class ItemImporter {
 
     private ItemStack item;
     private ItemMeta meta;
 
-    public ItemExporter(ItemStack item) {
+    public ItemImporter(ItemStack item) {
         this.item = item;
         this.meta = item.getItemMeta();
         if (this.meta == null){

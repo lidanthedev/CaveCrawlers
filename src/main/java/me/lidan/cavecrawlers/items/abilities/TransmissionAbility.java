@@ -22,9 +22,10 @@ public class TransmissionAbility extends ClickAbility{
     @Override
     protected boolean useAbility(PlayerEvent event) {
         Player player = event.getPlayer();
-
+        boolean teleported = BukkitUtils.teleportForward(player, blocks);
+        if (!teleported) return false;
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-        return BukkitUtils.teleportForward(player, blocks);
+        return true;
     }
 
     @Override

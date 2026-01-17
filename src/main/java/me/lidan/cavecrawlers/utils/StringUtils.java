@@ -302,7 +302,21 @@ public class StringUtils {
      * @param <T> the type of the number
      */
     public static <T> String getNumberFormat(Number num) {
-        return NumberFormat.getNumberInstance(Locale.US).format(num);
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
+        numberFormat.setMaximumFractionDigits(2);
+        return numberFormat.format(num);
+    }
+
+    /**
+     * Get the number format without fractions
+     * @param num the number
+     * @return the formatted number
+     * @param <T> the type of the number
+     */
+    public static <T> String getNumberFormatNoFractions(Number num) {
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(Locale.US);
+        numberFormat.setMaximumFractionDigits(0);
+        return numberFormat.format(num);
     }
 
     /**

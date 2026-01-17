@@ -1,3 +1,4 @@
+version: "2" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -13,6 +14,8 @@ loot-share:
   damage-threshold: 10 # Minimum damage percent to be eligible for loot share
 
 mining-blacklisted-worlds: []
+mining:
+  hammer-per-block: 5 # hammer lost per block broken
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:
@@ -98,3 +101,4 @@ experimental:
   enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
   enable-leveling: false # Enable experimental leveling system (may cause issues)
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
+  hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)

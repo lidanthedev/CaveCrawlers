@@ -52,6 +52,9 @@ public class Range implements Iterable<Integer> {
 
     @Override
     public String toString() {
+        if (min == max) {
+            return String.valueOf(min);
+        }
         return min + "-" + max;
     }
 }

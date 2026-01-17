@@ -25,7 +25,7 @@ public class BoomAbility extends ScalingClickAbility implements Listener {
         Player player = playerEvent.getPlayer();
         player.spawnParticle(XParticle.EXPLOSION.get(), player.getLocation(), 1);
         List<Entity> nearbyEntities = player.getNearbyEntities(3, 3, 3);
-        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling);
+        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale, crit);
         for (Entity entity : nearbyEntities) {
             if (entity instanceof Mob mob){
                 calculation.damage(player, mob);

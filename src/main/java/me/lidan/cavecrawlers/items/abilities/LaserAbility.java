@@ -34,7 +34,7 @@ public class LaserAbility extends ScalingClickAbility implements Listener {
         Location location = player.getEyeLocation();
         Vector vector = location.getDirection();
         World world = location.getWorld();
-        AbilityDamage abilityDamage = new AbilityDamage(player, baseAbilityDamage, abilityScaling);
+        AbilityDamage abilityDamage = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale, crit);
         List<Mob> hitEntityList = new ArrayList<>();
         for (int i = 0; i < range; i++) {
             Vector newVector = vector.clone().multiply(i);

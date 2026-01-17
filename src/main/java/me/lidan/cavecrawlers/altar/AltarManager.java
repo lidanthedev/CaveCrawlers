@@ -1,13 +1,11 @@
 package me.lidan.cavecrawlers.altar;
 
+import me.lidan.cavecrawlers.items.ItemInfo;
 import org.bukkit.Location;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AltarManager {
     private static final Logger log = LoggerFactory.getLogger(AltarManager.class);
@@ -23,13 +21,24 @@ public class AltarManager {
         return altars.get(name);
     }
 
-    public Altar getAltarAtLocation(Location location) {
+    public Altar getAltarAtLocation(Location location, ItemInfo itemInfo) {
         for (Altar altar : altars.values()) {
-            if (altar.isAltar(location)) {
+            if (altar.isAltar(location) && Objects.equals(altar.getItemToSpawn(), itemInfo)) {
                 return altar;
             }
         }
         return null;
+    }
+
+    public List<Altar> getAltarsWithMob(String mobName) {
+        List<Altar> result = new ArrayList<>();
+        for (Altar altar : altars.values()) {
+            AltarDrop foundDrop = altar.getDropByMobName(mobName);
+            if (foundDrop != null) {
+                result.add(altar);
+            }
+        }
+        return result;
     }
 
     public void updateAltar(String name, Altar altar) {

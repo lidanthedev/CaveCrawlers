@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.skills;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -32,12 +33,12 @@ public class Skill implements ConfigurationSerializable {
 
     private UUID uuid;
 
-    public Skill(SkillInfo type, int level) {
+    public Skill(@NonNull SkillInfo type, int level) {
         this.type = type;
         this.level = level;
     }
 
-    public Skill(SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
+    public Skill(@NonNull SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
         this.type = type;
         this.level = level;
         this.xp = xp;

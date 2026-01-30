@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.shop;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import lombok.Data;
+import lombok.NonNull;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
@@ -11,8 +12,9 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +23,7 @@ import java.util.Map;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
+    private static final Logger log = LoggerFactory.getLogger(ShopItem.class);
     private final ConfigMessage BUY_ITEM_MESSAGE = ConfigMessage.getMessageOrDefault("buy_item", "&eYou bought %formatted_name%&e for &6%price% coins");
     private ItemInfo result;
     private int resultAmount;
@@ -44,6 +47,20 @@ public class ShopItem implements ConfigurationSerializable {
         this(getItemByID(resultID), getItemByID(ingredientID), amount);
     }
 
+    @NonNull
+    public static String formatName(String name, int amount) {
+        name += " " + ChatColor.DARK_GRAY + "x" + amount;
+        return name;
+    }
+
+    public ItemStack toItem(){
+        ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
+        List<String> list = toList();
+        String name = list.get(0);
+        list.remove(0);
+        return ItemBuilder.from(itemStack).setName(name).setLore(list).build();
+    }
+
     public List<String> toList(){
         List<String> list = new ArrayList<>(result.toList());
 
@@ -58,6 +75,10 @@ public class ShopItem implements ConfigurationSerializable {
                 list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
             }
             for (ItemInfo itemInfo : ingredientsMap.keySet()) {
+                if (itemInfo == null) {
+                    log.warn("ShopItem has null ingredient itemInfo for result: {}", result.getID());
+                    continue;
+                }
                 int amount = ingredientsMap.get(itemInfo);
                 String name = itemInfo.getFormattedName();
                 list.add(formatName(name, amount));
@@ -66,20 +87,6 @@ public class ShopItem implements ConfigurationSerializable {
         list.add("");
         list.add(ChatColor.YELLOW + "Click to Trade");
         return list;
-    }
-
-    public ItemStack toItem(){
-        ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-        List<String> list = toList();
-        String name = list.get(0);
-        list.remove(0);
-        return ItemBuilder.from(itemStack).setName(name).setLore(list).build();
-    }
-
-    @NotNull
-    public static String formatName(String name, int amount) {
-        name += " " + ChatColor.DARK_GRAY + "x" + amount;
-        return name;
     }
 
     public boolean buy(Player player) {
@@ -109,7 +116,7 @@ public class ShopItem implements ConfigurationSerializable {
         return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();

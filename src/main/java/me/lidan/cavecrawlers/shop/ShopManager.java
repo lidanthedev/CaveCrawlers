@@ -1,10 +1,10 @@
 package me.lidan.cavecrawlers.shop;
 
+import lombok.NonNull;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,7 +156,7 @@ public class ShopManager {
         removeShopItem(shopMenu, slotID);
     }
 
-    public void removeShopItem(@NotNull ShopMenu shopMenu, int slotID) {
+    public void removeShopItem(@NonNull ShopMenu shopMenu, int slotID) {
         String shopID = shopMenu.getId();
         List<ShopItem> shopItemList = shopMenu.getShopItemList();
         shopItemList.remove(slotID);

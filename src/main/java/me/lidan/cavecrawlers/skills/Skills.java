@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -34,10 +35,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         this(new ArrayList<>());
     }
 
-    public Skill get(SkillInfo type) {
-        if (type == null) {
-            throw new NullPointerException("Type cannot be null");
-        }
+    public Skill get(@NonNull SkillInfo type) {
         return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 

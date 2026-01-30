@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import lombok.NonNull;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.prompt.PromptManager;
@@ -15,7 +16,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,7 +74,7 @@ public class ShopEditor {
         new ShopEditor(player, shopMenu).open();
     }
 
-    public static @NotNull List<Component> changeLastLoreLine(ItemStack item, Component component) {
+    public static @NonNull List<Component> changeLastLoreLine(ItemStack item, Component component) {
         List<Component> lore = item.lore();
         if (lore == null) {
             lore = new ArrayList<>();

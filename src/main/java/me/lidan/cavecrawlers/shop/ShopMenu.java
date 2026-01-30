@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import lombok.Data;
+import lombok.NonNull;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -20,7 +21,6 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -108,7 +108,7 @@ public class ShopMenu implements ConfigurationSerializable {
         }
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();

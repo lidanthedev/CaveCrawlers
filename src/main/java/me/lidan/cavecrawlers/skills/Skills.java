@@ -35,6 +35,9 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public Skill get(SkillInfo type) {
+        if (type == null) {
+            throw new NullPointerException("Type cannot be null");
+        }
         return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 

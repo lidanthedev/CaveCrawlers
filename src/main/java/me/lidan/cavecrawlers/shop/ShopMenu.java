@@ -36,7 +36,6 @@ public class ShopMenu implements ConfigurationSerializable {
     public ShopMenu(String title, List<ShopItem> shopItemList) {
         this.title = title;
         this.shopItemList = shopItemList;
-        buildGui();
     }
 
     public PaginatedGui buildGui() {

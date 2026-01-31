@@ -43,7 +43,7 @@ public class PortableShopAbility extends ClickAbility {
             player.sendMessage("Shop not found");
             return false;
         }
-        shopMenu.getGui().open(player);
+        shopMenu.open(player);
         return true;
     }
 

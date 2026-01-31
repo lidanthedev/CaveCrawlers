@@ -31,7 +31,6 @@ import java.util.Map;
 public class ShopMenu implements ConfigurationSerializable {
     private String title;
     private List<ShopItem> shopItemList;
-    private PaginatedGui gui;
     private String id;
 
     public ShopMenu(String title, List<ShopItem> shopItemList) {
@@ -40,8 +39,8 @@ public class ShopMenu implements ConfigurationSerializable {
         buildGui();
     }
 
-    public void buildGui() {
-        this.gui = Gui.paginated().title(MiniMessageUtils.miniMessage("<title>", Map.of("title", title))).rows(6).pageSize(28).disableAllInteractions().create();
+    public PaginatedGui buildGui() {
+        PaginatedGui gui = Gui.paginated().title(MiniMessageUtils.miniMessage("<title>", Map.of("title", title))).rows(6).pageSize(28).disableAllInteractions().create();
         gui.getFiller().fillBorder(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         for (int i = 0; i < shopItemList.size(); i++) {
             ShopItem shopItem = shopItemList.get(i);
@@ -65,9 +64,11 @@ public class ShopMenu implements ConfigurationSerializable {
             gui.addItem(guiItem);
             GuiItems.setupNextPreviousItems(gui, gui.getRows());
         }
+        return gui;
     }
 
     public void open(Player player) {
+        PaginatedGui gui = buildGui();
         gui.open(player);
         portableShop(player);
     }

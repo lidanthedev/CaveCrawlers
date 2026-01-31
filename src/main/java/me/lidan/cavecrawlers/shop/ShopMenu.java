@@ -83,6 +83,11 @@ public class ShopMenu implements ConfigurationSerializable {
                 // Already set manually by admin
                 return;
             }
+            String oldShop = ItemNbt.getString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID);
+            if (oldShop != null && oldShop.equals(id)) {
+                // Already set to this shop
+                return;
+            }
             ItemNbt.setString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID, id);
             if (ItemNbt.getString(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM) != null) {
                 ItemNbt.removeTag(itemStack, AutoPortableShopAbility.PORTABLE_SHOP_ITEM);

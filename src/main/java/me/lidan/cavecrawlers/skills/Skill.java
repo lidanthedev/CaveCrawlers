@@ -77,6 +77,7 @@ public class Skill implements ConfigurationSerializable {
             }
 
             if (level >= maxLevel) {
+                xpToLevel = 1;
                 break;
             }
 

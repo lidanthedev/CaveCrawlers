@@ -31,7 +31,7 @@ public class ShopItem implements ConfigurationSerializable {
     private Map<ItemInfo, Integer> ingredientsMap;
     private ItemsManager itemsManager;
 
-    public ShopItem(ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> ingredientsMap) {
+    public ShopItem(@NonNull ItemInfo result, int resultAmount, double price, Map<ItemInfo, Integer> ingredientsMap) {
         this.result = result;
         this.resultAmount = resultAmount;
         this.price = price;

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @ToString(callSuper = true)
 public class LootShareEntityData extends EntityData{
@@ -33,6 +34,10 @@ public class LootShareEntityData extends EntityData{
         String name = entity.getName();
         EntityDrops drops = DropsManager.getInstance().getEntityDrops(name);
         if (drops == null) return;
+        giveDropsToPlayers(drops::roll);
+    }
+
+    public void giveDropsToPlayers(Consumer<Player> onGive) {
         Map<String, String> placeholders = new HashMap<>();
         double damageThreshold = entity.getMaxHealth() / 100 * damageThresholdPercent;
         if (summoner != null) {
@@ -50,7 +55,7 @@ public class LootShareEntityData extends EntityData{
                 if (!entry.getKey().equals(summoner)) {
                     LOOT_SHARE_MESSAGE.sendMessage(player, placeholders);
                 }
-                drops.roll(player);
+                onGive.accept(player);
             }
         }
     }

@@ -61,8 +61,8 @@ public class ShopMenu implements ConfigurationSerializable {
                 }
             });
             gui.addItem(guiItem);
-            GuiItems.setupNextPreviousItems(gui, gui.getRows());
         }
+        GuiItems.setupNextPreviousItems(gui, gui.getRows());
         return gui;
     }
 

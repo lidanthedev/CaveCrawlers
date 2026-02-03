@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import lombok.Data;
+import lombok.NonNull;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
@@ -20,7 +21,6 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,17 +31,15 @@ import java.util.Map;
 public class ShopMenu implements ConfigurationSerializable {
     private String title;
     private List<ShopItem> shopItemList;
-    private PaginatedGui gui;
     private String id;
 
     public ShopMenu(String title, List<ShopItem> shopItemList) {
         this.title = title;
         this.shopItemList = shopItemList;
-        buildGui();
     }
 
-    public void buildGui() {
-        this.gui = Gui.paginated().title(MiniMessageUtils.miniMessage("<title>", Map.of("title", title))).rows(6).pageSize(28).disableAllInteractions().create();
+    public PaginatedGui buildGui() {
+        PaginatedGui gui = Gui.paginated().title(MiniMessageUtils.miniMessage("<title>", Map.of("title", title))).rows(6).pageSize(28).disableAllInteractions().create();
         gui.getFiller().fillBorder(ItemBuilder.from(Material.BLACK_STAINED_GLASS_PANE).name(Component.text("")).asGuiItem());
         for (int i = 0; i < shopItemList.size(); i++) {
             ShopItem shopItem = shopItemList.get(i);
@@ -65,9 +63,11 @@ public class ShopMenu implements ConfigurationSerializable {
             gui.addItem(guiItem);
             GuiItems.setupNextPreviousItems(gui, gui.getRows());
         }
+        return gui;
     }
 
     public void open(Player player) {
+        PaginatedGui gui = buildGui();
         gui.open(player);
         portableShop(player);
     }
@@ -81,6 +81,11 @@ public class ShopMenu implements ConfigurationSerializable {
         if (itemInfo.getAbility() instanceof PortableShopAbility portableShopAbility) {
             if (portableShopAbility.getShopId() != null) {
                 // Already set manually by admin
+                return;
+            }
+            String oldShop = ItemNbt.getString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID);
+            if (oldShop != null && oldShop.equals(id)) {
+                // Already set to this shop
                 return;
             }
             ItemNbt.setString(itemStack, PortableShopAbility.PORTABLE_SHOP_ID, id);
@@ -108,7 +113,7 @@ public class ShopMenu implements ConfigurationSerializable {
         }
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();

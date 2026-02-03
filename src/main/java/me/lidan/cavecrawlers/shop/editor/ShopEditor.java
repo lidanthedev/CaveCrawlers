@@ -78,7 +78,7 @@ public class ShopEditor {
         List<Component> lore = item.lore();
         if (lore == null) {
             lore = new ArrayList<>();
-        } else {
+        } else if (!lore.isEmpty()) {
             lore.remove(lore.size() - 1);
         }
         lore.add(component);

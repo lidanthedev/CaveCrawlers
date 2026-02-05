@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ArrowSpiralAbility extends ClickAbility implements Listener {
 
@@ -47,7 +47,7 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
             private final double lineSpacing = 360 / amountOfLines;
             private final double resolutionRatio = 1 / resolution;
 
-            int i = new Random().nextInt(360);
+            int i = ThreadLocalRandom.current().nextInt(360);
 
             @Override
             public void run() {

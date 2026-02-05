@@ -2,10 +2,12 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
-import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.stats.StatType;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+
+import java.util.List;
 
 public abstract class ScalingClickAbility extends ClickAbility{
     protected StatType statToScale;
@@ -39,6 +41,13 @@ public abstract class ScalingClickAbility extends ClickAbility{
 
     public AbilityDamage getDamageCalculation(Player player){
         return new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale, crit);
+    }
+
+    @Override
+    public List<String> toList() {
+        List<String> list = super.toList();
+        list.add(ChatColor.DARK_GRAY + "Scales with: " + statToScale.getFormatName());
+        return list;
     }
 
     @Override

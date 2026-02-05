@@ -1,8 +1,11 @@
+version: "3" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
   command: "openmenu"
   item-enabled: false # Should the menu item be given to players? NOT RECOMMENDED
+
+first-join-commands: [ ]
 
 # The following settings are for the loot share system.
 # Loot share allows players to share the loot of mobs they have damaged.
@@ -13,6 +16,8 @@ loot-share:
   damage-threshold: 10 # Minimum damage percent to be eligible for loot share
 
 mining-blacklisted-worlds: []
+mining:
+  hammer-per-block: 5 # hammer lost per block broken
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:
@@ -26,6 +31,9 @@ actionbar:
   # Text in [] will be replaced with the alert for a few seconds.
   enabled: true
   format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
+
+night-vision: true # Enable night vision for players
+hunger-disabled: true # Disable hunger for players
 
 # Change vanilla behavior that may not be desired in an RPG server.
 # If you don't know what you are doing, leave these settings as they are.
@@ -89,3 +97,10 @@ skill-need-xp:
   - 4800.0
   - 4900.0
   - 5000.0
+
+
+experimental:
+  enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
+  enable-leveling: false # Enable experimental leveling system (may cause issues)
+  hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
+  hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)

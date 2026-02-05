@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.skills;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -32,12 +33,12 @@ public class Skill implements ConfigurationSerializable {
 
     private UUID uuid;
 
-    public Skill(SkillInfo type, int level) {
+    public Skill(@NonNull SkillInfo type, int level) {
         this.type = type;
         this.level = level;
     }
 
-    public Skill(SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
+    public Skill(@NonNull SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
         this.type = type;
         this.level = level;
         this.xp = xp;
@@ -58,20 +59,33 @@ public class Skill implements ConfigurationSerializable {
     public int levelUp(boolean withRewards) {
         Player player = getPlayer();
         int leveled = 0;
-        while (xp >= xpToLevel && level < type.getXpToLevelList().size() && level < type.getMaxLevel()) {
+        int maxLevel = type.getMaxLevel();
+
+        while (xp >= xpToLevel && level < maxLevel) {
             level++;
             xp -= xpToLevel;
-            if (xp < 0){
-                xp = 0;
-            }
-            xpToLevel = type.getXpToLevelList().get(level - 1);
+
+            if (xp < 0) xp = 0;
+
+            leveled++;
+
             if (withRewards) {
                 List<SkillReward> rewards = type.getRewards(level);
                 for (SkillReward reward : rewards) {
                     reward.applyReward(player);
                 }
             }
-            leveled++;
+
+            if (level >= maxLevel) {
+                break;
+            }
+
+            if (level < type.getXpToLevelList().size()) {
+                xpToLevel = type.getXpToLevelList().get(level);
+            } else {
+                // YAML is missing levels but maxLevel is higher
+                break;
+            }
         }
         return leveled;
     }
@@ -135,5 +149,16 @@ public class Skill implements ConfigurationSerializable {
             skill.levelUp(true);
         }
         return skill;
+    }
+
+    public void resetSkill() {
+        this.level = 0;
+        this.xp = 0;
+        List<Double> xpList = type.getXpToLevelList();
+        if (xpList.isEmpty()) {
+            throw new IllegalStateException("Skill type " + type.getName() + " has no XP levels defined");
+        }
+        this.xpToLevel = xpList.getFirst();
+        this.totalXp = 0;
     }
 }

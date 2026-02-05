@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -34,7 +35,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         this(new ArrayList<>());
     }
 
-    public Skill get(SkillInfo type) {
+    public Skill get(@NonNull SkillInfo type) {
         return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 
@@ -118,5 +119,11 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @Override
     public Iterator<Skill> iterator() {
         return skills.values().iterator();
+    }
+
+    public void resetAllSkills() {
+        for (Skill skill : skills.values()) {
+            skill.resetSkill();
+        }
     }
 }

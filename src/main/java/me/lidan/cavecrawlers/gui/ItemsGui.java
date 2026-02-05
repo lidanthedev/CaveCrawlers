@@ -53,6 +53,9 @@ public class ItemsGui  {
         gui.setItem(6, 5, ItemBuilder.from(Material.COMPASS).name(MiniMessageUtils.miniMessage("<blue>Search")).asGuiItem(event -> {
             PromptManager.getInstance().prompt(player, "Search").thenAccept(result -> {
                 new ItemsGui(player, result, callback, title).open();
+            }).exceptionally(throwable -> {
+                new ItemsGui(player, "", callback, title).open();
+                return null;
             });
         }));
 

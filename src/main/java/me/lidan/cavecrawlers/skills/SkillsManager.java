@@ -7,10 +7,12 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -35,6 +37,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         instance = this;
     }
 
+    public static SkillsManager getInstance() {
+        if (instance == null) {
+            instance = new SkillsManager();
+        }
+        return instance;
+    }
+
     @Override
     public void register(String key, SkillInfo value) {
         value.setId(key);
@@ -45,7 +54,6 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
     public SkillInfo getSkillInfo(String key) {
         return skillInfoMap.get(key);
     }
-
 
     @Override
     public void tryGiveXp(SkillInfo skillType, SkillAction reason, String material, Player player) {
@@ -90,6 +98,26 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
     }
 
+    public Map<SkillInfo, List<SkillObjective>> getObjectivesMatching(SkillAction action, String material) {
+        Map<SkillInfo, List<SkillObjective>> result = new HashMap<>();
+        for (SkillInfo skillInfo : skillInfoMap.values()) {
+            List<SkillObjective> objectives = skillInfo.getActionObjectives().get(action);
+            if (objectives == null) {
+                continue;
+            }
+            List<SkillObjective> matches = new ArrayList<>();
+            for (SkillObjective objective : objectives) {
+                if (objective.getObjective().equalsIgnoreCase(material)) {
+                    matches.add(objective);
+                }
+            }
+            if (!matches.isEmpty()) {
+                result.put(skillInfo, matches);
+            }
+        }
+        return result;
+    }
+
     public void tryGiveXp(SkillAction reason, Material material, Player player) {
         tryGiveXp(reason, material.name(), player);
     }
@@ -101,24 +129,22 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
             skill = new Skill(skillType, 0);
             playerSkills.set(skillType, skill);
         }
-        skill.addXp(xp);
+        SkillXpGainEvent event = new SkillXpGainEvent(player, skill, xp);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+        skill.addXp(event.getXpGained());
         String skillName = StringUtils.setTitleCase(skillType.getName());
         playerSkills.tryLevelUp(skillType);
         if (showMessage) {
-            Component component = MiniMessageUtils.miniMessageString("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(xp), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
+            Component component = MiniMessageUtils.miniMessage("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(event.getXpGained()), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().showActionBar(player, component);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }
     }
 
-    public CustomConfig getConfig(SkillInfo type) {
+    public BoostedCustomConfig getConfig(SkillInfo type) {
         return getConfig(type.getName());
-    }
-
-    public static SkillsManager getInstance() {
-        if (instance == null) {
-            instance = new SkillsManager();
-        }
-        return instance;
     }
 }

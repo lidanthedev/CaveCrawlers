@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.stats;
 
+import lombok.NonNull;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -39,11 +40,12 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         return stats;
     }
 
-    public Stat get(StatType type) throws IllegalArgumentException {
+    public Stat get(@NonNull StatType type) throws IllegalArgumentException {
         if (stats.containsKey(type)) {
             return stats.get(type);
         }
-        throw new IllegalArgumentException("Stat type " + type.getId() + " does not exist.");
+        StatType statType = StatType.valueOf(type.name()); // get from enum to ensure validity
+        return stats.computeIfAbsent(statType, Stat::new);
     }
 
     public void set(StatType type, double amount) {
@@ -154,8 +156,11 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
                 Stat stat = get(type);
                 double value = stat.getValue();
                 if (value > 0) {
-                    String numberWithoutDot = StringUtils.getNumberWithoutDot(value);
+                    String numberWithoutDot = StringUtils.getNumberFormat(value);
                     lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "+" + numberWithoutDot);
+                } else if (value < 0) {
+                    String numberWithoutDot = StringUtils.getNumberFormat(-value);
+                    lore.add(ChatColor.GRAY + stat.getType().getName() + ": " + type.getLoreColor() + "-" + numberWithoutDot);
                 }
             } catch (IllegalArgumentException ignored) {
                 // If the stat type does not exist, we ignore it

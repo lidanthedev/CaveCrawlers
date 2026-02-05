@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -82,6 +83,13 @@ public abstract class ChargedItemAbility extends ClickAbility {
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().showActionBar(player, msg);
         useAbility(playerEvent);
+    }
+
+    @Override
+    public List<String> toList() {
+        List<String> list = super.toList();
+        list.add(ChatColor.DARK_GRAY + "Charges: " + ChatColor.YELLOW + maxCharges + ChatColor.DARK_GRAY + "/" + ChatColor.GREEN + chargeTime / 1000 + "s");
+        return list;
     }
 
     @Override

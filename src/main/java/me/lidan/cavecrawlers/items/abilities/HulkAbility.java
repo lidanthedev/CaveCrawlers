@@ -37,7 +37,7 @@ public class HulkAbility extends ScalingClickAbility{
         Player player = playerEvent.getPlayer();
         player.setVelocity(player.getVelocity().setY(powerY));
         // wait for the player to fall back down
-        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale,false);
+        AbilityDamage calculation = new AbilityDamage(player, baseAbilityDamage, abilityScaling, statToScale, crit);
         Bukkit.getScheduler().runTaskTimer(plugin, task -> {
             player.setVelocity(player.getVelocity().setY(-powerY));
             if (!player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isAir()) {

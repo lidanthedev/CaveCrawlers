@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.objects;
 
 import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
@@ -17,7 +18,6 @@ import java.util.Map;
 
 @Data
 public class ConfigMessage implements ConfigurationSerializable, Cloneable {
-    public static boolean usePlaceholderAPI = false;
     private static CustomConfig config = new CustomConfig("messages");
     private String message = "";
     private TitleOptions titleOptions;
@@ -76,7 +76,7 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
             if(copy.titleOptions != null)
                 copy.titleOptions = copy.titleOptions.replace("%" + key + "%", placeholders.get(key));
         }
-        if (usePlaceholderAPI){
+        if (CaveCrawlers.usePlaceholderAPI) {
             copy.message = PlaceholderAPI.setPlaceholders(player, copy.message);
             if(copy.titleOptions != null)
                 copy.titleOptions = copy.titleOptions.setPlaceholders(player);

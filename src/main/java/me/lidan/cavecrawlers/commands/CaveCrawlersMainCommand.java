@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XMaterial;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -10,8 +11,10 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -41,8 +44,11 @@ import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -50,13 +56,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -66,12 +77,7 @@ import static org.bukkit.Bukkit.getConsoleSender;
 @Command({"ct", "cc", "cavecrawlers"})
 @CommandPermission("cavecrawlers.test")
 public class CaveCrawlersMainCommand {
-    enum HelpCommandType {
-        LINE,
-        COMMAND,
-        TITLE
-    }
-
+    private static final Logger log = LoggerFactory.getLogger(CaveCrawlersMainCommand.class);
     private final ShopManager shopManager = ShopManager.getInstance();
     private final ItemsManager itemsManager = ItemsManager.getInstance();
     private final StatsManager statsManager = StatsManager.getInstance();
@@ -81,10 +87,10 @@ public class CaveCrawlersMainCommand {
     private final EntityManager entityManager = EntityManager.getInstance();
     private final AltarManager altarManager = AltarManager.getInstance();
     private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
-    private CustomConfig config = new CustomConfig("test");
     private final CommandHandler handler;
     private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private CustomConfig config = new CustomConfig("test");
 
     public CaveCrawlersMainCommand(CommandHandler handler) {
         this.handler = handler;
@@ -106,6 +112,20 @@ public class CaveCrawlersMainCommand {
             handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
         }
         handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+    }
+
+    @NotNull
+    private static Set<String> getFillID(Player player) {
+        ItemStack hand = player.getEquipment().getItemInMainHand();
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) {
+            return Collections.singleton("");
+        }
+        String name = meta.getDisplayName();
+        name = ChatColor.stripColor(name);
+        name = name.toUpperCase(Locale.ROOT);
+        name = name.replaceAll(" ", "_");
+        return Collections.singleton(name);
     }
 
     private Component getHelpMessage(HelpCommandType type, String command, String description) {
@@ -189,20 +209,6 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc altar info <altar-name>", "get info about an altar"));
     }
 
-    @NotNull
-    private static Set<String> getFillID(Player player) {
-        ItemStack hand = player.getEquipment().getItemInMainHand();
-        ItemMeta meta = hand.getItemMeta();
-        if (!meta.hasDisplayName()) {
-            return Collections.singleton("");
-        }
-        String name = meta.getDisplayName();
-        name = ChatColor.stripColor(name);
-        name = name.toUpperCase(Locale.ROOT);
-        name = name.replaceAll(" ", "_");
-        return Collections.singleton(name);
-    }
-
     @Subcommand("reload items")
     public void reloadItems(CommandSender sender) {
         ItemsLoader loader = ItemsLoader.getInstance();
@@ -236,11 +242,39 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload plugin")
-    public void ReloadPlugin(CommandSender sender) {
+    public void reloadPlugin(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
         Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
         sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
     }
 
+    @Subcommand("reload addons")
+    public void reloadAddons(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
+        @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
+        for (Plugin plugin : plugins) {
+            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
+                Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + plugin.getName());
+                sender.sendMessage(ChatColor.GREEN + plugin.getName() + " reloaded!");
+            }
+        }
+    }
+
+    @Subcommand("reload all")
+    public void reloadAll(CommandSender sender) {
+        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
+            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+            return;
+        }
+        reloadPlugin(sender);
+        reloadAddons(sender);
+    }
 
     @Subcommand("config saveStats")
     public void saveStats(Player sender) {
@@ -299,10 +333,12 @@ public class CaveCrawlersMainCommand {
     @Subcommand("item give")
     @AutoComplete("* @itemID *")
     public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
-        ItemStack exampleSword = itemsManager.buildItem(id, 1);
-        for (int i = 0; i < amount; i++) {
-            itemsManager.giveItemStacks(player, exampleSword);
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
         }
+        itemsManager.giveItem(player, itemInfo, amount);
     }
 
     @Subcommand("item get")
@@ -330,7 +366,7 @@ public class CaveCrawlersMainCommand {
 
         ItemInfo itemInfo;
         try {
-            ItemExporter exporter = new ItemExporter(hand);
+            ItemImporter exporter = new ItemImporter(hand);
             itemInfo = exporter.toItemInfo();
         } catch (Exception error) {
             sender.sendMessage("Seems like you didn't use the right format but I'll try to create the item anyways");
@@ -344,7 +380,7 @@ public class CaveCrawlersMainCommand {
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
 
-        sender.sendMessage("Exported Item with id " + id);
+        sender.sendMessage("Imported Item with id " + id);
     }
 
     @Subcommand("item remove-id")
@@ -352,6 +388,25 @@ public class CaveCrawlersMainCommand {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.removeTag(hand, ItemsManager.ITEM_ID);
         sender.sendMessage("Removed ID from Item! it will no longer update or apply stats!");
+    }
+
+    @Subcommand("item remove")
+    @AutoComplete("@itemID *")
+    public void itemRemove(CommandSender sender, @Named("Item ID") String id, @Default("false") boolean confirm) {
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        if (sender instanceof Player player && !confirm) {
+            new ConfirmGui(player, MiniMessageUtils.miniMessage("<red>Remove <id>?", Map.of("id", id)), () -> {
+                itemsManager.removeItem(id);
+                player.sendMessage("Removed Item!");
+            }).open();
+            return;
+        }
+        itemsManager.removeItem(id);
+        sender.sendMessage("Removed Item!");
     }
 
     @Subcommand("item browse")
@@ -375,7 +430,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
-
+        id = id.toUpperCase();
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats();
@@ -452,6 +507,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
+        description = ChatColor.translateAlternateColorCodes('&', description);
         if (description.equals("reset")) {
             description = null;
         }
@@ -520,6 +576,7 @@ public class CaveCrawlersMainCommand {
         itemInfo.setBaseItem(new ItemStack(hand));
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);
+        itemsManager.updatePlayerInventory(sender);
         sender.sendMessage("Updated Base Item!");
     }
 
@@ -588,6 +645,10 @@ public class CaveCrawlersMainCommand {
         }
         PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
         for (NamespacedKey key : dataContainer.getKeys()) {
+            if (!dataContainer.has(key, PersistentDataType.STRING)) {
+                sender.sendMessage(key + ": NOT A STRING TYPE");
+                continue;
+            }
             String value = dataContainer.get(key, PersistentDataType.STRING);
             sender.sendMessage(key + ": " + value);
         }
@@ -703,6 +764,10 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /cc shop editor <shop-name>"));
             return;
         }
+        if (shopId.contains(" ")) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ID CANNOT CONTAIN SPACES!"));
+            return;
+        }
         ShopMenu shop = shopManager.createShop(shopId);
         if (sender instanceof Player player) {
             new ShopEditor(player, shop).open();
@@ -780,7 +845,7 @@ public class CaveCrawlersMainCommand {
     @Subcommand("mining setHardness")
     public void miningSetHardness(Player sender, int strength, int power) {
         Block targetBlock = sender.getTargetBlock(null, 10);
-        BlockInfo blockInfo = new BlockInfo(strength, power, new HashMap<>());
+        BlockInfo blockInfo = new BlockInfo(strength, power, new ArrayList<>());
         Material type = targetBlock.getType();
         if (type == Material.AIR) return;
         miningManager.setBlockInfo(type.name(), blockInfo);
@@ -918,6 +983,95 @@ public class CaveCrawlersMainCommand {
         });
     }
 
+    @Subcommand("test armorset")
+    @AutoComplete("@itemID LEATHER|IRON|GOLD|DIAMOND|NETHERITE|CHAINMAIL *")
+    public void testArmorSet(Player sender, String originId, String materialType) {
+        ItemInfo itemInfo = itemsManager.getItemByID(originId);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        XMaterial material = XMaterial.matchXMaterial(materialType + "_HELMET").orElseThrow();
+        if (!material.isSupported()) {
+            sender.sendMessage("ERROR! MATERIAL TYPE NOT SUPPORTED!");
+            return;
+        }
+        String[] parts = {"HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"};
+        String setId = originId;
+        for (String part : parts) {
+            setId = setId.replace(part, "");
+        }
+        ItemStack originBaseItem = itemInfo.getBaseItem();
+        for (String part : parts) {
+            String id = setId + part;
+            ItemInfo clonedInfo = itemInfo.clone();
+            XMaterial materialOpt = XMaterial.matchXMaterial(materialType + "_" + part).orElseThrow();
+            ItemStack baseItem = new ItemStack(materialOpt.get());
+            try {
+                baseItem.setItemMeta(originBaseItem.getItemMeta());
+            } catch (IllegalArgumentException error) {
+                log.warn("Could not set item meta for {}, using default meta.", id);
+            }
+            clonedInfo.setBaseItem(baseItem);
+            String name = StringUtils.setTitleCase(id.replace("_", " "));
+            clonedInfo.setName(name);
+            itemsManager.setItem(id, clonedInfo);
+            ItemStack itemStack = itemsManager.buildItem(id, 1);
+            sender.getInventory().addItem(itemStack);
+        }
+    }
+
+    @Subcommand("test cooldown")
+    public void testCooldown(Player sender) {
+        ItemStack hand = sender.getEquipment().getItemInMainHand();
+        if (hand.getType() == Material.AIR) {
+            sender.sendMessage("Hold an item in your hand!");
+            return;
+        }
+        PacketManager.getInstance().setCooldown(sender, hand.getType(), 100);
+    }
+
+    @Subcommand("test blockdata")
+    public void testBlockData(Player sender) {
+        try {
+            BoostedCustomConfig document = new BoostedCustomConfig(
+                    new File(plugin.getDataFolder(), "boosted.yml"));
+            Block targetBlock = sender.getTargetBlock(null, 10);
+            BlockData blockData = targetBlock.getBlockData();
+            sender.sendMessage("Block data: " + blockData.getAsString());
+            document.set("testBlockData", blockData.getAsString());
+            document.save();
+            BlockData loadedBlockData = Bukkit.createBlockData(document.getString("testBlockData"));
+            sender.sendMessage("Loaded block data: " + loadedBlockData.getAsString());
+        } catch (IOException e) {
+            log.error("Error handling boosted.yml", e);
+        }
+    }
+
+    @Subcommand("test createBlockData")
+    public void testCreateBlockData(Player sender, String blockDataString) {
+        try {
+            BlockData blockData = Bukkit.createBlockData(blockDataString);
+            sender.sendMessage("Created block data: " + blockData.getAsString());
+        } catch (IllegalArgumentException e) {
+            sender.sendMessage("Error creating block data: " + e.getMessage());
+        }
+    }
+
+    @Subcommand("test getface")
+    public void testGetFace(Player sender) {
+        Block targetBlock = sender.getTargetBlock(null, 10);
+        BlockFace face = targetBlock.getFace(sender.getLocation().getBlock());
+        sender.sendMessage("Looking face: " + face);
+    }
+
+    @Subcommand("test getSkull")
+    public void testGetSkull(Player sender, EntityType entityHead) {
+        ItemStack skull = EntityHeads.fromEntityType(entityHead);
+        sender.getInventory().addItem(skull);
+        sender.sendMessage("Added skull to inventory!");
+    }
+
     @Subcommand("mythic skill")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {
@@ -944,6 +1098,7 @@ public class CaveCrawlersMainCommand {
         Altar altar = new Altar();
         altar.setItemToSpawn(itemInfo);
         altar.setSpawnLocation(sender.getLocation());
+        altarManager.registerAltar(altarName, altar);
         altarManager.updateAltar(altarName, altar);
         sender.sendMessage(ChatColor.GREEN + "Created Alter named %s".formatted(altarName));
     }
@@ -1009,19 +1164,84 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(ChatColor.GREEN + "Success add spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
     }
 
-    @Subcommand("altar info")
-    public void altarInfo(Player sender, Altar altar) {
-        // show the info in a pretty way
-        sender.sendMessage("Altar Info:");
-        sender.sendMessage("ID: " + altar.getId());
-        sender.sendMessage("Item to Spawn: " + altar.getItemToSpawn().getName());
-        sender.sendMessage("Altar Material: " + altar.getAltarMaterial());
-        sender.sendMessage("Used Material: " + altar.getAlterUsedMaterial());
-        sender.sendMessage("Spawns: ");
-        for (AltarDrop spawn : altar.getSpawns()) {
-            sender.sendMessage("  - " + spawn.getValue() + " with chance " + spawn.getChance());
+    @Subcommand("altar setSpawn")
+    @AutoComplete("* * @mobID *")
+    public void altarSetSpawn(Player sender, Altar altar, int index, String mob, double chance) {
+        if (index < 0 || index >= altar.getSpawns().size()) {
+            sender.sendMessage(ChatColor.RED + "Invalid index!");
+            return;
         }
+        altar.getSpawns().set(index, new AltarDrop(chance, mob));
+        altarManager.updateAltar(altar.getId(), altar);
+        sender.sendMessage(ChatColor.GREEN + "Success set spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
+    }
 
+    @Subcommand("altar info")
+    public void altarInfo(CommandSender sender, Altar altar) {
+        // show the info in a pretty way
+        ItemInfo spawnItem = altar.getItemToSpawn();
+        String spawnItemName = spawnItem != null ? spawnItem.getFormattedName() : "None";
+        String spawnItemId = spawnItem != null ? spawnItem.getID() : "NONE";
+        Material altarMaterial = altar.getAltarMaterial() != null ? altar.getAltarMaterial() : Material.AIR;
+        Material usedMaterial = altar.getAlterUsedMaterial() != null ? altar.getAlterUsedMaterial() : altarMaterial;
+        Location spawnLoc = altar.getSpawnLocation();
+        String spawnLocText = spawnLoc != null
+                ? String.format("X: %.1f Y: %.1f Z: %.1f", spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ())
+                : "Not set";
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Altar Info:
+                <yellow>ID: <gold><id>
+                <yellow>Item to Spawn: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawnitem <id> <item_to_spawn_id>'><item_to_spawn></click></hover>
+                <yellow>Altar Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setmaterial <id> <material>'><material></click></hover>
+                <yellow>Used Material: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setusedmaterial <id> <used_material>'><used_material></click></hover>""", Map.of(
+                "id", altar.getId(),
+                "item_to_spawn", spawnItemName,
+                "item_to_spawn_id", spawnItemId,
+                "material", altarMaterial.name(),
+                "used_material", usedMaterial.name()
+        )));
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Points Per Item: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setpointsperitem <id> <points>'><points></click></hover>
+                <yellow>Altar Recharge Time: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setaltarrechargetime <id> <time>'><time></click></hover> ticks""", Map.of(
+                "id", altar.getId(),
+                "points", String.valueOf(altar.getPointsPerItem()),
+                "time", String.valueOf(altar.getAltarRechargeTime())
+        )));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<yellow>Spawns:"));
+        int index = 0;
+        for (AltarDrop spawn : altar.getSpawns()) {
+            // <yellow><index>. <gold><mob><yellow> with <green><chance>%
+            sender.sendMessage(MiniMessageUtils.miniMessage("""
+                    <yellow>  <index>. <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawn <id> <index> <mob> <chance>'><mob></click></hover> <yellow>with <green><chance>%""", Map.of(
+                    "index", String.valueOf(index),
+                    "id", altar.getId(),
+                    "mob", spawn.getValue(),
+                    "chance", String.valueOf(spawn.getChance())
+            )));
+            index++;
+        }
+        // <green>Click to add spawn
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <hover:show_text:'<yellow>Click To Add'><click:suggest_command:'/cc altar addspawn <id> '><green><bold>Click to add spawn</click></hover>""", Map.of(
+                "id", altar.getId()
+        )));
+
+        // show spawn locations count and click to show them
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Altars Locations: <gold><count> <hover:show_text:'<yellow>Click To Show Locations'><click:suggest_command:'/cc altar showlocations <id>'><gold><bold>SHOW</click></hover>""", Map.of(
+                "count", String.valueOf(altar.getAltarLocations().size()),
+                "id", altar.getId()
+        )));
+        // show spawn location and click to edit
+        sender.sendMessage(MiniMessageUtils.miniMessage("""
+                <yellow>Spawn Location: <gold><hover:show_text:'<yellow>Click To Edit'><click:suggest_command:'/cc altar setspawnlocation <id>'><location></click></hover>""", Map.of(
+                "location", spawnLocText,
+                "id", altar.getId()
+        )));
+    }
+
+    @Subcommand("altar showLocations")
+    public void altarLocationsShow(Player sender, Altar altar) {
         sender.sendMessage("Locations are shown visually with fake blocks");
         for (Location altarLocation : altar.getAltarLocations()) {
             sender.sendBlockChange(altarLocation, Material.PINK_CONCRETE.createBlockData());
@@ -1030,16 +1250,22 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar reset")
-    public void altarReset(Player sender, Altar altar) {
+    public void altarReset(CommandSender sender, Altar altar) {
         altar.resetAltar();
         sender.sendMessage("Reset Altar!");
     }
 
     @Subcommand("altar disable")
-    public void altarDisable(Player sender, Altar altar) {
+    public void altarDisable(CommandSender sender, Altar altar) {
         altar.refundAltar();
         altar.disableAltar();
         sender.sendMessage("Disabled Altar!");
+    }
+
+    @Subcommand("altar resetAll")
+    public void altarResetAll(CommandSender sender) {
+        altarManager.reset();
+        sender.sendMessage("Reset All Altars!");
     }
 
     @Subcommand("level send")
@@ -1083,5 +1309,11 @@ public class CaveCrawlersMainCommand {
     public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
+    }
+
+    enum HelpCommandType {
+        LINE,
+        COMMAND,
+        TITLE
     }
 }

@@ -23,6 +23,9 @@ public enum ItemType {
     ARMOR("Armor", ItemSlot.ARMOR),
     UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
     OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
+    ACCESSORY("Accessory", ItemSlot.INVENTORY),
+    PET("Pet", ItemSlot.OFF_HAND),
+    HOTBAR("Hotbar", ItemSlot.HOTBAR)
 
     ;
 
@@ -32,5 +35,9 @@ public enum ItemType {
     ItemType(String name, ItemSlot slot) {
         this.name = name;
         this.slot = slot;
+    }
+
+    public boolean isWeapon() {
+        return this == WEAPON || this == SWORD || this == BOW || this == WAND;
     }
 }

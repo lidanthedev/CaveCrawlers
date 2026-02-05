@@ -22,23 +22,37 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
+          java-version: '21'
+          # Removed "cache: gradle" here because setup-gradle handles it better below
 
-      # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-      # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+      # Configure Gradle for optimal use in GitHub Actions
+      # This step automatically caches Gradle dependencies and the build cache
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          # Only write to the cache for builds on the main branches, read-only for PRs
+          # This prevents PRs from evicting useful cache entries
+          cache-read-only: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
 
       - name: Set execute permissions
         run: chmod +x gradlew
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build --no-daemon
+
+      # This step uploads the files from build/libs so you can download them
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/libs/*.jar
+          # Optional: Exclude sources or dev jars if you only want the final product
+          # retention-days: 5
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.

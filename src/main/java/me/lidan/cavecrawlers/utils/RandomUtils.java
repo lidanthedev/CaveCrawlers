@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.utils;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * RandomUtils class to manage random utils
@@ -18,7 +19,7 @@ public class RandomUtils {
         max++;
         min *= 1000;
         max *= 1000;
-        return (int) (Math.random() * (max - min) + min) / 1000;
+        return (int) (ThreadLocalRandom.current().nextDouble() * (max - min) + min) / 1000;
     }
 
     /**
@@ -30,7 +31,7 @@ public class RandomUtils {
     public static double randomDouble(double min, double max) {
         min *= 1000;
         max *= 1000;
-        return (Math.random() * (max - min) + min) / 1000;
+        return (ThreadLocalRandom.current().nextDouble() * (max - min) + min) / 1000;
     }
 
     /**
@@ -39,7 +40,7 @@ public class RandomUtils {
      * @return the random boolean
      */
     public static boolean chanceOf(double percent) {
-        double chance = Math.random() * 100;
+        double chance = ThreadLocalRandom.current().nextDouble() * 100;
         return chance <= percent;
     }
 

@@ -9,7 +9,9 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,6 +53,9 @@ public class MiniMessageUtils {
      * @return the MiniMessage Component
      */
     public static Component miniMessage(String message, Map<String, Object> placeholders) {
+        if (message.contains(String.valueOf(ChatColor.COLOR_CHAR))) {
+            message = fromLegacy(message);
+        }
         if (placeholders.isEmpty()) {
             return miniMessageString(message);
         }
@@ -157,5 +162,18 @@ public class MiniMessageUtils {
             progressBar.append(icon);
         }
         return MINI_MESSAGE.deserialize(progressBar.toString());
+    }
+
+    public static @NonNull List<Component> miniMessageList(List<String> messages) {
+        return messages.stream().map(MiniMessageUtils::miniMessage).toList();
+    }
+
+    public static @NonNull List<Component> miniMessageList(String... messages) {
+        return miniMessageList(List.of(messages));
+    }
+
+    public static String fromLegacy(String message) {
+        Component component = LEGACY_SECTION.deserialize(message);
+        return MINI_MESSAGE.serialize(component).replace("\\<", "<");
     }
 }

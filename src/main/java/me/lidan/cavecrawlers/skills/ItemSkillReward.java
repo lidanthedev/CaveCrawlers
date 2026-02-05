@@ -32,7 +32,7 @@ public class ItemSkillReward extends SkillReward {
     @Override
     public Component getRewardMessage() {
         Drop.ItemDropInfo dropInfo = Drop.getItemDropInfo(item);
-        String item = dropInfo.itemInfo().getFormattedNameWithAmount(dropInfo.amount());
+        String item = dropInfo.itemInfo().getFormattedNameWithAmount(dropInfo.range().getMin());
         Component itemComponent = LegacyComponentSerializer.legacySection().deserialize(item);
         return MiniMessageUtils.miniMessageComponent("<green>+<item></green>", Map.of("item", itemComponent));
     }

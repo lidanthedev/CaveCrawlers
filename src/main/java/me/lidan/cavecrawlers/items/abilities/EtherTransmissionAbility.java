@@ -12,7 +12,7 @@ public class EtherTransmissionAbility extends TransmissionAbility {
     private int maxDistance = 60;
 
     public EtherTransmissionAbility(double blocks) {
-        super(blocks);
+        super("Ether Transmission", "Teleport ahead of you or to targeted block while sneaking", 50, 50, blocks);
     }
 
     @Override
@@ -31,8 +31,8 @@ public class EtherTransmissionAbility extends TransmissionAbility {
             l.setPitch(pitch);
             if (b.getType() != Material.AIR) {
                 if (b1.getType() == Material.AIR && b2.getType() == Material.AIR) {
-                    player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
                     player.teleport(l);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_HURT, 1f, 0f);
                     b1.getWorld().spawnParticle(particle, l, 500, 0.1, 0.1, 0.1);
                 } else {
                     player.sendMessage(ChatColor.RED + "There is a block there!");

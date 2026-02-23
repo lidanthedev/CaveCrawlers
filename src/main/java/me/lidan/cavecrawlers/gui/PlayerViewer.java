@@ -55,6 +55,11 @@ public class PlayerViewer {
         if (mainHand != null) {
             gui.setItem(1, ItemBuilder.from(mainHand.clone()).asGuiItem());
         }
+        // mainHand
+        ItemStack offhand = player.getInventory().getItemInOffHand();
+        if (offhand != null) {
+            gui.setItem(46, ItemBuilder.from(offhand.clone()).asGuiItem());
+        }
         // Bank
         gui.setItem(15, ItemBuilder.from(Material.GOLD_INGOT).setName(ChatColor.GRAY + "Money: " + ChatColor.GOLD + StringUtils.getNumberFormat(VaultUtils.getCoins(player))).asGuiItem());
         // Rank

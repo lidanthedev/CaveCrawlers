@@ -860,24 +860,25 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("data load")
-    public void dataTest(Player sender) {
+    public void dataLoad(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
-        PlayerData playerData = dataManager.loadPlayerData(sender.getUniqueId());
-        sender.sendMessage(playerData.toString());
+        PlayerData playerData = dataManager.loadPlayerData(arg.getUniqueId());
+        dataManager.savePlayerDataInMap(arg.getUniqueId(), playerData);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Loaded Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data save")
-    public void dataSave(Player sender) {
+    public void dataSave(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
-        dataManager.savePlayerData(sender.getUniqueId());
-        sender.sendMessage("Saved Player Data!");
+        dataManager.savePlayerData(arg.getUniqueId());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Saved Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data reset")
-    public void dataReset(Player sender) {
+    public void dataReset(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
-        dataManager.resetPlayerData(sender.getUniqueId());
-        sender.sendMessage("Reset Player Data!");
+        dataManager.resetPlayerData(arg.getUniqueId());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Reset Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("kill target")
@@ -1081,10 +1082,12 @@ public class CaveCrawlersMainCommand {
         long start = System.currentTimeMillis();
         for (Skill skill : skills) {
             double totalXp = skill.getTotalXp();
+            sender.sendMessage("Recalculating skill: " + skill.getType().getName() + " with total xp: " + StringUtils.getNumberFormat(totalXp));
             Skill simulate = new Skill(skill.getType(), 0);
             simulate.setXp(totalXp);
             simulate.levelUp(false);
-            sender.sendMessage("Skill: " + skill.getType().getName() + " Level: " + skill.getLevel() + " Simulated Level: " + simulate.getLevel());
+            sender.sendMessage(MiniMessageUtils.miniMessage("Real level: <level> with xp: <xp>", Map.of("level", skill.getLevel(), "xp", StringUtils.getNumberFormat(skill.getXp()))));
+            sender.sendMessage(MiniMessageUtils.miniMessage("Simulated level: <level> with xp: <xp>", Map.of("level", simulate.getLevel(), "xp", StringUtils.getNumberFormat(simulate.getXp()))));
             if (skill.getLevel() != simulate.getLevel()) {
                 sender.sendMessage("Levels don't match! Recalculating...");
                 skills.set(skill.getType(), simulate);

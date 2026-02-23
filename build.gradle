@@ -27,7 +27,6 @@ repositories {
         name = "CodeMC"
         url = uri("https://repo.codemc.io/repository/maven-public/")
     }
-//    maven { url "https://repo.dmulloy2.net/repository/public/" }
     maven { url 'https://mvn.lumine.io/repository/maven-public/' }
     maven {
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
@@ -70,6 +69,7 @@ shadowJar {
     relocate "dev.triumphteam.gui", "me.lidan.cavecrawlers.gui"
     relocate "com.cryptomorin.xseries", "me.lidan.cavecrawlers.xseries"
     relocate "dev.dejvokep.boostedyaml", "me.lidan.cavecrawlers.boostedyaml"
+    relocate "fr.robotv2.placeholderannotationlib", "me.lidan.cavecrawlers.placeholderannotationlib"
 }
 
 jar.enabled = false

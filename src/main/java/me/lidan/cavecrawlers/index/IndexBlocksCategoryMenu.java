@@ -7,6 +7,8 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
@@ -18,7 +20,11 @@ public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
     @Override
     public void setupGui() {
         Map<Material, BlockInfo> dropsMap = MiningManager.getInstance().getBlockInfoMap();
-        for (Map.Entry<Material, BlockInfo> dropsEntry : dropsMap.entrySet()) {
+        List<Map.Entry<Material, BlockInfo>> sortedDrops = dropsMap.entrySet()
+                .stream()
+                .sorted(Comparator.comparingInt(entry -> entry.getValue().getBlockPower()))
+                .toList();
+        for (Map.Entry<Material, BlockInfo> dropsEntry : sortedDrops) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
             addItem(name, ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem());

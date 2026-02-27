@@ -34,8 +34,6 @@ import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.shop.editor.ShopEditor;
-import me.lidan.cavecrawlers.skills.Skill;
-import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
@@ -1073,29 +1071,6 @@ public class CaveCrawlersMainCommand {
         ItemStack skull = EntityHeads.fromEntityType(entityHead);
         sender.getInventory().addItem(skull);
         sender.sendMessage("Added skull to inventory!");
-    }
-
-    @Subcommand("test recalcSkills")
-    public void testRecalcSkills(Player sender) {
-        PlayerData playerData = PlayerDataManager.getInstance().getPlayerData(sender.getUniqueId());
-        Skills skills = playerData.getSkills();
-        long start = System.currentTimeMillis();
-        for (Skill skill : skills) {
-            double totalXp = skill.getTotalXp();
-            sender.sendMessage("Recalculating skill: " + skill.getType().getName() + " with total xp: " + StringUtils.getNumberFormat(totalXp));
-            Skill simulate = new Skill(skill.getType(), 0);
-            simulate.setXp(totalXp);
-            simulate.levelUp(false);
-            sender.sendMessage(MiniMessageUtils.miniMessage("Real level: <level> with xp: <xp>", Map.of("level", skill.getLevel(), "xp", StringUtils.getNumberFormat(skill.getXp()))));
-            sender.sendMessage(MiniMessageUtils.miniMessage("Simulated level: <level> with xp: <xp>", Map.of("level", simulate.getLevel(), "xp", StringUtils.getNumberFormat(simulate.getXp()))));
-            if (skill.getLevel() != simulate.getLevel()) {
-                sender.sendMessage("Levels don't match! Recalculating...");
-                skills.set(skill.getType(), simulate);
-            }
-        }
-        playerData.setSkills(skills);
-        long end = System.currentTimeMillis();
-        sender.sendMessage("Recalculated skills in " + (end - start) + "ms");
     }
 
     @Subcommand("mythic skill")

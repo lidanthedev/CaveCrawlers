@@ -20,6 +20,8 @@ import java.util.Map;
 public class SkillInfo implements ConfigurationSerializable {
     public static final int DEFAULT_MAX_LEVEL = 50;
     public static final Material DEFAULT_ICON = Material.PAPER;
+    private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
+    private final Map<Integer, Stats> statsRewards = new HashMap<>();
     private String id;
     private String name;
     private Map<Integer, List<SkillReward>> rewards;
@@ -28,9 +30,6 @@ public class SkillInfo implements ConfigurationSerializable {
     private List<SkillObjective> objectives;
     private List<Double> xpToLevelList = new ArrayList<>();
     private Material icon;
-
-    private final Map<SkillAction, List<SkillObjective>> actionObjectives = new HashMap<>();
-    private final Map<Integer, Stats> statsRewards = new HashMap<>();
 
     public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward, int maxLevel, List<SkillObjective> objectives, List<Double> xpToLevelList, Material icon) {
         this.name = name;
@@ -49,6 +48,51 @@ public class SkillInfo implements ConfigurationSerializable {
 
     public SkillInfo(String name, Map<Integer, List<SkillReward>> rewards, boolean autoReward) {
         this(name, rewards, autoReward, DEFAULT_MAX_LEVEL, new ArrayList<>(), Skill.getDefaultXpToLevelList(), DEFAULT_ICON);
+    }
+
+    public static SkillInfo deserialize(Map<String, Object> map) {
+        String name = (String) map.get("name");
+        Map<Integer, List<String>> rewards = (Map<Integer, List<String>>) map.get("rewards");
+        boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
+        Map<Integer, List<SkillReward>> rewardsMap = new HashMap<>();
+        try {
+            if (rewards != null) {
+                for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
+                    List<SkillReward> skillRewards = new ArrayList<>();
+                    for (String reward : entry.getValue()) {
+                        skillRewards.add(SkillReward.valueOf(reward));
+                    }
+                    rewardsMap.put(entry.getKey(), skillRewards);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("Skill {} has invalid rewards, skipping rewards", name);
+            rewardsMap.clear();
+            autoReward = false;
+        }
+        int maxLevel = (int) map.getOrDefault("maxLevel", DEFAULT_MAX_LEVEL);
+        List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
+        int xpToLevelSize = xpToLevelList.size();
+        if (xpToLevelSize < maxLevel) {
+            log.warn("Skill {} does not have enough xpToLevel values (has {}), filling with unreachable xp", name, xpToLevelSize);
+            for (int i = xpToLevelSize; i <= maxLevel; i++) {
+                xpToLevelList.add(Double.MAX_VALUE);
+            }
+        }
+        Material icon = Material.valueOf((String) map.getOrDefault("icon", DEFAULT_ICON.name()));
+        List<String> objectives = (List<String>) map.get("objectives");
+        List<SkillObjective> skillObjectives = new ArrayList<>();
+        if (objectives != null) {
+            try {
+                for (String objective : objectives) {
+                    skillObjectives.add(SkillObjective.valueOf(objective));
+                }
+            } catch (IllegalArgumentException e) {
+                log.warn("Skill {} has invalid objectives, skipping objectives", name);
+                skillObjectives.clear();
+            }
+        }
+        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList, icon);
     }
 
     public void generateActionObjectives() {
@@ -115,48 +159,5 @@ public class SkillInfo implements ConfigurationSerializable {
         map.put("xpToLevelList", xpToLevelList);
         map.put("icon", icon.name());
         return map;
-    }
-
-    public static SkillInfo deserialize(Map<String, Object> map) {
-        String name = (String) map.get("name");
-        Map<Integer, List<String>> rewards = (Map<Integer, List<String>>) map.get("rewards");
-        boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
-        Map<Integer, List<SkillReward>> rewardsMap = new HashMap<>();
-        try {
-            for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
-                List<SkillReward> skillRewards = new ArrayList<>();
-                for (String reward : entry.getValue()) {
-                    skillRewards.add(SkillReward.valueOf(reward));
-                }
-                rewardsMap.put(entry.getKey(), skillRewards);
-            }
-        } catch (IllegalArgumentException e) {
-            log.warn("Skill {} has invalid rewards, skipping rewards", name);
-            rewardsMap.clear();
-            autoReward = false;
-        }
-        int maxLevel = (int) map.getOrDefault("maxLevel", DEFAULT_MAX_LEVEL);
-        List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
-        int xpToLevelSize = xpToLevelList.size();
-        if (xpToLevelSize < maxLevel) {
-            log.warn("Skill {} does not have enough xpToLevel values (has {}), filling with unreachable xp", name, xpToLevelSize);
-            for (int i = xpToLevelSize; i <= maxLevel; i++) {
-                xpToLevelList.add(Double.MAX_VALUE);
-            }
-        }
-        Material icon = Material.valueOf((String) map.getOrDefault("icon", DEFAULT_ICON.name()));
-        List<String> objectives = (List<String>) map.get("objectives");
-        List<SkillObjective> skillObjectives = new ArrayList<>();
-        if (objectives != null) {
-            try {
-                for (String objective : objectives) {
-                    skillObjectives.add(SkillObjective.valueOf(objective));
-                }
-            } catch (IllegalArgumentException e) {
-                log.warn("Skill {} has invalid objectives, skipping objectives", name);
-                skillObjectives.clear();
-            }
-        }
-        return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList, icon);
     }
 }

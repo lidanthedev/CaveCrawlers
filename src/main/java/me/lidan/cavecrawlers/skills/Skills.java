@@ -17,10 +17,11 @@ import java.util.*;
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillInfo, Skill> skills;
-    @Getter @Setter
+    @Getter
+    @Setter
     private UUID uuid;
 
-    public Skills(List<Skill> skillList){
+    public Skills(List<Skill> skillList) {
         this.skills = new HashMap<>();
         for (Skill skill : skillList) {
             this.skills.put(skill.getType(), skill);
@@ -34,6 +35,29 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public Skills() {
         this(new ArrayList<>());
+    }
+
+    public static Skills deserialize(Map<String, Object> map) {
+        Skills skills = new Skills();
+        for (String key : map.keySet()) {
+            if (key.equals("==")) {
+                continue;
+            }
+            Object value = map.get(key);
+            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
+            if (type == null) {
+                continue;
+            }
+            if (!(value instanceof Skill savedSkill)) {
+                continue;
+            }
+            // Recalculate level and xp based on totalXp to ensure consistency with any changes in xp requirements
+            Skill skill = new Skill(type, 0);
+            skill.addXp(savedSkill.getTotalXp());
+            skill.levelUp(false);
+            skills.skills.put(type, skill);
+        }
+        return skills;
     }
 
     public Skill get(@NonNull SkillInfo type) {
@@ -63,33 +87,12 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         }
     }
 
-    public Stats getStats(){
+    public Stats getStats() {
         Stats stats = new Stats();
         for (Skill skill : skills.values()) {
             stats.add(skill.getStats());
         }
         return stats;
-    }
-
-    public static Skills deserialize(Map<String, Object> map){
-        Skills skills = new Skills();
-        for (String key : map.keySet()) {
-            if (key.equals("==")){
-                continue;
-            }
-            Object value = map.get(key);
-            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
-            if (type == null) {
-                continue;
-            }
-            Skill savedSkill = (Skill) value;
-            // Recalculate level and xp based on totalXp to ensure consistency with any changes in xp requirements
-            Skill skill = new Skill(type, 0);
-            skill.addXp(savedSkill.getTotalXp());
-            skill.levelUp(false);
-            skills.skills.put(type, skill);
-        }
-        return skills;
     }
 
     public void setUuid(UUID uuid) {

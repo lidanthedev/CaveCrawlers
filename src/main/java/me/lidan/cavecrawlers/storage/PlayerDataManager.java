@@ -44,6 +44,11 @@ public class PlayerDataManager {
     public void savePlayerData(UUID player){
         PlayerData playerData = getPlayerData(player);
         playerData.savePlayer(player);
+        savePlayerDataInMap(player, playerData);
+    }
+
+    public void savePlayerDataInMap(UUID player, PlayerData playerData) {
+        playerData.getSkills().setUuid(player);
         uuidPlayerDataMap.put(player, playerData);
     }
 
@@ -51,7 +56,7 @@ public class PlayerDataManager {
         if (!uuidPlayerDataMap.containsKey(uuid)){
             PlayerData playerData = loadPlayerData(uuid);
             playerData.getSkills().setUuid(uuid);
-            uuidPlayerDataMap.put(uuid, playerData);
+            savePlayerDataInMap(uuid, playerData);
         }
         return uuidPlayerDataMap.get(uuid);
     }
@@ -80,6 +85,6 @@ public class PlayerDataManager {
         skills.setUuid(uniqueId);
         PlayerData playerData = new PlayerData(skills);
         playerData.savePlayer(uniqueId);
-        uuidPlayerDataMap.put(uniqueId, playerData);
+        savePlayerDataInMap(uniqueId, playerData);
     }
 }

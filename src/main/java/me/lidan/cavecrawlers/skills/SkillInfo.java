@@ -120,15 +120,21 @@ public class SkillInfo implements ConfigurationSerializable {
     public static SkillInfo deserialize(Map<String, Object> map) {
         String name = (String) map.get("name");
         Map<Integer, List<String>> rewards = (Map<Integer, List<String>>) map.get("rewards");
-        Map<Integer, List<SkillReward>> rewardsMap = new HashMap<>();
-        for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
-            List<SkillReward> skillRewards = new ArrayList<>();
-            for (String reward : entry.getValue()) {
-                skillRewards.add(SkillReward.valueOf(reward));
-            }
-            rewardsMap.put(entry.getKey(), skillRewards);
-        }
         boolean autoReward = (boolean) map.getOrDefault("autoReward", false);
+        Map<Integer, List<SkillReward>> rewardsMap = new HashMap<>();
+        try {
+            for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
+                List<SkillReward> skillRewards = new ArrayList<>();
+                for (String reward : entry.getValue()) {
+                    skillRewards.add(SkillReward.valueOf(reward));
+                }
+                rewardsMap.put(entry.getKey(), skillRewards);
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("Skill {} has invalid rewards, skipping rewards", name);
+            rewardsMap.clear();
+            autoReward = false;
+        }
         int maxLevel = (int) map.getOrDefault("maxLevel", DEFAULT_MAX_LEVEL);
         List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
         int xpToLevelSize = xpToLevelList.size();
@@ -142,8 +148,13 @@ public class SkillInfo implements ConfigurationSerializable {
         List<String> objectives = (List<String>) map.get("objectives");
         List<SkillObjective> skillObjectives = new ArrayList<>();
         if (objectives != null) {
-            for (String objective : objectives) {
-                skillObjectives.add(SkillObjective.valueOf(objective));
+            try {
+                for (String objective : objectives) {
+                    skillObjectives.add(SkillObjective.valueOf(objective));
+                }
+            } catch (IllegalArgumentException e) {
+                log.warn("Skill {} has invalid objectives, skipping objectives", name);
+                skillObjectives.clear();
             }
         }
         return new SkillInfo(name, rewardsMap, autoReward, maxLevel, skillObjectives, xpToLevelList, icon);

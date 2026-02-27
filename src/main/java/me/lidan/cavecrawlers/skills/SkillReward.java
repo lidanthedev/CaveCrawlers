@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Data
 public abstract class SkillReward implements ConfigurationSerializable {
-    public static SkillReward valueOf(String type) {
+    public static SkillReward valueOf(String type) throws IllegalArgumentException {
         // format <type> <args>
         // for stat: STAT <stat> <value>
         // for item: ITEM <item>

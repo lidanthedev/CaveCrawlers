@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.drops;
 import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
@@ -17,6 +18,7 @@ import me.lidan.cavecrawlers.utils.VaultUtils;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -205,6 +207,8 @@ public class Drop implements ConfigurationSerializable {
                 placeholders.put("name", entity.getName());
                 sendAnnounceMessage(player);
             }
+            if (!(entity instanceof LivingEntity livingEntity)) return null;
+            EntityManager.getInstance().addDamage(player.getUniqueId(), livingEntity, livingEntity.getHealth() / 2); // add some damage so that the player gets credit for the kill
 
             return entity;
         } catch (Exception e) {

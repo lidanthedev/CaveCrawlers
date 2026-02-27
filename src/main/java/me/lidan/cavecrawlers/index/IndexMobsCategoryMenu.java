@@ -6,6 +6,8 @@ import me.lidan.cavecrawlers.drops.EntityDrops;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
@@ -17,7 +19,12 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
     @Override
     public void setupGui() {
         Map<String, EntityDrops> dropsMap = DropsManager.getInstance().getEntityDropsMap();
-        for (Map.Entry<String, EntityDrops> dropsEntry : dropsMap.entrySet()) {
+        List<Map.Entry<String, EntityDrops>> entries = dropsMap.entrySet().stream()
+                .sorted(Comparator.comparing(entry ->
+                        ChatColor.stripColor(entry.getValue().getEntityName())
+                ))
+                .toList();
+        for (Map.Entry<String, EntityDrops> dropsEntry : entries) {
             String mobName = dropsEntry.getKey();
             if (!ChatColor.stripColor(mobName.toLowerCase()).contains(query)) continue;
             addItem(mobName, ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem());

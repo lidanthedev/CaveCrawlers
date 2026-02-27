@@ -16,7 +16,7 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
 
     @Override
     public void setupGui() {
-        List<String> names = AltarManager.getInstance().getAltarNames();
+        List<String> names = AltarManager.getInstance().getAltarNames().stream().sorted().toList();
         for (String name : names) {
             Altar altar = AltarManager.getInstance().getAltar(name);
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;

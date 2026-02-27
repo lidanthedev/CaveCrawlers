@@ -31,8 +31,11 @@ public class SkillObjective {
         return fromString(skillObjectiveString);
     }
 
-    public static SkillObjective fromString(String skillObjectiveString) {
+    public static SkillObjective fromString(String skillObjectiveString) throws IllegalArgumentException {
         String[] split = skillObjectiveString.split(" ");
+        if (split.length < 2) {
+            throw new IllegalArgumentException("Invalid skill objective string: " + skillObjectiveString);
+        }
         List<String> worlds = List.of();
         if (split.length > 3) {
             worlds = List.of(split[3].split(","));

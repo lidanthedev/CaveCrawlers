@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
@@ -16,10 +17,11 @@ import java.util.*;
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillInfo, Skill> skills;
-    @Getter @Setter
+    @Getter
+    @Setter
     private UUID uuid;
 
-    public Skills(List<Skill> skillList){
+    public Skills(List<Skill> skillList) {
         this.skills = new HashMap<>();
         for (Skill skill : skillList) {
             this.skills.put(skill.getType(), skill);
@@ -33,6 +35,29 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public Skills() {
         this(new ArrayList<>());
+    }
+
+    public static Skills deserialize(Map<String, Object> map) {
+        Skills skills = new Skills();
+        for (String key : map.keySet()) {
+            if (key.equals("==")) {
+                continue;
+            }
+            Object value = map.get(key);
+            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
+            if (type == null) {
+                continue;
+            }
+            if (!(value instanceof Skill savedSkill)) {
+                continue;
+            }
+            // Recalculate level and xp based on totalXp to ensure consistency with any changes in xp requirements
+            Skill skill = new Skill(type, 0);
+            skill.addXp(savedSkill.getTotalXp());
+            skill.levelUp(false);
+            skills.skills.put(type, skill);
+        }
+        return skills;
     }
 
     public Skill get(@NonNull SkillInfo type) {
@@ -62,20 +87,12 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         }
     }
 
-    public Stats getStats(){
+    public Stats getStats() {
         Stats stats = new Stats();
         for (Skill skill : skills.values()) {
             stats.add(skill.getStats());
         }
         return stats;
-    }
-
-    public String toFormatString() {
-        StringBuilder builder = new StringBuilder();
-        for (Skill skill : skills.values()) {
-            builder.append(skill.getType().getName()).append(": ").append(skill.getLevel()).append(" xp: ").append(skill.getXp()).append("/").append(skill.getXpToLevel()).append("\n");
-        }
-        return builder.toString();
     }
 
     public void setUuid(UUID uuid) {
@@ -98,21 +115,12 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         return map;
     }
 
-    public static Skills deserialize(Map<String, Object> map){
-        Skills skills = new Skills();
-        for (String key : map.keySet()) {
-            if (key.equals("==")){
-                continue;
-            }
-            Object value = map.get(key);
-            SkillInfo type = SkillsManager.getInstance().getSkillInfo(key);
-            if (type == null) {
-                continue;
-            }
-            Skill skill = (Skill) value;
-            skills.skills.put(type, skill);
+    public String toFormatString() {
+        StringBuilder builder = new StringBuilder();
+        for (Skill skill : skills.values()) {
+            builder.append(skill.getType().getName()).append(": ").append(skill.getLevel()).append(" xp: ").append(StringUtils.getNumberFormat(skill.getXp())).append("/").append(StringUtils.getNumberFormat(skill.getXpToLevel())).append(" total: ").append(StringUtils.getNumberFormat(skill.getTotalXp())).append("\n");
         }
-        return skills;
+        return builder.toString();
     }
 
     @NotNull

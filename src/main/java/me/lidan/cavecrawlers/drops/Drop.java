@@ -198,7 +198,7 @@ public class Drop implements ConfigurationSerializable {
         }
     }
 
-    protected Entity giveMob(Player player, Location location) {
+    protected Entity giveMob(@Nullable Player player, Location location) {
         try {
             location = location.clone().add(0.5, 0, 0.5);
             Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
@@ -208,7 +208,9 @@ public class Drop implements ConfigurationSerializable {
                 sendAnnounceMessage(player);
             }
             if (!(entity instanceof LivingEntity livingEntity)) return null;
-            EntityManager.getInstance().addDamage(player.getUniqueId(), livingEntity, livingEntity.getHealth() / 2); // add some damage so that the player gets credit for the kill
+            if (player != null) {
+                EntityManager.getInstance().addDamage(player.getUniqueId(), livingEntity, livingEntity.getHealth() / 2); // add some damage so that the player gets credit for the kill
+            }
 
             return entity;
         } catch (Exception e) {

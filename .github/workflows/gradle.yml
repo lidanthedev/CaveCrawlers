@@ -47,7 +47,7 @@ jobs:
 
       # This step uploads the files from build/libs so you can download them
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
         with:
           name: build-artifacts
           path: build/libs/*.jar

@@ -48,14 +48,14 @@ jobs:
       # This step uploads the files from build/libs so you can download them
       - name: Upload Artifact (GitHub)
         if: ${{ github.server_url == 'https://github.com' }}
-        uses: https://github.com/actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: cavecrawlers-github
           path: build/libs/*.jar
 
       - name: Upload Artifact (Forgejo)
         if: ${{ github.server_url != 'https://github.com' }}
-        uses: https://github.com/actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
         with:
           name: cavecrawlers-homelab
           path: build/libs/*.jar

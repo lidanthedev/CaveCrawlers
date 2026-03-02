@@ -47,18 +47,10 @@ jobs:
 
       # This step uploads the files from build/libs so you can download them
       - name: Upload Artifact (GitHub)
-        if: ${{ github.server_url == 'https://github.com' }}
-        uses: actions/upload-artifact@v4
+        uses: christopherhx/gitea-upload-artifact@v4
         with:
           name: cavecrawlers-github
-          path: build/libs/*.jar
-
-      - name: Upload Artifact (Forgejo)
-        if: ${{ github.server_url != 'https://github.com' }}
-        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
-        with:
-          name: cavecrawlers-homelab
-          path: build/libs/*.jar
+          path: build/libs/*.ja
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.

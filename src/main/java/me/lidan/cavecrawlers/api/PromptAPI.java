@@ -46,4 +46,23 @@ public interface PromptAPI {
      * @return a CompletableFuture containing the player's numeric response
      */
     CompletableFuture<Integer> promptNumberMin(Player player, String promptTitle, int min);
+
+    /**
+     * Prompts a player for a decimal number and returns their response as a Double.
+     *
+     * @param player      the player to prompt
+     * @param promptTitle the title of the prompt
+     * @return a CompletableFuture containing the player's decimal response
+     */
+    CompletableFuture<Double> promptDouble(Player player, String promptTitle);
+
+    /**
+     * Prompts a player for a decimal number with a minimum value and returns their response as a Double.
+     *
+     * @param player      the player to prompt
+     * @param promptTitle the title of the prompt
+     * @param min         the minimum value allowed
+     * @return a CompletableFuture containing the player's decimal response
+     */
+    CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, int min);
 }

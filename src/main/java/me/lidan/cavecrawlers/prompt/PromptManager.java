@@ -70,6 +70,29 @@ public class PromptManager implements PromptAPI {
                 });
     }
 
+    @Override
+    public CompletableFuture<Double> promptDouble(Player player, String promptTitle) {
+        return prompt(player, promptTitle)
+                .thenApply(response -> {
+                    try {
+                        return Double.parseDouble(response);
+                    } catch (NumberFormatException e) {
+                        throw new PromptException("Invalid number format: " + response, e);
+                    }
+                });
+    }
+
+    @Override
+    public CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, int min) {
+        return promptDouble(player, promptTitle)
+                .thenApply(response -> {
+                    if (response < min) {
+                        throw new PromptException("Number must be at least " + min + ": " + response);
+                    }
+                    return response;
+                });
+    }
+
     public static void showTitle(Player player, String promptTitle) {
         showTitle(player, promptTitle, PROMPT_SUBTITLE);
     }

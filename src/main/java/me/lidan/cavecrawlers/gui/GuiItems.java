@@ -10,6 +10,8 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class GuiItems {
     public static final ItemBuilder BACK_ITEM = ItemBuilder.from(Material.ARROW).setName(ChatColor.GRAY + "Go Back").setLore("", "§eClick to To Back");
     public static final ItemBuilder NEXT_ARROW_ITEM = ItemBuilder.from(Material.ARROW).setName(net.md_5.bungee.api.ChatColor.BLUE + "Next");
@@ -50,5 +52,24 @@ public class GuiItems {
             }));
         }
         gui.update();
+    }
+
+    public static List<Integer> getLayoutForItems(int n) {
+        switch (n) {
+            case 1:
+                return List.of(5);
+            case 2:
+                return List.of(4, 6);
+            case 3:
+                return List.of(4, 5, 6);
+            case 4:
+                return List.of(3, 4, 6, 7);
+            case 5:
+                return List.of(3, 4, 5, 6, 7);
+            case 6:
+                return List.of(2, 3, 4, 6, 7, 8);
+            default: // 7 or more
+                return List.of(2, 3, 4, 5, 6, 7, 8);
+        }
     }
 }

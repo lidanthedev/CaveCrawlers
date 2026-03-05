@@ -51,6 +51,8 @@ public abstract class PaginatedSelector<T> {
 
     public abstract void setupGui();
 
+    protected abstract void searchInternal(String query);
+
     public void open() {
         gui.open(player);
     }
@@ -59,7 +61,13 @@ public abstract class PaginatedSelector<T> {
         search(query, false);
     }
 
-    public abstract void search(String query, boolean force);
+    public void search(String query, boolean force) {
+        if (this.query.equals(query) && !force) {
+            // Same query, do nothing
+            return;
+        }
+        searchInternal(query);
+    }
 
     public void back() {
         // To be overridden

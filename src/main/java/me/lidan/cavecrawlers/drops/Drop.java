@@ -30,7 +30,7 @@ import java.util.Locale;
 import java.util.Map;
 
 @Data
-public class Drop implements ConfigurationSerializable {
+public class Drop implements ConfigurationSerializable, Cloneable {
     public static final ConfigMessage RARE_DROP_MESSAGE = ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
     private static final Logger log = LoggerFactory.getLogger(Drop.class);
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
@@ -241,6 +241,17 @@ public class Drop implements ConfigurationSerializable {
         map.put("chanceModifier", chanceModifier != null ? chanceModifier.name() : null);
         map.put("amountModifier", amountModifier != null ? amountModifier.name() : null);
         return map;
+    }
+
+    @Override
+    public Drop clone() {
+        try {
+            Drop clone = (Drop) super.clone();
+            clone.placeholders = new HashMap<>(placeholders);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     public record ItemDropInfo(ItemInfo itemInfo, Range range) {

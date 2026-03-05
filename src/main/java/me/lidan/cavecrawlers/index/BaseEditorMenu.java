@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.function.Consumer;
 
 public abstract class BaseEditorMenu<T> {
-    protected final IndexManager indexManager;
+    protected static final IndexManager indexManager = IndexManager.getInstance();
     protected Player player;
     protected T item;
     protected Consumer<T> onSave;
@@ -24,7 +24,6 @@ public abstract class BaseEditorMenu<T> {
         this.onSave = onSave;
         this.onClose = onClose;
         Component title = MiniMessageUtils.miniMessage("Editor - %s".formatted(item.getClass().getSimpleName()));
-        this.indexManager = IndexManager.getInstance();
         if (paginate) {
             this.gui = Gui.paginated().title(title)
                     .rows(6)

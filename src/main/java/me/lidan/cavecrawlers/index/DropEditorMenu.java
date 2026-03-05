@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -21,6 +22,11 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
         super(player, item, onSave, onDiscard);
     }
 
+    public static ItemBuilder createDropItem(Drop drop) {
+        Component name = indexManager.dropToComponent(drop);
+        return ItemBuilder.from(drop.getType().getMaterial()).name(name);
+    }
+
     @Override
     public void setupGui() {
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
@@ -28,6 +34,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
         List<Integer> layoutForItems = GuiItems.getLayoutForItems(dropTypes.length);
         DropType selectedType = item.getType();
         Enchantment enchantment = XEnchantment.UNBREAKING.get();
+        gui.setItem(1, 5, createDropItem(item).asGuiItem());
         for (int i = 0; i < dropTypes.length; i++) {
             DropType dropType = dropTypes[i];
             Material material = dropType.getMaterial();

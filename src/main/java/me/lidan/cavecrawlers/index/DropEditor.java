@@ -100,7 +100,10 @@ public class DropEditor extends BaseEditorMenu<Drop> {
                 return null;
             });
         }));
-
+        gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
+            save();
+            player.sendMessage(MiniMessageUtils.miniMessage("<green>Drop saved"));
+        }));
         gui.update();
     }
 

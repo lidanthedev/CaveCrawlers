@@ -14,6 +14,7 @@ public abstract class BaseEditorMenu<T> {
     protected Consumer<T> onSave;
     protected Consumer<T> onDiscard;
     protected BaseGui gui;
+    protected boolean saved = false;
 
     public BaseEditorMenu(Player player, T item, Consumer<T> onSave, Consumer<T> onDiscard) {
         this.player = player;
@@ -24,14 +25,29 @@ public abstract class BaseEditorMenu<T> {
                 .title(MiniMessageUtils.miniMessage("Editor - %s".formatted(item.getClass().getSimpleName())))
                 .rows(6)
                 .create();
+        if (onSave == null) {
+            this.onSave = drop -> {
+            };
+        }
+        if (onDiscard == null) {
+            this.onDiscard = drop -> {
+            };
+        }
         gui.disableAllInteractions();
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
+        gui.setCloseGuiAction(event -> {
+            if (saved) {
+                return;
+            }
+            discard();
+        });
         setupGui();
     }
 
     public abstract void setupGui();
 
     public void save() {
+        saved = true;
         player.closeInventory();
         onSave.accept(item);
     }

@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class DropEditor extends BaseEditorMenu<Drop> {
-    public DropEditor(Player player, Drop item, Consumer<Drop> onSave, Consumer<Drop> onDiscard) {
+public class DropEditorMenu extends BaseEditorMenu<Drop> {
+    public DropEditorMenu(Player player, Drop item, Consumer<Drop> onSave, Consumer<Drop> onDiscard) {
         super(player, item, onSave, onDiscard);
     }
 
@@ -102,12 +102,9 @@ public class DropEditor extends BaseEditorMenu<Drop> {
         }));
         gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
             save();
+            close();
             player.sendMessage(MiniMessageUtils.miniMessage("<green>Drop saved"));
         }));
         gui.update();
-    }
-
-    public void open() {
-        gui.open(player);
     }
 }

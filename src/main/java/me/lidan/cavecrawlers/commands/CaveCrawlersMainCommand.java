@@ -16,7 +16,8 @@ import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
-import me.lidan.cavecrawlers.index.DropEditor;
+import me.lidan.cavecrawlers.index.DropEditorMenu;
+import me.lidan.cavecrawlers.index.DropListEditorMenu;
 import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
@@ -1079,7 +1080,15 @@ public class CaveCrawlersMainCommand {
     @Subcommand("test dropEditor")
     public void testDropEditor(Player sender) {
         Drop drop = new Drop(DropType.ITEM, 100, "GOLD_INGOT", null, StatType.MAGIC_FIND, null);
-        new DropEditor(sender, drop, null, null).open();
+        new DropEditorMenu(sender, drop, null, null).open();
+    }
+
+    @Subcommand("test dropsEditor")
+    public void testDropsEditor(Player sender) {
+        List<Drop> drops = new ArrayList<>();
+        drops.add(new Drop(DropType.ITEM, 100, "GOLD_INGOT", null, StatType.MAGIC_FIND, null));
+        drops.add(new Drop(DropType.MOB, 100, "floor1skeleton", null, StatType.MAGIC_FIND, null));
+        new DropListEditorMenu(sender, drops, null, null).open();
     }
 
     @Subcommand("mythic skill")

@@ -41,13 +41,21 @@ public class GuiItems {
         gui.setItem(prevRow, prevColumn, GuiItems.GLASS_ITEM);
         if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
             gui.setItem(nextRow, nextColumn, GuiItems.NEXT_ARROW_ITEM.asGuiItem(event -> {
-                gui.next();
+                if (event.isRightClick()) {
+                    gui.setPageNum(gui.getPagesNum());
+                } else {
+                    gui.next();
+                }
                 setupNextPreviousItems(gui, prevRow, nextRow, prevColumn, nextColumn);
             }));
         }
         if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
             gui.setItem(prevRow, prevColumn, GuiItems.PREVIOUS_ARROW_ITEM.asGuiItem(event -> {
-                gui.previous();
+                if (event.isRightClick()) {
+                    gui.setPageNum(1);
+                } else {
+                    gui.previous();
+                }
                 setupNextPreviousItems(gui, prevRow, nextRow, prevColumn, nextColumn);
             }));
         }

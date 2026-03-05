@@ -80,6 +80,7 @@ public class DropEditor extends BaseEditorMenu<Drop> {
             }).exceptionally(throwable -> {
                 item.setChanceModifier(null);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Removed drop chance modifier"));
+                setupGui();
                 open();
                 return null;
             });
@@ -94,6 +95,7 @@ public class DropEditor extends BaseEditorMenu<Drop> {
             }).exceptionally(throwable -> {
                 item.setAmountModifier(null);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Removed drop amount modifier"));
+                setupGui();
                 open();
                 return null;
             });

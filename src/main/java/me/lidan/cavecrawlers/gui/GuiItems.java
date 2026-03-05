@@ -6,7 +6,6 @@ import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.commands.MenuCommands;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +17,7 @@ public class GuiItems {
     public static final ItemBuilder NEXT_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Next")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to To Next", "<gold>Right-click to go to last page"));
     public static final ItemBuilder PREVIOUS_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Previous")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to To Previous", "<gold>Right-click to go to first page"));
 
-    public static final @NotNull GuiItem CLOSE_ITEM = ItemBuilder.from(Material.BARRIER).setName(ChatColor.RED + "Close Menu").setLore("", "§eClick to Close Menu").asGuiItem((event -> {
+    public static final @NotNull GuiItem CLOSE_ITEM = ItemBuilder.from(Material.BARRIER).name(MiniMessageUtils.miniMessage("<red>Close Menu")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to Close Menu")).asGuiItem((event -> {
         Player sender = (Player) event.getWhoClicked();
         sender.closeInventory();
     }));

@@ -29,13 +29,22 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
                 }).open();
             }));
         }
-        gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
-            if (save()) {
-                close();
-            }
+        gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Add")).asGuiItem(event -> {
+
         }));
-        GuiItems.setupNextPreviousItems((PaginatedGui) gui, 6);
+        GuiItems.setupNextPreviousItems(getPaginatedGui(), 5);
+        if (getPaginatedGui().getCurrentPageNum() == 1) {
+            gui.setItem(6, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
+                if (save()) {
+                    close();
+                }
+            }));
+        }
         gui.update();
+    }
+
+    private PaginatedGui getPaginatedGui() {
+        return (PaginatedGui) gui;
     }
 
     public void reopen() {

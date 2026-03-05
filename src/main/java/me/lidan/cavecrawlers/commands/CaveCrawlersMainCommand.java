@@ -1071,6 +1071,9 @@ public class CaveCrawlersMainCommand {
         List<Drop> drops = new ArrayList<>();
         drops.add(new Drop(DropType.ITEM, 100, "GOLD_INGOT", null, StatType.MAGIC_FIND, null));
         drops.add(new Drop(DropType.MOB, 100, "floor1skeleton", null, StatType.MAGIC_FIND, null));
+        for (int i = 0; i < 100; i++) {
+            drops.add(new Drop(DropType.MOB, 100, "floor1skeleton", null, StatType.MAGIC_FIND, null));
+        }
         new DropListEditorMenu(sender, drops, null, null).open();
     }
 

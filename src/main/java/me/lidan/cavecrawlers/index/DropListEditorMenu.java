@@ -1,8 +1,11 @@
 package me.lidan.cavecrawlers.index;
 
+import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -26,8 +29,13 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
                 }).open();
             }));
         }
-
+        gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
+            if (save()) {
+                close();
+            }
+        }));
         GuiItems.setupNextPreviousItems((PaginatedGui) gui, 6);
+        gui.update();
     }
 
     public void reopen() {

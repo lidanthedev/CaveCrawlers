@@ -971,23 +971,6 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(component);
     }
 
-    @Subcommand("test prompt")
-    public void testPrompt(Player sender) {
-        CompletableFuture<String> future = PromptManager.getInstance().prompt(sender, "Search");
-        future.thenAccept(s -> {
-            if (s.isEmpty()) {
-                sender.sendMessage("You didn't enter anything!");
-            } else {
-                sender.sendMessage("You entered: " + s);
-            }
-        });
-        // if exception occurs, it will be handled by the exceptionally block
-        future.exceptionally(throwable -> {
-            sender.sendMessage("An error occurred: " + throwable.getMessage());
-            return null;
-        });
-    }
-
     @Subcommand("test armorset")
     @AutoComplete("@itemID LEATHER|IRON|GOLD|DIAMOND|NETHERITE|CHAINMAIL *")
     public void testArmorSet(Player sender, String originId, String materialType) {
@@ -1328,6 +1311,32 @@ public class CaveCrawlersMainCommand {
     public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);
+    }
+
+    @Subcommand("prompt create")
+    public void promptCreate(Player sender, @Default("Prompt") String prompt) {
+        CompletableFuture<String> future = PromptManager.getInstance().prompt(sender, prompt);
+        future.thenAccept(s -> {
+            if (s.isEmpty()) {
+                sender.sendMessage("You didn't enter anything!");
+            } else {
+                sender.sendMessage("You entered: " + s);
+            }
+        });
+        // if exception occurs, it will be handled by the exceptionally block
+        future.exceptionally(throwable -> {
+            sender.sendMessage("An error occurred: " + throwable.getMessage());
+            return null;
+        });
+    }
+
+    @Subcommand("prompt answer")
+    public void promptAnswer(Player sender, String answer) {
+        UUID playerUUID = sender.getUniqueId();
+        CompletableFuture<String> future = PromptManager.getFutureMap().remove(playerUUID);
+        if (future != null) {
+            Bukkit.getScheduler().runTask(CaveCrawlers.getInstance(), () -> future.complete(answer));
+        }
     }
 
     enum HelpCommandType {

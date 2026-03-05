@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.prompt;
 import lombok.Getter;
 import me.lidan.cavecrawlers.api.PromptAPI;
 import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.TitleBuilder;
 import org.bukkit.entity.Player;
 
@@ -106,6 +107,16 @@ public class PromptManager implements PromptAPI {
     }
 
     public CompletableFuture<StatType> promptStatType(Player player, String promptTitle) {
+        return promptStatType(player, promptTitle, false);
+    }
+
+    public CompletableFuture<StatType> promptStatType(Player player, String promptTitle, boolean showStatTypes) {
+        if (showStatTypes) {
+            player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Available Stat Types: <gold>Click on a stat type to select it"));
+            for (StatType value : StatType.values()) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<gold><click:run_command:'/cavecrawlers prompt answer <stat_name_raw>'><stat_name> (<stat_name_raw>)</click>", Map.of("stat_name", value.getFormatNameComponent(), "stat_name_raw", value.name())));
+            }
+        }
         return prompt(player, promptTitle)
                 .thenApply(response -> {
                     try {

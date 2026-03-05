@@ -93,7 +93,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
         }));
         String chanceModifierText = item.getChanceModifier() != null ? item.getChanceModifier().name() : "None";
         gui.setItem(5, 5, ItemBuilder.from(Material.STICK).name(MiniMessageUtils.miniMessage("<green>Chance Modifier: <modifier>", Map.of("modifier", chanceModifierText))).asGuiItem(event -> {
-            PromptManager.getInstance().promptStatType(player, "Enter new chance modifier").thenAccept(input -> {
+            PromptManager.getInstance().promptStatType(player, "Enter new chance modifier", true).thenAccept(input -> {
                 item.setChanceModifier(input);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop chance modifier to %s".formatted(input.name())));
                 setupGui();
@@ -108,7 +108,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
         }));
         String amountModifierText = item.getAmountModifier() != null ? item.getAmountModifier().name() : "None";
         gui.setItem(5, 7, ItemBuilder.from(Material.QUARTZ).name(MiniMessageUtils.miniMessage("<green>Amount Modifier: <modifier>", Map.of("modifier", amountModifierText))).asGuiItem(event -> {
-            PromptManager.getInstance().promptStatType(player, "Enter new amount modifier").thenAccept(input -> {
+            PromptManager.getInstance().promptStatType(player, "Enter new amount modifier", true).thenAccept(input -> {
                 item.setAmountModifier(input);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop amount modifier to %s".formatted(input.name())));
                 setupGui();
@@ -121,7 +121,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
                 return null;
             });
         }));
-        gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
+        gui.setItem(6, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
             if (save()) {
                 close();
             }

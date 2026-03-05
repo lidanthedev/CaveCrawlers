@@ -5,6 +5,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.gui.selectors.StatTypeSelector;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
@@ -92,34 +93,36 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
             });
         }));
         String chanceModifierText = item.getChanceModifier() != null ? item.getChanceModifier().name() : "None";
-        gui.setItem(5, 5, ItemBuilder.from(Material.STICK).name(MiniMessageUtils.miniMessage("<green>Chance Modifier: <modifier>", Map.of("modifier", chanceModifierText))).asGuiItem(event -> {
-            PromptManager.getInstance().promptStatType(player, "Enter new chance modifier", true).thenAccept(input -> {
-                item.setChanceModifier(input);
-                player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop chance modifier to %s".formatted(input.name())));
-                setupGui();
-                open();
-            }).exceptionally(throwable -> {
+        gui.setItem(5, 5, ItemBuilder.from(Material.STICK).name(MiniMessageUtils.miniMessage("<green>Chance Modifier: <modifier>", Map.of("modifier", chanceModifierText))).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit", "<yellow>Right-Click to remove")).asGuiItem(event -> {
+            if (event.isRightClick()) {
                 item.setChanceModifier(null);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Removed drop chance modifier"));
                 setupGui();
                 open();
-                return null;
-            });
-        }));
-        String amountModifierText = item.getAmountModifier() != null ? item.getAmountModifier().name() : "None";
-        gui.setItem(5, 7, ItemBuilder.from(Material.QUARTZ).name(MiniMessageUtils.miniMessage("<green>Amount Modifier: <modifier>", Map.of("modifier", amountModifierText))).asGuiItem(event -> {
-            PromptManager.getInstance().promptStatType(player, "Enter new amount modifier", true).thenAccept(input -> {
-                item.setAmountModifier(input);
-                player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop amount modifier to %s".formatted(input.name())));
+                return;
+            }
+            new StatTypeSelector(player, "", (inventoryClickEvent, statType) -> {
+                item.setChanceModifier(statType);
+                player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop chance modifier to %s".formatted(statType.name())));
                 setupGui();
                 open();
-            }).exceptionally(throwable -> {
+            }).open();
+        }));
+        String amountModifierText = item.getAmountModifier() != null ? item.getAmountModifier().name() : "None";
+        gui.setItem(5, 7, ItemBuilder.from(Material.QUARTZ).name(MiniMessageUtils.miniMessage("<green>Amount Modifier: <modifier>", Map.of("modifier", amountModifierText))).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit", "<yellow>Right-Click to remove")).asGuiItem(event -> {
+            if (event.isRightClick()) {
                 item.setAmountModifier(null);
                 player.sendMessage(MiniMessageUtils.miniMessage("<green>Removed drop amount modifier"));
                 setupGui();
                 open();
-                return null;
-            });
+                return;
+            }
+            new StatTypeSelector(player, "", (inventoryClickEvent, statType) -> {
+                item.setAmountModifier(statType);
+                player.sendMessage(MiniMessageUtils.miniMessage("<green>Set drop amount modifier to %s".formatted(statType.name())));
+                setupGui();
+                open();
+            }).open();
         }));
         gui.setItem(6, 1, createBackItem());
         gui.update();

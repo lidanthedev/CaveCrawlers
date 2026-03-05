@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import java.util.function.BiConsumer;
 
 public abstract class PaginatedSelector<T> {
-    public static ItemBuilder SEARCH_ITEM = ItemBuilder.from(Material.COMPASS).name(Component.text("<blue>Search")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to search", "<red>Right click to reset search"));
+    public static ItemBuilder SEARCH_ITEM = ItemBuilder.from(Material.COMPASS).name(MiniMessageUtils.miniMessage("<blue>Search")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to search", "<red>Right click to reset search"));
     protected final Player player;
     protected final String query;
     protected final Component title;
@@ -21,6 +21,10 @@ public abstract class PaginatedSelector<T> {
     protected PaginatedGui gui;
 
     public PaginatedSelector(Player player, String query, Component title, BiConsumer<InventoryClickEvent, T> callback) {
+        this(player, query, title, callback, null);
+    }
+
+    public PaginatedSelector(Player player, String query, Component title, BiConsumer<InventoryClickEvent, T> callback, Runnable onBack) {
         this.player = player;
         this.title = title;
         this.callback = callback;
@@ -32,7 +36,9 @@ public abstract class PaginatedSelector<T> {
         this.query = query.toLowerCase();
         gui.disableAllInteractions();
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
-        gui.setItem(6, 5, GuiItems.BACK_ITEM.asGuiItem(event -> back()));
+        if (onBack != null) {
+            gui.setItem(6, 5, GuiItems.BACK_ITEM.asGuiItem(event -> onBack.run()));
+        }
         gui.setItem(1, 5, SEARCH_ITEM.asGuiItem(event -> {
             if (event.isRightClick()) {
                 search("");

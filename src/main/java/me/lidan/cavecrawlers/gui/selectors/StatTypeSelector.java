@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class StatTypeSelector extends PaginatedSelector<StatType> {
@@ -18,7 +19,8 @@ public class StatTypeSelector extends PaginatedSelector<StatType> {
     @Override
     public void setupGui() {
         for (StatType statType : StatType.values()) {
-            gui.addItem(ItemBuilder.from(Material.PAPER).name(statType.getFormatNameComponent()).asGuiItem(event -> callback.accept(event, statType)));
+            if (!statType.name().toLowerCase().contains(query)) continue;
+            gui.addItem(ItemBuilder.from(Material.PAPER).name(MiniMessageUtils.miniMessage("<name>", Map.of("name", statType.getFormatNameComponent()))).asGuiItem(event -> callback.accept(event, statType)));
         }
     }
 

@@ -24,7 +24,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
 
     public static ItemBuilder createDropItem(Drop drop) {
         Component name = indexManager.dropToComponent(drop);
-        return ItemBuilder.from(drop.getType().getMaterial()).name(name);
+        return ItemBuilder.from(drop.getType().getMaterial()).name(name).lore(Component.empty(), MiniMessageUtils.miniMessage("<yellow>Click to edit drop"), MiniMessageUtils.miniMessage("<yellow>Shift-Left click to move down"), MiniMessageUtils.miniMessage("<yellow>Shift-Right click to move up"), MiniMessageUtils.miniMessage("<yellow>Drop item to delete"));
     }
 
     public void validate() throws IllegalStateException {
@@ -121,11 +121,7 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
                 return null;
             });
         }));
-        gui.setItem(6, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
-            if (save()) {
-                close();
-            }
-        }));
+        gui.setItem(6, 1, createBackItem());
         gui.update();
     }
 

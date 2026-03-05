@@ -3,11 +3,16 @@ package me.lidan.cavecrawlers.index;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.drops.Drop;
+import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -18,29 +23,67 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
 
     @Override
     public void setupGui() {
-        for (Drop drop : item) {
+        // iterate by index so we can safely move items based on their position
+        for (int i = 0; i < item.size(); i++) {
+            final int index = i;
+            Drop drop = item.get(index);
             gui.addItem(DropEditorMenu.createDropItem(drop).asGuiItem(event -> {
-                new DropEditorMenu(player, drop, updatedDrop -> {
-                    int index = item.indexOf(drop);
-                    item.set(index, updatedDrop);
-                    save();
-                }, updatedDrop -> {
-                    reopen();
-                }).open();
+                ClickType clickType = event.getClick();
+
+                if (clickType == ClickType.SHIFT_LEFT) {
+                    if (index < item.size() - 1) {
+                        Collections.swap(item, index, index + 1);
+                        save();
+                        reopen();
+                    }
+                    return;
+                }
+
+                if (clickType == ClickType.SHIFT_RIGHT) {
+                    if (index > 0) {
+                        Collections.swap(item, index, index - 1);
+                        save();
+                        reopen();
+                    }
+                    return;
+                }
+
+                if (clickType == ClickType.DROP) {
+                    if (index > 0) {
+                        item.remove(index);
+                        save();
+                        reopen();
+                    }
+                    return;
+                }
+
+                openDropEditor(drop);
             }));
         }
         gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Add")).asGuiItem(event -> {
-
+            Drop drop = new Drop(DropType.COINS, 100.0, "100", null, StatType.MAGIC_FIND, null);
+            item.add(drop);
+            save();
+            openDropEditor(drop);
         }));
         GuiItems.setupNextPreviousItems(getPaginatedGui(), 5);
-        if (getPaginatedGui().getCurrentPageNum() == 1) {
-            gui.setItem(6, 1, GuiItems.BACK_ITEM.asGuiItem(event -> {
-                if (save()) {
-                    close();
-                }
-            }));
-        }
+        gui.setItem(6, 1, createBackItem());
         gui.update();
+    }
+
+    private void openDropEditor(Drop drop) {
+        new DropEditorMenu(player, drop, updatedDrop -> {
+            int currentIndex = item.indexOf(drop);
+            if (currentIndex != -1) {
+                item.set(currentIndex, updatedDrop);
+                save();
+            }
+        }, updatedDrop -> reopen()).open();
+    }
+
+    @Override
+    public Component getTitle() {
+        return MiniMessageUtils.miniMessage("Editor - Drop List");
     }
 
     private PaginatedGui getPaginatedGui() {

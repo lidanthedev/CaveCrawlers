@@ -25,7 +25,7 @@ public abstract class BaseEditorMenu<T> {
                 .rows(6)
                 .create();
         gui.disableAllInteractions();
-        gui.getFiller().fill(GuiItems.GLASS_ITEM);
+        gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
         setupGui();
     }
 

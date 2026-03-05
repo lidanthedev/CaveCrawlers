@@ -8,12 +8,15 @@ import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
+import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropLoader;
+import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.index.DropEditor;
 import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
@@ -1071,6 +1074,12 @@ public class CaveCrawlersMainCommand {
         ItemStack skull = EntityHeads.fromEntityType(entityHead);
         sender.getInventory().addItem(skull);
         sender.sendMessage("Added skull to inventory!");
+    }
+
+    @Subcommand("test dropEditor")
+    public void testDropEditor(Player sender) {
+        Drop drop = new Drop(DropType.ITEM, 100, "GOLD_INGOT", null, StatType.MAGIC_FIND, null);
+        new DropEditor(sender, drop, null, null).open();
     }
 
     @Subcommand("mythic skill")

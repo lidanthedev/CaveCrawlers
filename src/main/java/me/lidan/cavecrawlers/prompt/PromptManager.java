@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.prompt;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.api.PromptAPI;
+import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.utils.TitleBuilder;
 import org.bukkit.entity.Player;
 
@@ -90,6 +91,28 @@ public class PromptManager implements PromptAPI {
                         throw new PromptException("Number must be at least " + min + ": " + response);
                     }
                     return response;
+                });
+    }
+
+    public <T extends Enum<T>> CompletableFuture<T> promptEnum(Player player, String promptTitle, Class<T> enumClass) {
+        return prompt(player, promptTitle)
+                .thenApply(response -> {
+                    try {
+                        return Enum.valueOf(enumClass, response.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        throw new PromptException("Invalid input: " + response, e);
+                    }
+                });
+    }
+
+    public CompletableFuture<StatType> promptStatType(Player player, String promptTitle) {
+        return prompt(player, promptTitle)
+                .thenApply(response -> {
+                    try {
+                        return StatType.valueOf(response.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        throw new PromptException("Invalid stat type: " + response, e);
+                    }
                 });
     }
 

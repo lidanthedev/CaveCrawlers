@@ -20,7 +20,7 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
                 new DropEditorMenu(player, drop, updatedDrop -> {
                     int index = item.indexOf(drop);
                     item.set(index, updatedDrop);
-                    onSave.accept(item);
+                    save();
                 }, updatedDrop -> {
                     reopen();
                 }).open();

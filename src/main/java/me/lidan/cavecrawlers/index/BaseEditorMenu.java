@@ -45,9 +45,6 @@ public abstract class BaseEditorMenu<T> {
         }
         gui.disableAllInteractions();
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
-        gui.setCloseGuiAction(event -> {
-            close();
-        });
         setupGui();
     }
 
@@ -61,8 +58,9 @@ public abstract class BaseEditorMenu<T> {
         gui.open(player);
     }
 
-    public void save() {
+    public boolean save() {
         onSave.accept(item);
+        return true;
     }
 
     public void close() {

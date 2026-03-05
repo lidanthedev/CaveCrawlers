@@ -19,12 +19,26 @@ import java.util.function.Consumer;
 
 public class DropEditorMenu extends BaseEditorMenu<Drop> {
     public DropEditorMenu(Player player, Drop item, Consumer<Drop> onSave, Consumer<Drop> onDiscard) {
-        super(player, item, onSave, onDiscard);
+        super(player, item.clone(), onSave, onDiscard);
     }
 
     public static ItemBuilder createDropItem(Drop drop) {
         Component name = indexManager.dropToComponent(drop);
         return ItemBuilder.from(drop.getType().getMaterial()).name(name);
+    }
+
+    public void validate() throws IllegalStateException {
+        if (item.getChance() < 0) {
+            throw new IllegalStateException("Chance must be greater than or equal to 0");
+        }
+        if (item.getValue() == null || item.getValue().isEmpty()) {
+            throw new IllegalStateException("Value cannot be empty");
+        }
+        Component name = indexManager.dropToComponent(item);
+        String uncoloredName = MiniMessageUtils.componentToString(name);
+        if (uncoloredName.contains("Invalid")) {
+            throw new IllegalStateException("Invalid drop value");
+        }
     }
 
     @Override
@@ -108,10 +122,23 @@ public class DropEditorMenu extends BaseEditorMenu<Drop> {
             });
         }));
         gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Save")).asGuiItem(event -> {
-            save();
-            close();
-            player.sendMessage(MiniMessageUtils.miniMessage("<green>Drop saved"));
+            if (save()) {
+                close();
+            }
         }));
         gui.update();
+    }
+
+    @Override
+    public boolean save() {
+        try {
+            validate();
+            super.save();
+            player.sendMessage(MiniMessageUtils.miniMessage("<green>Drop saved"));
+            return true;
+        } catch (IllegalStateException e) {
+            player.sendMessage(MiniMessageUtils.miniMessage("<red>Failed to save drop: %s".formatted(e.getMessage())));
+            return false;
+        }
     }
 }

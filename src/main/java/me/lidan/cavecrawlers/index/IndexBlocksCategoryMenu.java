@@ -27,7 +27,13 @@ public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<Material, BlockInfo> dropsEntry : sortedDrops) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem(), event -> {
+                new BlockInfoEditorMenu(player, dropsEntry.getValue(), updated -> {
+                    MiningManager.getInstance().setBlockInfo(dropsEntry.getKey().name(), updated);
+                }, onClose -> {
+                    search(query, true);
+                }).open();
+            });
         }
     }
 

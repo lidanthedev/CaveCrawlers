@@ -20,15 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
+@Setter
 public class BlockInfo implements ConfigurationSerializable {
     public static final @NotNull BlockData DEFAULT_REPLACEMENT_BLOCK = Material.BLACK_WOOL.createBlockData();
-    @Setter
     private Material block;
-    private final int blockStrength;
-    private final int blockPower;
-    private final ItemType brokenBy;
-    private final List<Drop> drops;
-    private final BlockData replacementBlockData;
+    private int blockStrength;
+    private int blockPower;
+    private ItemType brokenBy;
+    private List<Drop> drops;
+    private BlockData replacementBlockData;
 
     public BlockInfo(int blockStrength, int blockPower, List<Drop> drops, ItemType brokenBy, BlockData replacementBlockData) {
         this.blockStrength = blockStrength;

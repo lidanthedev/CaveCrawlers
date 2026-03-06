@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.bosses;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -10,11 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @Getter
+@Setter
 public class BossDrops implements ConfigurationSerializable {
-    private final List<BossDrop> drops;
-    private final String entityName;
-    private final ConfigMessage announce;
-    private final List<Integer> bonusPoints;
+    private List<BossDrop> drops;
+    private String entityName;
+    private ConfigMessage announce;
+    private List<Integer> bonusPoints;
 
     public BossDrops(List<BossDrop> drops, String entityName, ConfigMessage announce, List<Integer> bonusPoints) {
         this.drops = drops;

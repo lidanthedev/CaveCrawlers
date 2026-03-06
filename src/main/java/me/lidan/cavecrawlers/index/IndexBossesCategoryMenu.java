@@ -27,7 +27,13 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<String, BossDrops> dropsEntry : entries) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.bossDropsToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, ItemBuilder.from(itemGenerator.bossDropsToItemStack(dropsEntry.getValue())).asGuiItem(), event -> {
+                new BossDropsEditorMenu(player, dropsEntry.getValue(), updated -> {
+                    BossManager.getInstance().updateBossDrops(dropsEntry.getKey(), updated);
+                }, onClose -> {
+                    search(query, true);
+                }).open();
+            });
         }
     }
 

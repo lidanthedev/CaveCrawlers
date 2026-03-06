@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.bosses;
 
 import lombok.Getter;
+import lombok.Setter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.DropType;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 @Getter
+@Setter
 public class BossDrop extends Drop implements ConfigurationSerializable {
     private static final Logger log = LoggerFactory.getLogger(BossDrop.class);
     private int requiredPoints;

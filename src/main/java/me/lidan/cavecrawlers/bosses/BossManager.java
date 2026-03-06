@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.bosses;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.api.BossAPI;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
 
 import java.util.HashMap;
@@ -21,6 +22,13 @@ public class BossManager implements BossAPI {
     @Override
     public BossDrops getEntityDrops(String name) {
         return dropsMap.get(name);
+    }
+
+    public void updateBossDrops(String key, BossDrops updated) {
+        dropsMap.put(key, updated);
+        BoostedCustomConfig config = BossLoader.getInstance().getConfig(key);
+        config.set(key, updated);
+        config.save();
     }
 
     public static BossManager getInstance() {

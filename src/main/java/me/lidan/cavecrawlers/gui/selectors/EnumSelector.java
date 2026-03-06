@@ -11,7 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import java.util.function.BiConsumer;
 
 public class EnumSelector<T extends Enum<T>> extends PaginatedSelector<T> {
-    private Class<T> enumClass;
+    private final Class<T> enumClass;
 
     public EnumSelector(Player player, Class<T> enumClass, String query, BiConsumer<InventoryClickEvent, T> callback) {
         this(player, enumClass, query, callback, null);

@@ -20,7 +20,10 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
         for (String name : names) {
             Altar altar = AltarManager.getInstance().getAltar(name);
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.altarToItemStack(altar)).asGuiItem());
+            addItem(name, ItemBuilder.from(itemGenerator.altarToItemStack(altar)).asGuiItem(), event -> {
+                player.closeInventory();
+                player.performCommand("cavecrawlers altar info " + name);
+            });
         }
     }
 

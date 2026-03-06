@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.gui.selectors.MythicMobSelector;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -45,9 +46,11 @@ public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
 
         // Drop List
         List<Drop> dropList = item.getDropList();
+        List<Component> lore = indexManager.dropsToComponents(dropList);
+        lore.addAll(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit drops"));
         gui.setItem(3, 5, ItemBuilder.from(Material.CHEST)
                 .name(MiniMessageUtils.miniMessage("<yellow>Drops (<count>)", Map.of("count", String.valueOf(dropList.size()))))
-                .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit drops"))
+                .lore(lore)
                 .asGuiItem(event -> {
                     new DropListEditorMenu(player, new ArrayList<>(dropList), updatedDrops -> {
                         item.setDropList(updatedDrops);

@@ -22,6 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SandStorm extends ScalingClickAbility implements Listener {
     public static final String SANDSTORM_TAG = "SandStorm";
     private Material material;
+    private Material fillerMaterial;
+    private Particle particle;
+    private Particle secondaryParticle;
     private double radius;
     private int blocks;
 
@@ -33,6 +36,9 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         this.baseAbilityDamage = baseAbilityDamage;
         this.abilityScaling = abilityScaling;
         this.material = Material.SAND;
+        this.fillerMaterial = Material.RED_SAND;
+        this.particle = Particle.CLOUD;
+        this.secondaryParticle = Particle.FLAME;
         this.statToScale = StatType.STRENGTH;
         this.radius = 2.0;
         this.blocks = 8;
@@ -68,7 +74,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                     double x = Math.cos(angle) * fillerRadius;
                     double z = Math.sin(angle) * fillerRadius;
                     Location fillerLoc = center.clone().add(x, 0.5, z);
-                    summonFallingBlock(fillerLoc, Material.RED_SAND, player);
+                    summonFallingBlock(fillerLoc, fillerMaterial, player);
                 }
             }
 

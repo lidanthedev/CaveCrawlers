@@ -326,13 +326,19 @@ public class IndexManager {
         return ItemBuilder.from(blockInfo.getBlock()).lore(lore).build();
     }
 
-    private List<Component> mobInfoToLore(String bossDrops) {
+    public static List<Component> mobInfoToLore(MythicMob mob) {
+        List<Component> lore = new ArrayList<>();
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
+        return lore;
+    }
+
+    public List<Component> mobInfoToLore(String bossDrops) {
         List<Component> lore = new ArrayList<>();
         MythicMob mob = getMobByName(bossDrops);
         if (mob != null) {
-            lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
-            lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
-            lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
+            lore.addAll(mobInfoToLore(mob));
         }
         return lore;
     }

@@ -66,6 +66,10 @@ public abstract class IndexBaseCategoryMenu {
             gui.addItem(item);
             return;
         }
+        if (true) {
+            gui.addItem(item);
+            return; // TODO: remove this when editing is supported
+        }
         ItemBuilder itemBuilder = ItemBuilder.from(item.getItemStack());
         List<Component> lore = new ArrayList<>();
         List<Component> originalLore = item.getItemStack().lore();

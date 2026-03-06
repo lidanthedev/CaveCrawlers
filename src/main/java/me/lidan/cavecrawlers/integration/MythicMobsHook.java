@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +51,10 @@ public class MythicMobsHook {
             return null;
         }
         return mob.getDisplayName().get();
+    }
+
+    public @Nullable Collection<MythicMob> getAllMobs() {
+        return mythicBukkit.getMobManager().getMobTypes();
     }
 
     public static MythicMobsHook getInstance() {

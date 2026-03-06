@@ -18,6 +18,7 @@ public abstract class PaginatedSelector<T> {
     protected final String query;
     protected final Component title;
     protected final BiConsumer<InventoryClickEvent, T> callback;
+    protected final Runnable onBack;
     protected PaginatedGui gui;
 
     public PaginatedSelector(Player player, String query, Component title, BiConsumer<InventoryClickEvent, T> callback) {
@@ -28,6 +29,7 @@ public abstract class PaginatedSelector<T> {
         this.player = player;
         this.title = title;
         this.callback = callback;
+        this.onBack = onBack;
         this.gui = Gui.paginated()
                 .title(title)
                 .rows(6)

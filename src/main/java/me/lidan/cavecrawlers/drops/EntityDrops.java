@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.drops;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
+@Setter
 public class EntityDrops implements ConfigurationSerializable {
-    private final String entityName;
-    private final List<Drop> dropList;
-    private final int xp;
+    private String entityName;
+    private List<Drop> dropList;
+    private int xp;
 
     public EntityDrops(String entityName, List<Drop> dropList, int xp) {
         this.entityName = entityName;

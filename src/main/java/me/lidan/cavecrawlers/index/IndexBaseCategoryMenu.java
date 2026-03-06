@@ -10,10 +10,12 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class IndexBaseCategoryMenu {
     public static final String CAVECRAWLERS_INDEX_ADMIN_PERMISSION = "cavecrawlers.index.admin";
@@ -58,6 +60,10 @@ public abstract class IndexBaseCategoryMenu {
     }
 
     public void addItem(String entry, GuiItem item) {
+        addItem(entry, item, null);
+    }
+
+    public void addItem(String entry, GuiItem item, Consumer<InventoryClickEvent> clickEventConsumer) {
         String fullEntry = category.name() + ":" + entry;
         if (itemGenerator.isHiddenEntry(fullEntry)) {
             return;
@@ -66,10 +72,6 @@ public abstract class IndexBaseCategoryMenu {
             gui.addItem(item);
             return;
         }
-        if (true) {
-            gui.addItem(item);
-            return; // TODO: remove this when editing is supported
-        }
         ItemBuilder itemBuilder = ItemBuilder.from(item.getItemStack());
         List<Component> lore = new ArrayList<>();
         List<Component> originalLore = item.getItemStack().lore();
@@ -77,6 +79,7 @@ public abstract class IndexBaseCategoryMenu {
             lore.addAll(originalLore);
         }
         lore.add(Component.empty());
+        lore.add(MiniMessageUtils.miniMessage("<yellow>Left click to edit entry"));
         lore.add(MiniMessageUtils.miniMessage("<yellow>Right click to hide entry from index"));
         itemBuilder.lore(lore);
         GuiItem guiItem = itemBuilder.asGuiItem(event -> {
@@ -89,7 +92,11 @@ public abstract class IndexBaseCategoryMenu {
                 search(query, true);
                 return;
             }
-            player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not supported yet."));
+            if (clickEventConsumer == null) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not supported yet."));
+                return;
+            }
+            clickEventConsumer.accept(event);
         });
         gui.addItem(guiItem);
     }

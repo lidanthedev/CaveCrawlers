@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.function.Consumer;
 
 public abstract class BaseEditorMenu<T> {
-    public static final ItemBuilder BACK_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<green>Save and go back")).lore(Component.empty(), MiniMessageUtils.miniMessage("<yellow>Click to To Save and Back"), MiniMessageUtils.miniMessage("<red>Right click to go back without saving"));
+    public static final ItemBuilder BACK_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<green>Save and go back")).lore(Component.empty(), MiniMessageUtils.miniMessage("<yellow>Click to To Save and Back"), MiniMessageUtils.miniMessage("<red>Right click to force go back"));
     protected static final IndexManager indexManager = IndexManager.getInstance();
     protected Player player;
     protected T item;
@@ -84,7 +84,7 @@ public abstract class BaseEditorMenu<T> {
     public GuiItem createBackItem() {
         return BACK_ITEM.asGuiItem(event -> {
             if (event.isRightClick()) {
-                player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Going back without saving changes"));
+                player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Forced go back (changes might not be saved)"));
                 close();
                 return;
             }

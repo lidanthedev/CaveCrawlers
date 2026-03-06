@@ -50,8 +50,6 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         Location center = player.getLocation();
         World world = player.getWorld();
         AtomicInteger tick = new AtomicInteger(0);
-        List<Mob> hitEntityList = new ArrayList<>();
-        AbilityDamage calculation = getDamageCalculation(player);
 
         Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), bukkitTask -> {
             tick.incrementAndGet();
@@ -85,7 +83,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                 double x = Math.cos(angle) * currentRadius;
                 double z = Math.sin(angle) * currentRadius;
                 Location highLoc = center.clone().add(x, 1.0, z);
-                summonFallingBlock(highLoc, Material.RED_SAND, player);
+                summonFallingBlock(highLoc, fillerMaterial, player);
             }
 
             // Particles - cloud dust ring
@@ -94,8 +92,8 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                 double px = Math.cos(angle) * currentRadius;
                 double pz = Math.sin(angle) * currentRadius;
                 Location particleLoc = center.clone().add(px, 0.5, pz);
-                world.spawnParticle(Particle.CLOUD, particleLoc, 2, 0.2, 0.2, 0.2, 0.01);
-                world.spawnParticle(Particle.FLAME, particleLoc, 1, 0.1, 0.1, 0.1, 0.01);
+                world.spawnParticle(particle, particleLoc, 2, 0.2, 0.2, 0.2, 0.01);
+                world.spawnParticle(secondaryParticle, particleLoc, 1, 0.1, 0.1, 0.1, 0.01);
             }
 
             // Center storm swirl particles
@@ -104,16 +102,6 @@ public class SandStorm extends ScalingClickAbility implements Listener {
             world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 1F);
             world.playSound(center, Sound.WEATHER_RAIN, 0.8F, 0.5F);
 
-            // Damage nearby mobs in the expanding ring
-            for (Entity entity : world.getNearbyEntities(center, currentRadius + 1, 3, currentRadius + 1)) {
-                if (entity instanceof Mob mob) {
-                    if (!hitEntityList.contains(mob)) {
-                        hitEntityList.add(mob);
-                        calculation.damage(player, mob);
-                        mob.setVelocity(new Vector(0, 0.5, 0));
-                    }
-                }
-            }
 
             if (tick.get() > 4) {
                 bukkitTask.cancel();
@@ -188,11 +176,20 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         if (map.has("material")) {
             ability.material = Material.valueOf(map.get("material").getAsString());
         }
+        if (map.has("fillerMaterial")) {
+            ability.fillerMaterial = Material.valueOf(map.get("fillerMaterial").getAsString());
+        }
+        if (map.has("particle")) {
+            ability.particle = Particle.valueOf(map.get("particle").getAsString());
+        }
+        if (map.has("secondaryParticle")) {
+            ability.secondaryParticle = Particle.valueOf(map.get("secondaryParticle").getAsString());
+        }
         if (map.has("radius")) {
             ability.radius = map.get("radius").getAsDouble();
         }
-        if (map.has("points")) {
-            ability.blocks = map.get("points").getAsInt();
+        if (map.has("blocks")) {
+            ability.blocks = map.get("blocks").getAsInt();
         }
         return ability;
     }

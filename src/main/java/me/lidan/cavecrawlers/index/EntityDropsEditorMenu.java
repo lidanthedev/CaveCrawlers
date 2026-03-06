@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.gui.selectors.MythicMobSelector;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Material;
@@ -26,19 +27,21 @@ public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
         // Entity Name
         gui.setItem(2, 5, ItemBuilder.from(Material.NAME_TAG)
                 .name(MiniMessageUtils.miniMessage("<yellow>Entity Name: <name>", Map.of("name", item.getEntityName())))
-                .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit"))
-                .asGuiItem(event -> {
-                    PromptManager.getInstance().prompt(player, "Enter entity name").thenAccept(input -> {
-                        item.setEntityName(input);
-                        player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity name to %s".formatted(input)));
-                        setupGui();
-                        open();
-                    }).exceptionally(throwable -> {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Input cancelled"));
-                        open();
-                        return null;
-                    });
-                }));
+                .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to select mob"))
+                .asGuiItem(event -> new MythicMobSelector(player, "",
+                        MiniMessageUtils.miniMessage("Select Entity"),
+                        (clickEvent, mob) -> {
+                            String displayName = mob.getDisplayName().isPresent()
+                                    ? mob.getDisplayName().get()
+                                    : mob.getInternalName();
+                            item.setEntityName(displayName);
+                            player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity name to %s".formatted(displayName)));
+                            setupGui();
+                            open();
+                        }, () -> {
+                    setupGui();
+                    open();
+                }).open()));
 
         // Drop List
         List<Drop> dropList = item.getDropList();

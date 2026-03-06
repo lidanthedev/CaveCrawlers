@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.drops;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.api.DropsAPI;
+import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -24,6 +25,14 @@ public class DropsManager implements DropsAPI {
     @Override
     public EntityDrops getEntityDrops(String entityName){
         return entityDropsMap.get(entityName);
+    }
+
+    @Override
+    public void updateEntityDrops(String key, EntityDrops updated) {
+        entityDropsMap.put(key, updated);
+        BoostedCustomConfig config = DropLoader.getInstance().getConfig(key);
+        config.set(key, updated);
+        config.save();
     }
 
     public void rollDropsForPlayer(Player player, List<Drop> drops) {

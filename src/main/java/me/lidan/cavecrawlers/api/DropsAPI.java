@@ -22,4 +22,12 @@ public interface DropsAPI {
      * @return the EntityDrops associated with the entity, or null if not found
      */
     EntityDrops getEntityDrops(String entityName);
+
+    /**
+     * Updates the EntityDrops for a specific entity name.
+     *
+     * @param key     the name of the entity
+     * @param updated the updated EntityDrops to set for the entity
+     */
+    void updateEntityDrops(String key, EntityDrops updated);
 }

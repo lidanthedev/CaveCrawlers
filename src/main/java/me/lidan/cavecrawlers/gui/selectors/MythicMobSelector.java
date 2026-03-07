@@ -43,7 +43,7 @@ public class MythicMobSelector extends PaginatedSelector<MythicMob> {
             String nameStr = (displayName != null && displayName.isPresent())
                     ? displayName.get()
                     : mythicMob.getInternalName();
-            if (!nameStr.toLowerCase().contains(query) && !mythicMob.getInternalName().contains(query))
+            if (!nameStr.toLowerCase().contains(query) && !mythicMob.getInternalName().toLowerCase().contains(query))
                 continue;
             ItemStack baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mythicMob.getEntityTypeString()));
             List<Component> lore = new ArrayList<>(IndexManager.mobInfoToLore(mythicMob));

@@ -1,10 +1,12 @@
 package me.lidan.cavecrawlers.index;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
+import io.lumine.mythic.api.skills.placeholders.PlaceholderString;
 import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.drops.EntityDrops;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.gui.selectors.MythicMobSelector;
+import me.lidan.cavecrawlers.prompt.PromptException;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
@@ -32,11 +34,11 @@ public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
                 .asGuiItem(event -> new MythicMobSelector(player, "",
                         MiniMessageUtils.miniMessage("Select Entity"),
                         (clickEvent, mob) -> {
-                            String displayName = mob.getDisplayName().isPresent()
-                                    ? mob.getDisplayName().get()
-                                    : mob.getInternalName();
-                            item.setEntityName(displayName);
-                            player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity name to %s".formatted(displayName)));
+                            String internalName = mob.getInternalName();
+                            PlaceholderString dn = mob.getDisplayName();
+                            String label = (dn != null && dn.isPresent()) ? dn.get() : internalName;
+                            item.setEntityName(internalName);
+                            player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity to %s (%s)".formatted(label, internalName)));
                             setupGui();
                             open();
                         }, () -> {
@@ -71,7 +73,12 @@ public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
                         setupGui();
                         open();
                     }).exceptionally(throwable -> {
-                        player.sendMessage(MiniMessageUtils.miniMessage("<red>Input cancelled"));
+                        Throwable cause = throwable.getCause() != null ? throwable.getCause() : throwable;
+                        if (cause instanceof PromptException) {
+                            player.sendMessage(MiniMessageUtils.miniMessage("<red>%s".formatted(cause.getMessage())));
+                        } else {
+                            player.sendMessage(MiniMessageUtils.miniMessage("<red>Input cancelled"));
+                        }
                         open();
                         return null;
                     });

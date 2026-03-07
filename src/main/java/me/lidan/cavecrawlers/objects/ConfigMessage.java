@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.objects;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -19,6 +20,7 @@ import java.util.Map;
 
 @Getter
 @ToString
+@EqualsAndHashCode
 public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     private static CustomConfig config = new CustomConfig("messages");
     private String message = "";

@@ -64,6 +64,7 @@ public class GuiItems {
 
     public static List<Integer> getLayoutForItems(int n) {
         return switch (n) {
+            case 0 -> List.of();
             case 1 -> List.of(5);
             case 2 -> List.of(4, 6);
             case 3 -> List.of(4, 5, 6);

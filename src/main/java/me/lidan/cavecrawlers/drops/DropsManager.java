@@ -44,6 +44,9 @@ public class DropsManager implements DropsAPI {
      * @param updated the updated EntityDrops
      */
     public void renameEntityDrops(String oldKey, String newKey, EntityDrops updated) {
+        if (!oldKey.equals(newKey) && entityDropsMap.containsKey(newKey)) {
+            throw new IllegalArgumentException("Cannot rename drop table: key '%s' already exists".formatted(newKey));
+        }
         if (!oldKey.equals(newKey)) {
             entityDropsMap.remove(oldKey);
             DropLoader.getInstance().remove(oldKey);

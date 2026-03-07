@@ -77,7 +77,11 @@ public class PromptManager implements PromptAPI {
         return prompt(player, promptTitle)
                 .thenApply(response -> {
                     try {
-                        return Double.parseDouble(response);
+                        double parsed = Double.parseDouble(response);
+                        if (!Double.isFinite(parsed)) {
+                            throw new PromptException("Number must be finite: " + response);
+                        }
+                        return parsed;
                     } catch (NumberFormatException e) {
                         throw new PromptException("Invalid number format: " + response, e);
                     }

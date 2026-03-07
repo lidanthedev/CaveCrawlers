@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
 import me.lidan.cavecrawlers.gui.selectors.MythicMobSelector;
+import me.lidan.cavecrawlers.index.editor.BossDropsEditorMenu;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -40,7 +41,7 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
             });
         }
 
-        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION) && plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
             gui.setItem(1, 9, ItemBuilder.from(Material.EMERALD_BLOCK)
                     .name(MiniMessageUtils.miniMessage("<green>New Boss Drop"))
                     .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to create a new boss drop entry"))

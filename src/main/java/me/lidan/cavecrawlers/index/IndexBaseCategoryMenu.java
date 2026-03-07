@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
@@ -18,7 +19,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class IndexBaseCategoryMenu {
+    public static final String EXPERIMENTAL_INDEX_EDITOR = "experimental.index-editor";
     public static final String CAVECRAWLERS_INDEX_ADMIN_PERMISSION = "cavecrawlers.index.admin";
+    protected static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static ItemBuilder INDEX_GUIDE = ItemBuilder.from(Material.BOOK).name(MiniMessageUtils.miniMessage("<yellow>Index Guide")).lore(MiniMessageUtils.miniMessageList("<yellow>How to Read the drops</yellow>", "<gold>- [Amount] [Drop] ([chance]) [chance modifier] [amount modifier]</gold>", "<yellow>Example:", "<gray>- <gray>1-2 <white>Gold Ingot<gray> (<green>10.00%<gray>) <aqua>✯ <red>✘", "<yellow>You can get 1-2 drops of Gold Ingot", "<yellow>it has 10% and boosted by <aqua>✯ Magic Find", "<yellow>but no amount modifier</yellow>", "<red>✘ means no stat</red>"));
     public static ItemBuilder SEARCH_ITEM = ItemBuilder.from(Material.COMPASS).name(MiniMessageUtils.miniMessage("<blue>Search Index")).lore(MiniMessageUtils.miniMessageList("<yellow>Click to Search the Index", "<yellow>Right click to clear search"));
     protected final Player player;
@@ -84,6 +87,10 @@ public abstract class IndexBaseCategoryMenu {
         itemBuilder.lore(lore);
         GuiItem guiItem = itemBuilder.asGuiItem(event -> {
             if (!player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+                return;
+            }
+            if (!plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not enabled. Enable it in the config to edit entries. at: %s".formatted(EXPERIMENTAL_INDEX_EDITOR)));
                 return;
             }
             if (event.isRightClick()) {

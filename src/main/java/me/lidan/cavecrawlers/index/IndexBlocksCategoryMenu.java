@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.index;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
+import me.lidan.cavecrawlers.index.editor.BlockInfoEditorMenu;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
@@ -39,7 +40,7 @@ public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
             });
         }
 
-        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION) && plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
             gui.setItem(1, 9, ItemBuilder.from(Material.EMERALD_BLOCK)
                     .name(MiniMessageUtils.miniMessage("<green>New Block"))
                     .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to create a new block drop entry"))

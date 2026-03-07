@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.index;
+package me.lidan.cavecrawlers.index.editor;
 
 import com.cryptomorin.xseries.XEnchantment;
 import dev.triumphteam.gui.builder.item.ItemBuilder;

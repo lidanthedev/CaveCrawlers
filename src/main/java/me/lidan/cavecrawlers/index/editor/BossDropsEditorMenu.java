@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.index;
+package me.lidan.cavecrawlers.index.editor;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.bosses.BossDrop;

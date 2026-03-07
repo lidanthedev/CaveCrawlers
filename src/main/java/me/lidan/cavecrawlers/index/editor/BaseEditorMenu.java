@@ -1,10 +1,11 @@
-package me.lidan.cavecrawlers.index;
+package me.lidan.cavecrawlers.index.editor;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.BaseGui;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.index.IndexManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;

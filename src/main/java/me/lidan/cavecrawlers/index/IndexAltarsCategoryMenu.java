@@ -27,13 +27,13 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
                 player.performCommand("cavecrawlers altar info " + name);
             });
         }
-        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION) && plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
             gui.setItem(1, 9, ItemBuilder.from(Material.EMERALD_BLOCK)
                     .name(MiniMessageUtils.miniMessage("<green>New Altar"))
                     .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to create a new altar"))
                     .asGuiItem(event -> {
                         player.closeInventory();
-                        player.sendMessage(MiniMessageUtils.miniMessage("<green>To create new altar use the command: <yellow>/cavecrawlers altar create <name>"));
+                        player.sendMessage(MiniMessageUtils.miniMessage("<click:suggest_command:'/cavecrawlers altar create '><green>To create new altar use the command: <yellow>/cavecrawlers altar create <name> <b>CLICK</b></click>"));
                     }));
         }
     }

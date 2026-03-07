@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class GuiItems {
-    public static final ItemBuilder BACK_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<gray>Go Back")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to To Back"));
-    public static final ItemBuilder NEXT_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Next")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to To Next", "<gold>Right-click to go to last page"));
-    public static final ItemBuilder PREVIOUS_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Previous")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to To Previous", "<gold>Right-click to go to first page"));
+    public static final ItemBuilder BACK_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<gray>Go Back")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to go Back"));
+    public static final ItemBuilder NEXT_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Next")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to go Next", "<gold>Right-click to go to last page"));
+    public static final ItemBuilder PREVIOUS_ARROW_ITEM = ItemBuilder.from(Material.ARROW).name(MiniMessageUtils.miniMessage("<blue>Previous")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to go Previous", "<gold>Right-click to go to first page"));
 
     public static final @NotNull GuiItem CLOSE_ITEM = ItemBuilder.from(Material.BARRIER).name(MiniMessageUtils.miniMessage("<red>Close Menu")).lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to Close Menu")).asGuiItem((event -> {
         Player sender = (Player) event.getWhoClicked();

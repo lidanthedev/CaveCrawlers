@@ -28,8 +28,9 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
             String mobName = dropsEntry.getKey();
             if (!ChatColor.stripColor(mobName.toLowerCase()).contains(query)) continue;
             addItem(mobName, ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem(), event -> {
+                String originalKey = dropsEntry.getKey();
                 new EntityDropsEditorMenu(player, dropsEntry.getValue(), updated -> {
-                    DropsManager.getInstance().updateEntityDrops(dropsEntry.getKey(), updated);
+                    DropsManager.getInstance().renameEntityDrops(originalKey, updated.getEntityName(), updated);
                 }, onClose -> {
                     search(query, true);
                 }).open();

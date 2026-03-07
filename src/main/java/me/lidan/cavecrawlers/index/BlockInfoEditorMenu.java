@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 public class BlockInfoEditorMenu extends BaseEditorMenu<BlockInfo> {
     public BlockInfoEditorMenu(Player player, BlockInfo item, Consumer<BlockInfo> onSave, Consumer<BlockInfo> onClose) {
-        super(player, item, onSave, onClose);
+        super(player, item.clone(), onSave, onClose);
     }
 
     @Override

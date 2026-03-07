@@ -49,7 +49,7 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
                 }
 
                 if (clickType == ClickType.DROP) {
-                    if (index > 0) {
+                    if (index < item.size()) {
                         item.remove(index);
                         save();
                         reopen();
@@ -62,9 +62,7 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
         }
         gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Add")).asGuiItem(event -> {
             Drop drop = new Drop(DropType.COINS, 100.0, "100", null, StatType.MAGIC_FIND, null);
-            item.add(drop);
-            save();
-            openDropEditor(drop);
+            openDropEditor(drop, true);
         }));
         GuiItems.setupNextPreviousItems(getPaginatedGui(), 5);
         gui.setItem(6, 1, createBackItem());
@@ -72,12 +70,20 @@ public class DropListEditorMenu extends BaseEditorMenu<List<Drop>> {
     }
 
     private void openDropEditor(Drop drop) {
+        openDropEditor(drop, false);
+    }
+
+    private void openDropEditor(Drop drop, boolean isNew) {
         new DropEditorMenu(player, drop, updatedDrop -> {
-            int currentIndex = item.indexOf(drop);
-            if (currentIndex != -1) {
-                item.set(currentIndex, updatedDrop);
-                save();
+            if (isNew) {
+                item.add(updatedDrop);
+            } else {
+                int currentIndex = item.indexOf(drop);
+                if (currentIndex != -1) {
+                    item.set(currentIndex, updatedDrop);
+                }
             }
+            save();
         }, updatedDrop -> reopen()).open();
     }
 

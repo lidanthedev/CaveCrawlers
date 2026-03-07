@@ -47,7 +47,7 @@ public class BossDropListEditorMenu extends BaseEditorMenu<List<BossDrop>> {
                 }
 
                 if (clickType == ClickType.DROP) {
-                    if (index > 0) {
+                    if (index >= 0 && index < item.size()) {
                         item.remove(index);
                         save();
                         reopen();
@@ -60,9 +60,7 @@ public class BossDropListEditorMenu extends BaseEditorMenu<List<BossDrop>> {
         }
         gui.setItem(6, 5, ItemBuilder.from(Material.EMERALD_BLOCK).name(MiniMessageUtils.miniMessage("<green>Add")).asGuiItem(event -> {
             BossDrop drop = new BossDrop(DropType.COINS.name(), 100.0, "100", 0, null, null);
-            item.add(drop);
-            save();
-            openDropEditor(drop);
+            openDropEditor(drop, true);
         }));
         GuiItems.setupNextPreviousItems(getPaginatedGui(), 5);
         gui.setItem(6, 1, createBackItem());
@@ -70,12 +68,20 @@ public class BossDropListEditorMenu extends BaseEditorMenu<List<BossDrop>> {
     }
 
     private void openDropEditor(BossDrop drop) {
+        openDropEditor(drop, false);
+    }
+
+    private void openDropEditor(BossDrop drop, boolean isNew) {
         new BossDropEditorMenu(player, drop, updatedDrop -> {
-            int currentIndex = item.indexOf(drop);
-            if (currentIndex != -1) {
-                item.set(currentIndex, (BossDrop) updatedDrop);
-                save();
+            if (isNew) {
+                item.add(updatedDrop);
+            } else {
+                int currentIndex = item.indexOf(drop);
+                if (currentIndex != -1) {
+                    item.set(currentIndex, updatedDrop);
+                }
             }
+            save();
         }, updatedDrop -> reopen()).open();
     }
 

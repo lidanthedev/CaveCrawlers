@@ -85,7 +85,7 @@ public class PromptManager implements PromptAPI {
     }
 
     @Override
-    public CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, int min) {
+    public CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, double min) {
         return promptDouble(player, promptTitle)
                 .thenApply(response -> {
                     if (response < min) {

@@ -64,5 +64,5 @@ public interface PromptAPI {
      * @param min         the minimum value allowed
      * @return a CompletableFuture containing the player's decimal response
      */
-    CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, int min);
+    CompletableFuture<Double> promptDoubleMin(Player player, String promptTitle, double min);
 }

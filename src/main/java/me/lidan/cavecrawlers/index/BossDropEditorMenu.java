@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.index;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.bosses.BossDrop;
-import me.lidan.cavecrawlers.drops.Drop;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Material;
@@ -13,8 +12,8 @@ import java.util.function.Consumer;
 
 public class BossDropEditorMenu extends DropEditorMenu {
 
-    public BossDropEditorMenu(Player player, BossDrop item, Consumer<Drop> onSave, Consumer<Drop> onDiscard) {
-        super(player, item, onSave, onDiscard);
+    public BossDropEditorMenu(Player player, BossDrop item, Consumer<BossDrop> onSave, Consumer<BossDrop> onDiscard) {
+        super(player, item, drop -> onSave.accept((BossDrop) drop), drop -> onDiscard.accept((BossDrop) drop));
     }
 
     private BossDrop getBossDrop() {

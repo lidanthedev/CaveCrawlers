@@ -6,6 +6,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,20 @@ public class EntityDrops implements ConfigurationSerializable {
         this.entityName = entityName;
         this.dropList = dropList;
         this.xp = xp;
+    }
+
+    /**
+     * Creates a deep copy of this EntityDrops instance.
+     * The drop list is copied with each Drop cloned individually.
+     *
+     * @return a new EntityDrops with copied fields
+     */
+    public EntityDrops deepCopy() {
+        List<Drop> copiedDrops = new ArrayList<>();
+        for (Drop drop : dropList) {
+            copiedDrops.add(drop.clone());
+        }
+        return new EntityDrops(entityName, copiedDrops, xp);
     }
 
     public void roll(Player player){

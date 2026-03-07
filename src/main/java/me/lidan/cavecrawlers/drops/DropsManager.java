@@ -35,6 +35,22 @@ public class DropsManager implements DropsAPI {
         config.save();
     }
 
+    /**
+     * Renames an entity drop table from oldKey to newKey.
+     * Removes the old entry and saves under the new key.
+     *
+     * @param oldKey  the old entity name key
+     * @param newKey  the new entity name key
+     * @param updated the updated EntityDrops
+     */
+    public void renameEntityDrops(String oldKey, String newKey, EntityDrops updated) {
+        if (!oldKey.equals(newKey)) {
+            entityDropsMap.remove(oldKey);
+            DropLoader.getInstance().remove(oldKey);
+        }
+        updateEntityDrops(newKey, updated);
+    }
+
     public void rollDropsForPlayer(Player player, List<Drop> drops) {
         for (Drop drop : drops) {
             drop.roll(player);

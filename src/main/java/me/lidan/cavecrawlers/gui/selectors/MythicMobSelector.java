@@ -40,15 +40,15 @@ public class MythicMobSelector extends PaginatedSelector<MythicMob> {
         mobs = mobs.stream().sorted(Comparator.comparing(MythicMob::getInternalName)).toList();
         for (MythicMob mythicMob : mobs) {
             PlaceholderString displayName = mythicMob.getDisplayName();
-            if (displayName == null || !displayName.isPresent()) {
-                continue;
-            }
-            if (!displayName.get().toLowerCase().contains(query) && !mythicMob.getInternalName().contains(query))
+            String nameStr = (displayName != null && displayName.isPresent())
+                    ? displayName.get()
+                    : mythicMob.getInternalName();
+            if (!nameStr.toLowerCase().contains(query) && !mythicMob.getInternalName().contains(query))
                 continue;
             ItemStack baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mythicMob.getEntityTypeString()));
             List<Component> lore = new ArrayList<>(IndexManager.mobInfoToLore(mythicMob));
             lore.add(MiniMessageUtils.miniMessage("<gray>ID: <id>", Map.of("id", mythicMob.getInternalName())));
-            gui.addItem(ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<name>", Map.of("name", displayName.get()))).lore(lore).asGuiItem(event -> callback.accept(event, mythicMob)));
+            gui.addItem(ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<name>", Map.of("name", nameStr))).lore(lore).asGuiItem(event -> callback.accept(event, mythicMob)));
         }
     }
 

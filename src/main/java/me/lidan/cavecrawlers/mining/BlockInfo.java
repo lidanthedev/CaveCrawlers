@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class BlockInfo implements ConfigurationSerializable {
+public class BlockInfo implements ConfigurationSerializable, Cloneable {
     public static final @NotNull BlockData DEFAULT_REPLACEMENT_BLOCK = Material.BLACK_WOOL.createBlockData();
     private Material block;
     private int blockStrength;
@@ -60,6 +60,21 @@ public class BlockInfo implements ConfigurationSerializable {
         ItemType brokenBy = ItemType.valueOf((String) map.getOrDefault("brokenBy", ItemType.PICKAXE.name()));
         BlockData replacementBlockData = map.get("replacementBlockData") != null ? Bukkit.createBlockData((String) map.get("replacementBlockData")) : DEFAULT_REPLACEMENT_BLOCK;
         return new BlockInfo(blockStrength, blockPower, drops, brokenBy, replacementBlockData);
+    }
+
+    @Override
+    public BlockInfo clone() {
+        try {
+            BlockInfo clone = (BlockInfo) super.clone();
+            clone.drops = new ArrayList<>();
+            for (Drop drop : this.drops) {
+                clone.drops.add(drop.clone());
+            }
+            clone.replacementBlockData = this.replacementBlockData.clone();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     @NotNull

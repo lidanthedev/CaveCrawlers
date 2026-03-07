@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 
 public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
     public EntityDropsEditorMenu(Player player, EntityDrops item, Consumer<EntityDrops> onSave, Consumer<EntityDrops> onClose) {
-        super(player, item, onSave, onClose);
+        super(player, item.deepCopy(), onSave, onClose);
     }
 
     @Override

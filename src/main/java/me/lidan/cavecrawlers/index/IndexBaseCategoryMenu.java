@@ -82,21 +82,23 @@ public abstract class IndexBaseCategoryMenu {
             lore.addAll(originalLore);
         }
         lore.add(Component.empty());
-        lore.add(MiniMessageUtils.miniMessage("<yellow>Left click to edit entry"));
+        if (plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
+            lore.add(MiniMessageUtils.miniMessage("<yellow>Left click to edit entry"));
+        }
         lore.add(MiniMessageUtils.miniMessage("<yellow>Right click to hide entry from index"));
         itemBuilder.lore(lore);
         GuiItem guiItem = itemBuilder.asGuiItem(event -> {
             if (!player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
                 return;
             }
-            if (!plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
-                player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not enabled. Enable it in the config to edit entries. at: %s".formatted(EXPERIMENTAL_INDEX_EDITOR)));
-                return;
-            }
             if (event.isRightClick()) {
                 itemGenerator.toggleHiddenEntry(fullEntry);
                 player.sendMessage(MiniMessageUtils.miniMessage("<yellow>Entry <gray>" + entry + " <yellow>visibility toggled."));
                 search(query, true);
+                return;
+            }
+            if (!plugin.getConfig().getBoolean(EXPERIMENTAL_INDEX_EDITOR)) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not enabled. Enable it in the config to edit entries. at: %s".formatted(EXPERIMENTAL_INDEX_EDITOR)));
                 return;
             }
             if (clickEventConsumer == null) {

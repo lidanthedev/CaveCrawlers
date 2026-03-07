@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.index.IndexManager;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -45,7 +46,13 @@ public class MythicMobSelector extends PaginatedSelector<MythicMob> {
                     : mythicMob.getInternalName();
             if (!nameStr.toLowerCase().contains(query) && !mythicMob.getInternalName().toLowerCase().contains(query))
                 continue;
-            ItemStack baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mythicMob.getEntityTypeString()));
+            ItemStack baseMaterial;
+            try {
+                String entityTypeStr = mythicMob.getEntityTypeString();
+                baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(entityTypeStr));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                baseMaterial = ItemBuilder.from(Material.PLAYER_HEAD).build();
+            }
             List<Component> lore = new ArrayList<>(IndexManager.mobInfoToLore(mythicMob));
             lore.add(MiniMessageUtils.miniMessage("<gray>ID: <id>", Map.of("id", mythicMob.getInternalName())));
             gui.addItem(ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<name>", Map.of("name", nameStr))).lore(lore).asGuiItem(event -> callback.accept(event, mythicMob)));

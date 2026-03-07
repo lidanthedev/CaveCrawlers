@@ -34,11 +34,10 @@ public class EntityDropsEditorMenu extends BaseEditorMenu<EntityDrops> {
                 .asGuiItem(event -> new MythicMobSelector(player, "",
                         MiniMessageUtils.miniMessage("Select Entity"),
                         (clickEvent, mob) -> {
-                            String internalName = mob.getInternalName();
                             PlaceholderString dn = mob.getDisplayName();
-                            String label = (dn != null && dn.isPresent()) ? dn.get() : internalName;
-                            item.setEntityName(internalName);
-                            player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity to %s (%s)".formatted(label, internalName)));
+                            String displayName = (dn != null && dn.isPresent()) ? dn.get() : mob.getInternalName();
+                            item.setEntityName(displayName);
+                            player.sendMessage(MiniMessageUtils.miniMessage("<green>Set entity name to %s".formatted(displayName)));
                             setupGui();
                             open();
                         }, () -> {

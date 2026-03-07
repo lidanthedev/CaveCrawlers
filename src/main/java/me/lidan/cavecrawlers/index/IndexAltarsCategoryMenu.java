@@ -3,7 +3,9 @@ package me.lidan.cavecrawlers.index;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -24,6 +26,15 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
                 player.closeInventory();
                 player.performCommand("cavecrawlers altar info " + name);
             });
+        }
+        if (player.hasPermission(CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
+            gui.setItem(1, 9, ItemBuilder.from(Material.EMERALD_BLOCK)
+                    .name(MiniMessageUtils.miniMessage("<green>New Altar"))
+                    .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to create a new altar"))
+                    .asGuiItem(event -> {
+                        player.closeInventory();
+                        player.sendMessage(MiniMessageUtils.miniMessage("<green>To create new altar use the command: <yellow>/cavecrawlers altar create <name>"));
+                    }));
         }
     }
 

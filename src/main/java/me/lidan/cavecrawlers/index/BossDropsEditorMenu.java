@@ -26,7 +26,7 @@ public class BossDropsEditorMenu extends BaseEditorMenu<BossDrops> {
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
 
         // Entity Name
-        gui.setItem(2, 3, ItemBuilder.from(Material.NAME_TAG)
+        gui.setItem(2, 5, ItemBuilder.from(Material.NAME_TAG)
                 .name(MiniMessageUtils.miniMessage("<yellow>Entity Name: <name>", Map.of("name", item.getEntityName())))
                 .lore(MiniMessageUtils.miniMessageList("", "<yellow>Click to select mob"))
                 .asGuiItem(event -> new MythicMobSelector(player, "",
@@ -48,7 +48,7 @@ public class BossDropsEditorMenu extends BaseEditorMenu<BossDrops> {
         List<BossDrop> dropList = item.getDrops();
         List<Component> dropsLore = indexManager.dropsToComponents(dropList);
         dropsLore.addAll(MiniMessageUtils.miniMessageList("", "<yellow>Click to edit drops"));
-        gui.setItem(2, 5, ItemBuilder.from(Material.CHEST)
+        gui.setItem(3, 5, ItemBuilder.from(Material.CHEST)
                 .name(MiniMessageUtils.miniMessage("<yellow>Drops (<count>)", Map.of("count", String.valueOf(dropList.size()))))
                 .lore(dropsLore)
                 .asGuiItem(event -> {
@@ -63,7 +63,7 @@ public class BossDropsEditorMenu extends BaseEditorMenu<BossDrops> {
         // Bonus Points
         List<Integer> bonusPoints = item.getBonusPoints();
         String bonusPointsText = bonusPoints.toString();
-        gui.setItem(2, 7, ItemBuilder.from(Material.GOLD_INGOT)
+        gui.setItem(4, 5, ItemBuilder.from(Material.GOLD_INGOT)
                 .name(MiniMessageUtils.miniMessage("<yellow>Bonus Points"))
                 .lore(MiniMessageUtils.miniMessageList("<gray>" + bonusPointsText, "", "<yellow>Click to edit"))
                 .asGuiItem(event -> {

@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.objects;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.levels.LevelInfo;
@@ -16,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-@Data
+@Getter
+@ToString
 public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     private static CustomConfig config = new CustomConfig("messages");
     private String message = "";

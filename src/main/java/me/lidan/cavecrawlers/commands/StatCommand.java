@@ -50,7 +50,7 @@ public class StatCommand {
 
     @Subcommand("set")
     public void set(Player sender, StatType type, double amount, @Default("me") Player arg) {
-        Stats stats = statsManager.getStatsAdder(sender);
+        Stats stats = statsManager.getStatsAdder(arg);
         stats.get(type).setValue(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s for player %s".formatted(type.name(), amount, arg.getName()));
     }

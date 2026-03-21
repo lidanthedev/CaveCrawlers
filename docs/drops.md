@@ -161,13 +161,13 @@ placeholders if installed.
 
 When `chanceModifier` is set (e.g. `MAGIC_FIND`), the effective drop chance is calculated as:
 
-```
+```text
 effectiveChance = chance × (1 + playerStatValue / 100)
 ```
 
 **Example:** A player with **50 Magic Find** rolling a drop with `chance: 10.0` and `chanceModifier: MAGIC_FIND`:
 
-```
+```text
 effectiveChance = 10.0 × (1 + 50 / 100) = 10.0 × 1.5 = 15.0%
 ```
 
@@ -180,7 +180,7 @@ When `amountModifier` is set, the drop amount is multiplied based on the player'
 
 **Example:** A player with **250** of the modifier stat dropping an item with amount `3`:
 
-```
+```text
 multiplier = 1 + floor(250 / 100) = 3
 remainder  = 250 % 100 = 50  →  50% chance to add +1 to multiplier
 finalAmount = 3 × 3 = 9   (or 3 × 4 = 12 if the 50% roll succeeds)
@@ -619,7 +619,7 @@ Altars and Boss Drops are designed to work together:
 2. **Boss drops config** → defines what loot the spawned boss drops, using points earned from altar contributions.
 3. Players who contributed more items earn more points, making them eligible for rarer drops.
 
-```
+```text
 Player places items → Altar fills → Mob spawns (AltarDrop) → Players fight boss
 → Boss dies → Points calculated (items × pointsPerItem + bonusPoints for top damage)
 → Boss drops rolled per player based on points → Loot distributed

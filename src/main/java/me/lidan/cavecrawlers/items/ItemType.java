@@ -15,6 +15,7 @@ public enum ItemType {
     BOW("Bow", ItemSlot.HAND),
     WAND("Wand", ItemSlot.HAND),
     AXE("Axe", ItemSlot.HAND),
+    SHOVEL("Shovel", ItemSlot.HAND),
     TALISMAN("Talisman", ItemSlot.OFF_HAND),
     HELMET("Helmet", ItemSlot.ARMOR),
     CHESTPLATE("Chestplate", ItemSlot.ARMOR),
@@ -24,8 +25,9 @@ public enum ItemType {
     UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
     OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
     ACCESSORY("Accessory", ItemSlot.INVENTORY),
+    INVENTORY("Inventory", ItemSlot.INVENTORY),
     PET("Pet", ItemSlot.OFF_HAND),
-    HOTBAR("Hotbar", ItemSlot.HOTBAR)
+    HOTBAR("Hotbar", ItemSlot.HOTBAR),
 
     ;
 

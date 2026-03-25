@@ -357,7 +357,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return Arrays.stream(Material.values()).map(Enum::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
-            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
+            return Arrays.stream(ItemType.values()).map(ItemType::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();

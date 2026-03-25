@@ -8,56 +8,30 @@ import java.util.Map;
 
 @Getter
 public class ItemType {
-    public static final ItemType SHIELD = new ItemType("Shield", ItemSlot.OFF_HAND);
-    public static final ItemType ALCHEMY_BAG = new ItemType("Alchemy Bag", ItemSlot.HAND);
-    public static final ItemType MATERIAL = new ItemType("Material", ItemSlot.HAND);
-    public static final ItemType PICKAXE = new ItemType("Pickaxe", ItemSlot.HAND);
-    public static final ItemType DRILL = new ItemType("Drill", ItemSlot.HAND);
-    public static final ItemType WEAPON = new ItemType("Weapon", ItemSlot.HAND);
-    public static final ItemType SWORD = new ItemType("Sword", ItemSlot.HAND);
-    public static final ItemType BOW = new ItemType("Bow", ItemSlot.HAND);
-    public static final ItemType WAND = new ItemType("Wand", ItemSlot.HAND);
-    public static final ItemType AXE = new ItemType("Axe", ItemSlot.HAND);
-    public static final ItemType SHOVEL = new ItemType("Shovel", ItemSlot.HAND);
-    public static final ItemType TALISMAN = new ItemType("Talisman", ItemSlot.OFF_HAND);
-    public static final ItemType HELMET = new ItemType("Helmet", ItemSlot.ARMOR);
-    public static final ItemType CHESTPLATE = new ItemType("Chestplate", ItemSlot.ARMOR);
-    public static final ItemType LEGGINGS = new ItemType("Leggings", ItemSlot.ARMOR);
-    public static final ItemType BOOTS = new ItemType("Boots", ItemSlot.ARMOR);
-    public static final ItemType ARMOR = new ItemType("Armor", ItemSlot.ARMOR);
-    public static final ItemType UNIQUE_ITEM = new ItemType("Unique Item", ItemSlot.HAND);
-    public static final ItemType OFF_HAND = new ItemType("Off Hand", ItemSlot.OFF_HAND);
-    public static final ItemType ACCESSORY = new ItemType("Accessory", ItemSlot.INVENTORY);
-    public static final ItemType INVENTORY = new ItemType("Inventory", ItemSlot.INVENTORY);
-    public static final ItemType PET = new ItemType("Pet", ItemSlot.OFF_HAND);
-    public static final ItemType HOTBAR = new ItemType("Hotbar", ItemSlot.HOTBAR);
     private static final Map<String, ItemType> itemTypes = new LinkedHashMap<>();
-
-    static {
-        register("SHIELD", SHIELD);
-        register("ALCHEMY_BAG", ALCHEMY_BAG);
-        register("MATERIAL", MATERIAL);
-        register("PICKAXE", PICKAXE);
-        register("DRILL", DRILL);
-        register("WEAPON", WEAPON);
-        register("SWORD", SWORD);
-        register("BOW", BOW);
-        register("WAND", WAND);
-        register("AXE", AXE);
-        register("SHOVEL", SHOVEL);
-        register("TALISMAN", TALISMAN);
-        register("HELMET", HELMET);
-        register("CHESTPLATE", CHESTPLATE);
-        register("LEGGINGS", LEGGINGS);
-        register("BOOTS", BOOTS);
-        register("ARMOR", ARMOR);
-        register("UNIQUE_ITEM", UNIQUE_ITEM);
-        register("OFF_HAND", OFF_HAND);
-        register("ACCESSORY", ACCESSORY);
-        register("INVENTORY", INVENTORY);
-        register("PET", PET);
-        register("HOTBAR", HOTBAR);
-    }
+    public static final ItemType SHIELD = register("SHIELD", new ItemType("Shield", ItemSlot.OFF_HAND));
+    public static final ItemType ALCHEMY_BAG = register("ALCHEMY_BAG", new ItemType("Alchemy Bag", ItemSlot.HAND));
+    public static final ItemType MATERIAL = register("MATERIAL", new ItemType("Material", ItemSlot.HAND));
+    public static final ItemType PICKAXE = register("PICKAXE", new ItemType("Pickaxe", ItemSlot.HAND));
+    public static final ItemType DRILL = register("DRILL", new ItemType("Drill", ItemSlot.HAND));
+    public static final ItemType WEAPON = register("WEAPON", new ItemType("Weapon", ItemSlot.HAND));
+    public static final ItemType SWORD = register("SWORD", new ItemType("Sword", ItemSlot.HAND));
+    public static final ItemType BOW = register("BOW", new ItemType("Bow", ItemSlot.HAND));
+    public static final ItemType WAND = register("WAND", new ItemType("Wand", ItemSlot.HAND));
+    public static final ItemType AXE = register("AXE", new ItemType("Axe", ItemSlot.HAND));
+    public static final ItemType SHOVEL = register("SHOVEL", new ItemType("Shovel", ItemSlot.HAND));
+    public static final ItemType TALISMAN = register("TALISMAN", new ItemType("Talisman", ItemSlot.OFF_HAND));
+    public static final ItemType HELMET = register("HELMET", new ItemType("Helmet", ItemSlot.ARMOR));
+    public static final ItemType CHESTPLATE = register("CHESTPLATE", new ItemType("Chestplate", ItemSlot.ARMOR));
+    public static final ItemType LEGGINGS = register("LEGGINGS", new ItemType("Leggings", ItemSlot.ARMOR));
+    public static final ItemType BOOTS = register("BOOTS", new ItemType("Boots", ItemSlot.ARMOR));
+    public static final ItemType ARMOR = register("ARMOR", new ItemType("Armor", ItemSlot.ARMOR));
+    public static final ItemType UNIQUE_ITEM = register("UNIQUE_ITEM", new ItemType("Unique Item", ItemSlot.HAND));
+    public static final ItemType OFF_HAND = register("OFF_HAND", new ItemType("Off Hand", ItemSlot.OFF_HAND));
+    public static final ItemType ACCESSORY = register("ACCESSORY", new ItemType("Accessory", ItemSlot.INVENTORY));
+    public static final ItemType INVENTORY = register("INVENTORY", new ItemType("Inventory", ItemSlot.INVENTORY));
+    public static final ItemType PET = register("PET", new ItemType("Pet", ItemSlot.OFF_HAND));
+    public static final ItemType HOTBAR = register("HOTBAR", new ItemType("Hotbar", ItemSlot.HOTBAR));
 
     private String id;
     private final String name;
@@ -76,10 +50,11 @@ public class ItemType {
         return itemType;
     }
 
-    public static void register(String id, ItemType itemType) {
+    public static ItemType register(String id, ItemType itemType) {
         id = id.toUpperCase();
         itemType.id = id;
         itemTypes.put(id, itemType);
+        return itemType;
     }
 
     public static ItemType[] values() {

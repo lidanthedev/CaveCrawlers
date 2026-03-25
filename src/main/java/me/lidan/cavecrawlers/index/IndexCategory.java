@@ -8,18 +8,11 @@ import java.util.Map;
 
 @Getter
 public class IndexCategory {
-    public static final IndexCategory MOBS = new IndexCategory("Mobs");
-    public static final IndexCategory BLOCKS = new IndexCategory("Blocks");
-    public static final IndexCategory BOSSES = new IndexCategory("Bosses");
-    public static final IndexCategory ALTARS = new IndexCategory("Altars");
     private static final Map<String, IndexCategory> categories = new LinkedHashMap<>();
-
-    static {
-        register("MOBS", MOBS);
-        register("BLOCKS", BLOCKS);
-        register("BOSSES", BOSSES);
-        register("ALTARS", ALTARS);
-    }
+    public static final IndexCategory MOBS = register("MOBS", new IndexCategory("Mobs"));
+    public static final IndexCategory BLOCKS = register("BLOCKS", new IndexCategory("Blocks"));
+    public static final IndexCategory BOSSES = register("BOSSES", new IndexCategory("Bosses"));
+    public static final IndexCategory ALTARS = register("ALTARS", new IndexCategory("Altars"));
 
     private String id;
     private final String displayName;
@@ -36,10 +29,11 @@ public class IndexCategory {
         return category;
     }
 
-    public static void register(String id, IndexCategory category) {
+    public static IndexCategory register(String id, IndexCategory category) {
         id = id.toUpperCase();
         category.id = id;
         categories.put(id, category);
+        return category;
     }
 
     public static IndexCategory[] values() {

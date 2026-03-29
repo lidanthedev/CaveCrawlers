@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "me.lidan"
-version = "1.1"
+version = project.findProperty("version") ?: "1.1"
 
 repositories {
     mavenCentral()

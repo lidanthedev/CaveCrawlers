@@ -7,7 +7,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
-import revxrsal.commands.annotation.Optional;
+import revxrsal.commands.annotation.Default;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
@@ -24,16 +24,13 @@ public class StatCommand {
     }
 
     @Subcommand("list")
-    public void listStats(Player sender, @Optional Player arg){
-        if(arg == null) {
-            arg = sender;
-        }
+    public void listStats(Player sender, @Default("me") Player arg) {
         Stats stats = statsManager.getStats(arg);
         sender.sendMessage(stats.toFormatString());
     }
 
     @Subcommand("lore")
-    public void loreStats(Player sender, @Optional Player arg){
+    public void loreStats(Player sender, @Default("me") Player arg) {
         if(arg == null) {
             arg = sender;
         }
@@ -45,17 +42,17 @@ public class StatCommand {
     }
 
     @Subcommand("add")
-    public void add(Player sender, StatType type, double amount){
-        Stats stats = statsManager.getStatsAdder(sender);
+    public void add(Player sender, StatType type, double amount, @Default("me") Player arg) {
+        Stats stats = statsManager.getStatsAdder(arg);
         stats.get(type).add(amount);
-        sender.sendMessage("add stat %s to %s".formatted(type, amount));
+        sender.sendMessage(ChatColor.GREEN + "add stat %s to %s for player %s".formatted(type.getFormatName(), amount, arg.getName()));
     }
 
     @Subcommand("set")
-    public void set(Player sender, StatType type, double amount){
-        Stats stats = statsManager.getStatsAdder(sender);
+    public void set(Player sender, StatType type, double amount, @Default("me") Player arg) {
+        Stats stats = statsManager.getStatsAdder(arg);
         stats.get(type).setValue(amount);
-        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type, amount));
+        sender.sendMessage(ChatColor.GREEN + "set stat %s to %s for player %s".formatted(type.getFormatName(), amount, arg.getName()));
     }
 
     @Subcommand("health")
@@ -64,8 +61,8 @@ public class StatCommand {
     }
 
     @Subcommand("apply")
-    public void apply(Player sender){
-        statsManager.applyStats(sender);
-        sender.sendMessage("Applied stats!");
+    public void apply(Player sender, @Default("me") Player arg) {
+        statsManager.applyStats(arg);
+        sender.sendMessage("Applied stats for player %s!".formatted(arg.getName()));
     }
 }

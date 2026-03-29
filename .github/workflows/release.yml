@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [ "Java CI with Gradle" ]
+    types: [ completed ]
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+
+    steps:
+      - name: Checkout target commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install semantic-release dependencies
+        run: npm ci --no-fund --no-audit
+
+      - name: Download Gradle artifact from CI run
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          name: cavecrawlers-github
+          path: release-artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate downloaded artifacts
+        run: |
+          test -d release-artifacts
+          find release-artifacts -type f -name '*.jar' | grep -q .
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --no-install semantic-release
+
+
+
+

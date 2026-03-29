@@ -47,7 +47,7 @@ jobs:
 
       # This step uploads the files from build/libs so you can download them
       - name: Upload Artifact (GitHub)
-        uses: christopherhx/gitea-upload-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
           name: cavecrawlers-github
           path: build/libs/*.jar

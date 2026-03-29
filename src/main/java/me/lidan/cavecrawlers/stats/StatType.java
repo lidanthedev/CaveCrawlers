@@ -5,10 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class StatType {
@@ -66,9 +63,16 @@ public class StatType {
     }
 
     public static StatType register(String id, StatType statType) {
-        id = id.toUpperCase();
-        statType.id = id;
-        stats.put(id, statType);
+        String normalizedId = Objects.requireNonNull(id, "id").toUpperCase(Locale.ROOT);
+        Objects.requireNonNull(statType, "statType");
+        if (stats.containsKey(normalizedId)) {
+            throw new IllegalArgumentException("Stat type " + normalizedId + " is already registered");
+        }
+        if (statType.id != null && !statType.id.equals(normalizedId)) {
+            throw new IllegalArgumentException("StatType instance already registered as " + statType.id);
+        }
+        statType.id = normalizedId;
+        stats.put(normalizedId, statType);
         return statType;
     }
 

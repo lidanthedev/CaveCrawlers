@@ -30,9 +30,14 @@ public class IndexCategory {
     }
 
     public static IndexCategory register(String id, IndexCategory category) {
-        id = id.toUpperCase();
-        category.id = id;
-        categories.put(id, category);
+        String normalizedId = id.toUpperCase();
+        if (category.id != null) {
+            throw new IllegalArgumentException("Index category " + category.id + " is already registered");
+        }
+        if (categories.putIfAbsent(normalizedId, category) != null) {
+            throw new IllegalArgumentException("Index category " + normalizedId + " is already registered");
+        }
+        category.id = normalizedId;
         return category;
     }
 

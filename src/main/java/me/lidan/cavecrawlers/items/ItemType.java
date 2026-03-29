@@ -51,9 +51,14 @@ public class ItemType {
     }
 
     public static ItemType register(String id, ItemType itemType) {
-        id = id.toUpperCase();
-        itemType.id = id;
-        itemTypes.put(id, itemType);
+        String normalizedId = id.toUpperCase();
+        if (itemType.id != null) {
+            throw new IllegalArgumentException("Item type " + itemType.id + " is already registered");
+        }
+        if (itemTypes.putIfAbsent(normalizedId, itemType) != null) {
+            throw new IllegalArgumentException("Item type " + normalizedId + " is already registered");
+        }
+        itemType.id = normalizedId;
         return itemType;
     }
 

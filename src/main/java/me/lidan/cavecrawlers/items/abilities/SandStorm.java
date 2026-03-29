@@ -16,7 +16,9 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SandStorm extends ScalingClickAbility implements Listener {
@@ -139,6 +141,8 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
         if (!fallingBlock.getScoreboardTags().contains(SANDSTORM_TAG)) return;
 
+        event.setCancelled(true);
+
         UUID ownerUUID = fallingBlockOwners.remove(fallingBlock.getUniqueId());
         if (ownerUUID == null) return;
 
@@ -147,9 +151,6 @@ public class SandStorm extends ScalingClickAbility implements Listener {
 
         Location landLoc = fallingBlock.getLocation();
         World world = landLoc.getWorld();
-
-        // Cancel the block from forming (it disappears)
-        event.setCancelled(true);
 
         // Impact particles
         world.spawnParticle(Particle.CLOUD, landLoc, 8, 0.4, 0.2, 0.4, 0.05);

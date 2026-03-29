@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers;
 
 import com.cryptomorin.xseries.XSound;
+import com.cryptomorin.xseries.base.XModule;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -24,6 +25,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
@@ -260,6 +262,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("FURY_SHOT", new MultiShotAbility(3, 1000, 3, 4));
         abilityManager.registerAbility("DOUBLE_SHOT", new MultiShotAbility(2, 1000, 3, 4));
         abilityManager.registerAbility("SHIELD_THROW", new MidasAbility(10000, 2));
+        abilityManager.registerAbility("SAND_STORM", new SandStorm(10000, 2));
         abilityManager.registerAbility("MIDAS_STAFF", new MidasAbility(10000, 2));
         abilityManager.registerAbility("SHORT_BOW", new ShortBowAbility());
         abilityManager.registerAbility("MULTI_SHORT_BOW", new ShortMultiShotAbility(3));
@@ -338,6 +341,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.registerValueResolver(StatType.class, valueResolverContext -> {
             return StatType.valueOf(valueResolverContext.pop());
         });
+        commandHandler.registerValueResolver(ItemType.class, valueResolverContext -> {
+            return ItemType.valueOf(valueResolverContext.pop());
+        });
+        commandHandler.registerValueResolver(IndexCategory.class, valueResolverContext -> {
+            return IndexCategory.valueOf(valueResolverContext.pop());
+        });
         commandHandler.registerValueResolver(Sound.class, valueResolverContext -> {
             return Registry.SOUNDS.get(NamespacedKey.minecraft(valueResolverContext.pop()));
         });
@@ -349,13 +358,13 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerCommandCompletions() {
         commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
         commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return XSound.getValues().stream().map(sound -> sound.get().toString()).toList();
+            return XSound.getValues().stream().map(XModule::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
             return Arrays.stream(Material.values()).map(Enum::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
-            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
+            return Arrays.stream(ItemType.values()).map(ItemType::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();

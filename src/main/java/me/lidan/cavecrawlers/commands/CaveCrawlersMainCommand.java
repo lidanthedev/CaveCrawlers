@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
@@ -343,8 +344,19 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item get")
     @AutoComplete("@itemID *")
-    public void itemGet(Player sender, @Named("Item ID") String ID, @Default("1") int amount) {
-        itemGive(sender, sender, ID, amount);
+    public void itemGet(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+        itemGive(sender, sender, id, amount);
+    }
+
+    @Subcommand("item getBase")
+    @AutoComplete("@itemID *")
+    public void itemGetBase(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        XItemStack.giveOrDrop(sender, itemInfo.getBaseItem());
     }
 
     @Subcommand("item import")

@@ -3,40 +3,71 @@ package me.lidan.cavecrawlers.items;
 
 import lombok.Getter;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @Getter
-public enum ItemType {
-    SHIELD("Shield", ItemSlot.OFF_HAND),
-    ALCHEMY_BAG("Alchemy Bag", ItemSlot.HAND),
-    MATERIAL("Material", ItemSlot.HAND),
-    PICKAXE("Pickaxe", ItemSlot.HAND),
-    DRILL("Drill", ItemSlot.HAND),
-    WEAPON("Weapon", ItemSlot.HAND),
-    SWORD("Sword", ItemSlot.HAND),
-    BOW("Bow", ItemSlot.HAND),
-    WAND("Wand", ItemSlot.HAND),
-    AXE("Axe", ItemSlot.HAND),
-    SHOVEL("Shovel", ItemSlot.HAND),
-    TALISMAN("Talisman", ItemSlot.OFF_HAND),
-    HELMET("Helmet", ItemSlot.ARMOR),
-    CHESTPLATE("Chestplate", ItemSlot.ARMOR),
-    LEGGINGS("Leggings", ItemSlot.ARMOR),
-    BOOTS("Boots", ItemSlot.ARMOR),
-    ARMOR("Armor", ItemSlot.ARMOR),
-    UNIQUE_ITEM("Unique Item", ItemSlot.HAND),
-    OFF_HAND("Off Hand", ItemSlot.OFF_HAND),
-    ACCESSORY("Accessory", ItemSlot.INVENTORY),
-    INVENTORY("Inventory", ItemSlot.INVENTORY),
-    PET("Pet", ItemSlot.OFF_HAND),
-    HOTBAR("Hotbar", ItemSlot.HOTBAR),
+public class ItemType {
+    private static final Map<String, ItemType> itemTypes = new LinkedHashMap<>();
+    public static final ItemType SHIELD = register("SHIELD", new ItemType("Shield", ItemSlot.OFF_HAND));
+    public static final ItemType ALCHEMY_BAG = register("ALCHEMY_BAG", new ItemType("Alchemy Bag", ItemSlot.HAND));
+    public static final ItemType MATERIAL = register("MATERIAL", new ItemType("Material", ItemSlot.HAND));
+    public static final ItemType PICKAXE = register("PICKAXE", new ItemType("Pickaxe", ItemSlot.HAND));
+    public static final ItemType DRILL = register("DRILL", new ItemType("Drill", ItemSlot.HAND));
+    public static final ItemType WEAPON = register("WEAPON", new ItemType("Weapon", ItemSlot.HAND));
+    public static final ItemType SWORD = register("SWORD", new ItemType("Sword", ItemSlot.HAND));
+    public static final ItemType BOW = register("BOW", new ItemType("Bow", ItemSlot.HAND));
+    public static final ItemType WAND = register("WAND", new ItemType("Wand", ItemSlot.HAND));
+    public static final ItemType AXE = register("AXE", new ItemType("Axe", ItemSlot.HAND));
+    public static final ItemType SHOVEL = register("SHOVEL", new ItemType("Shovel", ItemSlot.HAND));
+    public static final ItemType TALISMAN = register("TALISMAN", new ItemType("Talisman", ItemSlot.OFF_HAND));
+    public static final ItemType HELMET = register("HELMET", new ItemType("Helmet", ItemSlot.ARMOR));
+    public static final ItemType CHESTPLATE = register("CHESTPLATE", new ItemType("Chestplate", ItemSlot.ARMOR));
+    public static final ItemType LEGGINGS = register("LEGGINGS", new ItemType("Leggings", ItemSlot.ARMOR));
+    public static final ItemType BOOTS = register("BOOTS", new ItemType("Boots", ItemSlot.ARMOR));
+    public static final ItemType ARMOR = register("ARMOR", new ItemType("Armor", ItemSlot.ARMOR));
+    public static final ItemType UNIQUE_ITEM = register("UNIQUE_ITEM", new ItemType("Unique Item", ItemSlot.HAND));
+    public static final ItemType OFF_HAND = register("OFF_HAND", new ItemType("Off Hand", ItemSlot.OFF_HAND));
+    public static final ItemType ACCESSORY = register("ACCESSORY", new ItemType("Accessory", ItemSlot.INVENTORY));
+    public static final ItemType INVENTORY = register("INVENTORY", new ItemType("Inventory", ItemSlot.INVENTORY));
+    public static final ItemType PET = register("PET", new ItemType("Pet", ItemSlot.OFF_HAND));
+    public static final ItemType HOTBAR = register("HOTBAR", new ItemType("Hotbar", ItemSlot.HOTBAR));
 
-    ;
-
+    private String id;
     private final String name;
     private final ItemSlot slot;
 
-    ItemType(String name, ItemSlot slot) {
+    public ItemType(String name, ItemSlot slot) {
         this.name = name;
         this.slot = slot;
+    }
+
+    public static ItemType valueOf(String key) {
+        ItemType itemType = itemTypes.get(key.toUpperCase());
+        if (itemType == null) {
+            throw new IllegalArgumentException("Item type " + key + " does not exist!");
+        }
+        return itemType;
+    }
+
+    public static ItemType register(String id, ItemType itemType) {
+        String normalizedId = id.toUpperCase();
+        if (itemType.id != null) {
+            throw new IllegalArgumentException("Item type " + itemType.id + " is already registered");
+        }
+        if (itemTypes.putIfAbsent(normalizedId, itemType) != null) {
+            throw new IllegalArgumentException("Item type " + normalizedId + " is already registered");
+        }
+        itemType.id = normalizedId;
+        return itemType;
+    }
+
+    public static ItemType[] values() {
+        return itemTypes.values().toArray(new ItemType[0]);
+    }
+
+    public String name() {
+        return id;
     }
 
     public boolean isWeapon() {

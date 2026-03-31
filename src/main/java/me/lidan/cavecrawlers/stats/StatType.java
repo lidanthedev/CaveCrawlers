@@ -5,51 +5,27 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class StatType {
     private static final Map<String, StatType> stats = new LinkedHashMap<>();
-
-    public static final StatType HEALTH = new StatType("Health", "❤", ChatColor.RED, 100, ChatColor.RED);
-    public static final StatType DEFENSE = new StatType("Defense", "❈", ChatColor.GREEN, 0, ChatColor.GREEN);
-    public static final StatType MANA = new StatType("Mana", "✎", ChatColor.AQUA, 100, ChatColor.AQUA);
-    public static final StatType INTELLIGENCE = new StatType("Intelligence", "✎", ChatColor.AQUA, 100, ChatColor.AQUA);
-    public static final StatType MAGIC_FIND = new StatType("Magic Find", "✯", ChatColor.AQUA, 0, ChatColor.AQUA);
-    public static final StatType SPEED = new StatType("Speed", "✦", ChatColor.WHITE, 100, ChatColor.WHITE);
-    public static final StatType DAMAGE = new StatType("Damage", "❁", ChatColor.RED, 0, ChatColor.RED);
-    public static final StatType STRENGTH = new StatType("Strength", "❁", ChatColor.RED, 0, ChatColor.RED);
-    public static final StatType CRIT_DAMAGE = new StatType("Crit Damage", "☠", ChatColor.BLUE, 0, ChatColor.RED);
-    public static final StatType CRIT_CHANCE = new StatType("Crit Chance", "☣", ChatColor.BLUE, 0, ChatColor.RED);
-    public static final StatType ATTACK_SPEED = new StatType("Attack Speed", "⚔", ChatColor.YELLOW, 0, ChatColor.YELLOW);
-    public static final StatType ABILITY_DAMAGE = new StatType("Ability Damage", "๑", ChatColor.RED, 0, ChatColor.RED);
-    public static final StatType MINING_SPEED = new StatType("Mining Speed", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD);
-    public static final StatType MINING_FORTUNE = new StatType("Mining Fortune", "☘", ChatColor.GOLD, 0, ChatColor.GOLD);
-    public static final StatType MINING_POWER = new StatType("Mining Power", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD);
-    public static final StatType MINING_HAMMER = new StatType("Mining Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD);
-
-    static {
-        // Register default stats
-        register("HEALTH", HEALTH);
-        register("DEFENSE", DEFENSE);
-        register("MANA", MANA);
-        register("INTELLIGENCE", INTELLIGENCE);
-        register("MAGIC_FIND", MAGIC_FIND);
-        register("SPEED", SPEED);
-        register("DAMAGE", DAMAGE);
-        register("STRENGTH", STRENGTH);
-        register("CRIT_DAMAGE", CRIT_DAMAGE);
-        register("CRIT_CHANCE", CRIT_CHANCE);
-        register("ATTACK_SPEED", ATTACK_SPEED);
-        register("ABILITY_DAMAGE", ABILITY_DAMAGE);
-        register("MINING_SPEED", MINING_SPEED);
-        register("MINING_FORTUNE", MINING_FORTUNE);
-        register("MINING_POWER", MINING_POWER);
-        register("MINING_HAMMER", MINING_HAMMER);
-    }
+    public static final StatType HEALTH = register("HEALTH", new StatType("Health", "❤", ChatColor.RED, 100, ChatColor.RED));
+    public static final StatType DEFENSE = register("DEFENSE", new StatType("Defense", "❈", ChatColor.GREEN, 0, ChatColor.GREEN));
+    public static final StatType MANA = register("MANA", new StatType("Mana", "✎", ChatColor.AQUA, 100, ChatColor.AQUA));
+    public static final StatType INTELLIGENCE = register("INTELLIGENCE", new StatType("Intelligence", "✎", ChatColor.AQUA, 100, ChatColor.AQUA));
+    public static final StatType MAGIC_FIND = register("MAGIC_FIND", new StatType("Magic Find", "✯", ChatColor.AQUA, 0, ChatColor.AQUA));
+    public static final StatType SPEED = register("SPEED", new StatType("Speed", "✦", ChatColor.WHITE, 100, ChatColor.WHITE));
+    public static final StatType DAMAGE = register("DAMAGE", new StatType("Damage", "❁", ChatColor.RED, 0, ChatColor.RED));
+    public static final StatType STRENGTH = register("STRENGTH", new StatType("Strength", "❁", ChatColor.RED, 0, ChatColor.RED));
+    public static final StatType CRIT_DAMAGE = register("CRIT_DAMAGE", new StatType("Crit Damage", "☠", ChatColor.BLUE, 0, ChatColor.RED));
+    public static final StatType CRIT_CHANCE = register("CRIT_CHANCE", new StatType("Crit Chance", "☣", ChatColor.BLUE, 0, ChatColor.RED));
+    public static final StatType ATTACK_SPEED = register("ATTACK_SPEED", new StatType("Attack Speed", "⚔", ChatColor.YELLOW, 0, ChatColor.YELLOW));
+    public static final StatType ABILITY_DAMAGE = register("ABILITY_DAMAGE", new StatType("Ability Damage", "๑", ChatColor.RED, 0, ChatColor.RED));
+    public static final StatType MINING_SPEED = register("MINING_SPEED", new StatType("Mining Speed", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
+    public static final StatType MINING_FORTUNE = register("MINING_FORTUNE", new StatType("Mining Fortune", "☘", ChatColor.GOLD, 0, ChatColor.GOLD));
+    public static final StatType MINING_POWER = register("MINING_POWER", new StatType("Mining Power", "⸕", ChatColor.GOLD, 0, ChatColor.GOLD));
+    public static final StatType MINING_HAMMER = register("MINING_HAMMER", new StatType("Mining Hammer", "⛏", ChatColor.GOLD, 0, ChatColor.GOLD));
 
     private String id;
     private final String name;
@@ -86,10 +62,18 @@ public class StatType {
         return color + icon;
     }
 
-    public static void register(String id, StatType statType) {
-        id = id.toUpperCase();
-        statType.id = id;
-        stats.put(id, statType);
+    public static StatType register(String id, StatType statType) {
+        String normalizedId = Objects.requireNonNull(id, "id").toUpperCase(Locale.ROOT);
+        Objects.requireNonNull(statType, "statType");
+        if (stats.containsKey(normalizedId)) {
+            throw new IllegalArgumentException("Stat type " + normalizedId + " is already registered");
+        }
+        if (statType.id != null && !statType.id.equals(normalizedId)) {
+            throw new IllegalArgumentException("StatType instance already registered as " + statType.id);
+        }
+        statType.id = normalizedId;
+        stats.put(normalizedId, statType);
+        return statType;
     }
 
     public static StatType[] values() {

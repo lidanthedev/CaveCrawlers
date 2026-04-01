@@ -350,7 +350,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item getBase")
     @AutoComplete("@itemID *")
-    public void itemGetBase(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+    public void itemGetBase(Player sender, @Named("Item ID") String id) {
         ItemInfo itemInfo = itemsManager.getItemByID(id);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");

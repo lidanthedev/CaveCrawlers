@@ -27,6 +27,7 @@ import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -115,11 +116,19 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerCommandCompletions();
         registerCommands();
         registerEvents();
+        registerMythicHook();
 
         loadDelayedData();
 
         long diff = System.currentTimeMillis() - start;
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
+    }
+
+    private void registerMythicHook() {
+        if (mythicBukkit == null) {
+            return;
+        }
+        MythicMobsHook.getInstance().registerItemSupplier();
     }
 
     private void loadDelayedData() {

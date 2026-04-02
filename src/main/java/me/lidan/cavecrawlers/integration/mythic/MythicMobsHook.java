@@ -1,4 +1,4 @@
-package me.lidan.cavecrawlers.integration;
+package me.lidan.cavecrawlers.integration.mythic;
 
 import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.api.mobs.MythicMob;
@@ -21,6 +21,10 @@ public class MythicMobsHook {
     private final MythicBukkit mythicBukkit = plugin.getMythicBukkit();
     private final BukkitAPIHelper mythicAPIHelper = mythicBukkit.getAPIHelper();
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
+
+    public void registerItemSupplier() {
+        mythicBukkit.getItemManager().registerItemSupplier(new MythicItemSupport());
+    }
 
     public Entity spawnMythicMob(String mob, Location location) {
         try {

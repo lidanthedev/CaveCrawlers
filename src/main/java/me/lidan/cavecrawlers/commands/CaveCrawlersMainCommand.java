@@ -350,7 +350,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item editBase")
     @AutoComplete("@itemID *")
-    public void itemGetBase(Player sender, @Optional @Named("Item ID") String id) {
+    public void itemEditBase(Player sender, @Optional @Named("Item ID") String id) {
         if (id == null) {
             id = itemsManager.getIDofItemStackSafe(sender.getEquipment().getItemInMainHand());
         }

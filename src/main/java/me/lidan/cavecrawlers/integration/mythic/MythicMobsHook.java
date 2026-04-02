@@ -4,15 +4,20 @@ import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.core.items.ItemExecutor;
+import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class MythicMobsHook {
@@ -24,6 +29,32 @@ public class MythicMobsHook {
 
     public void registerItemSupplier() {
         mythicBukkit.getItemManager().registerItemSupplier(new MythicItemSupport());
+    }
+
+    // note: ItemSupplier api still WIP
+    public void registerItemSupplierLegacy() {
+        Set<String> keys = ItemsManager.getInstance().getKeys();
+        for (String key : keys) {
+            String internalName = "CAVECRAWLERS_" + key;
+            try {
+                MythicCaveItem item = new MythicCaveItem(key);
+                registerMythicItemForce(internalName, item);
+            } catch (Exception e) {
+                log.error("registerItemSupplierLegacy: Failed to register item {}", key, e);
+            }
+        }
+    }
+
+    public void registerMythicItemForce(String key, MythicItem item) {
+        Class<ItemExecutor> itemExecutorClass = ItemExecutor.class;
+        try {
+            Field itemField = itemExecutorClass.getDeclaredField("items");
+            itemField.setAccessible(true);
+            Map<String, MythicItem> items = (Map<String, MythicItem>) itemField.get(mythicBukkit.getItemManager());
+            items.put(key, item);
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
+            log.error("registerMythicItemForce: Failed to register item force {}", key, e);
+        }
     }
 
     public Entity spawnMythicMob(String mob, Location location) {

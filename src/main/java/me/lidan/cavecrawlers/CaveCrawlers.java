@@ -116,7 +116,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerCommandCompletions();
         registerCommands();
         registerEvents();
-        registerMythicHook();
 
         loadDelayedData();
 
@@ -128,7 +127,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         if (mythicBukkit == null) {
             return;
         }
-        MythicMobsHook.getInstance().registerItemSupplier();
+        MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
+        mythicMobsHook.registerItemSupplier();
+        mythicMobsHook.registerItemSupplierLegacy();
     }
 
     private void loadDelayedData() {
@@ -141,6 +142,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
+                registerMythicHook();
                 long delayDiff = System.currentTimeMillis() - delayStart;
                 getLogger().info("Loaded data! Took " + delayDiff + " ms");
             }

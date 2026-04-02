@@ -25,6 +25,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
@@ -340,6 +341,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.registerValueResolver(StatType.class, valueResolverContext -> {
             return StatType.valueOf(valueResolverContext.pop());
         });
+        commandHandler.registerValueResolver(ItemType.class, valueResolverContext -> {
+            return ItemType.valueOf(valueResolverContext.pop());
+        });
+        commandHandler.registerValueResolver(IndexCategory.class, valueResolverContext -> {
+            return IndexCategory.valueOf(valueResolverContext.pop());
+        });
         commandHandler.registerValueResolver(Sound.class, valueResolverContext -> {
             return Registry.SOUNDS.get(NamespacedKey.minecraft(valueResolverContext.pop()));
         });
@@ -357,7 +364,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return Arrays.stream(Material.values()).map(Enum::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
-            return Arrays.stream(ItemType.values()).map(Enum::name).toList();
+            return Arrays.stream(ItemType.values()).map(ItemType::name).toList();
         });
         commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
             return Arrays.stream(Rarity.values()).map(Enum::name).toList();

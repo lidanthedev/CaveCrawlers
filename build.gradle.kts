@@ -1,0 +1,124 @@
+plugins {
+    java
+    `maven-publish`
+    id("com.gradleup.shadow") version "8.3.6"
+    id("io.freefair.lombok") version "8.11"
+}
+
+group = "me.lidan"
+version = project.findProperty("version") ?: "1.1"
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    }
+    maven {
+        name = "papermc-repo"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
+    maven {
+        name = "sonatype"
+        url = uri("https://oss.sonatype.org/content/groups/public/")
+    }
+    maven { url = uri("https://jitpack.io") }
+    maven {
+        name = "CodeMC"
+        url = uri("https://repo.codemc.io/repository/maven-public/")
+    }
+    maven { url = uri("https://mvn.lumine.io/repository/maven-public/") }
+    maven {
+        url = uri("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    }
+    maven {
+        url = uri("https://repo.granny.dev/snapshots/")
+    }
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("org.jetbrains:annotations:23.0.0")
+    implementation("dev.triumphteam:triumph-gui:3.1.13") {
+        exclude(group = "com.google.code.gson", module = "gson")
+    }
+    implementation("com.github.lidanthedev.Lamp:common:3.3.7")
+    implementation("com.github.lidanthedev.Lamp:brigadier:3.3.7")
+    implementation("com.github.lidanthedev.Lamp:bukkit:3.3.7")
+    compileOnly("net.dmulloy2:ProtocolLib:5.1.0")
+    compileOnly("com.googlecode.json-simple:json-simple:1.1.1")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
+        exclude(group = "org.bukkit", module = "bukkit")
+    }
+    compileOnly("io.lumine:Mythic-Dist:5.3.5")
+    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("net.luckperms:api:5.4")
+    implementation("com.github.cryptomorin:XSeries:13.6.0")
+    implementation("dev.dejvokep:boosted-yaml:1.3.7")
+    implementation("dev.dejvokep:boosted-yaml-spigot:1.5")
+    implementation("com.github.Robotv2:PlaceholderAnnotationLib:v1.1.0")
+}
+
+tasks.compileJava {
+    options.compilerArgs.add("-parameters")
+}
+
+tasks.shadowJar {
+    archiveClassifier.set(null as String?)
+    relocate("revxrsal.commands", "me.lidan.cavecrawlers.lamp")
+    relocate("dev.triumphteam.gui", "me.lidan.cavecrawlers.gui")
+    relocate("com.cryptomorin.xseries", "me.lidan.cavecrawlers.xseries")
+    relocate("dev.dejvokep.boostedyaml", "me.lidan.cavecrawlers.boostedyaml")
+    relocate("fr.robotv2.placeholderannotationlib", "me.lidan.cavecrawlers.placeholderannotationlib")
+}
+
+tasks.jar {
+    enabled = false
+}
+
+tasks.named("build") {
+    dependsOn(tasks.shadowJar)
+}
+
+val targetJavaVersion = 21
+java {
+    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+tasks.processResources {
+    val props = mapOf("version" to project.version)
+    inputs.properties(props)
+    filteringCharset = "UTF-8"
+    filesMatching("plugin.yml") {
+        expand(props)
+    }
+}
+
+tasks.register<Jar>("sourcesJar") {
+    from(sourceSets.main.get().allSource)
+    archiveClassifier.set("sources")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            artifact(tasks.shadowJar)
+            artifact(tasks.named("sourcesJar"))
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
+        }
+    }
+}

@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
@@ -343,8 +344,25 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item get")
     @AutoComplete("@itemID *")
-    public void itemGet(Player sender, @Named("Item ID") String ID, @Default("1") int amount) {
-        itemGive(sender, sender, ID, amount);
+    public void itemGet(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+        itemGive(sender, sender, id, amount);
+    }
+
+    @Subcommand("item editBase")
+    @AutoComplete("@itemID *")
+    public void itemEditBase(Player sender, @Optional @Named("Item ID") String id) {
+        if (id == null) {
+            id = itemsManager.getIDofItemStackSafe(sender.getEquipment().getItemInMainHand());
+        }
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        XItemStack.giveOrDrop(sender, itemInfo.getBaseItem());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<gold>Editing: base item of <item_id>\n" +
+                "<gold>After you finish editing it hold it and click\n" +
+                "<hover:show_text:'<yellow>Click to save'><click:run_command:'/ct item edit baseitemtohand <item_id>'><b><yellow>CLICK TO SAVE</b></click></hover>", Map.of("item_id", id)));
     }
 
     @Subcommand("item import")

@@ -35,7 +35,7 @@ public class MythicMobsHook {
     public void registerItemSupplierLegacy() {
         Set<String> keys = ItemsManager.getInstance().getKeys();
         for (String key : keys) {
-            String internalName = "CAVECRAWLERS_" + key;
+            String internalName = "cavecrawlers:" + key;
             try {
                 MythicCaveItem item = new MythicCaveItem(key);
                 registerMythicItemForce(internalName, item);

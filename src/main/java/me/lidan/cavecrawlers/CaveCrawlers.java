@@ -76,6 +76,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Getter
 public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
+    public static final String EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER = "experimental.mythicmobs-items-supplier";
     public static final int TICKS_TO_SECOND = 20;
     public static Economy economy = null;
     public static boolean usePlaceholderAPI = false;
@@ -128,8 +129,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return;
         }
         MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
-        mythicMobsHook.registerItemSupplier();
-        mythicMobsHook.registerItemSupplierLegacy();
+        if (getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) {
+            mythicMobsHook.registerItemSupplier();
+            mythicMobsHook.registerItemSupplierLegacy();
+        }
     }
 
     private void loadDelayedData() {

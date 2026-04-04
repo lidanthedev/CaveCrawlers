@@ -127,7 +127,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         if (mythicBukkit == null) {
             return;
         }
-        MythicMobsHook.getInstance().load();
+        MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
+        mythicMobsHook.load();
+        registerEvent(mythicMobsHook);
     }
 
     private void loadDelayedData() {

@@ -4,7 +4,8 @@ import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
-import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
+import io.lumine.mythic.bukkit.events.MythicDropLoadEvent;
+import io.lumine.mythic.bukkit.events.MythicReloadEvent;
 import io.lumine.mythic.core.items.ItemExecutor;
 import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class MythicMobsHook implements Listener {
     private void tryRegisterItemSuppliers() {
         if (!plugin.getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) return;
         try {
+            log.info("Registering MythicMobs item suppliers");
             registerItemSupplier();
             registerItemSupplierLegacy();
         } catch (Exception e) {
@@ -51,8 +53,15 @@ public class MythicMobsHook implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onMythicReloaded(MythicReloadedEvent event) {
+    public void onMythicReloaded(MythicReloadEvent event) {
         load();
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onMythicDropLoad(MythicDropLoadEvent event) {
+        if (!plugin.getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) return;
+        if (!event.getDropName().equalsIgnoreCase("cavecrawlers")) return;
+        event.register(new MythicCaveDrop(event.getArgument()));
     }
 
     // note: ItemSupplier api still WIP

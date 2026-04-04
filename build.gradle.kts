@@ -50,7 +50,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly("io.lumine:Mythic-Dist:5.6.1")
+    compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
     implementation("com.github.cryptomorin:XSeries:13.6.0")

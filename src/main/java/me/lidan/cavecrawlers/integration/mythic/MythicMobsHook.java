@@ -4,6 +4,7 @@ import io.lumine.mythic.api.exceptions.InvalidMobTypeException;
 import io.lumine.mythic.api.mobs.MythicMob;
 import io.lumine.mythic.bukkit.BukkitAPIHelper;
 import io.lumine.mythic.bukkit.MythicBukkit;
+import io.lumine.mythic.bukkit.events.MythicReloadedEvent;
 import io.lumine.mythic.core.items.ItemExecutor;
 import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -20,15 +23,36 @@ import java.util.Map;
 import java.util.Set;
 
 @Slf4j
-public class MythicMobsHook {
+public class MythicMobsHook implements Listener {
+    public static final String EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER = "experimental.mythicmobs-items-supplier";
     private static MythicMobsHook instance;
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final MythicBukkit mythicBukkit = plugin.getMythicBukkit();
     private final BukkitAPIHelper mythicAPIHelper = mythicBukkit.getAPIHelper();
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
 
+    public void load() {
+        reverseMobNameCache.clear();
+        tryRegisterItemSuppliers();
+    }
+
+    private void tryRegisterItemSuppliers() {
+        if (!plugin.getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) return;
+        try {
+            registerItemSupplier();
+            registerItemSupplierLegacy();
+        } catch (Exception e) {
+            log.error("Failed to register MythicMobs item suppliers", e);
+        }
+    }
+
     public void registerItemSupplier() {
         mythicBukkit.getItemManager().registerItemSupplier(new MythicItemSupport());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onMythicReloaded(MythicReloadedEvent event) {
+        load();
     }
 
     // note: ItemSupplier api still WIP

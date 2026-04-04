@@ -9,22 +9,9 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 @Slf4j
 public class MythicCaveItem extends MythicItem {
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
-    private static final Method adaptMethod;
-
-    static {
-        try {
-            adaptMethod = BukkitAdapter.class.getDeclaredMethod("adapt", ItemStack.class);
-            ;
-        } catch (ReflectiveOperationException | ClassCastException e) {
-            throw new RuntimeException("Failed to get adaptMethod", e);
-        }
-    }
 
     public MythicCaveItem(String internalName) {
         super(CaveCrawlers.getInstance().getMythicBukkit().getPackManager().getBasePack(), null, internalName, null);
@@ -38,13 +25,6 @@ public class MythicCaveItem extends MythicItem {
     @Override
     public AbstractItemStack generateItemStack(DropMetadata meta, int amount) {
         ItemStack itemStack = itemsManager.buildItem(this.getInternalName(), amount);
-        AbstractItemStack adapt = null;
-        try {
-            adapt = (AbstractItemStack) adaptMethod.invoke(null, itemStack.clone());
-        } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
-            log.error("generateItemStack: Failed to generate item stack", e);
-            throw new RuntimeException("Failed to generate item stack", e);
-        }
-        return adapt;
+        return BukkitAdapter.adapt(itemStack);
     }
 }

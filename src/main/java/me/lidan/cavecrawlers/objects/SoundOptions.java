@@ -7,6 +7,7 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Locale;
 import java.util.Map;
 
 @Data
@@ -35,15 +36,48 @@ public class SoundOptions implements ConfigurationSerializable {
 
     private static Sound resolveSound(String sound) {
         NamespacedKey key = NamespacedKey.fromString(sound);
-        if (key == null) {
-            key = NamespacedKey.minecraft(sound.toLowerCase());
+        if (key != null) {
+            Sound resolved = Registry.SOUNDS.get(key);
+            if (resolved != null) {
+                return resolved;
+            }
         }
 
-        Sound resolved = Registry.SOUNDS.get(key);
-        if (resolved == null) {
-            throw new IllegalArgumentException("Unknown sound: " + sound);
+        Sound resolvedMinecraft = Registry.SOUNDS.get(NamespacedKey.minecraft(sound.toLowerCase(Locale.ROOT)));
+        if (resolvedMinecraft != null) {
+            return resolvedMinecraft;
         }
-        return resolved;
+
+        // Backwards compatibility: support legacy enum-style values like ENTITY_WITHER_SPAWN.
+        String normalizedInput = normalizeSoundId(sound);
+        for (Sound candidate : Registry.SOUNDS) {
+            NamespacedKey candidateKey = Registry.SOUNDS.getKey(candidate);
+            if (candidateKey == null) {
+                continue;
+            }
+
+            String normalizedPath = normalizeSoundId(candidateKey.getKey());
+            if (normalizedInput.equals(normalizedPath)) {
+                return candidate;
+            }
+
+            String normalizedNamespaced = normalizeSoundId(candidateKey.toString());
+            if (normalizedInput.equals(normalizedNamespaced)) {
+                return candidate;
+            }
+        }
+
+        throw new IllegalArgumentException("Unknown sound: " + sound);
+    }
+
+    private static String normalizeSoundId(String value) {
+        StringBuilder normalized = new StringBuilder(value.length());
+        for (char c : value.toCharArray()) {
+            if (Character.isLetterOrDigit(c)) {
+                normalized.append(Character.toLowerCase(c));
+            }
+        }
+        return normalized.toString();
     }
 
     @NotNull

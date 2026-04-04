@@ -40,7 +40,6 @@ public class MythicMobsHook implements Listener {
     private void tryRegisterItemSuppliers() {
         if (!plugin.getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) return;
         try {
-            log.info("Registering MythicMobs item suppliers");
             registerItemSupplier();
             registerItemSupplierLegacy();
         } catch (Exception e) {

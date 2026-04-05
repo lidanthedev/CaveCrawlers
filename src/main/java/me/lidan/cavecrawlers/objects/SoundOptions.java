@@ -22,11 +22,6 @@ public class SoundOptions implements ConfigurationSerializable {
         this.pitch = pitch;
     }
 
-    @SuppressWarnings("unused")
-    public SoundOptions(String sound, float volume, float pitch) {
-        this(resolveSound(sound), volume, pitch);
-    }
-
     public static SoundOptions deserialize(Map<String, Object> map) {
         Number volume = (Number) map.get("volume");
         Number pitch = (Number) map.get("pitch");
@@ -34,7 +29,7 @@ public class SoundOptions implements ConfigurationSerializable {
         return new SoundOptions(resolveSound(sound), volume.floatValue(), pitch.floatValue());
     }
 
-    private static Sound resolveSound(String sound) {
+    public static Sound resolveSound(String sound) {
         NamespacedKey key = NamespacedKey.fromString(sound);
         if (key != null) {
             Sound resolved = Registry.SOUNDS.get(key);

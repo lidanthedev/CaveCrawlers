@@ -2,12 +2,17 @@ package me.lidan.cavecrawlers.integration.mythic;
 
 import io.lumine.mythic.api.items.ItemSupplier;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * WIP: MythicMobs ItemSupplier will WIP so the api might change
+ * for now it does nothing
+ */
 public class MythicItemSupport implements ItemSupplier {
     @Override
     public String getNamespace() {
@@ -16,7 +21,9 @@ public class MythicItemSupport implements ItemSupplier {
 
     @Override
     public ItemStack getItem(String s) {
-        return CaveCrawlers.getAPI().getItemsAPI().buildItem(s, 1);
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(s);
+        if (itemInfo == null) return null;
+        return CaveCrawlers.getAPI().getItemsAPI().buildItem(itemInfo, 1);
     }
 
     @Override

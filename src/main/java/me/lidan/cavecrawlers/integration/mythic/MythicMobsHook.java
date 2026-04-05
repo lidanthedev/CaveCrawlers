@@ -10,6 +10,7 @@ import io.lumine.mythic.core.items.ItemExecutor;
 import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
@@ -28,9 +29,19 @@ public class MythicMobsHook implements Listener {
     public static final String EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER = "experimental.mythicmobs-items-supplier";
     private static MythicMobsHook instance;
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private final MythicBukkit mythicBukkit = plugin.getMythicBukkit();
-    private final BukkitAPIHelper mythicAPIHelper = mythicBukkit.getAPIHelper();
+    private final MythicBukkit mythicBukkit;
+    private final BukkitAPIHelper mythicAPIHelper;
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
+
+    private MythicMobsHook() {
+        this.mythicBukkit = plugin.getMythicBukkit();
+        if (mythicBukkit == null) {
+            log.error("MythicBukkit is null - MythicMobsHook will not work");
+            this.mythicAPIHelper = null;
+            return;
+        }
+        this.mythicAPIHelper = mythicBukkit.getAPIHelper();
+    }
 
     public void load() {
         reverseMobNameCache.clear();
@@ -60,7 +71,9 @@ public class MythicMobsHook implements Listener {
     public void onMythicDropLoad(MythicDropLoadEvent event) {
         if (!plugin.getConfig().getBoolean(EXPERIMENTAL_MYTHICMOBS_ITEMS_SUPPLIER, false)) return;
         if (!event.getDropName().equalsIgnoreCase("cavecrawlers")) return;
-        event.register(new MythicCaveDrop(event.getArgument()));
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(event.getArgument());
+        if (itemInfo == null) return;
+        event.register(new MythicCaveDrop(itemInfo));
     }
 
     // note: ItemSupplier api still WIP
@@ -68,8 +81,10 @@ public class MythicMobsHook implements Listener {
         Set<String> keys = ItemsManager.getInstance().getKeys();
         for (String key : keys) {
             String internalName = "cavecrawlers:" + key;
+            ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(key);
+            if (itemInfo == null) continue;
             try {
-                MythicCaveItem item = new MythicCaveItem(key);
+                MythicCaveItem item = new MythicCaveItem(key, itemInfo);
                 registerMythicItemForce(internalName, item);
             } catch (Exception e) {
                 log.error("registerItemSupplierLegacy: Failed to register item {}", key, e);
@@ -89,7 +104,8 @@ public class MythicMobsHook implements Listener {
         }
     }
 
-    public Entity spawnMythicMob(String mob, Location location) {
+    public @Nullable Entity spawnMythicMob(String mob, Location location) {
+        if (mythicAPIHelper == null) return null;
         try {
             return mythicAPIHelper.spawnMythicMob(mob, location);
         } catch (InvalidMobTypeException e) {
@@ -99,9 +115,10 @@ public class MythicMobsHook implements Listener {
     }
 
     public MythicMob getMobByName(String name) {
+        if (mythicBukkit == null) return null;
         name = ChatColor.translateAlternateColorCodes('&', name);
         return reverseMobNameCache.computeIfAbsent(name, mobName -> {
-            for (MythicMob mob : plugin.getMythicBukkit().getMobManager().getMobTypes()) {
+            for (MythicMob mob : mythicBukkit.getMobManager().getMobTypes()) {
                 if (mob.getDisplayName() != null && mob.getDisplayName().isPresent()) {
                     if (mob.getDisplayName().get().equalsIgnoreCase(mobName))
                         return mob;
@@ -112,7 +129,8 @@ public class MythicMobsHook implements Listener {
     }
 
     public @Nullable String getMobNameByID(String id) {
-        MythicMob mob = plugin.getMythicBukkit().getAPIHelper().getMythicMob(id);
+        if (mythicBukkit == null) return null;
+        MythicMob mob = mythicBukkit.getAPIHelper().getMythicMob(id);
         if (mob == null || !mob.getDisplayName().isPresent()) {
             return null;
         }
@@ -122,9 +140,6 @@ public class MythicMobsHook implements Listener {
     public static MythicMobsHook getInstance() {
         if (instance == null) {
             instance = new MythicMobsHook();
-            if (instance.mythicBukkit == null) {
-                log.error("MythicBukkit is null - MythicMobsHook will not work");
-            }
         }
         return instance;
     }

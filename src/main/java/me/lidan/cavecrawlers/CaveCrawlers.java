@@ -128,8 +128,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return;
         }
         MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
-        mythicMobsHook.load();
-        registerEvent(mythicMobsHook);
+        try {
+            mythicMobsHook.load();
+            registerEvent(mythicMobsHook);
+        } catch (Exception e) {
+            log.error("Failed to load MythicMobs hook", e);
+        }
     }
 
     private void loadDelayedData() {

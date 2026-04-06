@@ -77,12 +77,17 @@ public abstract class ChargedItemAbility extends ClickAbility {
             chargeCooldown.startCooldown(player.getUniqueId());
         }
 
+        boolean used = useAbility(playerEvent);
+        if (!used) {
+            abilityFailedCannotUseNow(player);
+            return;
+        }
+
         charges--;
         setPlayerCharges(player, charges);
         manaStat.setValue(manaStat.getValue() - getCost());
         String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().showActionBar(player, msg);
-        useAbility(playerEvent);
     }
 
     @Override
@@ -105,6 +110,12 @@ public abstract class ChargedItemAbility extends ClickAbility {
     }
 
     public void abilityFailedCooldown(Player player){
-        player.sendMessage(ChatColor.RED + "No More Charges!");
+        String msg = ChatColor.RED + "No More Charges!";
+        ActionBarManager.getInstance().showActionBar(player, msg);
+    }
+
+    public void abilityFailedCannotUseNow(Player player) {
+        String msg = ChatColor.RED + "Cannot Use Ability Now!";
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 }

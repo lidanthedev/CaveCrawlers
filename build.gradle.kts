@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "me.lidan"
-version = project.findProperty("version") ?: "1.1"
+version = project.findProperty("version")?.toString()?.takeUnless { it == "unspecified" } ?: "dev"
 
 repositories {
     mavenCentral()
@@ -50,7 +50,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly("io.lumine:Mythic-Dist:5.3.5")
+    compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
     implementation("com.github.cryptomorin:XSeries:13.6.0")

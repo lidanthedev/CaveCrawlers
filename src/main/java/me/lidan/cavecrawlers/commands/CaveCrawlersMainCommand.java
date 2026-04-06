@@ -16,7 +16,7 @@ import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.index.EntityHeads;
-import me.lidan.cavecrawlers.integration.MythicMobsHook;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;

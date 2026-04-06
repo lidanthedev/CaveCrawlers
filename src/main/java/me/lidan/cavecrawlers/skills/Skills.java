@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
@@ -18,7 +17,6 @@ import java.util.*;
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillInfo, Skill> skills;
     @Getter
-    @Setter
     private UUID uuid;
 
     public Skills(List<Skill> skillList) {

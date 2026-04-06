@@ -27,6 +27,7 @@ import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.*;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
@@ -122,6 +123,19 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         getLogger().info("Loaded CaveCrawlers! Took " + diff + "ms");
     }
 
+    private void registerMythicHook() {
+        if (mythicBukkit == null) {
+            return;
+        }
+        MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
+        try {
+            mythicMobsHook.load();
+            registerEvent(mythicMobsHook);
+        } catch (Exception e) {
+            log.error("Failed to load MythicMobs hook", e);
+        }
+    }
+
     private void loadDelayedData() {
         // Delay loading from data dir to allow other plugins/addons to load first
         new BukkitRunnable() {
@@ -132,6 +146,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
+                registerMythicHook();
                 long delayDiff = System.currentTimeMillis() - delayStart;
                 getLogger().info("Loaded data! Took " + delayDiff + " ms");
             }

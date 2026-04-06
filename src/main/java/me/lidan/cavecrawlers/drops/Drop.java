@@ -4,6 +4,7 @@ import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
@@ -198,11 +199,11 @@ public class Drop implements ConfigurationSerializable {
         }
     }
 
-    protected Entity giveMob(@Nullable Player player, Location location) {
+    protected @Nullable Entity giveMob(@Nullable Player player, Location location) {
         try {
             location = location.clone().add(0.5, 0, 0.5);
-            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
-
+            Entity entity = MythicMobsHook.getInstance().spawnMythicMob(value, location);
+            if (entity == null) return null;
             if (announce != null) {
                 placeholders.put("name", entity.getName());
                 sendAnnounceMessage(player);

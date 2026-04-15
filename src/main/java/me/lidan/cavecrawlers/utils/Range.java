@@ -8,11 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 
 @Getter
-public class Range implements Iterable<Integer> {
-    private final int min;
-    private final int max;
+public class Range implements Iterable<Long> {
+    private final long min;
+    private final long max;
 
-    public Range(int min, int max) {
+    public Range(long min, long max) {
         this.min = min;
         this.max = max;
     }
@@ -20,33 +20,33 @@ public class Range implements Iterable<Integer> {
     public Range(String amountStr){
         if (amountStr.contains("-")){
             String[] arr = amountStr.split("-");
-            min = Integer.parseInt(arr[0]);
-            max = Integer.parseInt(arr[1]);
+            min = Long.parseLong(arr[0]);
+            max = Long.parseLong(arr[1]);
         }
         else{
-            min = Integer.parseInt(amountStr);
-            max = Integer.parseInt(amountStr);
+            min = Long.parseLong(amountStr);
+            max = Long.parseLong(amountStr);
         }
     }
 
-    public int getRandom(){
-        return RandomUtils.randomInt(min, max);
+    public long getRandom() {
+        return RandomUtils.randomLong(min, max);
     }
 
     public boolean isInRange(int num){
         return num >= min && num <= max;
     }
 
-    public List<Integer> getRangeAsList() {
-        List<Integer> range = new ArrayList<>();
-        for (int i = min; i <= max; i++) {
+    public List<Long> getRangeAsList() {
+        List<Long> range = new ArrayList<>();
+        for (long i = min; i <= max; i++) {
             range.add(i);
         }
         return range;
     }
 
     @Override
-    public @NotNull Iterator<Integer> iterator() {
+    public @NotNull Iterator<Long> iterator() {
         return getRangeAsList().iterator();
     }
 

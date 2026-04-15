@@ -23,6 +23,20 @@ public class RandomUtils {
     }
 
     /**
+     * Generate a random long between min and max
+     *
+     * @param min the minimum value
+     * @param max the maximum value
+     * @return the random long
+     */
+    public static long randomLong(long min, long max) {
+        max++;
+        min *= 1000;
+        max *= 1000;
+        return (long) (ThreadLocalRandom.current().nextDouble() * (max - min) + min) / 1000;
+    }
+
+    /**
      * Generate a random double between min and max
      * @param min the minimum value
      * @param max the maximum value

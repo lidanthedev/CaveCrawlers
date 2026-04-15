@@ -129,7 +129,7 @@ public class Drop implements ConfigurationSerializable {
         return chance * (1 + magicFind.getValue() / 100);
     }
 
-    private int getNewAmount(Player player, int amount) {
+    private long getNewAmount(Player player, long amount) {
         if (amountModifier == null) {
             return amount;
         }
@@ -147,8 +147,8 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        int amount = getNewAmount(player, result.range().getRandom());
-        itemsManager.giveItem(player, result.itemInfo(), amount);
+        long amount = getNewAmount(player, (int) result.range().getRandom());
+        itemsManager.giveItem(player, result.itemInfo(), (int) amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
             placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount), "name", result.itemInfo().getFormattedName(), "rarity", result.itemInfo().getRarity().toString(), "dropRarity", dropRarity.toString()));
@@ -190,7 +190,7 @@ public class Drop implements ConfigurationSerializable {
 
     protected void giveCoins(Player player) {
         Range range = new Range(value);
-        int amount = range.getRandom();
+        long amount = range.getRandom();
         amount = getNewAmount(player, amount);
         VaultUtils.giveCoins(player, amount);
         if (announce != null) {

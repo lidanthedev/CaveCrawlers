@@ -232,9 +232,9 @@ public class BukkitUtils {
             throw new IllegalArgumentException("world is null");
         }
 
-        int x = new Range(pos1.getBlockX(), pos2.getBlockX()).getRandom();
-        int y = new Range(pos1.getBlockY(), pos2.getBlockY()).getRandom();
-        int z = new Range(pos1.getBlockZ(), pos2.getBlockZ()).getRandom();
+        long x = new Range(pos1.getBlockX(), pos2.getBlockX()).getRandom();
+        long y = new Range(pos1.getBlockY(), pos2.getBlockY()).getRandom();
+        long z = new Range(pos1.getBlockZ(), pos2.getBlockZ()).getRandom();
 
         Location res = new Location(pos1.getWorld(), x, y, z);
         block = pos1.getWorld().getBlockAt(res);

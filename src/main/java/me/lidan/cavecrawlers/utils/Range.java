@@ -47,7 +47,29 @@ public class Range implements Iterable<Long> {
 
     @Override
     public @NotNull Iterator<Long> iterator() {
-        return getRangeAsList().iterator();
+        return new Iterator<Long>() {
+            private long current = min;
+            private boolean finished = min > max;
+
+            @Override
+            public boolean hasNext() {
+                return !finished;
+            }
+
+            @Override
+            public Long next() {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                long result = current;
+                if (current == max) {
+                    finished = true;
+                } else {
+                    current++;
+                }
+                return result;
+            }
+        };
     }
 
     @Override

@@ -147,7 +147,12 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        long amount = getNewAmount(player, (int) result.range().getRandom());
+        long amount = getNewAmount(player, result.range().getRandom());
+        // Validate amount is within int bounds and non-negative
+        if (amount < 0 || amount > Integer.MAX_VALUE) {
+            log.warn("Item drop amount {} is out of valid range [0, {}], clamping", amount, Integer.MAX_VALUE);
+            amount = Math.max(0, Math.min(amount, Integer.MAX_VALUE));
+        }
         itemsManager.giveItem(player, result.itemInfo(), (int) amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
@@ -192,7 +197,13 @@ public class Drop implements ConfigurationSerializable {
         Range range = new Range(value);
         long amount = range.getRandom();
         amount = getNewAmount(player, amount);
-        VaultUtils.giveCoins(player, amount);
+        // Validate amount is within IEEE-754 safe integer limit to avoid precision loss
+        long safeIntegerLimit = 9007199254740992L; // 2^53
+        if (Math.abs(amount) > safeIntegerLimit) {
+            log.warn("Coin amount {} exceeds IEEE-754 safe integer limit ({}), clamping to safe value", amount, safeIntegerLimit);
+            amount = amount > 0 ? safeIntegerLimit : -safeIntegerLimit;
+        }
+        VaultUtils.giveCoins(player, (double) amount);
         if (announce != null) {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
             sendAnnounceMessage(player);

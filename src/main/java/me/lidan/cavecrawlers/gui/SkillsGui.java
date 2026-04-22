@@ -12,7 +12,6 @@ import me.lidan.cavecrawlers.storage.PlayerDataManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -24,16 +23,14 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class SkillsGui {
+public class SkillsGui extends PaginatedRowGui {
     private final Player player;
-    private final Gui gui;
-    private final List<GuiItem> items = new ArrayList<>();
-    private int currentPage = 0;
+
 
     public SkillsGui(Player player) {
+        super(Gui.gui().rows(5).title(MiniMessageUtils.miniMessageString("Your Skills")).create());
         this.player = player;
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
-        gui = Gui.gui().rows(5).title(MiniMessageUtils.miniMessageString("Your Skills")).create();
         gui.disableAllInteractions();
 
         for (Skill skill : skills) {
@@ -56,38 +53,7 @@ public class SkillsGui {
         updateItems();
     }
 
-    private void updateItems() {
-        List<GuiItem> guiItems = items.subList(currentPage * 7, Math.min(7 * (currentPage + 1), items.size()));
-        int size = guiItems.size();
-        List<Integer> layoutForItems = getLayoutForItems(size);
-        getLayoutForItems(7).forEach(i -> gui.setItem(3, i, GuiItems.GLASS_ITEM));
-        for (int i = 0; i < size; i++) {
-            gui.setItem(3, layoutForItems.get(i), guiItems.get(i));
-        }
 
-
-        if (items.size() > 7) {
-            gui.setItem(3, 1, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Previous").asGuiItem(event -> previous()));
-            gui.setItem(3, 9, ItemBuilder.from(Material.ARROW).setName(ChatColor.BLUE + "Next").asGuiItem(event -> next()));
-        }
-        gui.update();
-    }
-
-    public void next() {
-        if (currentPage * 7 + 7 >= items.size()) {
-            return;
-        }
-        currentPage++;
-        updateItems();
-    }
-
-    public void previous() {
-        if (currentPage == 0) {
-            return;
-        }
-        currentPage--;
-        updateItems();
-    }
 
     public static @NotNull GuiItem getSkillRewardGuiItem(SkillInfo skillInfo, int level, boolean unlocked) {
         Material material = unlocked ? Material.LIME_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE;
@@ -99,25 +65,6 @@ public class SkillsGui {
         }
 
         return ItemBuilder.from(material).name(MiniMessageUtils.miniMessageString("<italic:false><green><name> Level <level>", Map.of("name", StringUtils.setTitleCase(skillInfo.getName()), "level", StringUtils.valueOf(level)))).lore(lore).asGuiItem();
-    }
-
-    public List<Integer> getLayoutForItems(int n) {
-        switch (n) {
-            case 1:
-                return List.of(5);
-            case 2:
-                return List.of(4, 6);
-            case 3:
-                return List.of(4, 5, 6);
-            case 4:
-                return List.of(3, 4, 6, 7);
-            case 5:
-                return List.of(3, 4, 5, 6, 7);
-            case 6:
-                return List.of(2, 3, 4, 6, 7, 8);
-            default: // 7 or more
-                return List.of(2, 3, 4, 5, 6, 7, 8);
-        }
     }
 
     public static GuiItem getSkillGuiItem(Skill skill) {

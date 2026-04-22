@@ -2,28 +2,32 @@ package me.lidan.cavecrawlers.index;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.GuiItem;
 import me.lidan.cavecrawlers.gui.GuiItems;
+import me.lidan.cavecrawlers.gui.PaginatedRowGui;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-public class IndexMainMenu {
+public class IndexMainMenu extends PaginatedRowGui {
     private final Player player;
-    private final Gui gui;
 
     public IndexMainMenu(Player player) {
+        super(Gui.gui().rows(6).title(MiniMessageUtils.miniMessage("Index Main Menu")).create());
         this.player = player;
-        this.gui = Gui.gui().rows(6).title(MiniMessageUtils.miniMessage("Index Main Menu")).create();
         gui.disableAllInteractions();
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
-        gui.setItem(3, 2, ItemBuilder.from(Material.ZOMBIE_HEAD).name(MiniMessageUtils.miniMessage("<green>Mobs")).asGuiItem(event -> new IndexMobsCategoryMenu(player, "").open()));
-        gui.setItem(3, 4, ItemBuilder.from(Material.DIAMOND_ORE).name(MiniMessageUtils.miniMessage("<gold>Blocks")).asGuiItem(event -> new IndexBlocksCategoryMenu(player, "").open()));
-        gui.setItem(3, 6, ItemBuilder.from(Material.DRAGON_HEAD).name(MiniMessageUtils.miniMessage("<red>Bosses")).asGuiItem(event -> new IndexBossesCategoryMenu(player, "").open()));
-        gui.setItem(3, 8, ItemBuilder.from(Material.END_PORTAL_FRAME).name(MiniMessageUtils.miniMessage("<aqua>Altars")).asGuiItem(event -> new IndexAltarsCategoryMenu(player, "").open()));
+
+        for (IndexCategory category : IndexCategory.values()) {
+            GuiItem guiItem = category.getGuiItem();
+            items.add(guiItem);
+        }
+
         gui.setItem(6, 5, GuiItems.CLOSE_ITEM);
         if (player.hasPermission(IndexBaseCategoryMenu.CAVECRAWLERS_INDEX_ADMIN_PERMISSION)) {
             gui.setItem(6, 3, ItemBuilder.from(Material.REDSTONE).name(MiniMessageUtils.miniMessage("<red>Hidden Values")).asGuiItem(event -> new IndexHiddenMenu(player).open()));
         }
+        updateItems();
     }
 
     public void open() {

@@ -7,13 +7,14 @@ import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsCalculateEvent;
 import me.lidan.cavecrawlers.utils.Cooldown;
-import net.md_5.bungee.api.ChatColor;
+import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerEvent;
 
+import java.util.Map;
 import java.util.UUID;
 
 public class BuffAbility extends ClickAbility {
@@ -24,12 +25,17 @@ public class BuffAbility extends ClickAbility {
     private StatType statType = StatType.STRENGTH;
 
     public BuffAbility() {
-        super("Buff", "Increase your stat by amount for time seconds", 20, 50000);
+        super("Buff", StringUtils.colored("Increase your %stat%&7 by &a%amount%&7 for &a%time% seconds"), 20, 50000);
     }
 
     @Override
     public String getDescription() {
-        return "Increase your " + statType.getFormatName() + ChatColor.GRAY + " by " + ChatColor.GREEN + amount + ChatColor.GRAY + " for " + ChatColor.GREEN + activeTime / 1000 + " seconds";
+        Map<String, Object> placeholders = Map.of(
+                "stat", statType.getFormatName(),
+                "amount", amount,
+                "time", activeTime / 1000
+        );
+        return StringUtils.applyCustomPlaceholders(super.getDescription(), placeholders);
     }
 
     @Override

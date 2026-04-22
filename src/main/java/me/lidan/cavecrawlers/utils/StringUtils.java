@@ -7,6 +7,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class StringUtils {
     /**
@@ -348,5 +349,16 @@ public class StringUtils {
             output = num + "";
         }
         return output.replace(".0", "");
+    }
+
+    public static String applyCustomPlaceholders(String message, Map<String, Object> placeholders) {
+        for (Map.Entry<String, Object> entry : placeholders.entrySet()) {
+            message = message.replace("%" + entry.getKey() + "%", String.valueOf(entry.getValue()));
+        }
+        return message;
+    }
+
+    public static String colored(String text) {
+        return ChatColor.translateAlternateColorCodes('&', text);
     }
 }

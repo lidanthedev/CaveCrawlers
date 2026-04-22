@@ -18,10 +18,12 @@ public class Range implements Iterable<Long> {
     }
 
     public Range(String amountStr){
-        if (amountStr.contains("-")){
-            String[] arr = amountStr.split("-");
-            min = Long.parseLong(arr[0]);
-            max = Long.parseLong(arr[1]);
+        if (amountStr.contains("-") && amountStr.indexOf('-', 1) != -1){
+            int delimIndex = amountStr.indexOf('-', 1);
+            String left = amountStr.substring(0, delimIndex);
+            String right = amountStr.substring(delimIndex + 1);
+            min = Long.parseLong(left);
+            max = Long.parseLong(right);
         }
         else{
             min = Long.parseLong(amountStr);
@@ -33,7 +35,7 @@ public class Range implements Iterable<Long> {
         return RandomUtils.randomLong(min, max);
     }
 
-    public boolean isInRange(int num){
+    public boolean isInRange(long num){
         return num >= min && num <= max;
     }
 

@@ -1,8 +1,10 @@
 package me.lidan.cavecrawlers.index;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
+import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -20,9 +22,11 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
     public void setupGui() {
         Map<String, EntityDrops> dropsMap = DropsManager.getInstance().getEntityDropsMap();
         List<Map.Entry<String, EntityDrops>> entries = dropsMap.entrySet().stream()
-                .sorted(Comparator.comparing(entry ->
-                        ChatColor.stripColor(entry.getValue().getEntityName())
-                ))
+                .sorted(Comparator.comparingDouble(entry -> {
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityName());
+                    if (mob == null) return 0;
+                    return mob.getHealth().get();
+                }))
                 .toList();
         for (Map.Entry<String, EntityDrops> dropsEntry : entries) {
             String mobName = dropsEntry.getKey();

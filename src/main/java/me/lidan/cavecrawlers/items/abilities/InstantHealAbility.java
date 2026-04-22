@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.XAttribute;
 import com.google.gson.JsonObject;
+import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import net.md_5.bungee.api.ChatColor;
@@ -66,5 +67,11 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
         StatsManager.healPlayerPercent(player, healPercent);
         player.getWorld().spawnParticle(Particle.HEART, player.getEyeLocation(), 1);
         return true;
+    }
+
+    @Override
+    public void abilityFailedCannotUseNow(Player player) {
+        String msg = ChatColor.RED + "Health is full!";
+        ActionBarManager.getInstance().showActionBar(player, msg);
     }
 }

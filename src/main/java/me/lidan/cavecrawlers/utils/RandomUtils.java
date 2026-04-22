@@ -9,17 +9,25 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomUtils {
     /**
-     * Generate a random int between min and max
+     * Generate a random int between min and max (inclusive)
      *
      * @param min the minimum value
      * @param max the maximum value
      * @return the random int
      */
     public static int randomInt(int min, int max) {
-        max++;
-        min *= 1000;
-        max *= 1000;
-        return (int) (ThreadLocalRandom.current().nextDouble() * (max - min) + min) / 1000;
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+
+    /**
+     * Generate a random long between min and max (inclusive)
+     *
+     * @param min the minimum value
+     * @param max the maximum value
+     * @return the random long
+     */
+    public static long randomLong(long min, long max) {
+        return ThreadLocalRandom.current().nextLong(min, max + 1);
     }
 
     /**

@@ -32,8 +32,8 @@ public class BuffAbility extends ClickAbility {
     public String getDescription() {
         Map<String, Object> placeholders = Map.of(
                 "stat", statType.getFormatName(),
-                "amount", amount,
-                "time", activeTime / 1000
+                "amount", StringUtils.getNumberFormat(amount),
+                "time", StringUtils.getNumberFormat(activeTime / 1000)
         );
         return StringUtils.applyCustomPlaceholders(super.getDescription(), placeholders);
     }

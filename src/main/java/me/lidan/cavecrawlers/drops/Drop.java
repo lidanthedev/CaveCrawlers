@@ -37,6 +37,7 @@ public class Drop implements ConfigurationSerializable {
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final StatsManager statsManager = StatsManager.getInstance();
+    public static final long SAFE_INTEGER_LIMIT = 9007199254740992L; // 2^53
     protected DropType type;
     protected double chance;
     protected String value;
@@ -147,7 +148,12 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        long amount = getNewAmount(player, (int) result.range().getRandom());
+        long amount = getNewAmount(player, result.range().getRandom());
+        // Validate amount is within int bounds and non-negative
+        if (amount < 0 || amount > Integer.MAX_VALUE) {
+            log.warn("Item drop amount {} is out of valid range [0, {}], ignoring", amount, Integer.MAX_VALUE);
+            return;
+        }
         itemsManager.giveItem(player, result.itemInfo(), (int) amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
@@ -192,7 +198,12 @@ public class Drop implements ConfigurationSerializable {
         Range range = new Range(value);
         long amount = range.getRandom();
         amount = getNewAmount(player, amount);
-        VaultUtils.giveCoins(player, amount);
+        // Validate amount is within IEEE-754 safe integer limit to avoid precision loss
+        if (Math.abs(amount) > SAFE_INTEGER_LIMIT) {
+            log.warn("Coin amount {} exceeds IEEE-754 safe integer limit ({}), clamping to safe value", amount, SAFE_INTEGER_LIMIT);
+            amount = amount > 0 ? SAFE_INTEGER_LIMIT : -SAFE_INTEGER_LIMIT;
+        }
+        VaultUtils.giveCoins(player, (double) amount);
         if (announce != null) {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
             sendAnnounceMessage(player);

@@ -10,3 +10,6 @@ softdepend:
   - PlaceholderAPI
   - LuckPerms
   - Plugman
+libraries:
+  - org.jdbi:jdbi3-core:3.45.0
+  - org.jdbi:jdbi3-sqlobject:3.45.0

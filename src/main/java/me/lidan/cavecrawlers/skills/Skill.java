@@ -26,6 +26,7 @@ public class Skill implements ConfigurationSerializable {
     @Getter @Setter
     private static List<Double> defaultXpToLevelList = new ArrayList<>(); // updated from main config
     private SkillInfo type;
+    private String typeId;
     private int level;
     private double xp;
     private double xpToLevel = 100;
@@ -33,17 +34,38 @@ public class Skill implements ConfigurationSerializable {
 
     private UUID uuid;
 
+    public Skill() {
+    }
+
     public Skill(@NonNull SkillInfo type, int level) {
         this.type = type;
+        this.typeId = type.getId();
         this.level = level;
     }
 
     public Skill(@NonNull SkillInfo type, int level, double xp, double xpToLevel, double totalXp) {
         this.type = type;
+        this.typeId = type.getId();
         this.level = level;
         this.xp = xp;
         this.xpToLevel = xpToLevel;
         this.totalXp = totalXp;
+    }
+
+    public void setType(SkillInfo type) {
+        this.type = type;
+        this.typeId = type == null ? null : type.getId();
+    }
+
+    public void setTypeId(String typeId) {
+        this.typeId = typeId;
+    }
+
+    public String getTypeId() {
+        if (type != null) {
+            return type.getId();
+        }
+        return typeId;
     }
 
     public void addXp(double amount){

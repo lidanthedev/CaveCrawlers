@@ -1,64 +1,55 @@
 package me.lidan.cavecrawlers.storage;
 
-import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.stats.Stats;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class PlayerDataManager {
-    private static final String DIR_NAME = "players";
     private static PlayerDataManager instance;
 
-    private final Map<UUID, PlayerData> uuidPlayerDataMap;
-
-    private PlayerDataManager(Map<UUID, PlayerData> uuidPlayerDataMap) {
-        this.uuidPlayerDataMap = uuidPlayerDataMap;
-    }
+    private final SkillsManager skillsManager;
 
     private PlayerDataManager() {
-        this.uuidPlayerDataMap = new HashMap<>();
-        File dir = new File(CaveCrawlers.getInstance().getDataFolder(), DIR_NAME);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
+        this.skillsManager = SkillsManager.getInstance();
     }
 
     public void saveAll(){
-        for (UUID uuid : uuidPlayerDataMap.keySet()){
-            savePlayerData(uuid);
-        }
+        skillsManager.saveAllAsync();
+    }
+
+    public void saveAllAndWait() {
+        skillsManager.saveAllAndWait();
     }
 
     public PlayerData loadPlayerData(UUID player){
-        PlayerData playerData = new PlayerData();
-        playerData.loadPlayer(player);
-        return playerData;
+        skillsManager.loadPlayerSync(player);
+        return new PlayerData(skillsManager.getSkills(player));
     }
 
     public void savePlayerData(UUID player){
-        PlayerData playerData = getPlayerData(player);
-        playerData.savePlayer(player);
-        savePlayerDataInMap(player, playerData);
+        skillsManager.savePlayerDataAsync(player);
     }
 
     public void savePlayerDataInMap(UUID player, PlayerData playerData) {
-        playerData.getSkills().setUuid(player);
-        uuidPlayerDataMap.put(player, playerData);
+        if (playerData == null) {
+            return;
+        }
+        Skills skills = playerData.getSkills();
+        if (skills == null) {
+            skills = new Skills();
+        }
+        skills.setUuid(player);
+        skillsManager.setSkills(player, skills);
     }
 
     public PlayerData getPlayerData(UUID uuid){
-        if (!uuidPlayerDataMap.containsKey(uuid)){
-            PlayerData playerData = loadPlayerData(uuid);
-            playerData.getSkills().setUuid(uuid);
-            savePlayerDataInMap(uuid, playerData);
-        }
-        return uuidPlayerDataMap.get(uuid);
+        Skills skills = skillsManager.getSkills(uuid);
+        skills.setUuid(uuid);
+        return new PlayerData(skills);
     }
 
     public PlayerData getPlayerData(Player player){
@@ -77,14 +68,13 @@ public class PlayerDataManager {
     }
 
     public Skills getSkills(Player player) {
-        return getPlayerData(player).getSkills();
+        return skillsManager.getSkills(player);
     }
 
     public void resetPlayerData(@NotNull UUID uniqueId) {
         Skills skills = new Skills();
         skills.setUuid(uniqueId);
-        PlayerData playerData = new PlayerData(skills);
-        playerData.savePlayer(uniqueId);
-        savePlayerDataInMap(uniqueId, playerData);
+        skillsManager.setSkills(uniqueId, skills);
+        skillsManager.savePlayerDataAsync(uniqueId);
     }
 }

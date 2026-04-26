@@ -22,6 +22,7 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossLoader;
 import me.lidan.cavecrawlers.bosses.BossManager;
 import me.lidan.cavecrawlers.commands.*;
+import me.lidan.cavecrawlers.database.Database;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -45,11 +46,13 @@ import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.*;
+import me.lidan.cavecrawlers.skills.db.SkillsTable;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.migration.YamlMigrationTask;
 import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import me.lidan.cavecrawlers.utils.Holograms;
@@ -82,6 +85,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
+    private Database database;
 
     /**
      * Get the plugin instance
@@ -111,6 +115,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         saveDefaultResources();
         registerConfig();
+        registerSkills();
+        initializeDatabase();
+        runLegacyMigration();
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -132,7 +139,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             mythicMobsHook.load();
             registerEvent(mythicMobsHook);
         } catch (Exception e) {
-            log.error("Failed to load MythicMobs hook", e);
+            getLogger().severe("Failed to load MythicMobs hook: " + e.getMessage());
         }
     }
 
@@ -171,7 +178,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         if (getDataFolder().exists()) {
             return;
         }
-        log.info("Detected first time setup, saving default resources");
+        getLogger().info("Detected first time setup, saving default resources");
         getDataFolder().mkdir();
         saveResource("example-skills.yml", new File(getDataFolder(), "skills/example-skills.yml"));
         saveResource("example-items.yml", new File(getDataFolder(), "items/example-items.yml"));
@@ -184,6 +191,16 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerSkills() {
         SkillsManager.getInstance().load();
+    }
+
+    private void initializeDatabase() {
+        database = new Database(getDataFolder());
+        SkillsManager.getInstance().setDatabase(database.getJdbi());
+        database.registerTable(new SkillsTable());
+    }
+
+    private void runLegacyMigration() {
+        new YamlMigrationTask(this, database.getJdbi()).run();
     }
 
     /**
@@ -200,7 +217,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         try {
             YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning("version")).build(), LoaderSettings.builder().setAutoUpdate(true).build());
         } catch (IOException | NullPointerException e) {
-            log.error("Failed to load config.yml", e);
+            getLogger().severe("Failed to load config.yml: " + e.getMessage());
             throw new RuntimeException(e);
         }
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
@@ -396,6 +413,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register events
      */
     public void registerEvents() {
+        registerEvent(new PlayerLifecycleListener(SkillsManager.getInstance()));
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
@@ -447,7 +465,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
         getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
-            log.info("Auto saving player data...");
+            getLogger().info("Auto saving player data...");
             PlayerDataManager.getInstance().saveAll();
         }, 0, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
     }
@@ -469,7 +487,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
-        PlayerDataManager.getInstance().saveAll();
+        PlayerDataManager.getInstance().saveAllAndWait();
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();
@@ -606,7 +624,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerFromDataDir() {
         registerAbilities();
         registerFromConfigs(this);
-        registerSkills();
         registerLevels();
     }
 }

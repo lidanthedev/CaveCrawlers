@@ -53,6 +53,8 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
+    compileOnly("org.jdbi:jdbi3-core:3.45.0")
+    compileOnly("org.jdbi:jdbi3-sqlobject:3.45.0")
     implementation("com.github.cryptomorin:XSeries:13.6.0")
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("dev.dejvokep:boosted-yaml-spigot:1.5")

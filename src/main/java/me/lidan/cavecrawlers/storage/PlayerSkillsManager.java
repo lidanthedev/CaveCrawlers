@@ -108,7 +108,11 @@ public class PlayerSkillsManager {
      * where players are already online but the cache was cleared.
      */
     public Skills getSkills(UUID uuid) {
-        return activeSkills.computeIfAbsent(uuid, this::loadPlayerSync);
+        Skills cached = activeSkills.get(uuid);
+        if (cached != null) {
+            return cached;
+        }
+        return loadPlayerSync(uuid);
     }
 
     public Skills getSkills(Player player) {

@@ -1,4 +1,4 @@
-version: "4" # DO NOT EDIT!
+version: "5" # DO NOT EDIT!
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -105,3 +105,11 @@ experimental:
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
   hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)
   mythicmobs-items-supplier: false # Register CaveCrawlers Items for MythicMobs (unstable)
+
+database:
+  type: h2 # h2 or mysql
+  host: localhost
+  port: 3306
+  database: cavecrawlers
+  username: root
+  password: ""

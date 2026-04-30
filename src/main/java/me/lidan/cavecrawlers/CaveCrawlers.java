@@ -49,7 +49,10 @@ import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
-import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
+import me.lidan.cavecrawlers.storage.YamlMigrationTask;
+import me.lidan.cavecrawlers.storage.db.Database;
+import me.lidan.cavecrawlers.storage.db.SkillsTable;
 import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.Cuboid;
 import me.lidan.cavecrawlers.utils.Holograms;
@@ -111,6 +114,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         saveDefaultResources();
         registerConfig();
+
+        Database.getInstance().initialize(this);
+        registerDB();
+        new YamlMigrationTask(this).runTaskAsynchronously(this);
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -392,10 +399,16 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
     }
 
+    private void registerDB() {
+        Database db = Database.getInstance();
+        db.registerTable(new SkillsTable());
+    }
+
     /**
      * Register events
      */
     public void registerEvents() {
+        registerEvent(new PlayerLifecycleListener());
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());
@@ -446,10 +459,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
-        getServer().getScheduler().runTaskTimer(this, bukkitTask -> {
+        getServer().getScheduler().runTaskTimerAsynchronously(this, bukkitTask -> {
             log.info("Auto saving player data...");
-            PlayerDataManager.getInstance().saveAll();
-        }, 0, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
+            PlayerSkillsManager.getInstance().saveAll();
+        }, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
     }
 
     /**
@@ -469,7 +482,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
-        PlayerDataManager.getInstance().saveAll();
+        PlayerSkillsManager.getInstance().saveAll();
+        Database.getInstance().shutdown();
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();

@@ -117,7 +117,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         Database.getInstance().initialize(this);
         registerDB();
-        new YamlMigrationTask(this).runTaskAsynchronously(this);
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -150,6 +149,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
+                // Skills metadata is now loaded — safe to migrate YAML player files.
+                // Runs synchronously so no player can connect before migration completes.
+                new YamlMigrationTask(CaveCrawlers.this).run();
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();

@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +23,12 @@ public class PlayerSkillsManager {
     private static PlayerSkillsManager instance;
 
     private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
+    /**
+     * Holds rows snapshotted at quit time until the async write completes.
+     * On rapid reconnect, loadPlayerSync reads from here instead of the DB
+     * so the player sees their correct quit-time state immediately.
+     */
+    private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     private PlayerSkillsManager() {
@@ -35,9 +42,10 @@ public class PlayerSkillsManager {
     }
 
     public Skills loadPlayerSync(UUID uuid) {
-        List<SkillRow> rows = Database.getInstance().getJdbi().withHandle(handle ->
-                handle.attach(SkillsDao.class).getSkills(uuid.toString())
-        );
+        // If there's an in-flight quit save, use that snapshot so the player
+        // sees their correct state rather than stale DB data.
+        List<SkillRow> pending = pendingSaves.get(uuid);
+        List<SkillRow> rows = (pending != null) ? pending : loadRowsFromDb(uuid);
 
         List<Skill> skillList = new ArrayList<>();
         for (SkillRow row : rows) {
@@ -46,6 +54,8 @@ public class PlayerSkillsManager {
                 log.warn("Skipping unknown skill type '{}' for player {}", row.getType(), uuid);
                 continue;
             }
+            // Mirrors Skills.deserialize(): recompute level+xp from totalXp so any
+            // XP-requirement config changes are reflected on next login.
             Skill skill = new Skill(skillInfo, 0);
             skill.addXp(row.getTotalXp());
             skill.levelUp(false);
@@ -59,43 +69,46 @@ public class PlayerSkillsManager {
     }
 
     public void savePlayerAsync(UUID uuid) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerSync(uuid));
-    }
-
-    private void savePlayerSync(UUID uuid) {
-        Skills skills = activeSkills.get(uuid);
+        // Snapshot rows immediately on the calling thread so a rapid reconnect
+        // cannot replace the cache entry before the async task reads it.
+        Skills skills = activeSkills.remove(uuid);
         if (skills == null) {
             return;
         }
 
-        List<SkillRow> rows = new ArrayList<>();
-        for (Skill skill : skills) {
-            rows.add(new SkillRow(
-                    uuid.toString(),
-                    skill.getType().getId(),
-                    skill.getXp(),
-                    skill.getLevel(),
-                    skill.getTotalXp()
-            ));
-        }
-
+        List<SkillRow> rows = buildRows(uuid, skills);
         if (rows.isEmpty()) {
             return;
         }
 
-        Database.getInstance().getJdbi().useHandle(handle ->
-                handle.attach(SkillsDao.class).upsertSkills(rows)
-        );
+        pendingSaves.put(uuid, rows);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            writeRows(rows);
+            pendingSaves.remove(uuid);
+        });
     }
 
     public void saveAll() {
-        for (UUID uuid : activeSkills.keySet()) {
-            savePlayerSync(uuid);
+        for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
+            List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
+            if (!rows.isEmpty()) {
+                writeRows(rows);
+            }
         }
+        // Flush any quit saves whose async tasks were cancelled (e.g. on shutdown).
+        for (List<SkillRow> rows : pendingSaves.values()) {
+            writeRows(rows);
+        }
+        pendingSaves.clear();
     }
 
+    /**
+     * Returns cached skills, lazily loading from the database on a cache miss.
+     * This maintains the old PlayerDataManager contract and handles reload scenarios
+     * where players are already online but the cache was cleared.
+     */
     public Skills getSkills(UUID uuid) {
-        return activeSkills.getOrDefault(uuid, new Skills());
+        return activeSkills.computeIfAbsent(uuid, this::loadPlayerSync);
     }
 
     public Skills getSkills(Player player) {
@@ -111,10 +124,37 @@ public class PlayerSkillsManager {
         Skills skills = new Skills();
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerSync(uuid));
+        List<SkillRow> rows = buildRows(uuid, skills);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeRows(rows));
     }
 
     public void removeFromCache(UUID uuid) {
         activeSkills.remove(uuid);
+    }
+
+    private List<SkillRow> loadRowsFromDb(UUID uuid) {
+        return Database.getInstance().getJdbi().withHandle(handle ->
+                handle.attach(SkillsDao.class).getSkills(uuid.toString())
+        );
+    }
+
+    private List<SkillRow> buildRows(UUID uuid, Skills skills) {
+        List<SkillRow> rows = new ArrayList<>();
+        for (Skill skill : skills) {
+            rows.add(new SkillRow(
+                    uuid.toString(),
+                    skill.getType().getId(),
+                    skill.getXp(),
+                    skill.getLevel(),
+                    skill.getTotalXp()
+            ));
+        }
+        return rows;
+    }
+
+    private void writeRows(List<SkillRow> rows) {
+        Database.getInstance().getJdbi().useHandle(handle ->
+                handle.attach(SkillsDao.class).upsertSkills(rows)
+        );
     }
 }

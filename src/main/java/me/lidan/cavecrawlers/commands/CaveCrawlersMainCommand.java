@@ -2,6 +2,8 @@ package me.lidan.cavecrawlers.commands;
 
 import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -40,6 +42,10 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.db.Database;
+import me.lidan.cavecrawlers.storage.db.SkillRow;
+import me.lidan.cavecrawlers.storage.db.SkillsDao;
+import me.lidan.cavecrawlers.storage.db.SkillsTable;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
@@ -58,6 +64,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
@@ -895,6 +903,65 @@ public class CaveCrawlersMainCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.resetPlayerData(arg.getUniqueId());
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>Reset Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+    }
+
+    @Subcommand("data migrate h2-to-mysql")
+    public void dataMigrateH2ToMySQL(CommandSender sender) {
+        String dbType = plugin.getConfig().getString("database.type", "h2");
+        if (!"h2".equalsIgnoreCase(dbType)) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>Current database is not H2. Set <gold>database.type: h2</gold> in config.yml before migrating."));
+            return;
+        }
+
+        String host = plugin.getConfig().getString("database.host", "localhost");
+        int port = plugin.getConfig().getInt("database.port", 3306);
+        String database = plugin.getConfig().getString("database.database", "cavecrawlers");
+        String username = plugin.getConfig().getString("database.username", "root");
+        String password = plugin.getConfig().getString("database.password", "");
+
+        sender.sendMessage(MiniMessageUtils.miniMessage("<yellow>Starting H2 → MySQL migration to <gold><host>:<port>/<db></gold>...",
+                Map.of("host", host, "port", String.valueOf(port), "db", database)));
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Read all rows from the current H2 instance
+            List<SkillRow> allRows = Database.getInstance().getJdbi().withHandle(handle ->
+                    handle.attach(SkillsDao.class).getAllSkills()
+            );
+
+            if (allRows.isEmpty()) {
+                sender.sendMessage(MiniMessageUtils.miniMessage("<yellow>H2 database has no skill data to migrate."));
+                return;
+            }
+
+            HikariConfig mysqlConfig = new HikariConfig();
+            mysqlConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true");
+            mysqlConfig.setUsername(username);
+            mysqlConfig.setPassword(password);
+            mysqlConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+            mysqlConfig.setMaximumPoolSize(2);
+            mysqlConfig.setConnectionTimeout(10000);
+            mysqlConfig.setPoolName("CaveCrawlers-Migration");
+
+            try (HikariDataSource mysqlSource = new HikariDataSource(mysqlConfig)) {
+                Jdbi mysqlJdbi = Jdbi.create(mysqlSource);
+                mysqlJdbi.installPlugin(new SqlObjectPlugin());
+
+                mysqlJdbi.useHandle(handle -> {
+                    // Ensure the target schema exists
+                    handle.execute("CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)");
+                    handle.execute(new SkillsTable().getCreateCommand());
+                    // Copy all rows; ON DUPLICATE KEY UPDATE means it's safe to re-run
+                    handle.attach(SkillsDao.class).upsertSkills(allRows);
+                });
+
+                sender.sendMessage(MiniMessageUtils.miniMessage(
+                        "<green>Migration complete! <gold><count></gold> skill records copied to MySQL. Change <gold>database.type: mysql</gold> in config.yml and restart.",
+                        Map.of("count", String.valueOf(allRows.size()))));
+            } catch (Exception e) {
+                sender.sendMessage(MiniMessageUtils.miniMessage("<red>Migration failed: <msg>", Map.of("msg", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName())));
+                log.error("H2 to MySQL migration failed", e);
+            }
+        });
     }
 
     @Subcommand("kill target")

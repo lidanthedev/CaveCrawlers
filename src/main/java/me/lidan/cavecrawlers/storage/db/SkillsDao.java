@@ -14,6 +14,9 @@ public interface SkillsDao {
     @SqlQuery("SELECT * FROM skills WHERE player_uuid = :uuid")
     List<SkillRow> getSkills(@Bind("uuid") String uuid);
 
+    @SqlQuery("SELECT * FROM skills")
+    List<SkillRow> getAllSkills();
+
     @SqlBatch("""
             INSERT INTO skills (player_uuid, type, xp, level, total_xp)
             VALUES (:playerUuid, :type, :xp, :level, :totalXp)

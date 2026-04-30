@@ -96,4 +96,40 @@ public class Database {
             dataSource.close();
         }
     }
+
+    /**
+     * Opens a temporary, standalone MySQL data source (caller must close it).
+     */
+    public static HikariDataSource openMysqlSource(Plugin plugin, int poolSize) {
+        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfig();
+        String host = config.getString("database.host", "localhost");
+        int port = config.getInt("database.port", 3306);
+        String database = config.getString("database.database", "cavecrawlers");
+        String username = config.getString("database.username", "root");
+        String password = config.getString("database.password", "");
+
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true");
+        hikariConfig.setUsername(username);
+        hikariConfig.setPassword(password);
+        hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        hikariConfig.setMaximumPoolSize(poolSize);
+        hikariConfig.setConnectionTimeout(10000);
+        hikariConfig.setPoolName("CaveCrawlers-MySQL-Migration");
+        return new HikariDataSource(hikariConfig);
+    }
+
+    /**
+     * Opens a temporary, standalone H2 data source (caller must close it).
+     */
+    public static HikariDataSource openH2Source(Plugin plugin, int poolSize) {
+        String dataPath = plugin.getDataFolder().getAbsolutePath() + "/data/database";
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setJdbcUrl("jdbc:h2:" + dataPath + ";MODE=MySQL;AUTO_SERVER=TRUE");
+        hikariConfig.setDriverClassName("org.h2.Driver");
+        hikariConfig.setMaximumPoolSize(poolSize);
+        hikariConfig.setConnectionTimeout(10000);
+        hikariConfig.setPoolName("CaveCrawlers-H2-Migration");
+        return new HikariDataSource(hikariConfig);
+    }
 }

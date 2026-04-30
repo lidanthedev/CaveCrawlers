@@ -22,6 +22,8 @@ public class PlayerLifecycleListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PlayerSkillsManager.getInstance().savePlayerAsync(event.getPlayer().getUniqueId());
+        // Blocking save: guarantees the row is in the DB before BungeeCord/Velocity
+        // can route the player to another backend and trigger a load there.
+        PlayerSkillsManager.getInstance().savePlayerNow(event.getPlayer().getUniqueId());
     }
 }

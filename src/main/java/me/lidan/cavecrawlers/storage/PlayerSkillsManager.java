@@ -68,6 +68,27 @@ public class PlayerSkillsManager {
         return skills;
     }
 
+    /**
+     * Saves synchronously on the calling thread. Use on player quit so the row
+     * is committed to the database before BungeeCord/Velocity can route the player
+     * to another backend server and trigger a load there.
+     */
+    public void savePlayerNow(UUID uuid) {
+        Skills skills = activeSkills.remove(uuid);
+        pendingSaves.remove(uuid);
+        if (skills == null) {
+            return;
+        }
+        List<SkillRow> rows = buildRows(uuid, skills);
+        if (!rows.isEmpty()) {
+            writeRows(rows);
+        }
+    }
+
+    /**
+     * Saves asynchronously. Safe for non-quit paths (e.g. data reset) where
+     * cross-server ordering is not a concern.
+     */
     public void savePlayerAsync(UUID uuid) {
         // Snapshot rows immediately on the calling thread so a rapid reconnect
         // cannot replace the cache entry before the async task reads it.

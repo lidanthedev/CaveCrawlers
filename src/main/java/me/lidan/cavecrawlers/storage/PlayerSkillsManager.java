@@ -117,25 +117,30 @@ public class PlayerSkillsManager {
     }
 
     /**
-     * Polls the player_sessions lock until this server acquires it or the attempt limit is reached.
-     * Safe to call from any thread; uses Thread.sleep on the caller's thread.
+     * Tries to acquire the session lock for {@code uuid}.
+     *
+     * <p>On the <b>main thread</b>: attempts once; if contended, loads stale data immediately and
+     * schedules a background task that waits for the lock and refreshes the cache when free.
+     *
+     * <p>On an <b>async thread</b>: polls every {@value LOCK_RETRY_MS} ms for up to
+     * {@value LOCK_MAX_ATTEMPTS} attempts before giving up and loading whatever is in the DB.
      */
     private void acquireLock(UUID uuid) {
         String uuidStr = uuid.toString();
         Database.getInstance().getJdbi().useHandle(h -> h.attach(PlayerSessionsDao.class).ensureRow(uuidStr));
 
+        if (tryAcquireLockOnce(uuid, uuidStr)) return;
+
+        if (Bukkit.isPrimaryThread()) {
+            // Never block the main thread. Load whatever is in the DB now (potentially stale)
+            // and fix it in the background once the other server releases the lock.
+            log.info("[LOCK] {} — main thread contention, loading stale data; background refresh scheduled", uuid);
+            scheduleBackgroundRefresh(uuid);
+            return;
+        }
+
+        // Async thread — poll until acquired or timed out.
         for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
-            long now = System.currentTimeMillis();
-            long expiry = now - LOCK_TIMEOUT_MS;
-            int affected = Database.getInstance().getJdbi().withHandle(h ->
-                    h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, serverId, now, expiry)
-            );
-
-            if (affected > 0) {
-                log.info("[LOCK] {} — acquired on attempt {}/{}", uuid, attempt, LOCK_MAX_ATTEMPTS);
-                return;
-            }
-
             log.info("[LOCK] {} — waiting for lock (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
             try {
                 Thread.sleep(LOCK_RETRY_MS);
@@ -143,10 +148,61 @@ public class PlayerSkillsManager {
                 Thread.currentThread().interrupt();
                 break;
             }
+            if (tryAcquireLockOnce(uuid, uuidStr)) return;
         }
-
-        // Timed out — load anyway rather than blocking the login indefinitely.
         log.warn("[LOCK] {} — could not acquire lock after {} attempts, proceeding without it", uuid, LOCK_MAX_ATTEMPTS);
+    }
+
+    private boolean tryAcquireLockOnce(UUID uuid, String uuidStr) {
+        long now = System.currentTimeMillis();
+        long expiry = now - LOCK_TIMEOUT_MS;
+        int affected = Database.getInstance().getJdbi().withHandle(h ->
+                h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, serverId, now, expiry)
+        );
+        if (affected > 0) {
+            log.info("[LOCK] {} — acquired [thread={}]", uuid, Thread.currentThread().getName());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Waits async for the lock to be released by another server, then reloads the player's
+     * skills from the DB and updates the cache with the fresh data.
+     */
+    private void scheduleBackgroundRefresh(UUID uuid) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            String uuidStr = uuid.toString();
+            boolean acquired = false;
+            for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
+                try {
+                    Thread.sleep(LOCK_RETRY_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                if (tryAcquireLockOnce(uuid, uuidStr)) {
+                    acquired = true;
+                    break;
+                }
+                log.info("[LOCK] {} — background refresh waiting (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
+            }
+
+            if (!acquired) {
+                log.warn("[LOCK] {} — background refresh: lock never acquired, keeping stale data", uuid);
+                return;
+            }
+
+            List<SkillRow> rows = loadRowsFromDb(uuid);
+            Skills fresh = buildSkillsFromRows(uuid, rows);
+            activeSkills.put(uuid, fresh);
+            log.info("[LOAD] {} — background refresh complete ({} skill row(s))", uuid, rows.size());
+
+            if (Bukkit.getPlayer(uuid) == null) {
+                log.info("[LOAD] {} — player offline after background refresh, saving and releasing", uuid);
+                savePlayerNow(uuid);
+            }
+        });
     }
 
     // -------------------------------------------------------------------------

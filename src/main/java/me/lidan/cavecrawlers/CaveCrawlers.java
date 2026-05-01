@@ -52,6 +52,7 @@ import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.storage.YamlMigrationTask;
 import me.lidan.cavecrawlers.storage.db.Database;
+import me.lidan.cavecrawlers.storage.db.PlayerSessionsTable;
 import me.lidan.cavecrawlers.storage.db.SkillsTable;
 import me.lidan.cavecrawlers.utils.BasicDefaultVersioning;
 import me.lidan.cavecrawlers.utils.Cuboid;
@@ -74,7 +75,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Getter
@@ -117,6 +117,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         Database.getInstance().initialize(this);
         registerDB();
+
+        String serverId = java.util.UUID.randomUUID().toString();
+        PlayerSkillsManager.getInstance().setServerId(serverId);
+        log.info("Server session ID: {}", serverId);
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -404,6 +408,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerDB() {
         Database db = Database.getInstance();
         db.registerTable(new SkillsTable());
+        db.registerTable(new PlayerSessionsTable());
     }
 
     /**
@@ -461,10 +466,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
+        long saveIntervalTicks = (long) getConfig().getInt("database.save-interval", 30) * TICKS_TO_SECOND;
         getServer().getScheduler().runTaskTimerAsynchronously(this, bukkitTask -> {
             log.info("Auto saving player data...");
             PlayerSkillsManager.getInstance().saveAll();
-        }, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND, TimeUnit.MINUTES.toSeconds(5) * TICKS_TO_SECOND);
+        }, saveIntervalTicks, saveIntervalTicks);
     }
 
     /**
@@ -484,7 +490,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
-        PlayerSkillsManager.getInstance().saveAll();
+        PlayerSkillsManager.getInstance().shutdown();
         Database.getInstance().shutdown();
         AltarManager.getInstance().reset();
         killHolograms();

@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.skills.SkillInfo;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.storage.db.Database;
+import me.lidan.cavecrawlers.storage.db.PlayerSessionsDao;
 import me.lidan.cavecrawlers.storage.db.SkillRow;
 import me.lidan.cavecrawlers.storage.db.SkillsDao;
 import org.bukkit.Bukkit;
@@ -22,13 +23,30 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerSkillsManager {
     private static PlayerSkillsManager instance;
 
-    private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
+    /**
+     * How long (ms) a lock can go un-heartbeated before it is considered abandoned (crash recovery).
+     */
+    private static final long LOCK_TIMEOUT_MS = 60_000L;
+    /**
+     * How many times to retry lock acquisition before giving up and loading anyway.
+     */
+    private static final int LOCK_MAX_ATTEMPTS = 20;
+    /**
+     * Sleep between lock retry attempts (ms). Max wait = LOCK_MAX_ATTEMPTS × LOCK_RETRY_MS = 10 s.
+     */
+    private static final long LOCK_RETRY_MS = 500L;
     /**
      * Holds rows snapshotted at quit time until the async write completes.
-     * On rapid reconnect, loadPlayerSync reads from here instead of the DB
+     * On rapid reconnect to the same server, loadPlayerSync reads from here instead of the DB
      * so the player sees their correct quit-time state immediately.
      */
     private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
+    /**
+     * Unique ID for this server process. Used to identify lock ownership.
+     */
+    private String serverId;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
     private PlayerSkillsManager() {
@@ -41,57 +59,135 @@ public class PlayerSkillsManager {
         return instance;
     }
 
-    public Skills loadPlayerSync(UUID uuid) {
-        // If there's an in-flight quit save, use that snapshot so the player
-        // sees their correct state rather than stale DB data.
-        List<SkillRow> pending = pendingSaves.get(uuid);
-        List<SkillRow> rows = (pending != null) ? pending : loadRowsFromDb(uuid);
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
 
-        List<Skill> skillList = new ArrayList<>();
-        for (SkillRow row : rows) {
-            SkillInfo skillInfo = SkillsManager.getInstance().getSkillInfo(row.getType());
-            if (skillInfo == null) {
-                log.warn("Skipping unknown skill type '{}' for player {}", row.getType(), uuid);
-                continue;
+    // -------------------------------------------------------------------------
+    // Load
+    // -------------------------------------------------------------------------
+
+    /**
+     * Schedules a load on an async thread. Use from main-thread events like PlayerJoinEvent.
+     */
+    public void loadPlayerAsync(UUID uuid) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadPlayerSync(uuid));
+    }
+
+    public Skills loadPlayerSync(UUID uuid) {
+        List<SkillRow> pending = pendingSaves.get(uuid);
+        List<SkillRow> rows;
+
+        if (pending != null) {
+            // Same-server rapid reconnect: the async task hasn't flushed yet.
+            // Use the in-memory snapshot — it is newer than anything in the DB.
+            log.info("[LOAD] {} — pending-save snapshot (rapid reconnect, skipping lock+DB) [thread={}]",
+                    uuid, Thread.currentThread().getName());
+            rows = pending;
+            // Still need to hold the lock so quit-save can release it cleanly.
+            acquireLock(uuid);
+        } else {
+            log.info("[LOAD] {} — cache miss, acquiring lock then fetching from DB [thread={}]",
+                    uuid, Thread.currentThread().getName());
+            acquireLock(uuid);
+
+            // Re-check cache: a concurrent thread on this server may have loaded while
+            // we were waiting for the lock (e.g. TAB scoreboard + server thread both miss).
+            Skills concurrent = activeSkills.get(uuid);
+            if (concurrent != null) {
+                log.info("[LOAD] {} — data populated by concurrent thread, skipping DB read", uuid);
+                return concurrent;
             }
-            // Mirrors Skills.deserialize(): recompute level+xp from totalXp so any
-            // XP-requirement config changes are reflected on next login.
-            Skill skill = new Skill(skillInfo, 0);
-            skill.addXp(row.getTotalXp());
-            skill.levelUp(false);
-            skillList.add(skill);
+
+            rows = loadRowsFromDb(uuid);
+            log.info("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
         }
 
-        Skills skills = new Skills(skillList);
-        skills.setUuid(uuid);
+        Skills skills = buildSkillsFromRows(uuid, rows);
         activeSkills.put(uuid, skills);
+
+        // Guard: quit may have fired before this async task acquired the lock.
+        // If the player is already offline, save immediately and release the lock.
+        if (Bukkit.getPlayer(uuid) == null) {
+            log.info("[LOAD] {} — player offline by the time load finished, saving and releasing lock immediately", uuid);
+            savePlayerNow(uuid);
+        }
+
         return skills;
     }
 
     /**
-     * Saves synchronously on the calling thread. Use on player quit so the row
-     * is committed to the database before BungeeCord/Velocity can route the player
-     * to another backend server and trigger a load there.
+     * Polls the player_sessions lock until this server acquires it or the attempt limit is reached.
+     * Safe to call from any thread; uses Thread.sleep on the caller's thread.
+     */
+    private void acquireLock(UUID uuid) {
+        String uuidStr = uuid.toString();
+        Database.getInstance().getJdbi().useHandle(h -> h.attach(PlayerSessionsDao.class).ensureRow(uuidStr));
+
+        for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
+            long now = System.currentTimeMillis();
+            long expiry = now - LOCK_TIMEOUT_MS;
+            int affected = Database.getInstance().getJdbi().withHandle(h ->
+                    h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, serverId, now, expiry)
+            );
+
+            if (affected > 0) {
+                log.info("[LOCK] {} — acquired on attempt {}/{}", uuid, attempt, LOCK_MAX_ATTEMPTS);
+                return;
+            }
+
+            log.info("[LOCK] {} — waiting for lock (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
+            try {
+                Thread.sleep(LOCK_RETRY_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        // Timed out — load anyway rather than blocking the login indefinitely.
+        log.warn("[LOCK] {} — could not acquire lock after {} attempts, proceeding without it", uuid, LOCK_MAX_ATTEMPTS);
+    }
+
+    // -------------------------------------------------------------------------
+    // Save
+    // -------------------------------------------------------------------------
+
+    /**
+     * Saves synchronously on the calling thread AND releases the session lock atomically.
+     * Use on player quit: guarantees the DB row is current and the lock is free before
+     * BungeeCord/Velocity can route the player to another backend and trigger a load there.
      */
     public void savePlayerNow(UUID uuid) {
         Skills skills = activeSkills.remove(uuid);
         pendingSaves.remove(uuid);
         if (skills == null) {
+            log.info("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
+                    uuid, Thread.currentThread().getName());
+            releaseLock(uuid);
             return;
         }
         List<SkillRow> rows = buildRows(uuid, skills);
-        if (!rows.isEmpty()) {
-            writeRows(rows);
-        }
+        log.info("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
+                uuid, rows.size(), Thread.currentThread().getName());
+
+        String uuidStr = uuid.toString();
+        Database.getInstance().getJdbi().useTransaction(h -> {
+            if (!rows.isEmpty()) {
+                h.attach(SkillsDao.class).upsertSkills(rows);
+            }
+            h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, serverId);
+        });
+
+        log.info("[SAVE-NOW] {} — done", uuid);
     }
 
     /**
-     * Saves asynchronously. Safe for non-quit paths (e.g. data reset) where
-     * cross-server ordering is not a concern.
+     * Saves asynchronously. Does NOT release the lock — use only for non-quit paths
+     * (e.g. data reset) where the player either stays on this server or cross-server
+     * ordering is not a concern.
      */
     public void savePlayerAsync(UUID uuid) {
-        // Snapshot rows immediately on the calling thread so a rapid reconnect
-        // cannot replace the cache entry before the async task reads it.
         Skills skills = activeSkills.remove(uuid);
         if (skills == null) {
             return;
@@ -102,26 +198,64 @@ public class PlayerSkillsManager {
             return;
         }
 
+        log.info("[SAVE-ASYNC] {} — {} row(s) snapshotted, scheduling write [thread={}]",
+                uuid, rows.size(), Thread.currentThread().getName());
         pendingSaves.put(uuid, rows);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            log.info("[SAVE-ASYNC] {} — writing to DB [thread={}]",
+                    uuid, Thread.currentThread().getName());
             writeRows(rows);
             pendingSaves.remove(uuid);
+            log.info("[SAVE-ASYNC] {} — done", uuid);
         });
     }
 
+    /**
+     * Saves all active players and heartbeats their session locks.
+     * Called by the periodic auto-save task and by shutdown.
+     */
     public void saveAll() {
+        log.info("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
+                activeSkills.size(), pendingSaves.size(), Thread.currentThread().getName());
         for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
             List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
             if (!rows.isEmpty()) {
+                log.info("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
                 writeRows(rows);
             }
         }
-        // Flush any quit saves whose async tasks were cancelled (e.g. on shutdown).
-        for (List<SkillRow> rows : pendingSaves.values()) {
-            writeRows(rows);
+        // Flush any quit saves whose async tasks were cancelled (e.g. server overload).
+        for (Map.Entry<UUID, List<SkillRow>> entry : pendingSaves.entrySet()) {
+            log.info("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().size());
+            writeRows(entry.getValue());
         }
         pendingSaves.clear();
+
+        // Heartbeat all locks so they don't expire while players are online.
+        if (serverId != null) {
+            Database.getInstance().getJdbi().useHandle(h ->
+                    h.attach(PlayerSessionsDao.class).heartbeatAll(serverId, System.currentTimeMillis())
+            );
+        }
     }
+
+    /**
+     * Saves all active players and releases every session lock held by this server.
+     * Call on clean shutdown so other servers don't have to wait for crash-recovery expiry.
+     */
+    public void shutdown() {
+        saveAll();
+        if (serverId != null) {
+            log.info("[LOCK] Releasing all locks held by server '{}'", serverId);
+            Database.getInstance().getJdbi().useHandle(h ->
+                    h.attach(PlayerSessionsDao.class).releaseAllLocks(serverId)
+            );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Cache access
+    // -------------------------------------------------------------------------
 
     /**
      * Returns cached skills, lazily loading from the database on a cache miss.
@@ -131,8 +265,11 @@ public class PlayerSkillsManager {
     public Skills getSkills(UUID uuid) {
         Skills cached = activeSkills.get(uuid);
         if (cached != null) {
+            log.debug("[GET] {} — cache hit", uuid);
             return cached;
         }
+        log.info("[GET] {} — cache miss, triggering load [thread={}]",
+                uuid, Thread.currentThread().getName());
         return loadPlayerSync(uuid);
     }
 
@@ -141,11 +278,14 @@ public class PlayerSkillsManager {
     }
 
     public void putSkills(UUID uuid, Skills skills) {
+        log.info("[PUT] {} — inserting into cache directly [thread={}]",
+                uuid, Thread.currentThread().getName());
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
     }
 
     public void resetPlayerData(UUID uuid) {
+        log.info("[RESET] {} — clearing cache and writing empty skills async", uuid);
         Skills skills = new Skills();
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
@@ -154,13 +294,45 @@ public class PlayerSkillsManager {
     }
 
     public void removeFromCache(UUID uuid) {
+        log.info("[EVICT] {} — removed from cache", uuid);
         activeSkills.remove(uuid);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    private void releaseLock(UUID uuid) {
+        if (serverId == null) return;
+        Database.getInstance().getJdbi().useHandle(h ->
+                h.attach(PlayerSessionsDao.class).releaseLock(uuid.toString(), serverId)
+        );
     }
 
     private List<SkillRow> loadRowsFromDb(UUID uuid) {
         return Database.getInstance().getJdbi().withHandle(handle ->
                 handle.attach(SkillsDao.class).getSkills(uuid.toString())
         );
+    }
+
+    private Skills buildSkillsFromRows(UUID uuid, List<SkillRow> rows) {
+        List<Skill> skillList = new ArrayList<>();
+        for (SkillRow row : rows) {
+            SkillInfo skillInfo = SkillsManager.getInstance().getSkillInfo(row.getType());
+            if (skillInfo == null) {
+                log.warn("[LOAD] {} — skipping unknown skill type '{}'", uuid, row.getType());
+                continue;
+            }
+            // Mirrors Skills.deserialize(): recompute level+xp from totalXp so any
+            // XP-requirement config changes are reflected on next login.
+            Skill skill = new Skill(skillInfo, 0);
+            skill.addXp(row.getTotalXp());
+            skill.levelUp(false);
+            skillList.add(skill);
+        }
+        Skills skills = new Skills(skillList);
+        skills.setUuid(uuid);
+        return skills;
     }
 
     private List<SkillRow> buildRows(UUID uuid, Skills skills) {

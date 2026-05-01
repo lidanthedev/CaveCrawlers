@@ -249,30 +249,10 @@ public class PlayerSkillsManager {
     }
 
     /**
-     * Saves asynchronously. Does NOT release the lock — use only for non-quit paths
-     * (e.g. data reset) where the player either stays on this server or cross-server
-     * ordering is not a concern.
+     * Runs savePlayerNow on an async thread so the main thread is not blocked.
      */
     public void savePlayerAsync(UUID uuid) {
-        Skills skills = activeSkills.remove(uuid);
-        if (skills == null) {
-            return;
-        }
-
-        List<SkillRow> rows = buildRows(uuid, skills);
-        if (rows.isEmpty()) {
-            return;
-        }
-
-        verbose("[SAVE-ASYNC] {} — {} row(s) snapshotted, scheduling write [thread={}]",
-                uuid, rows.size(), Thread.currentThread().getName());
-        pendingSaves.put(uuid, rows);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            verbose("[SAVE-ASYNC] {} — writing to DB [thread={}]", uuid, Thread.currentThread().getName());
-            writeRows(rows);
-            pendingSaves.remove(uuid);
-            verbose("[SAVE-ASYNC] {} — done", uuid);
-        });
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerNow(uuid));
     }
 
     /**

@@ -75,6 +75,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.UUID;
 
 @Slf4j
 @Getter
@@ -118,7 +119,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         Database.getInstance().initialize(this);
         registerDB();
 
-        String serverId = java.util.UUID.randomUUID().toString();
+        String serverId = UUID.randomUUID().toString();
         PlayerSkillsManager.getInstance().setServerId(serverId);
         log.info("Server session ID: {}", serverId);
 

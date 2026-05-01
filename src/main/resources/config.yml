@@ -116,5 +116,5 @@ database:
   # How often (in seconds) active player data is flushed to the database.
   # Lower values reduce the staleness window when players switch servers via BungeeCord/Velocity,
   # at the cost of more frequent DB writes. Note: quit saves are always synchronous regardless
-  # of this setting. A companion BungeeCord/Velocity plugin is required for zero-loss switching.
-  save-interval: 30
+  # of this setting.
+  save-interval: 300 # recommended: use 300 for h2 and 30 for mysql

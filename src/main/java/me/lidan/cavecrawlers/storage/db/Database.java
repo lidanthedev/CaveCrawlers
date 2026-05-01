@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
 
@@ -29,39 +30,22 @@ public class Database {
         return instance;
     }
 
-    public void initialize(Plugin plugin) {
+    /**
+     * Opens a temporary, standalone MySQL data source (caller must close it).
+     */
+    public static HikariDataSource openMysqlSource(Plugin plugin, int poolSize) {
         FileConfiguration config = plugin.getConfig();
-        String type = config.getString("database.type", "h2");
+        DBConnectionInfo result = getDbConnectionInfo(config);
 
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setMaximumPoolSize(5);
-        hikariConfig.setConnectionTimeout(30000);
-
-        if ("mysql".equalsIgnoreCase(type)) {
-            String host = config.getString("database.host", "localhost");
-            int port = config.getInt("database.port", 3306);
-            String database = config.getString("database.database", "cavecrawlers");
-            String username = config.getString("database.username", "root");
-            String password = config.getString("database.password", "");
-            hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true");
-            hikariConfig.setUsername(username);
-            hikariConfig.setPassword(password);
-            hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
-            log.info("Using MySQL database at {}:{}/{}", host, port, database);
-        } else {
-            String dataPath = plugin.getDataFolder().getAbsolutePath() + "/data/database";
-            hikariConfig.setJdbcUrl("jdbc:h2:" + dataPath + ";MODE=MySQL;AUTO_SERVER=TRUE");
-            hikariConfig.setDriverClassName("org.h2.Driver");
-            log.info("Using H2 database at {}", dataPath);
-        }
-
-        dataSource = new HikariDataSource(hikariConfig);
-        jdbi = Jdbi.create(dataSource);
-        jdbi.installPlugin(new SqlObjectPlugin());
-
-        jdbi.useHandle(handle -> handle.execute(
-                "CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)"
-        ));
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + result.host() + ":" + result.port() + "/" + result.database() + "?useSSL=false&allowPublicKeyRetrieval=true");
+        hikariConfig.setUsername(result.username());
+        hikariConfig.setPassword(result.password());
+        hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        hikariConfig.setMaximumPoolSize(poolSize);
+        hikariConfig.setConnectionTimeout(10000);
+        hikariConfig.setPoolName("CaveCrawlers-MySQL-Migration");
+        return new HikariDataSource(hikariConfig);
     }
 
     public void registerTable(SqlTable table) {
@@ -97,26 +81,48 @@ public class Database {
         }
     }
 
-    /**
-     * Opens a temporary, standalone MySQL data source (caller must close it).
-     */
-    public static HikariDataSource openMysqlSource(Plugin plugin, int poolSize) {
-        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfig();
+    private static @NonNull DBConnectionInfo getDbConnectionInfo(FileConfiguration config) {
         String host = config.getString("database.host", "localhost");
         int port = config.getInt("database.port", 3306);
         String database = config.getString("database.database", "cavecrawlers");
         String username = config.getString("database.username", "root");
         String password = config.getString("database.password", "");
+        DBConnectionInfo result = new DBConnectionInfo(host, port, database, username, password);
+        return result;
+    }
+
+    public void initialize(Plugin plugin) {
+        FileConfiguration config = plugin.getConfig();
+        String type = config.getString("database.type", "h2");
 
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&allowPublicKeyRetrieval=true");
-        hikariConfig.setUsername(username);
-        hikariConfig.setPassword(password);
-        hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        hikariConfig.setMaximumPoolSize(poolSize);
-        hikariConfig.setConnectionTimeout(10000);
-        hikariConfig.setPoolName("CaveCrawlers-MySQL-Migration");
-        return new HikariDataSource(hikariConfig);
+        hikariConfig.setMaximumPoolSize(5);
+        hikariConfig.setConnectionTimeout(30000);
+
+        if ("mysql".equalsIgnoreCase(type)) {
+            DBConnectionInfo connectionInfo = getDbConnectionInfo(config);
+            hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database + "?useSSL=false&allowPublicKeyRetrieval=true");
+            hikariConfig.setUsername(connectionInfo.username);
+            hikariConfig.setPassword(connectionInfo.password);
+            hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+            log.info("Using MySQL database at {}:{}/{}", connectionInfo.host, connectionInfo.port, connectionInfo.database);
+        } else {
+            String dataPath = plugin.getDataFolder().getAbsolutePath() + "/data/database";
+            hikariConfig.setJdbcUrl("jdbc:h2:" + dataPath + ";MODE=MySQL;AUTO_SERVER=TRUE");
+            hikariConfig.setDriverClassName("org.h2.Driver");
+            log.info("Using H2 database at {}", dataPath);
+        }
+
+        dataSource = new HikariDataSource(hikariConfig);
+        jdbi = Jdbi.create(dataSource);
+        jdbi.installPlugin(new SqlObjectPlugin());
+
+        jdbi.useHandle(handle -> handle.execute(
+                "CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)"
+        ));
+    }
+
+    private record DBConnectionInfo(String host, int port, String database, String username, String password) {
     }
 
     /**

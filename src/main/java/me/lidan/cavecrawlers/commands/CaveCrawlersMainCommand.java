@@ -932,15 +932,16 @@ public class CaveCrawlersMainCommand {
             try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
                     ? Database.openMysqlSource(plugin, 2)
                     : Database.openH2Source(plugin, 2)) {
+                long startTime = System.currentTimeMillis();
                 int count = DbMigrator.migrateSkills(
                         Database.getInstance().getJdbi(),
                         DbMigrator.toJdbi(targetDs));
                 sender.sendMessage(count == 0
                         ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
                         : MiniMessageUtils.miniMessage(
-                        "<green>Migration complete! <gold><count></gold> records copied to <to>. " +
+                        "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
                                 "Set <gold>database.type: <to></gold> in config.yml and restart.",
-                        Map.of("count", String.valueOf(count), "to", toType)));
+                        Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
             } catch (Exception e) {
                 sender.sendMessage(MiniMessageUtils.miniMessage(
                         "<red>Migration failed: <msg>",

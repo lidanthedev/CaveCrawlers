@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.storage;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -24,17 +25,20 @@ public class PlayerSkillsManager {
     private static PlayerSkillsManager instance;
 
     /**
+     * Set to true to log every cache hit/miss, lock attempt, and save operation.
+     */
+    private static final boolean VERBOSE = false;
+
+    /**
      * How long (ms) a lock can go un-heartbeated before it is considered abandoned (crash recovery).
      */
     private static final long LOCK_TIMEOUT_MS = 60_000L;
-    /**
-     * How many times to retry lock acquisition before giving up and loading anyway.
-     */
+    /** How many times to retry lock acquisition before giving up and loading anyway. */
     private static final int LOCK_MAX_ATTEMPTS = 20;
-    /**
-     * Sleep between lock retry attempts (ms). Max wait = LOCK_MAX_ATTEMPTS × LOCK_RETRY_MS = 10 s.
-     */
+    /** Sleep between lock retry attempts (ms). Max wait = LOCK_MAX_ATTEMPTS × LOCK_RETRY_MS = 10 s. */
     private static final long LOCK_RETRY_MS = 500L;
+
+    private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
     /**
      * Holds rows snapshotted at quit time until the async write completes.
      * On rapid reconnect to the same server, loadPlayerSync reads from here instead of the DB
@@ -42,10 +46,8 @@ public class PlayerSkillsManager {
      */
     private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
 
-    private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
-    /**
-     * Unique ID for this server process. Used to identify lock ownership.
-     */
+    /** Unique ID for this server process. Used to identify lock ownership. */
+    @Setter
     private String serverId;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
 
@@ -59,17 +61,15 @@ public class PlayerSkillsManager {
         return instance;
     }
 
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
+    private void verbose(String msg, Object... args) {
+        if (VERBOSE) log.info(msg, args);
     }
 
     // -------------------------------------------------------------------------
     // Load
     // -------------------------------------------------------------------------
 
-    /**
-     * Schedules a load on an async thread. Use from main-thread events like PlayerJoinEvent.
-     */
+    /** Schedules a load on an async thread. Use from main-thread events like PlayerJoinEvent. */
     public void loadPlayerAsync(UUID uuid) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadPlayerSync(uuid));
     }
@@ -81,13 +81,13 @@ public class PlayerSkillsManager {
         if (pending != null) {
             // Same-server rapid reconnect: the async task hasn't flushed yet.
             // Use the in-memory snapshot — it is newer than anything in the DB.
-            log.info("[LOAD] {} — pending-save snapshot (rapid reconnect, skipping lock+DB) [thread={}]",
+            verbose("[LOAD] {} — pending-save snapshot (rapid reconnect, skipping lock+DB) [thread={}]",
                     uuid, Thread.currentThread().getName());
             rows = pending;
             // Still need to hold the lock so quit-save can release it cleanly.
             acquireLock(uuid);
         } else {
-            log.info("[LOAD] {} — cache miss, acquiring lock then fetching from DB [thread={}]",
+            verbose("[LOAD] {} — cache miss, acquiring lock then fetching from DB [thread={}]",
                     uuid, Thread.currentThread().getName());
             acquireLock(uuid);
 
@@ -95,12 +95,12 @@ public class PlayerSkillsManager {
             // we were waiting for the lock (e.g. TAB scoreboard + server thread both miss).
             Skills concurrent = activeSkills.get(uuid);
             if (concurrent != null) {
-                log.info("[LOAD] {} — data populated by concurrent thread, skipping DB read", uuid);
+                verbose("[LOAD] {} — data populated by concurrent thread, skipping DB read", uuid);
                 return concurrent;
             }
 
             rows = loadRowsFromDb(uuid);
-            log.info("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
+            verbose("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
         }
 
         Skills skills = buildSkillsFromRows(uuid, rows);
@@ -109,7 +109,7 @@ public class PlayerSkillsManager {
         // Guard: quit may have fired before this async task acquired the lock.
         // If the player is already offline, save immediately and release the lock.
         if (Bukkit.getPlayer(uuid) == null) {
-            log.info("[LOAD] {} — player offline by the time load finished, saving and releasing lock immediately", uuid);
+            verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
             savePlayerNow(uuid);
         }
 
@@ -132,8 +132,7 @@ public class PlayerSkillsManager {
         if (tryAcquireLockOnce(uuid, uuidStr)) return;
 
         if (Bukkit.isPrimaryThread()) {
-            // Never block the main thread. Load whatever is in the DB now (potentially stale)
-            // and fix it in the background once the other server releases the lock.
+            // Never block the main thread — load stale data now and fix it async once the lock is free.
             log.info("[LOCK] {} — main thread contention, loading stale data; background refresh scheduled", uuid);
             scheduleBackgroundRefresh(uuid);
             return;
@@ -141,7 +140,7 @@ public class PlayerSkillsManager {
 
         // Async thread — poll until acquired or timed out.
         for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
-            log.info("[LOCK] {} — waiting for lock (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
+            verbose("[LOCK] {} — waiting for lock (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
             try {
                 Thread.sleep(LOCK_RETRY_MS);
             } catch (InterruptedException e) {
@@ -160,7 +159,7 @@ public class PlayerSkillsManager {
                 h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, serverId, now, expiry)
         );
         if (affected > 0) {
-            log.info("[LOCK] {} — acquired [thread={}]", uuid, Thread.currentThread().getName());
+            verbose("[LOCK] {} — acquired [thread={}]", uuid, Thread.currentThread().getName());
             return true;
         }
         return false;
@@ -185,7 +184,7 @@ public class PlayerSkillsManager {
                     acquired = true;
                     break;
                 }
-                log.info("[LOCK] {} — background refresh waiting (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
+                verbose("[LOCK] {} — background refresh waiting (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
             }
 
             if (!acquired) {
@@ -196,10 +195,10 @@ public class PlayerSkillsManager {
             List<SkillRow> rows = loadRowsFromDb(uuid);
             Skills fresh = buildSkillsFromRows(uuid, rows);
             activeSkills.put(uuid, fresh);
-            log.info("[LOAD] {} — background refresh complete ({} skill row(s))", uuid, rows.size());
+            verbose("[LOAD] {} — background refresh complete ({} skill row(s))", uuid, rows.size());
 
             if (Bukkit.getPlayer(uuid) == null) {
-                log.info("[LOAD] {} — player offline after background refresh, saving and releasing", uuid);
+                verbose("[LOAD] {} — player offline after background refresh, saving and releasing", uuid);
                 savePlayerNow(uuid);
             }
         });
@@ -218,13 +217,13 @@ public class PlayerSkillsManager {
         Skills skills = activeSkills.remove(uuid);
         pendingSaves.remove(uuid);
         if (skills == null) {
-            log.info("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
+            verbose("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
                     uuid, Thread.currentThread().getName());
             releaseLock(uuid);
             return;
         }
         List<SkillRow> rows = buildRows(uuid, skills);
-        log.info("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
+        verbose("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
                 uuid, rows.size(), Thread.currentThread().getName());
 
         String uuidStr = uuid.toString();
@@ -235,7 +234,7 @@ public class PlayerSkillsManager {
             h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, serverId);
         });
 
-        log.info("[SAVE-NOW] {} — done", uuid);
+        verbose("[SAVE-NOW] {} — done", uuid);
     }
 
     /**
@@ -254,15 +253,14 @@ public class PlayerSkillsManager {
             return;
         }
 
-        log.info("[SAVE-ASYNC] {} — {} row(s) snapshotted, scheduling write [thread={}]",
+        verbose("[SAVE-ASYNC] {} — {} row(s) snapshotted, scheduling write [thread={}]",
                 uuid, rows.size(), Thread.currentThread().getName());
         pendingSaves.put(uuid, rows);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            log.info("[SAVE-ASYNC] {} — writing to DB [thread={}]",
-                    uuid, Thread.currentThread().getName());
+            verbose("[SAVE-ASYNC] {} — writing to DB [thread={}]", uuid, Thread.currentThread().getName());
             writeRows(rows);
             pendingSaves.remove(uuid);
-            log.info("[SAVE-ASYNC] {} — done", uuid);
+            verbose("[SAVE-ASYNC] {} — done", uuid);
         });
     }
 
@@ -271,23 +269,21 @@ public class PlayerSkillsManager {
      * Called by the periodic auto-save task and by shutdown.
      */
     public void saveAll() {
-        log.info("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
+        verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
                 activeSkills.size(), pendingSaves.size(), Thread.currentThread().getName());
         for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
             List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
             if (!rows.isEmpty()) {
-                log.info("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
+                verbose("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
                 writeRows(rows);
             }
         }
-        // Flush any quit saves whose async tasks were cancelled (e.g. server overload).
         for (Map.Entry<UUID, List<SkillRow>> entry : pendingSaves.entrySet()) {
-            log.info("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().size());
+            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().size());
             writeRows(entry.getValue());
         }
         pendingSaves.clear();
 
-        // Heartbeat all locks so they don't expire while players are online.
         if (serverId != null) {
             Database.getInstance().getJdbi().useHandle(h ->
                     h.attach(PlayerSessionsDao.class).heartbeatAll(serverId, System.currentTimeMillis())
@@ -302,7 +298,6 @@ public class PlayerSkillsManager {
     public void shutdown() {
         saveAll();
         if (serverId != null) {
-            log.info("[LOCK] Releasing all locks held by server '{}'", serverId);
             Database.getInstance().getJdbi().useHandle(h ->
                     h.attach(PlayerSessionsDao.class).releaseAllLocks(serverId)
             );
@@ -320,12 +315,8 @@ public class PlayerSkillsManager {
      */
     public Skills getSkills(UUID uuid) {
         Skills cached = activeSkills.get(uuid);
-        if (cached != null) {
-            log.debug("[GET] {} — cache hit", uuid);
-            return cached;
-        }
-        log.info("[GET] {} — cache miss, triggering load [thread={}]",
-                uuid, Thread.currentThread().getName());
+        if (cached != null) return cached;
+        verbose("[GET] {} — cache miss, triggering load [thread={}]", uuid, Thread.currentThread().getName());
         return loadPlayerSync(uuid);
     }
 
@@ -334,14 +325,13 @@ public class PlayerSkillsManager {
     }
 
     public void putSkills(UUID uuid, Skills skills) {
-        log.info("[PUT] {} — inserting into cache directly [thread={}]",
-                uuid, Thread.currentThread().getName());
+        verbose("[PUT] {} — inserting into cache directly [thread={}]", uuid, Thread.currentThread().getName());
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
     }
 
     public void resetPlayerData(UUID uuid) {
-        log.info("[RESET] {} — clearing cache and writing empty skills async", uuid);
+        verbose("[RESET] {} — clearing cache and writing empty skills async", uuid);
         Skills skills = new Skills();
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
@@ -350,7 +340,7 @@ public class PlayerSkillsManager {
     }
 
     public void removeFromCache(UUID uuid) {
-        log.info("[EVICT] {} — removed from cache", uuid);
+        verbose("[EVICT] {} — removed from cache", uuid);
         activeSkills.remove(uuid);
     }
 

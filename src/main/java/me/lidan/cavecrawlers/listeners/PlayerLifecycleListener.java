@@ -9,13 +9,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerLifecycleListener implements Listener {
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
         PlayerSkillsManager.getInstance().loadPlayerAsync(event.getPlayer().getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PlayerSkillsManager.getInstance().savePlayerNow(event.getPlayer().getUniqueId());
+        PlayerSkillsManager.getInstance().savePlayerAsync(event.getPlayer().getUniqueId());
     }
 }

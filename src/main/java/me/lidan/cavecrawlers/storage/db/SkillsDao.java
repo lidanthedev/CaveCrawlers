@@ -20,11 +20,11 @@ public interface SkillsDao {
 
     @SqlBatch("""
             INSERT INTO skills (player_uuid, type, xp, level, total_xp)
-            VALUES (:playerUuid, :type, :xp, :level, :totalXp) AS new
+            VALUES (:playerUuid, :type, :xp, :level, :totalXp)
             ON DUPLICATE KEY UPDATE
-              xp = new.xp,
-              level = new.level,
-              total_xp = new.total_xp
+              xp = VALUES(xp),
+              level = VALUES(level),
+              total_xp = VALUES(total_xp)
             """)
     void upsertSkills(@BindBean List<SkillRow> rows);
 

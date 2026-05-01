@@ -38,7 +38,10 @@ public class Database {
         DBConnectionInfo result = getDbConnectionInfo(config);
 
         HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + result.host() + ":" + result.port() + "/" + result.database() + "?useSSL=false&allowPublicKeyRetrieval=true");
+        boolean ssl = plugin.getConfig().getBoolean("database.ssl", false);
+        boolean allowPublicKeyRetrieval = plugin.getConfig().getBoolean("database.allow-public-key-retrieval", true);
+        hikariConfig.setJdbcUrl("jdbc:mysql://" + result.host() + ":" + result.port() + "/" + result.database()
+                + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
         hikariConfig.setUsername(result.username());
         hikariConfig.setPassword(result.password());
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
@@ -101,7 +104,10 @@ public class Database {
 
         if ("mysql".equalsIgnoreCase(type)) {
             DBConnectionInfo connectionInfo = getDbConnectionInfo(config);
-            hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database + "?useSSL=false&allowPublicKeyRetrieval=true");
+            boolean ssl = config.getBoolean("database.ssl", false);
+            boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", true);
+            hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database
+                    + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
             hikariConfig.setUsername(connectionInfo.username);
             hikariConfig.setPassword(connectionInfo.password);
             hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");

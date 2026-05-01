@@ -32,7 +32,7 @@ public class DbMigrator {
                 handle.attach(SkillsDao.class).getAllSkills()
         );
 
-        target.useHandle(handle -> {
+        target.useTransaction(handle -> {
             handle.execute("CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)");
             handle.execute(new SkillsTable().getCreateCommand());
             if (!rows.isEmpty()) {

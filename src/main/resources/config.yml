@@ -118,3 +118,6 @@ database:
   # at the cost of more frequent DB writes. Note: quit saves are always synchronous regardless
   # of this setting.
   save-interval: 300 # recommended: use 300 for h2 and 30 for mysql
+  # MySQL-only connection options:
+  ssl: false                        # set to true to require TLS
+  allow-public-key-retrieval: true  # required when using caching_sha2_password without SSL

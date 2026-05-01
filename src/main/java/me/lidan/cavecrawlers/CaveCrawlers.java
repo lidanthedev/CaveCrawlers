@@ -161,6 +161,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 registerPlaceholders();
                 startTasks();
                 registerMythicHook();
+                // Register after all skill/data setup is complete so no join
+                // fires loadPlayerAsync before the skill registry is populated.
+                registerEvent(new PlayerLifecycleListener());
                 long delayDiff = System.currentTimeMillis() - delayStart;
                 getLogger().info("Loaded data! Took " + delayDiff + " ms");
             }
@@ -416,7 +419,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register events
      */
     public void registerEvents() {
-        registerEvent(new PlayerLifecycleListener());
         registerEvent(new DamageEntityListener());
         registerEvent(new RemoveArrowsListener());
         registerEvent(new ItemChangeListener());

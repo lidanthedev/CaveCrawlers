@@ -5,6 +5,7 @@ import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindBean;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
+import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
 import java.util.List;
 
@@ -19,11 +20,14 @@ public interface SkillsDao {
 
     @SqlBatch("""
             INSERT INTO skills (player_uuid, type, xp, level, total_xp)
-            VALUES (:playerUuid, :type, :xp, :level, :totalXp)
+            VALUES (:playerUuid, :type, :xp, :level, :totalXp) AS new
             ON DUPLICATE KEY UPDATE
-              xp = VALUES(xp),
-              level = VALUES(level),
-              total_xp = VALUES(total_xp)
+              xp = new.xp,
+              level = new.level,
+              total_xp = new.total_xp
             """)
     void upsertSkills(@BindBean List<SkillRow> rows);
+
+    @SqlUpdate("DELETE FROM skills WHERE player_uuid = :uuid")
+    void deleteSkills(@Bind("uuid") String uuid);
 }

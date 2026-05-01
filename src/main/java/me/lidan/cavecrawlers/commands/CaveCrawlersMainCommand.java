@@ -41,6 +41,7 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.storage.db.DbMigrator;
 import me.lidan.cavecrawlers.utils.*;
@@ -923,6 +924,9 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(MiniMessageUtils.miniMessage(
                 "<yellow>Starting <from> → <to> migration...",
                 Map.of("from", fromType.toUpperCase(), "to", toType.toUpperCase())));
+
+        // Flush all dirty player data to the source DB before copying.
+        PlayerSkillsManager.getInstance().saveAll();
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")

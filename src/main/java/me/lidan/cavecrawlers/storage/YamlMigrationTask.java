@@ -75,7 +75,7 @@ public class YamlMigrationTask extends BukkitRunnable {
                     succeeded++;
                 } else {
                     log.warn("Migrated data for {} but could not rename file", uuid);
-                    succeeded++;
+                    failed++;
                 }
             } catch (Exception e) {
                 log.error("Failed to migrate player data for {}: {}", uuid, e.getMessage(), e);

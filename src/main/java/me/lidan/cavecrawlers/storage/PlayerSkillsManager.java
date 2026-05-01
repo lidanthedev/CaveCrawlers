@@ -323,12 +323,14 @@ public class PlayerSkillsManager {
     }
 
     public void resetPlayerData(UUID uuid) {
-        verbose("[RESET] {} — clearing cache and writing empty skills async", uuid);
+        verbose("[RESET] {} — clearing cache and deleting DB rows async", uuid);
         Skills skills = new Skills();
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
-        List<SkillRow> rows = buildRows(uuid, skills);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> writeRows(rows));
+        String uuidStr = uuid.toString();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                Database.getInstance().getJdbi().useHandle(h -> h.attach(SkillsDao.class).deleteSkills(uuidStr))
+        );
     }
 
     public void removeFromCache(UUID uuid) {

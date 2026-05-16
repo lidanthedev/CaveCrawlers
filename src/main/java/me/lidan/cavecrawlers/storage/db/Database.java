@@ -19,6 +19,8 @@ public class Database {
     private HikariDataSource dataSource;
     @Getter
     private Jdbi jdbi;
+    @Getter
+    private volatile boolean available;
 
     private Database() {
     }
@@ -51,7 +53,10 @@ public class Database {
         return new HikariDataSource(hikariConfig);
     }
 
-    public void registerTable(SqlTable table) {
+    public synchronized boolean registerTable(SqlTable table) {
+        if (!available || jdbi == null) {
+            return false;
+        }
         jdbi.useHandle(handle -> {
             Optional<Integer> storedVersion = handle
                     .createQuery("SELECT version FROM _table_versions WHERE table_name = :name")
@@ -76,12 +81,24 @@ public class Database {
                 log.info("Upgraded table '{}' from version {} to {}", table.getTableName(), oldVersion, table.getVersion());
             }
         });
+        return true;
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
         }
+        dataSource = null;
+        jdbi = null;
+        available = false;
+    }
+
+    public Jdbi getJdbi() {
+        return jdbi;
+    }
+
+    public boolean isAvailable() {
+        return available;
     }
 
     private static @NonNull DBConnectionInfo getDbConnectionInfo(FileConfiguration config) {
@@ -94,38 +111,48 @@ public class Database {
         return result;
     }
 
-    public void initialize(Plugin plugin) {
-        FileConfiguration config = plugin.getConfig();
-        String type = config.getString("database.type", "h2");
+    public synchronized boolean initialize(Plugin plugin) {
+        shutdown();
 
-        HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setMaximumPoolSize(5);
-        hikariConfig.setConnectionTimeout(30000);
+        try {
+            FileConfiguration config = plugin.getConfig();
+            String type = config.getString("database.type", "h2");
 
-        if ("mysql".equalsIgnoreCase(type)) {
-            DBConnectionInfo connectionInfo = getDbConnectionInfo(config);
-            boolean ssl = config.getBoolean("database.ssl", false);
-            boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", true);
-            hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database
-                    + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
-            hikariConfig.setUsername(connectionInfo.username);
-            hikariConfig.setPassword(connectionInfo.password);
-            hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
-            log.info("Using MySQL database at {}:{}/{}", connectionInfo.host, connectionInfo.port, connectionInfo.database);
-        } else {
-            String dataPath = plugin.getDataFolder().getAbsolutePath() + "/data/database";
-            hikariConfig.setJdbcUrl("jdbc:h2:" + dataPath + ";MODE=MySQL;AUTO_SERVER=TRUE");
-            hikariConfig.setDriverClassName("org.h2.Driver");
-            log.info("Using H2 database at {}", dataPath);
+            HikariConfig hikariConfig = new HikariConfig();
+            hikariConfig.setMaximumPoolSize(5);
+            hikariConfig.setConnectionTimeout(30000);
+
+            if ("mysql".equalsIgnoreCase(type)) {
+                DBConnectionInfo connectionInfo = getDbConnectionInfo(config);
+                boolean ssl = config.getBoolean("database.ssl", false);
+                boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", true);
+                hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database
+                        + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
+                hikariConfig.setUsername(connectionInfo.username);
+                hikariConfig.setPassword(connectionInfo.password);
+                hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                log.info("Using MySQL database at {}:{}/{}", connectionInfo.host, connectionInfo.port, connectionInfo.database);
+            } else {
+                String dataPath = plugin.getDataFolder().getAbsolutePath() + "/data/database";
+                hikariConfig.setJdbcUrl("jdbc:h2:" + dataPath + ";MODE=MySQL;AUTO_SERVER=TRUE");
+                hikariConfig.setDriverClassName("org.h2.Driver");
+                log.info("Using H2 database at {}", dataPath);
+            }
+
+            dataSource = new HikariDataSource(hikariConfig);
+            jdbi = Jdbi.create(dataSource);
+            jdbi.installPlugin(new SqlObjectPlugin());
+
+            jdbi.useHandle(handle -> handle.execute(
+                    "CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)"
+            ));
+            available = true;
+            return true;
+        } catch (Exception e) {
+            log.warn("Database initialization failed: {}", e.getMessage());
+            shutdown();
+            return false;
         }
-
-        dataSource = new HikariDataSource(hikariConfig);
-        jdbi = Jdbi.create(dataSource);
-        jdbi.installPlugin(new SqlObjectPlugin());
-
-        jdbi.useHandle(handle -> handle.execute(
-                "CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)"
-        ));
     }
 
     private record DBConnectionInfo(String host, int port, String database, String username, String password) {

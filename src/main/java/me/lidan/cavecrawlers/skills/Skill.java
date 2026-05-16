@@ -51,6 +51,22 @@ public class Skill implements ConfigurationSerializable {
         totalXp += amount;
     }
 
+    public SkillInfo getType() {
+        return type;
+    }
+
+    public double getXp() {
+        return xp;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public double getTotalXp() {
+        return totalXp;
+    }
+
     public void setXpOfCurrentLevel(double xp) {
         this.totalXp = xp - this.xp + totalXp;
         this.xp = xp;

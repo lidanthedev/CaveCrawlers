@@ -25,8 +25,8 @@ public class PlayerDataManager {
     }
 
     public PlayerData loadPlayerData(UUID uuid) {
-        Skills skills = PlayerSkillsManager.getInstance().loadPlayerSync(uuid);
-        return new PlayerData(skills);
+        PlayerSkillsManager.getInstance().scheduleLoadIfNeeded(uuid);
+        return new PlayerData(PlayerSkillsManager.getInstance().getSkills(uuid));
     }
 
     public void savePlayerData(UUID uuid) {
@@ -34,6 +34,9 @@ public class PlayerDataManager {
     }
 
     public void savePlayerDataInMap(UUID uuid, PlayerData playerData) {
+        if (!playerData.isLoaded()) {
+            return;
+        }
         PlayerSkillsManager.getInstance().putSkills(uuid, playerData.getSkills());
     }
 

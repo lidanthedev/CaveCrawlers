@@ -192,6 +192,12 @@ public class PlayerSkillsManager {
 
     public void savePlayerNow(UUID uuid) {
         if (!loadedPlayers.contains(uuid)) {
+            if (activeSkills.containsKey(uuid)) {
+                queuePendingSave(uuid);
+                verbose("[SAVE-NOW] {} — not loaded yet, keeping placeholder state for retry [thread={}]",
+                        uuid, Thread.currentThread().getName());
+                return;
+            }
             activeSkills.remove(uuid);
             pendingSaves.remove(uuid);
             pendingLoads.remove(uuid);
@@ -239,6 +245,9 @@ public class PlayerSkillsManager {
 
     public void savePlayerAsync(UUID uuid) {
         if (!loadedPlayers.contains(uuid)) {
+            if (activeSkills.containsKey(uuid)) {
+                queuePendingSave(uuid);
+            }
             return;
         }
         if (!isPersistenceAvailable()) {
@@ -254,7 +263,7 @@ public class PlayerSkillsManager {
         }
         for (UUID uuid : new ArrayList<>(pendingSaves.keySet())) {
             if (!loadedPlayers.contains(uuid)) {
-                pendingSaves.remove(uuid);
+                scheduleLoadIfNeeded(uuid);
                 continue;
             }
             savePlayerAsync(uuid);

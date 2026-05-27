@@ -90,6 +90,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private CaveCrawlersExpansion caveCrawlersExpansion;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
+    private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
+    private final AtomicBoolean databaseReadyWorkRan = new AtomicBoolean(false);
 
     /**
      * Get the plugin instance
@@ -157,7 +159,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
-                runLegacyYamlMigrationIfReady();
+                delayedDataReady.set(true);
+                runDatabaseReadyWorkIfPossible();
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
@@ -165,9 +168,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 // Register after all skill/data setup is complete so no join
                 // fires loadPlayerAsync before the skill registry is populated.
                 registerEvent(new PlayerLifecycleListener());
-                if (Database.getInstance().isAvailable()) {
-                    PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
-                }
                 long delayDiff = System.currentTimeMillis() - delayStart;
                 getLogger().info("Loaded data! Took " + delayDiff + " ms");
             }
@@ -449,12 +449,20 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
     private void onDatabaseAvailable() {
         registerDB();
-        getServer().getScheduler().runTask(this, () -> {
-            runLegacyYamlMigrationIfReady();
-            PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
-            PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
-            PlayerSkillsManager.getInstance().flushPendingSavesAsync();
-        });
+        getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+    }
+
+    private void runDatabaseReadyWorkIfPossible() {
+        if (!Database.getInstance().isAvailable() || !delayedDataReady.get()) {
+            return;
+        }
+        if (!databaseReadyWorkRan.compareAndSet(false, true)) {
+            return;
+        }
+        runLegacyYamlMigrationIfReady();
+        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
+        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
+        PlayerSkillsManager.getInstance().flushPendingSavesAsync();
     }
 
     private void runLegacyYamlMigrationIfReady() {

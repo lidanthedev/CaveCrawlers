@@ -191,12 +191,19 @@ public class PlayerSkillsManager {
     }
 
     public void savePlayerNow(UUID uuid) {
-        if (!isPersistenceAvailable() || !loadedPlayers.contains(uuid)) {
+        if (!loadedPlayers.contains(uuid)) {
             activeSkills.remove(uuid);
             pendingSaves.remove(uuid);
             pendingLoads.remove(uuid);
             scheduledLoads.remove(uuid);
-            verbose("[SAVE-NOW] {} — not loaded or persistence unavailable, skipping [thread={}]",
+            verbose("[SAVE-NOW] {} — not loaded, skipping [thread={}]",
+                    uuid, Thread.currentThread().getName());
+            return;
+        }
+
+        if (!isPersistenceAvailable()) {
+            queuePendingSave(uuid);
+            verbose("[SAVE-NOW] {} — persistence unavailable, keeping cache for retry [thread={}]",
                     uuid, Thread.currentThread().getName());
             return;
         }
@@ -231,10 +238,27 @@ public class PlayerSkillsManager {
     }
 
     public void savePlayerAsync(UUID uuid) {
-        if (!isPersistenceAvailable() || !loadedPlayers.contains(uuid)) {
+        if (!loadedPlayers.contains(uuid)) {
+            return;
+        }
+        if (!isPersistenceAvailable()) {
+            queuePendingSave(uuid);
             return;
         }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerNow(uuid));
+    }
+
+    public void flushPendingSavesAsync() {
+        if (!isPersistenceAvailable() || pendingSaves.isEmpty()) {
+            return;
+        }
+        for (UUID uuid : new ArrayList<>(pendingSaves.keySet())) {
+            if (!loadedPlayers.contains(uuid)) {
+                pendingSaves.remove(uuid);
+                continue;
+            }
+            savePlayerAsync(uuid);
+        }
     }
 
     public void saveAll() {
@@ -396,6 +420,14 @@ public class PlayerSkillsManager {
             ));
         }
         return rows;
+    }
+
+    private void queuePendingSave(UUID uuid) {
+        Skills skills = activeSkills.get(uuid);
+        if (skills == null) {
+            return;
+        }
+        pendingSaves.put(uuid, buildRows(uuid, skills));
     }
 
     private void writeRows(List<SkillRow> rows) {

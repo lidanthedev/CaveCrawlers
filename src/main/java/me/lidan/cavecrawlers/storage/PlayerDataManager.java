@@ -26,7 +26,7 @@ public class PlayerDataManager {
 
     public PlayerData loadPlayerData(UUID uuid) {
         PlayerSkillsManager.getInstance().scheduleLoadIfNeeded(uuid);
-        return new PlayerData(PlayerSkillsManager.getInstance().getSkills(uuid));
+        return createPlayerData(uuid);
     }
 
     public void savePlayerData(UUID uuid) {
@@ -41,7 +41,7 @@ public class PlayerDataManager {
     }
 
     public PlayerData getPlayerData(UUID uuid) {
-        return new PlayerData(PlayerSkillsManager.getInstance().getSkills(uuid));
+        return createPlayerData(uuid);
     }
 
     public PlayerData getPlayerData(Player player) {
@@ -58,5 +58,12 @@ public class PlayerDataManager {
 
     public void resetPlayerData(@NotNull UUID uuid) {
         PlayerSkillsManager.getInstance().resetPlayerData(uuid);
+    }
+
+    private PlayerData createPlayerData(UUID uuid) {
+        PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
+        PlayerData playerData = new PlayerData(skillsManager.getSkills(uuid));
+        playerData.setLoaded(skillsManager.isLoaded(uuid));
+        return playerData;
     }
 }

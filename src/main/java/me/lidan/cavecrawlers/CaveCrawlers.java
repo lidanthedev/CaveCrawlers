@@ -89,6 +89,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
+    private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
 
     /**
      * Get the plugin instance
@@ -156,11 +157,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
-                if (Database.getInstance().isAvailable()) {
-                    // Skills metadata is now loaded — safe to migrate YAML player files.
-                    // Runs synchronously so no player can connect before migration completes.
-                    new YamlMigrationTask(CaveCrawlers.this).run();
-                }
+                runLegacyYamlMigrationIfReady();
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
@@ -425,11 +422,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void initializeDatabaseAsync() {
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
             if (Database.getInstance().initialize(this)) {
-                registerDB();
-                getServer().getScheduler().runTask(this, () ->
-                        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers());
-                getServer().getScheduler().runTask(this, () ->
-                        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers());
+                onDatabaseAvailable();
                 return;
             }
             scheduleDatabaseRetry(5);
@@ -444,11 +437,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
             databaseRetryScheduled.set(false);
             if (Database.getInstance().initialize(this)) {
-                registerDB();
-                getServer().getScheduler().runTask(this, () ->
-                        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers());
-                getServer().getScheduler().runTask(this, () ->
-                        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers());
+                onDatabaseAvailable();
             } else {
                 long nextDelay = Math.min(delaySeconds * 2, 5L * (1L << 9));
                 if (delaySeconds < 5L * (1L << 9)) {
@@ -456,6 +445,25 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 }
             }
         }, delaySeconds * TICKS_TO_SECOND);
+    }
+
+    private void onDatabaseAvailable() {
+        registerDB();
+        getServer().getScheduler().runTask(this, () -> {
+            runLegacyYamlMigrationIfReady();
+            PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
+            PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
+            PlayerSkillsManager.getInstance().flushPendingSavesAsync();
+        });
+    }
+
+    private void runLegacyYamlMigrationIfReady() {
+        if (!Database.getInstance().isAvailable() || !legacyYamlMigrationRan.compareAndSet(false, true)) {
+            return;
+        }
+        // Skills metadata is now loaded — safe to migrate YAML player files.
+        // Runs synchronously on the main thread so no player can connect before migration completes.
+        new YamlMigrationTask(this).run();
     }
 
     /**

@@ -123,7 +123,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         initializeDatabaseAsync();
 
-        String serverId = UUID.randomUUID().toString();
+        String serverId = getOrCreateServerId();
         PlayerSkillsManager.getInstance().setServerId(serverId);
         log.info("Server session ID: {}", serverId);
 
@@ -224,6 +224,18 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             throw new RuntimeException(e);
         }
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
+    }
+
+    private String getOrCreateServerId() {
+        String serverId = getConfig().getString("server-id", "");
+        if (serverId != null && !serverId.isBlank()) {
+            return serverId;
+        }
+
+        serverId = UUID.randomUUID().toString();
+        getConfig().set("server-id", serverId);
+        saveConfig();
+        return serverId;
     }
 
     /**

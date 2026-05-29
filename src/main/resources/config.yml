@@ -1,4 +1,5 @@
-version: "5" # DO NOT EDIT!
+version: "6" # DO NOT EDIT!
+server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead

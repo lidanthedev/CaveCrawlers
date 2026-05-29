@@ -134,7 +134,7 @@ public class Database {
     }
 
     private static String buildMysqlJdbcUrl(FileConfiguration config, DBConnectionInfo connectionInfo) {
-        String sslMode = config.getString("database.sslMode", "VERIFY_IDENTITY");
+        String sslMode = config.getString("database.sslMode", "DISABLED");
         boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", false);
         return "jdbc:mysql://" + connectionInfo.host() + ":" + connectionInfo.port() + "/" + connectionInfo.database()
                 + "?sslMode=" + sslMode + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval;

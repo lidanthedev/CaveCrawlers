@@ -19,4 +19,12 @@ public class SkillRow {
         this.level = level;
         this.totalXp = totalXp;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public double getTotalXp() {
+        return totalXp;
+    }
 }

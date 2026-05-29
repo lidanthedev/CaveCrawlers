@@ -76,6 +76,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Getter
@@ -86,6 +87,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private BukkitCommandHandler commandHandler;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
+    private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
+    private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
+    private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
+    private final AtomicBoolean databaseReadyWorkRan = new AtomicBoolean(false);
 
     /**
      * Get the plugin instance
@@ -116,8 +121,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveDefaultResources();
         registerConfig();
 
-        Database.getInstance().initialize(this);
-        registerDB();
+        initializeDatabaseAsync();
 
         String serverId = UUID.randomUUID().toString();
         PlayerSkillsManager.getInstance().setServerId(serverId);
@@ -154,9 +158,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
-                // Skills metadata is now loaded — safe to migrate YAML player files.
-                // Runs synchronously so no player can connect before migration completes.
-                new YamlMigrationTask(CaveCrawlers.this).run();
+                delayedDataReady.set(true);
+                runDatabaseReadyWorkIfPossible();
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
@@ -413,6 +416,61 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         Database db = Database.getInstance();
         db.registerTable(new SkillsTable());
         db.registerTable(new PlayerSessionsTable());
+    }
+
+    private void initializeDatabaseAsync() {
+        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            if (Database.getInstance().initialize(this)) {
+                onDatabaseAvailable();
+                return;
+            }
+            scheduleDatabaseRetry(5);
+        });
+    }
+
+    private void scheduleDatabaseRetry(long delaySeconds) {
+        if (!databaseRetryScheduled.compareAndSet(false, true)) {
+            return;
+        }
+
+        getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+            databaseRetryScheduled.set(false);
+            if (Database.getInstance().initialize(this)) {
+                onDatabaseAvailable();
+            } else {
+                long nextDelay = Math.min(delaySeconds * 2, 5L * (1L << 9));
+                if (delaySeconds < 5L * (1L << 9)) {
+                    scheduleDatabaseRetry(nextDelay);
+                }
+            }
+        }, delaySeconds * TICKS_TO_SECOND);
+    }
+
+    private void onDatabaseAvailable() {
+        registerDB();
+        getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+    }
+
+    private void runDatabaseReadyWorkIfPossible() {
+        if (!Database.getInstance().isAvailable() || !delayedDataReady.get()) {
+            return;
+        }
+        if (!databaseReadyWorkRan.compareAndSet(false, true)) {
+            return;
+        }
+        runLegacyYamlMigrationIfReady();
+        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
+        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
+        PlayerSkillsManager.getInstance().flushPendingSavesAsync();
+    }
+
+    private void runLegacyYamlMigrationIfReady() {
+        if (!Database.getInstance().isAvailable() || !legacyYamlMigrationRan.compareAndSet(false, true)) {
+            return;
+        }
+        // Skills metadata is now loaded — safe to migrate YAML player files.
+        // Runs synchronously on the main thread so no player can connect before migration completes.
+        new YamlMigrationTask(this).run();
     }
 
     /**

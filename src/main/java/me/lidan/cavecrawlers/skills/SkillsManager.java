@@ -27,6 +27,7 @@ import java.util.Map;
 @Getter
 public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI {
     private static final String DIR_NAME = "skills";
+    public static final int SKILL_TYPE_MAX_LENGTH = 64;
     private static SkillsManager instance;
     private final Map<String, CustomConfig> skillConfigs = new HashMap<>();
     private final Map<String, SkillInfo> skillInfoMap = new HashMap<>();
@@ -46,6 +47,10 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     @Override
     public void register(String key, SkillInfo value) {
+        if (key.length() >= SKILL_TYPE_MAX_LENGTH) {
+            log.error("Skill type name is too long: {}", key);
+            return;
+        }
         value.setId(key);
         skillInfoMap.put(key, value);
     }

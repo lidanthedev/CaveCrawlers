@@ -38,6 +38,9 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.zaxxer:HikariCP:5.1.0")
+    compileOnly("org.jdbi:jdbi3-core:3.45.4")
+    compileOnly("org.jdbi:jdbi3-sqlobject:3.45.4")
     compileOnly("org.jetbrains:annotations:23.0.0")
     implementation("dev.triumphteam:triumph-gui:3.1.13") {
         exclude(group = "com.google.code.gson", module = "gson")

@@ -224,7 +224,8 @@ public class PlayerSkillsManager {
      * BungeeCord/Velocity can route the player to another backend and trigger a load there.
      */
     public void savePlayerNow(UUID uuid) {
-        Skills skills = activeSkills.remove(uuid);
+        boolean onlineAtStart = Bukkit.getPlayer(uuid) != null;
+        Skills skills = onlineAtStart ? activeSkills.get(uuid) : activeSkills.remove(uuid);
         pendingSaves.remove(uuid);
         if (skills == null) {
             verbose("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
@@ -244,6 +245,11 @@ public class PlayerSkillsManager {
             }
             h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, serverId);
         });
+
+        if (!onlineAtStart && Bukkit.getPlayer(uuid) != null) {
+            activeSkills.put(uuid, skills);
+            verbose("[SAVE-NOW] {} — player reconnected during save, restored cached skills", uuid);
+        }
 
         verbose("[SAVE-NOW] {} — done", uuid);
     }

@@ -120,5 +120,5 @@ database:
   # of this setting.
   save-interval: 300 # recommended: use 300 for h2 and 30 for mysql
   # MySQL-only connection options:
-  ssl: false                        # set to true to require TLS
-  allow-public-key-retrieval: true  # required when using caching_sha2_password without SSL
+  sslMode: VERIFY_IDENTITY          # MySQL Connector/J sslMode (e.g. VERIFY_IDENTITY, VERIFY_CA, REQUIRED, DISABLED)
+  allow-public-key-retrieval: false # set true only when required for caching_sha2_password without TLS

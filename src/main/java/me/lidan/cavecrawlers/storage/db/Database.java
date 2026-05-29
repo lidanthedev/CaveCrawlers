@@ -40,10 +40,7 @@ public class Database {
         DBConnectionInfo result = getDbConnectionInfo(config);
 
         HikariConfig hikariConfig = new HikariConfig();
-        boolean ssl = plugin.getConfig().getBoolean("database.ssl", false);
-        boolean allowPublicKeyRetrieval = plugin.getConfig().getBoolean("database.allow-public-key-retrieval", true);
-        hikariConfig.setJdbcUrl("jdbc:mysql://" + result.host() + ":" + result.port() + "/" + result.database()
-                + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
+        hikariConfig.setJdbcUrl(buildMysqlJdbcUrl(config, result));
         hikariConfig.setUsername(result.username());
         hikariConfig.setPassword(result.password());
         hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");
@@ -136,6 +133,13 @@ public class Database {
         return result;
     }
 
+    private static String buildMysqlJdbcUrl(FileConfiguration config, DBConnectionInfo connectionInfo) {
+        String sslMode = config.getString("database.sslMode", "VERIFY_IDENTITY");
+        boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", false);
+        return "jdbc:mysql://" + connectionInfo.host() + ":" + connectionInfo.port() + "/" + connectionInfo.database()
+                + "?sslMode=" + sslMode + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval;
+    }
+
     public synchronized boolean initialize(Plugin plugin) {
         shutdown();
 
@@ -149,10 +153,7 @@ public class Database {
 
             if ("mysql".equalsIgnoreCase(type)) {
                 DBConnectionInfo connectionInfo = getDbConnectionInfo(config);
-                boolean ssl = config.getBoolean("database.ssl", false);
-                boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", true);
-                hikariConfig.setJdbcUrl("jdbc:mysql://" + connectionInfo.host + ":" + connectionInfo.port + "/" + connectionInfo.database
-                        + "?useSSL=" + ssl + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval);
+                hikariConfig.setJdbcUrl(buildMysqlJdbcUrl(config, connectionInfo));
                 hikariConfig.setUsername(connectionInfo.username);
                 hikariConfig.setPassword(connectionInfo.password);
                 hikariConfig.setDriverClassName("com.mysql.cj.jdbc.Driver");

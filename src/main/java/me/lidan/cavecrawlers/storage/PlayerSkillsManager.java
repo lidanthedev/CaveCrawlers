@@ -29,7 +29,7 @@ public class PlayerSkillsManager {
     private final Set<UUID> pendingLoads = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private String serverId;
+    private volatile String serverId;
 
     private PlayerSkillsManager() {
     }
@@ -104,15 +104,13 @@ public class PlayerSkillsManager {
         }
 
         try {
-            List<SkillRow> rows;
-            List<SkillRow> snapshot = pendingSaves.get(uuid);
-            if (snapshot != null) {
-                acquireLock(uuid);
-                rows = snapshot;
-            } else {
-                acquireLock(uuid);
-                rows = loadRowsFromDb(uuid);
+            if (!acquireLock(uuid)) {
+                pendingLoads.add(uuid);
+                return;
             }
+
+            List<SkillRow> snapshot = pendingSaves.get(uuid);
+            List<SkillRow> rows = snapshot != null ? snapshot : loadRowsFromDb(uuid);
             verbose("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
 
             Skills skills = buildSkillsFromRows(uuid, rows);
@@ -138,16 +136,16 @@ public class PlayerSkillsManager {
         return database.isAvailable() && database.getJdbi() != null;
     }
 
-    private void acquireLock(UUID uuid) {
+    private boolean acquireLock(UUID uuid) {
         if (!isPersistenceAvailable()) {
-            return;
+            return false;
         }
 
         String uuidStr = uuid.toString();
         Database.getInstance().getJdbi().useHandle(h -> h.attach(PlayerSessionsDao.class).ensureRow(uuidStr));
 
         if (tryAcquireLockOnce(uuid, uuidStr)) {
-            return;
+            return true;
         }
 
         for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
@@ -159,21 +157,23 @@ public class PlayerSkillsManager {
                 break;
             }
             if (tryAcquireLockOnce(uuid, uuidStr)) {
-                return;
+                return true;
             }
         }
-        log.warn("[LOCK] {} — could not acquire lock after {} attempts, proceeding without it", uuid, LOCK_MAX_ATTEMPTS);
+        log.warn("[LOCK] {} — could not acquire lock after {} attempts, deferring load", uuid, LOCK_MAX_ATTEMPTS);
+        return false;
     }
 
     private boolean tryAcquireLockOnce(UUID uuid, String uuidStr) {
-        if (!isPersistenceAvailable()) {
+        String currentServerId = serverId;
+        if (!isPersistenceAvailable() || currentServerId == null) {
             return false;
         }
 
         long now = System.currentTimeMillis();
         long expiry = now - LOCK_TIMEOUT_MS;
         int affected = Database.getInstance().getJdbi().withHandle(h ->
-                h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, serverId, now, expiry)
+                h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, currentServerId, now, expiry)
         );
         if (affected > 0) {
             verbose("[LOCK] {} — acquired [thread={}]", uuid, Thread.currentThread().getName());
@@ -230,11 +230,14 @@ public class PlayerSkillsManager {
         savePlayerData(uuid);
 
         String uuidStr = uuid.toString();
+        String currentServerId = serverId;
         Database.getInstance().getJdbi().useTransaction(h -> {
             if (!rows.isEmpty()) {
                 h.attach(SkillsDao.class).upsertSkills(rows);
             }
-            h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, serverId);
+            if (currentServerId != null) {
+                h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, currentServerId);
+            }
         });
 
         if (!onlineAtStart && Bukkit.getPlayer(uuid) != null) {
@@ -299,18 +302,20 @@ public class PlayerSkillsManager {
         }
         pendingSaves.clear();
 
-        if (serverId != null) {
+        String currentServerId = serverId;
+        if (currentServerId != null) {
             Database.getInstance().getJdbi().useHandle(h ->
-                    h.attach(PlayerSessionsDao.class).heartbeatAll(serverId, System.currentTimeMillis())
+                    h.attach(PlayerSessionsDao.class).heartbeatAll(currentServerId, System.currentTimeMillis())
             );
         }
     }
 
     public void shutdown() {
         saveAll();
-        if (serverId != null && isPersistenceAvailable()) {
+        String currentServerId = serverId;
+        if (currentServerId != null && isPersistenceAvailable()) {
             Database.getInstance().getJdbi().useHandle(h ->
-                    h.attach(PlayerSessionsDao.class).releaseAllLocks(serverId)
+                    h.attach(PlayerSessionsDao.class).releaseAllLocks(currentServerId)
             );
         }
     }
@@ -388,11 +393,12 @@ public class PlayerSkillsManager {
     }
 
     private void releaseLock(UUID uuid) {
-        if (!isPersistenceAvailable() || serverId == null) {
+        String currentServerId = serverId;
+        if (!isPersistenceAvailable() || currentServerId == null) {
             return;
         }
         Database.getInstance().getJdbi().useHandle(h ->
-                h.attach(PlayerSessionsDao.class).releaseLock(uuid.toString(), serverId)
+                h.attach(PlayerSessionsDao.class).releaseLock(uuid.toString(), currentServerId)
         );
     }
 

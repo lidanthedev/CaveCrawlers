@@ -65,12 +65,14 @@ public class PlayerSkillsManager {
         if (VERBOSE) log.info(msg, args);
     }
 
-    private void fireLoadEvent(UUID uuid, Skills skills) {
-        Bukkit.getPluginManager().callEvent(new PlayerSkillsLoadEvent(uuid, skills));
+    private void loadPlayerData(UUID uuid) {
+        Database.getInstance().loadPlayerDataTables(uuid);
+        Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
     }
 
-    private void fireSaveEvent(UUID uuid, Skills skills) {
-        Bukkit.getPluginManager().callEvent(new PlayerSkillsSaveEvent(uuid, skills));
+    private void savePlayerData(UUID uuid) {
+        Database.getInstance().savePlayerDataTables(uuid);
+        Bukkit.getPluginManager().callEvent(new PlayerDataSaveEvent(uuid));
     }
 
     // -------------------------------------------------------------------------
@@ -113,7 +115,7 @@ public class PlayerSkillsManager {
 
         Skills skills = buildSkillsFromRows(uuid, rows);
         activeSkills.put(uuid, skills);
-        fireLoadEvent(uuid, skills);
+        loadPlayerData(uuid);
 
         // Guard: quit may have fired before this async task acquired the lock.
         // If the player is already offline, save immediately and release the lock.
@@ -204,7 +206,7 @@ public class PlayerSkillsManager {
             List<SkillRow> rows = loadRowsFromDb(uuid);
             Skills fresh = buildSkillsFromRows(uuid, rows);
             activeSkills.put(uuid, fresh);
-            fireLoadEvent(uuid, fresh);
+            loadPlayerData(uuid);
             verbose("[LOAD] {} — background refresh complete ({} skill row(s))", uuid, rows.size());
 
             if (Bukkit.getPlayer(uuid) == null) {
@@ -236,7 +238,7 @@ public class PlayerSkillsManager {
         List<SkillRow> rows = buildRows(uuid, skills);
         verbose("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
                 uuid, rows.size(), Thread.currentThread().getName());
-        fireSaveEvent(uuid, skills);
+        savePlayerData(uuid);
 
         String uuidStr = uuid.toString();
         Database.getInstance().getJdbi().useTransaction(h -> {
@@ -269,10 +271,10 @@ public class PlayerSkillsManager {
         verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
                 activeSkills.size(), pendingSaves.size(), Thread.currentThread().getName());
         for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
+            savePlayerData(entry.getKey());
             List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
             if (!rows.isEmpty()) {
                 verbose("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
-                fireSaveEvent(entry.getKey(), entry.getValue());
                 writeRows(rows);
             }
         }

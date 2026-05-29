@@ -11,6 +11,8 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 public class Database {
@@ -19,6 +21,7 @@ public class Database {
     private HikariDataSource dataSource;
     @Getter
     private Jdbi jdbi;
+    private final CopyOnWriteArrayList<PlayerDataSqlTable> playerDataTables = new CopyOnWriteArrayList<>();
 
     private Database() {
     }
@@ -76,6 +79,31 @@ public class Database {
                 log.info("Upgraded table '{}' from version {} to {}", table.getTableName(), oldVersion, table.getVersion());
             }
         });
+
+        if (table instanceof PlayerDataSqlTable playerDataTable) {
+            playerDataTables.removeIf(registered -> registered.getTableName().equals(playerDataTable.getTableName()));
+            playerDataTables.add(playerDataTable);
+        }
+    }
+
+    public void loadPlayerDataTables(UUID playerUuid) {
+        for (PlayerDataSqlTable table : playerDataTables) {
+            try {
+                table.loadForPlayer(playerUuid);
+            } catch (Exception e) {
+                log.error("Failed to load player data table '{}' for {}", table.getTableName(), playerUuid, e);
+            }
+        }
+    }
+
+    public void savePlayerDataTables(UUID playerUuid) {
+        for (PlayerDataSqlTable table : playerDataTables) {
+            try {
+                table.saveForPlayer(playerUuid);
+            } catch (Exception e) {
+                log.error("Failed to save player data table '{}' for {}", table.getTableName(), playerUuid, e);
+            }
+        }
     }
 
     public void shutdown() {

@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.storage.db;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
@@ -18,8 +19,10 @@ public class Database {
     private static Database instance;
 
     private HikariDataSource dataSource;
+    @Getter
     private Jdbi jdbi;
     private final CopyOnWriteArrayList<PlayerDataSqlTable> playerDataTables = new CopyOnWriteArrayList<>();
+    @Getter
     private volatile boolean available;
 
     private Database() {
@@ -115,22 +118,13 @@ public class Database {
         available = false;
     }
 
-    public Jdbi getJdbi() {
-        return jdbi;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
     private static @NonNull DBConnectionInfo getDbConnectionInfo(FileConfiguration config) {
         String host = config.getString("database.host", "localhost");
         int port = config.getInt("database.port", 3306);
         String database = config.getString("database.database", "cavecrawlers");
         String username = config.getString("database.username", "root");
         String password = config.getString("database.password", "");
-        DBConnectionInfo result = new DBConnectionInfo(host, port, database, username, password);
-        return result;
+        return new DBConnectionInfo(host, port, database, username, password);
     }
 
     private static String buildMysqlJdbcUrl(FileConfiguration config, DBConnectionInfo connectionInfo) {

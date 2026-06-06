@@ -252,7 +252,7 @@ public class StringUtils {
         for (String str : lores) {
             if (str.equals("RESET_LENGTH")) {
                 l = 0;
-            } else if (str.equals("NEW_LINE")) {
+            } else if (str.equals("NEW_LINE") || str.equals("\\n")) {
                 list.add(color + "");
                 l = 0;
                 n++;
@@ -361,4 +361,17 @@ public class StringUtils {
     public static String colored(String text) {
         return ChatColor.translateAlternateColorCodes('&', text);
     }
+
+    public static String toScreamingSnakeCase(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        String regexProcessed = input
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .replaceAll("[\\s\\-.]+", "_");
+
+        return regexProcessed.toUpperCase();
+    }
+
 }

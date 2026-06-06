@@ -1,0 +1,14 @@
+GOLD_ORE:
+  ==: me.lidan.cavecrawlers.mining.BlockInfo
+  blockPower: 1
+  drops:
+    - ==: me.lidan.cavecrawlers.drops.Drop
+      type: ITEM
+      chance: 100.0
+      value: GOLD_INGOT 1-2
+      announce: null
+      chanceModifier: null
+      amountModifier: MINING_FORTUNE
+  replacementBlockData: minecraft:black_wool
+  blockStrength: 20
+  brokenBy: PICKAXE

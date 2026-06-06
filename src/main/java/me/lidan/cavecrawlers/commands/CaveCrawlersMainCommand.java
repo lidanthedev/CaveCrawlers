@@ -452,7 +452,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
-        id = id.toUpperCase();
+        id = StringUtils.toScreamingSnakeCase(id);
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats();
@@ -460,7 +460,7 @@ public class CaveCrawlersMainCommand {
         itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
-        sender.sendMessage("Created Item!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Created Item with id <id>", Map.of("id", id)));
     }
 
     @Subcommand("item clone")

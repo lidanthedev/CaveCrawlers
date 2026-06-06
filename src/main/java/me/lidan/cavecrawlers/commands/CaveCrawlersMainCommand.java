@@ -387,6 +387,10 @@ public class CaveCrawlersMainCommand {
         }
 
         id = StringUtils.toScreamingSnakeCase(id);
+        if (itemsManager.getItemByID(id) != null) {
+            sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
+            return;
+        }
         ItemInfo itemInfo;
         try {
             ItemImporter exporter = new ItemImporter(hand);
@@ -449,11 +453,11 @@ public class CaveCrawlersMainCommand {
     // item edit baseItem <material> - edit held item's base item
     @Subcommand("item create")
     public void itemCreate(Player sender, String id, Material material) {
+        id = StringUtils.toScreamingSnakeCase(id);
         if (itemsManager.getItemByID(id) != null) {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
-        id = StringUtils.toScreamingSnakeCase(id);
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats();
@@ -474,6 +478,10 @@ public class CaveCrawlersMainCommand {
         }
 
         id = StringUtils.toScreamingSnakeCase(id);
+        if (itemsManager.getItemByID(id) != null) {
+            sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
+            return;
+        }
         itemsManager.setItem(id, itemInfo.clone());
         ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);

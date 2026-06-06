@@ -386,6 +386,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("Fill: " + id);
         }
 
+        id = StringUtils.toScreamingSnakeCase(id);
         ItemInfo itemInfo;
         try {
             ItemImporter exporter = new ItemImporter(hand);
@@ -472,6 +473,7 @@ public class CaveCrawlersMainCommand {
             return;
         }
 
+        id = StringUtils.toScreamingSnakeCase(id);
         itemsManager.setItem(id, itemInfo.clone());
         ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);

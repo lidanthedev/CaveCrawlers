@@ -4,19 +4,19 @@
 # to edit the item hold it and use /cc item edit
 
 ERROR_SCYTHE:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 0.0
     MANA: 0.0
     ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
     STRENGTH: 0.0
     MINING_SPEED: 0.0
     CRIT_DAMAGE: 0.0
     DAMAGE: 3500.0
+    MINING_FORTUNE: 0.0
     INTELLIGENCE: 0.0
     SPEED: 0.0
-    MINING_FORTUNE: 0.0
     MINING_HAMMER: 0.0
     CRIT_CHANCE: 0.0
     HEALTH: 0.0
@@ -24,21 +24,20 @@ ERROR_SCYTHE:
   name: §6Error Scythe
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:diamond_hoe
+    count: 1
+    components:
+      minecraft:unbreakable: '{}'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:unbreakable"]}'
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: DIAMOND_HOE
-    meta:
-      ==: ItemMeta
-      meta-type: UNSPECIFIC
-      ItemFlags:
-        - HIDE_UNBREAKABLE
-      Unbreakable: true
   ability: ERROR_SCYTHE_ABILITY
   type: SWORD
   rarity: LEGENDARY
+  ==: me.lidan.cavecrawlers.items.ItemInfo
 
 WAND_OF_HEALING:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 0.0
@@ -59,28 +58,30 @@ WAND_OF_HEALING:
   name: Wand Of Healing
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:stick
+    count: 1
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: STICK
   ability: ZOMBIE_SWORD_HEAL{healAmount:250,healPercent:25,maxCharges:4,cost:100}
   type: WAND
   rarity: LEGENDARY
+  ==: me.lidan.cavecrawlers.items.ItemInfo
 
 TP_WAND:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 0.0
-    ATTACK_SPEED: 0.0
     MANA: 0.0
+    ATTACK_SPEED: 0.0
     MAGIC_FIND: 0.0
     STRENGTH: 0.0
     MINING_SPEED: 0.0
     CRIT_DAMAGE: 0.0
     DAMAGE: 0.0
-    SPEED: 0.0
     MINING_FORTUNE: 0.0
     INTELLIGENCE: 0.0
+    SPEED: 0.0
     MINING_HAMMER: 0.0
     CRIT_CHANCE: 0.0
     HEALTH: 0.0
@@ -88,28 +89,30 @@ TP_WAND:
   name: Tp Wand
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:blaze_rod
+    count: 1
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: BLAZE_ROD
   ability: TRANSMISSION{cost:5}
   type: WAND
   rarity: EPIC
+  ==: me.lidan.cavecrawlers.items.ItemInfo
 
 GOLD_INGOT:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 0.0
-    ATTACK_SPEED: 0.0
     MANA: 0.0
+    ATTACK_SPEED: 0.0
     MAGIC_FIND: 0.0
     STRENGTH: 0.0
     MINING_SPEED: 0.0
     CRIT_DAMAGE: 0.0
     DAMAGE: 0.0
-    SPEED: 0.0
     MINING_FORTUNE: 0.0
     INTELLIGENCE: 0.0
+    SPEED: 0.0
     MINING_HAMMER: 0.0
     CRIT_CHANCE: 0.0
     HEALTH: 0.0
@@ -117,15 +120,48 @@ GOLD_INGOT:
   name: §7Gold Ingot
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:gold_ingot
+    count: 1
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: GOLD_INGOT
   ability: null
   type: MATERIAL
   rarity: COMMON
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+
+DIAMOND:
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    SPEED: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: Diamond
+  description: null
+  baseItem:
+    DataVersion: 4790
+    id: minecraft:diamond
+    count: 1
+    schema_version: 1
+    ==: org.bukkit.inventory.ItemStack
+  ability: null
+  type: MATERIAL
+  rarity: COMMON
+  ==: me.lidan.cavecrawlers.items.ItemInfo
 
 ADMIN_SWORD:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 0.0
@@ -136,8 +172,8 @@ ADMIN_SWORD:
     MINING_SPEED: 0.0
     CRIT_DAMAGE: 0.0
     DAMAGE: 5000000.0
-    INTELLIGENCE: 0.0
     MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
     SPEED: 0.0
     MINING_HAMMER: 0.0
     CRIT_CHANCE: 0.0
@@ -146,15 +182,17 @@ ADMIN_SWORD:
   name: ADMIN Sword
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:netherite_sword
+    count: 1
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: NETHERITE_SWORD
   ability: null
   type: SWORD
   rarity: EPIC
+  ==: me.lidan.cavecrawlers.items.ItemInfo
 
 ADMIN_BOOTS:
-  ==: me.lidan.cavecrawlers.items.ItemInfo
   stats:
     ABILITY_DAMAGE: 0.0
     DEFENSE: 5000000.0
@@ -165,8 +203,8 @@ ADMIN_BOOTS:
     MINING_SPEED: 0.0
     CRIT_DAMAGE: 5000000.0
     DAMAGE: 5000000.0
-    INTELLIGENCE: 5000000.0
     MINING_FORTUNE: 0.0
+    INTELLIGENCE: 5000000.0
     SPEED: 200.0
     MINING_HAMMER: 0.0
     CRIT_CHANCE: 5000000.0
@@ -175,9 +213,105 @@ ADMIN_BOOTS:
   name: ADMIN Boots
   description: null
   baseItem:
+    DataVersion: 4790
+    id: minecraft:leather_boots
+    count: 1
+    schema_version: 1
     ==: org.bukkit.inventory.ItemStack
-    v: 3337
-    type: LEATHER_BOOTS
   ability: null
   type: BOOTS
   rarity: SPECIAL
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+
+KING_CROWN:
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 50.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    SPEED: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 100.0
+    MINING_POWER: 0.0
+  name: King Crown
+  description: null
+  baseItem:
+    DataVersion: 4790
+    id: minecraft:golden_helmet
+    count: 1
+    schema_version: 1
+    ==: org.bukkit.inventory.ItemStack
+  ability: null
+  type: ARMOR
+  rarity: LEGENDARY
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+
+SKELETON_KING_SWORD:
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    MANA: 0.0
+    ATTACK_SPEED: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 0.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 50.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    SPEED: 50.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 0.0
+  name: Skeleton King Sword
+  description: A powerful sword used by \n the King of Skeletons.
+  baseItem:
+    DataVersion: 4790
+    id: minecraft:diamond_sword
+    count: 1
+    schema_version: 1
+    ==: org.bukkit.inventory.ItemStack
+  ability: null
+  type: WEAPON
+  rarity: LEGENDARY
+  ==: me.lidan.cavecrawlers.items.ItemInfo
+
+GOLDEN_PICKAXE:
+  stats:
+    ABILITY_DAMAGE: 0.0
+    DEFENSE: 0.0
+    ATTACK_SPEED: 0.0
+    MANA: 0.0
+    MAGIC_FIND: 0.0
+    STRENGTH: 0.0
+    MINING_SPEED: 50.0
+    CRIT_DAMAGE: 0.0
+    DAMAGE: 0.0
+    MINING_FORTUNE: 0.0
+    INTELLIGENCE: 0.0
+    SPEED: 0.0
+    MINING_HAMMER: 0.0
+    CRIT_CHANCE: 0.0
+    HEALTH: 0.0
+    MINING_POWER: 1.0
+  name: Golden Pickaxe
+  description: null
+  baseItem:
+    DataVersion: 4790
+    id: minecraft:golden_pickaxe
+    count: 1
+    schema_version: 1
+    ==: org.bukkit.inventory.ItemStack
+  ability: null
+  type: PICKAXE
+  rarity: COMMON
+  ==: me.lidan.cavecrawlers.items.ItemInfo

@@ -197,6 +197,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveResource("example-items.yml", new File(getDataFolder(), "items/example-items.yml"));
         saveResource("messages.yml", false);
         saveResource("example-shop.yml", new File(getDataFolder(), "shops/example-shop.yml"));
+        saveResource("example-drops.yml", new File(getDataFolder(), "drops/example-drops.yml"));
+        saveResource("example-blocks.yml", new File(getDataFolder(), "blocks/example-blocks.yml"));
     }
 
     /**

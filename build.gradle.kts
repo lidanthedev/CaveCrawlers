@@ -56,7 +56,7 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
-    implementation("com.github.cryptomorin:XSeries:13.6.0")
+    implementation("com.github.cryptomorin:XSeries:13.7.0")
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("dev.dejvokep:boosted-yaml-spigot:1.5")
     implementation("com.github.Robotv2:PlaceholderAnnotationLib:v1.1.0")

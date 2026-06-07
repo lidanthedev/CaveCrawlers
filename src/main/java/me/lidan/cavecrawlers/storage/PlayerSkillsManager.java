@@ -283,7 +283,7 @@ public class PlayerSkillsManager {
             return null;
         }
 
-        boolean onlineAtStart = Bukkit.getPlayer(uuid) != null;
+        boolean onlineAtStart = activeSkills.containsKey(uuid) && !releaseLockAfterSave;
         Skills skills = onlineAtStart ? activeSkills.get(uuid) : activeSkills.remove(uuid);
         pendingSaves.remove(uuid);
         Skills snapshotSkills = skills == null ? null : copySkills(skills);
@@ -577,6 +577,17 @@ public class PlayerSkillsManager {
         if (!loadedPlayers.contains(uuid) && activeSkills.containsKey(uuid)) {
             queuePendingSave(uuid);
         }
+    }
+
+    public synchronized boolean markPreLoadDirtyIfNotLoaded(UUID uuid) {
+        if (uuid == null || loadedPlayers.contains(uuid)) {
+            return false;
+        }
+        preLoadDirty.add(uuid);
+        if (activeSkills.containsKey(uuid)) {
+            queuePendingSave(uuid);
+        }
+        return true;
     }
 
     private record SaveRequest(UUID uuid, Skills liveSkills, Skills snapshotSkills,

@@ -130,6 +130,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
         Skills playerSkills = PlayerDataManager.getInstance().getSkills(player);
+        PlayerSkillsManager.getInstance().markPreLoadDirtyIfNotLoaded(player.getUniqueId());
         Skill skill = playerSkills.get(skillType);
         if (skill == null) {
             skill = new Skill(skillType, 0);
@@ -143,9 +144,6 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         skill.addXp(event.getXpGained());
         String skillName = StringUtils.setTitleCase(skillType.getName());
         playerSkills.tryLevelUp(skillType);
-        if (!PlayerSkillsManager.getInstance().isLoaded(player.getUniqueId())) {
-            PlayerSkillsManager.getInstance().markPreLoadDirty(player.getUniqueId());
-        }
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessage("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(event.getXpGained()), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().showActionBar(player, component);

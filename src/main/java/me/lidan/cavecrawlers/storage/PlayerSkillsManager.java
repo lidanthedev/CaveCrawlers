@@ -1,5 +1,7 @@
 package me.lidan.cavecrawlers.storage;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -30,6 +32,8 @@ public class PlayerSkillsManager {
     private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
     private final Set<UUID> preLoadDirty = ConcurrentHashMap.newKeySet();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    @Setter
+    @Getter
     private volatile String serverId;
 
     private PlayerSkillsManager() {
@@ -474,14 +478,6 @@ public class PlayerSkillsManager {
 
     public boolean isLoaded(UUID uuid) {
         return loadedPlayers.contains(uuid);
-    }
-
-    public String getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(String serverId) {
-        this.serverId = serverId;
     }
 
     private Skills getOrCreateSkills(UUID uuid) {

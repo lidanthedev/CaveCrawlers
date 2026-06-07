@@ -648,7 +648,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                     out.write(buffer, 0, length);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Failed to save resource: {}", resource, e);
             }
         }
     }

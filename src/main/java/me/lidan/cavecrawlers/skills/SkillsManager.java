@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
@@ -142,6 +143,9 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         skill.addXp(event.getXpGained());
         String skillName = StringUtils.setTitleCase(skillType.getName());
         playerSkills.tryLevelUp(skillType);
+        if (!PlayerSkillsManager.getInstance().isLoaded(player.getUniqueId())) {
+            PlayerSkillsManager.getInstance().markPreLoadDirty(player.getUniqueId());
+        }
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessage("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(event.getXpGained()), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().showActionBar(player, component);

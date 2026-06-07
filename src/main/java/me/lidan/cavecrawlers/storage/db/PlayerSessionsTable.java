@@ -23,7 +23,7 @@ public class PlayerSessionsTable extends SqlTable {
                   locking_server VARCHAR(64),
                   lock_timestamp BIGINT       NOT NULL DEFAULT 0,
                   PRIMARY KEY (player_uuid)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                )
                 """;
     }
 

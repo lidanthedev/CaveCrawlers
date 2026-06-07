@@ -82,6 +82,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Getter
 public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static final int TICKS_TO_SECOND = 20;
+    public static final long MAX_RETRY_DELAY = 512;
     public static Economy economy = null;
     public static boolean usePlaceholderAPI = false;
     private BukkitCommandHandler commandHandler;
@@ -89,6 +90,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private CaveCrawlersExpansion caveCrawlersExpansion;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
+    private final AtomicBoolean legacyYamlMigrationComplete = new AtomicBoolean(false);
     private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
     private final AtomicBoolean databaseReadyWorkRan = new AtomicBoolean(false);
 
@@ -452,10 +454,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             if (Database.getInstance().initialize(this)) {
                 onDatabaseAvailable();
             } else {
-                long nextDelay = Math.min(delaySeconds * 2, 5L * (1L << 9));
-                if (delaySeconds < 5L * (1L << 9)) {
-                    scheduleDatabaseRetry(nextDelay);
+                long nextDelay = Math.min(delaySeconds * 2, 5L * MAX_RETRY_DELAY);
+                if (delaySeconds >= 5L * MAX_RETRY_DELAY) {
+                    log.warn("Database connection failed after max retries. Will continue retrying every {} seconds.", nextDelay);
                 }
+                scheduleDatabaseRetry(nextDelay);
             }
         }, delaySeconds * TICKS_TO_SECOND);
     }
@@ -483,8 +486,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return;
         }
         // Skills metadata is now loaded — safe to migrate YAML player files.
-        // Runs synchronously on the main thread so no player can connect before migration completes.
-        new YamlMigrationTask(this).run();
+        // Runs asynchronously; players are denied at pre-login until completion.
+        new YamlMigrationTask(this).runTaskAsynchronously(this);
     }
 
     /**
@@ -510,6 +513,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new FirstJoinListener(this));
         registerEvent(new AltarListener());
         registerEvent(new ChatPromptListener());
+        registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
     }
 
@@ -544,7 +548,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         long saveIntervalTicks = (long) getConfig().getInt("database.save-interval", 30) * TICKS_TO_SECOND;
         getServer().getScheduler().runTaskTimerAsynchronously(this, bukkitTask -> {
             log.info("Auto saving player data...");
-            PlayerSkillsManager.getInstance().saveAll();
+            PlayerSkillsManager.getInstance().saveAllAsync();
         }, saveIntervalTicks, saveIntervalTicks);
     }
 
@@ -555,6 +559,14 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     public void registerEvent(Listener listener) {
         getServer().getPluginManager().registerEvents(listener, this);
+    }
+
+    public boolean isLoginAllowed() {
+        return delayedDataReady.get() && legacyYamlMigrationComplete.get();
+    }
+
+    public void markLegacyYamlMigrationComplete() {
+        legacyYamlMigrationComplete.set(true);
     }
 
     /**

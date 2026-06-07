@@ -23,8 +23,8 @@ public class SkillsTable extends SqlTable {
                   xp          DOUBLE      NOT NULL DEFAULT 0,
                   level       INT         NOT NULL DEFAULT 0,
                   total_xp    DOUBLE      NOT NULL DEFAULT 0,
-                  UNIQUE KEY uq_player_skill (player_uuid, type)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                  CONSTRAINT uq_player_skill UNIQUE (player_uuid, type)
+                )
                 """;
     }
 

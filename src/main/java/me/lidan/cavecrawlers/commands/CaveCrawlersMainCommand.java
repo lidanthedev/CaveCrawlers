@@ -935,10 +935,9 @@ public class CaveCrawlersMainCommand {
                 "<yellow>Starting <from> → <to> migration...",
                 Map.of("from", fromType.toUpperCase(), "to", toType.toUpperCase())));
 
-        // Flush all dirty player data to the source DB before copying.
-        PlayerSkillsManager.getInstance().saveAll();
-
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Flush all dirty player data to the source DB before copying.
+            PlayerSkillsManager.getInstance().saveAll();
             try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
                     ? Database.openMysqlSource(plugin, 2)
                     : Database.openH2Source(plugin, 2)) {

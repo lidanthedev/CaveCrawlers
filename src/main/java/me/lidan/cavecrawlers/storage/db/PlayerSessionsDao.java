@@ -18,11 +18,6 @@ public interface PlayerSessionsDao {
      *
      * @return number of rows affected — 1 means acquired, 0 means someone else holds it
      */
-    /**
-     * Acquires the lock if it is free, expired, or already held by {@code server}.
-     * The "already held by us" clause prevents same-server concurrent loads from
-     * deadlocking each other — two threads on this server share the same lock identity.
-     */
     @SqlUpdate("UPDATE player_sessions " +
             "SET is_locked = 1, locking_server = :server, lock_timestamp = :ts " +
             "WHERE player_uuid = :uuid " +

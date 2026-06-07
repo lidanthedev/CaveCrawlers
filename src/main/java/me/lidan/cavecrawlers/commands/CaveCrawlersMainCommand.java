@@ -1,6 +1,8 @@
 package me.lidan.cavecrawlers.commands;
 
+import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
+import com.zaxxer.hikari.HikariDataSource;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
@@ -15,7 +17,7 @@ import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.index.EntityHeads;
-import me.lidan.cavecrawlers.integration.MythicMobsHook;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
@@ -39,6 +41,9 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerData;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
+import me.lidan.cavecrawlers.storage.db.Database;
+import me.lidan.cavecrawlers.storage.db.DbMigrator;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
@@ -343,8 +348,25 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item get")
     @AutoComplete("@itemID *")
-    public void itemGet(Player sender, @Named("Item ID") String ID, @Default("1") int amount) {
-        itemGive(sender, sender, ID, amount);
+    public void itemGet(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+        itemGive(sender, sender, id, amount);
+    }
+
+    @Subcommand("item editBase")
+    @AutoComplete("@itemID *")
+    public void itemEditBase(Player sender, @Optional @Named("Item ID") String id) {
+        if (id == null) {
+            id = itemsManager.getIDofItemStackSafe(sender.getEquipment().getItemInMainHand());
+        }
+        ItemInfo itemInfo = itemsManager.getItemByID(id);
+        if (itemInfo == null) {
+            sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
+            return;
+        }
+        XItemStack.giveOrDrop(sender, itemInfo.getBaseItem());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<gold>Editing: base item of <item_id>\n" +
+                "<gold>After you finish editing it hold it and click\n" +
+                "<hover:show_text:'<yellow>Click to save'><click:run_command:'/ct item edit baseitemtohand <item_id>'><b><yellow>CLICK TO SAVE</b></click></hover>", Map.of("item_id", id)));
     }
 
     @Subcommand("item import")
@@ -364,6 +386,11 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("Fill: " + id);
         }
 
+        id = StringUtils.toScreamingSnakeCase(id);
+        if (itemsManager.getItemByID(id) != null) {
+            sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
+            return;
+        }
         ItemInfo itemInfo;
         try {
             ItemImporter exporter = new ItemImporter(hand);
@@ -426,11 +453,11 @@ public class CaveCrawlersMainCommand {
     // item edit baseItem <material> - edit held item's base item
     @Subcommand("item create")
     public void itemCreate(Player sender, String id, Material material) {
+        id = StringUtils.toScreamingSnakeCase(id);
         if (itemsManager.getItemByID(id) != null) {
             sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
             return;
         }
-        id = id.toUpperCase();
         String name = id.replace("_", " ");
         name = StringUtils.setTitleCase(name);
         Stats stats = new Stats();
@@ -438,7 +465,7 @@ public class CaveCrawlersMainCommand {
         itemsManager.setItem(id, itemInfo);
         ItemStack itemStack = itemsManager.buildItem(itemInfo, 1);
         sender.getInventory().addItem(itemStack);
-        sender.sendMessage("Created Item!");
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Created Item with id <id>", Map.of("id", id)));
     }
 
     @Subcommand("item clone")
@@ -450,6 +477,11 @@ public class CaveCrawlersMainCommand {
             return;
         }
 
+        id = StringUtils.toScreamingSnakeCase(id);
+        if (itemsManager.getItemByID(id) != null) {
+            sender.sendMessage("ERROR! ITEM ALREADY EXISTS!");
+            return;
+        }
         itemsManager.setItem(id, itemInfo.clone());
         ItemStack itemStack = itemsManager.buildItem(id, 1);
         sender.getInventory().addItem(itemStack);
@@ -877,6 +909,55 @@ public class CaveCrawlersMainCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.resetPlayerData(arg.getUniqueId());
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>Reset Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+    }
+
+    @Subcommand("data migrate h2-to-mysql")
+    public void dataMigrateH2ToMySQL(CommandSender sender) {
+        migrateDb(sender, "h2", "mysql");
+    }
+
+    @Subcommand("data migrate mysql-to-h2")
+    public void dataMigrateMySQLToH2(CommandSender sender) {
+        migrateDb(sender, "mysql", "h2");
+    }
+
+    private void migrateDb(CommandSender sender, String fromType, String toType) {
+        String currentType = plugin.getConfig().getString("database.type", "h2");
+        if (!currentType.equalsIgnoreCase(fromType)) {
+            sender.sendMessage(MiniMessageUtils.miniMessage(
+                    "<red>Current database is <gold><current></gold>, not <gold><expected></gold>. " +
+                            "Set <gold>database.type: <expected></gold> in config.yml first.",
+                    Map.of("current", currentType, "expected", fromType)));
+            return;
+        }
+
+        sender.sendMessage(MiniMessageUtils.miniMessage(
+                "<yellow>Starting <from> → <to> migration...",
+                Map.of("from", fromType.toUpperCase(), "to", toType.toUpperCase())));
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Flush all dirty player data to the source DB before copying.
+            PlayerSkillsManager.getInstance().saveAll();
+            try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
+                    ? Database.openMysqlSource(plugin, 2)
+                    : Database.openH2Source(plugin, 2)) {
+                long startTime = System.currentTimeMillis();
+                int count = DbMigrator.migrateSkills(
+                        Database.getInstance().getJdbi(),
+                        DbMigrator.toJdbi(targetDs));
+                sender.sendMessage(count == 0
+                        ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
+                        : MiniMessageUtils.miniMessage(
+                        "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
+                                "Set <gold>database.type: <to></gold> in config.yml and restart.",
+                        Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
+            } catch (Exception e) {
+                sender.sendMessage(MiniMessageUtils.miniMessage(
+                        "<red>Migration failed: <msg>",
+                        Map.of("msg", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName())));
+                log.error("DB migration ({} → {}) failed", fromType, toType, e);
+            }
+        });
     }
 
     @Subcommand("kill target")

@@ -2,10 +2,10 @@ package me.lidan.cavecrawlers.skills;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -18,7 +18,6 @@ import java.util.*;
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillInfo, Skill> skills;
     @Getter
-    @Setter
     private UUID uuid;
 
     public Skills(List<Skill> skillList) {
@@ -132,6 +131,9 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     public void resetAllSkills() {
         for (Skill skill : skills.values()) {
             skill.resetSkill();
+        }
+        if (uuid != null && !PlayerSkillsManager.getInstance().isLoaded(uuid)) {
+            PlayerSkillsManager.getInstance().markPreLoadDirty(uuid);
         }
     }
 }

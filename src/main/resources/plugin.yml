@@ -10,3 +10,9 @@ softdepend:
   - PlaceholderAPI
   - LuckPerms
   - Plugman
+libraries:
+  - com.zaxxer:HikariCP:5.1.0
+  - org.jdbi:jdbi3-core:3.45.4
+  - org.jdbi:jdbi3-sqlobject:3.45.4
+  - com.h2database:h2:2.2.224
+  - com.mysql:mysql-connector-j:8.3.0

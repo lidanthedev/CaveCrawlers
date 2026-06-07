@@ -1,7 +1,12 @@
 package me.lidan.cavecrawlers.index;
 
+import dev.triumphteam.gui.builder.item.ItemBuilder;
+import dev.triumphteam.gui.guis.GuiItem;
 import lombok.Getter;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -9,16 +14,18 @@ import java.util.Map;
 @Getter
 public class IndexCategory {
     private static final Map<String, IndexCategory> categories = new LinkedHashMap<>();
-    public static final IndexCategory MOBS = register("MOBS", new IndexCategory("Mobs"));
-    public static final IndexCategory BLOCKS = register("BLOCKS", new IndexCategory("Blocks"));
-    public static final IndexCategory BOSSES = register("BOSSES", new IndexCategory("Bosses"));
-    public static final IndexCategory ALTARS = register("ALTARS", new IndexCategory("Altars"));
+    public static final IndexCategory MOBS = register("MOBS", new IndexCategory("Mobs", ItemBuilder.from(Material.ZOMBIE_HEAD).name(MiniMessageUtils.miniMessage("<green>Mobs")).asGuiItem(event -> new IndexMobsCategoryMenu((Player) event.getWhoClicked(), "").open())));
+    public static final IndexCategory BLOCKS = register("BLOCKS", new IndexCategory("Blocks", ItemBuilder.from(Material.DIAMOND_ORE).name(MiniMessageUtils.miniMessage("<gold>Blocks")).asGuiItem(event -> new IndexBlocksCategoryMenu((Player) event.getWhoClicked(), "").open())));
+    public static final IndexCategory BOSSES = register("BOSSES", new IndexCategory("Bosses", ItemBuilder.from(Material.DRAGON_HEAD).name(MiniMessageUtils.miniMessage("<red>Bosses")).asGuiItem(event -> new IndexBossesCategoryMenu((Player) event.getWhoClicked(), "").open())));
+    public static final IndexCategory ALTARS = register("ALTARS", new IndexCategory("Altars", ItemBuilder.from(Material.END_PORTAL_FRAME).name(MiniMessageUtils.miniMessage("<aqua>Altars")).asGuiItem(event -> new IndexAltarsCategoryMenu((Player) event.getWhoClicked(), "").open())));
 
     private String id;
     private final String displayName;
+    private final GuiItem guiItem;
 
-    public IndexCategory(String displayName) {
+    public IndexCategory(String displayName, GuiItem guiItem) {
         this.displayName = displayName;
+        this.guiItem = guiItem;
     }
 
     public static IndexCategory valueOf(String key) {

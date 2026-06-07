@@ -1,4 +1,5 @@
-version: "3" # DO NOT EDIT!
+version: "6" # DO NOT EDIT!
+server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -104,3 +105,20 @@ experimental:
   enable-leveling: false # Enable experimental leveling system (may cause issues)
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
   hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)
+  mythicmobs-items-supplier: false # Register CaveCrawlers Items for MythicMobs (unstable)
+
+database:
+  type: h2 # h2 or mysql
+  host: localhost
+  port: 3306
+  database: cavecrawlers
+  username: root
+  password: ""
+  # How often (in seconds) active player data is flushed to the database.
+  # Lower values reduce the staleness window when players switch servers via BungeeCord/Velocity,
+  # at the cost of more frequent DB writes. Note: quit saves are always synchronous regardless
+  # of this setting.
+  save-interval: 300 # recommended: use 300 for h2 and 30 for mysql
+  # MySQL-only connection options:
+  sslMode: DISABLED                 # MySQL Connector/J sslMode (e.g. DISABLED, REQUIRED, VERIFY_CA, VERIFY_IDENTITY)
+  allow-public-key-retrieval: false # set true only when required for caching_sha2_password without TLS

@@ -13,6 +13,7 @@ import java.util.UUID;
 @Data
 public class PlayerData implements ConfigurationSerializable {
     private Skills skills;
+    private boolean loaded;
 
     public PlayerData() {
         this(new Skills());
@@ -20,6 +21,18 @@ public class PlayerData implements ConfigurationSerializable {
 
     public PlayerData(Skills skills) {
         this.skills = skills;
+    }
+
+    public Skills getSkills() {
+        return skills;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
     }
 
     @NotNull
@@ -43,9 +56,13 @@ public class PlayerData implements ConfigurationSerializable {
             skills = new Skills();
         }
         skills.setUuid(uuid);
+        loaded = true;
     }
 
     public void savePlayer(UUID uuid) {
+        if (!loaded) {
+            return;
+        }
         CustomConfig config = new CustomConfig(getConfigFor(uuid));
         config.set("skills", skills);
         config.save();

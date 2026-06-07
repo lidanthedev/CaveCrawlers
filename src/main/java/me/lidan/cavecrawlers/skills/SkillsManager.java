@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
@@ -27,6 +28,7 @@ import java.util.Map;
 @Getter
 public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI {
     private static final String DIR_NAME = "skills";
+    public static final int SKILL_TYPE_MAX_LENGTH = 64;
     private static SkillsManager instance;
     private final Map<String, CustomConfig> skillConfigs = new HashMap<>();
     private final Map<String, SkillInfo> skillInfoMap = new HashMap<>();
@@ -46,6 +48,10 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     @Override
     public void register(String key, SkillInfo value) {
+        if (key.length() >= SKILL_TYPE_MAX_LENGTH) {
+            log.error("Skill type name is too long: {}", key);
+            return;
+        }
         value.setId(key);
         skillInfoMap.put(key, value);
     }
@@ -124,6 +130,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
         Skills playerSkills = PlayerDataManager.getInstance().getSkills(player);
+        PlayerSkillsManager.getInstance().markPreLoadDirtyIfNotLoaded(player.getUniqueId());
         Skill skill = playerSkills.get(skillType);
         if (skill == null) {
             skill = new Skill(skillType, 0);

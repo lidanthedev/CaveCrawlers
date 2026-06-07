@@ -1,0 +1,47 @@
+SkeletalKnight:
+  drops:
+    - chance: 100.0
+      amountModifier: null
+      type: ITEM
+      value: GOLD_INGOT 1-3
+      announce: null
+      chanceModifier: null
+      ==: me.lidan.cavecrawlers.drops.Drop
+    - chance: 100.0
+      amountModifier: null
+      type: COINS
+      value: 10-50
+      announce: null
+      chanceModifier: null
+      ==: me.lidan.cavecrawlers.drops.Drop
+  entityName: '&aSkeletal Knight'
+  xp: 0
+  ==: me.lidan.cavecrawlers.drops.EntityDrops
+
+SkeletonKing:
+  drops:
+    - chance: 100.0
+      amountModifier: null
+      type: ITEM
+      value: DIAMOND 2-5
+      announce: null
+      chanceModifier: null
+      ==: me.lidan.cavecrawlers.drops.Drop
+    - chance: 10.0
+      amountModifier: null
+      type: ITEM
+      value: SKELETON_KING_SWORD
+      announce: rare_drop_message
+      chanceModifier: null
+      ==: me.lidan.cavecrawlers.drops.Drop
+    - chance: 100.0
+      amountModifier: null
+      type: COINS
+      value: 100-500
+      announce: null
+      chanceModifier: null
+      ==: me.lidan.cavecrawlers.drops.Drop
+  entityName: '&6Skeleton King'
+  xp: 0
+  ==: me.lidan.cavecrawlers.drops.EntityDrops
+version: '1'

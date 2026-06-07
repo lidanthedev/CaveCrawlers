@@ -4,6 +4,7 @@ import lombok.Data;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
@@ -36,6 +37,7 @@ public class Drop implements ConfigurationSerializable {
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final StatsManager statsManager = StatsManager.getInstance();
+    public static final long SAFE_INTEGER_LIMIT = 9007199254740992L; // 2^53
     protected DropType type;
     protected double chance;
     protected String value;
@@ -128,7 +130,7 @@ public class Drop implements ConfigurationSerializable {
         return chance * (1 + magicFind.getValue() / 100);
     }
 
-    private int getNewAmount(Player player, int amount) {
+    private long getNewAmount(Player player, long amount) {
         if (amountModifier == null) {
             return amount;
         }
@@ -146,8 +148,13 @@ public class Drop implements ConfigurationSerializable {
     protected void giveItem(Player player) {
         ItemDropInfo result = getItemDropInfo(value);
         if (result == null) return;
-        int amount = getNewAmount(player, result.range().getRandom());
-        itemsManager.giveItem(player, result.itemInfo(), amount);
+        long amount = getNewAmount(player, result.range().getRandom());
+        // Validate amount is within int bounds and non-negative
+        if (amount < 0 || amount > Integer.MAX_VALUE) {
+            log.warn("Item drop amount {} is out of valid range [0, {}], ignoring", amount, Integer.MAX_VALUE);
+            return;
+        }
+        itemsManager.giveItem(player, result.itemInfo(), (int) amount);
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
             placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount), "name", result.itemInfo().getFormattedName(), "rarity", result.itemInfo().getRarity().toString(), "dropRarity", dropRarity.toString()));
@@ -189,20 +196,25 @@ public class Drop implements ConfigurationSerializable {
 
     protected void giveCoins(Player player) {
         Range range = new Range(value);
-        int amount = range.getRandom();
+        long amount = range.getRandom();
         amount = getNewAmount(player, amount);
-        VaultUtils.giveCoins(player, amount);
+        // Validate amount is within IEEE-754 safe integer limit to avoid precision loss
+        if (Math.abs(amount) > SAFE_INTEGER_LIMIT) {
+            log.warn("Coin amount {} exceeds IEEE-754 safe integer limit ({}), clamping to safe value", amount, SAFE_INTEGER_LIMIT);
+            amount = amount > 0 ? SAFE_INTEGER_LIMIT : -SAFE_INTEGER_LIMIT;
+        }
+        VaultUtils.giveCoins(player, (double) amount);
         if (announce != null) {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
             sendAnnounceMessage(player);
         }
     }
 
-    protected Entity giveMob(@Nullable Player player, Location location) {
+    protected @Nullable Entity giveMob(@Nullable Player player, Location location) {
         try {
             location = location.clone().add(0.5, 0, 0.5);
-            Entity entity = plugin.getMythicBukkit().getAPIHelper().spawnMythicMob(value, location);
-
+            Entity entity = MythicMobsHook.getInstance().spawnMythicMob(value, location);
+            if (entity == null) return null;
             if (announce != null) {
                 placeholders.put("name", entity.getName());
                 sendAnnounceMessage(player);

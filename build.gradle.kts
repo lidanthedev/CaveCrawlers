@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "me.lidan"
-version = project.findProperty("version") ?: "1.1"
+version = project.findProperty("version")?.toString()?.takeUnless { it == "unspecified" } ?: "dev"
 
 repositories {
     mavenCentral()
@@ -38,6 +38,9 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("com.zaxxer:HikariCP:5.1.0")
+    compileOnly("org.jdbi:jdbi3-core:3.45.4")
+    compileOnly("org.jdbi:jdbi3-sqlobject:3.45.4")
     compileOnly("org.jetbrains:annotations:23.0.0")
     implementation("dev.triumphteam:triumph-gui:3.1.13") {
         exclude(group = "com.google.code.gson", module = "gson")
@@ -50,10 +53,10 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly("io.lumine:Mythic-Dist:5.3.5")
+    compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
-    implementation("com.github.cryptomorin:XSeries:13.6.0")
+    implementation("com.github.cryptomorin:XSeries:13.7.0")
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("dev.dejvokep:boosted-yaml-spigot:1.5")
     implementation("com.github.Robotv2:PlaceholderAnnotationLib:v1.1.0")

@@ -77,7 +77,7 @@ public class ItemInfo implements ConfigurationSerializable, Cloneable {
         return rarity.getColor() + name;
     }
 
-    public String getFormattedNameWithAmount(int amount) {
+    public String getFormattedNameWithAmount(long amount) {
         return getFormattedName() + ChatColor.DARK_GRAY + " x" + amount;
     }
 

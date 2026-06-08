@@ -23,7 +23,6 @@ import me.lidan.cavecrawlers.items.abilities.AbilityManager;
 import me.lidan.cavecrawlers.items.abilities.BoomAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.levels.LevelConfigManager;
-import me.lidan.cavecrawlers.levels.LevelInfo;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
@@ -80,7 +79,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.bukkit.Bukkit.getConsoleSender;
 
 @Command({"ct", "cc", "cavecrawlers"})
-@CommandPermission("cavecrawlers.test")
+@CommandPermission("cavecrawlers.admin")
 public class CaveCrawlersMainCommand {
     private static final Logger log = LoggerFactory.getLogger(CaveCrawlersMainCommand.class);
     private final ShopManager shopManager = ShopManager.getInstance();
@@ -92,13 +91,10 @@ public class CaveCrawlersMainCommand {
     private final EntityManager entityManager = EntityManager.getInstance();
     private final AltarManager altarManager = AltarManager.getInstance();
     private final LevelConfigManager levelconfigManager = LevelConfigManager.getInstance();
-    private final CommandHandler handler;
-    private final Map<UUID, LevelInfo> playerLevelInfo = new HashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private CustomConfig config = new CustomConfig("test");
+    private final CustomConfig config = new CustomConfig("test");
 
     public CaveCrawlersMainCommand(CommandHandler handler) {
-        this.handler = handler;
         handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
         handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
         handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {

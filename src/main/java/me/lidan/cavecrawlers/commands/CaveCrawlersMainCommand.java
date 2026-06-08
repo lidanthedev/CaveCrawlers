@@ -145,6 +145,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("help")
+    @CommandPermission("cavecrawlers.admin.help")
     @DefaultFor({"ct", "cc", "cavecrawlers"})
     public void mainHelp(CommandSender sender) {
         sender.sendMessage("");
@@ -156,6 +157,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("help item")
+    @CommandPermission("cavecrawlers.admin.help")
     @DefaultFor({"ct item", "cc item", "cavecrawlers item"})
     public void itemHelp(CommandSender sender) {
         sender.sendMessage("");
@@ -179,6 +181,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("help shop")
+    @CommandPermission("cavecrawlers.admin.help")
     @DefaultFor({"ct shop", "cc shop", "cavecrawlers shop"})
     public void shopHelp(CommandSender sender) {
         sender.sendMessage("");
@@ -190,6 +193,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("help altar")
+    @CommandPermission("cavecrawlers.admin.help")
     @DefaultFor({"ct altar", "cc altar", "cavecrawlers altar"})
     public void altarHelp(CommandSender sender) {
         /*
@@ -211,6 +215,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload items")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadItems(CommandSender sender) {
         ItemsLoader loader = ItemsLoader.getInstance();
         loader.clear();
@@ -219,6 +224,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload shops")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadShops(CommandSender sender) {
         ShopLoader loader = ShopLoader.getInstance();
         loader.clear();
@@ -227,6 +233,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload blocks")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadBlocks(CommandSender sender) {
         BlockLoader loader = BlockLoader.getInstance();
         loader.clear();
@@ -235,6 +242,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload drops")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadDrops(CommandSender sender) {
         DropLoader loader = DropLoader.getInstance();
         loader.clear();
@@ -243,6 +251,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload plugin")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadPlugin(CommandSender sender) {
         if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
             sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
@@ -253,6 +262,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload addons")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadAddons(CommandSender sender) {
         if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
             sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
@@ -268,6 +278,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("reload all")
+    @CommandPermission("cavecrawlers.admin.reload")
     public void reloadAll(CommandSender sender) {
         if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
             sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
@@ -278,6 +289,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("config saveStats")
+    @CommandPermission("cavecrawlers.admin.config")
     public void saveStats(Player sender) {
         config.set("stat", statsManager.getStats(sender));
         sender.sendMessage("set stat to your stats!");
@@ -285,6 +297,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("config saveConfMsg")
+    @CommandPermission("cavecrawlers.admin.config")
     public void saveConfigMessage(Player sender) {
         config.set("conf-msg", new ConfigMessage("error %player_name%", "Cool %player_name%", Sound.BLOCK_ANVIL_DESTROY));
         sender.sendMessage("Saved Config Message!");
@@ -292,27 +305,32 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("config sendConfMsg")
+    @CommandPermission("cavecrawlers.admin.config")
     public void sendConfigMessage(Player sender) {
         ConfigMessage message = (ConfigMessage) config.get("conf-msg");
         message.sendMessage(sender);
     }
 
     @Subcommand("config send")
+    @CommandPermission("cavecrawlers.admin.config")
     public void sendConfig(Player sender, String key) {
         sender.sendMessage("" + config.get(key));
     }
 
     @Subcommand("config save")
+    @CommandPermission("cavecrawlers.admin.config")
     public void saveConfig(CommandSender sender) {
         config.save();
     }
 
     @Subcommand("config reload")
+    @CommandPermission("cavecrawlers.admin.config")
     public void reloadConfig(CommandSender sender) {
         config.load();
     }
 
     @Subcommand("item getID")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemGetID(Player sender) {
         ItemStack hand = sender.getInventory().getItemInMainHand();
         String ID = itemsManager.getIDofItemStack(hand);
@@ -320,6 +338,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item update")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemUpdate(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemStack updateItemStack = itemsManager.updateItemStack(hand);
@@ -327,11 +346,13 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item updateInv")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemUpdateInv(Player sender) {
         itemsManager.updatePlayerInventory(sender);
     }
 
     @Subcommand("item give")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("* @itemID *")
     public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
         ItemInfo itemInfo = itemsManager.getItemByID(id);
@@ -343,12 +364,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item get")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@itemID *")
     public void itemGet(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
         itemGive(sender, sender, id, amount);
     }
 
     @Subcommand("item editBase")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@itemID *")
     public void itemEditBase(Player sender, @Optional @Named("Item ID") String id) {
         if (id == null) {
@@ -366,6 +389,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item import")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@handID *")
     public void itemImport(Player sender, String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -407,6 +431,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item remove-id")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemRemoveID(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.removeTag(hand, ItemsManager.ITEM_ID);
@@ -414,6 +439,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item remove")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@itemID *")
     public void itemRemove(CommandSender sender, @Named("Item ID") String id, @Default("false") boolean confirm) {
         ItemInfo itemInfo = itemsManager.getItemByID(id);
@@ -433,6 +459,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item browse")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemBrowse(Player sender, @Default("") String query) {
         new ItemsGui(sender, query).open();
     }
@@ -448,6 +475,7 @@ public class CaveCrawlersMainCommand {
     // item edit rarity <rarity> - edit held item's rarity
     // item edit baseItem <material> - edit held item's base item
     @Subcommand("item create")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemCreate(Player sender, String id, Material material) {
         id = StringUtils.toScreamingSnakeCase(id);
         if (itemsManager.getItemByID(id) != null) {
@@ -465,6 +493,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item clone")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@itemID *")
     public void itemClone(Player sender, String originId, String id) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
@@ -485,6 +514,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit stat")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditStat(Player sender, StatType stat, double number) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -499,6 +529,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit ability")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@abilityID")
     public void itemEditAbility(Player sender, String abilityId) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -514,6 +545,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit name")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditName(Player sender, String name) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -528,6 +560,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit description")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditDescription(Player sender, @Default("reset") String description) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -546,6 +579,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit type")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditType(Player sender, ItemType type) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -560,6 +594,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit rarity")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditRarity(Player sender, Rarity rarity) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -574,6 +609,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit baseItem")
+    @CommandPermission("cavecrawlers.admin.item")
     public void itemEditBaseItem(Player sender, Material material) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -588,6 +624,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("item edit baseItemToHand")
+    @CommandPermission("cavecrawlers.admin.item")
     @AutoComplete("@itemID")
     public void itemEditBaseItemToHand(Player sender, String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
@@ -609,6 +646,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("lores")
+    @CommandPermission("cavecrawlers.admin.item")
     public void showLore(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
@@ -644,12 +682,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("packet test")
+    @CommandPermission("cavecrawlers.admin.packet")
     public void packetTest(Player player, int stage) {
         PacketManager packetManager = PacketManager.getInstance();
         packetManager.setBlockDestroyStage(player, player.getTargetBlock(null, 10).getLocation(), stage);
     }
 
     @Subcommand("nbt set")
+    @CommandPermission("cavecrawlers.admin.nbt")
     public void nbtSet(Player sender, String key, String value) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemNbt.setString(hand, key, value);
@@ -657,6 +697,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("nbt get")
+    @CommandPermission("cavecrawlers.admin.nbt")
     public void nbtGet(Player sender, String key) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String value = ItemNbt.getString(hand, key);
@@ -664,6 +705,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("nbt send")
+    @CommandPermission("cavecrawlers.admin.nbt")
     public void nbtSend(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
@@ -683,6 +725,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("pixel auction")
+    @CommandPermission("cavecrawlers.admin.pixel")
     public void pixelAuction(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
@@ -723,6 +766,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("pixel reformat")
+    @CommandPermission("cavecrawlers.admin.pixel")
     public void pixelReformat(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemMeta meta = hand.getItemMeta();
@@ -744,27 +788,32 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("coins set")
+    @CommandPermission("cavecrawlers.admin.coins")
     public void coinsSet(CommandSender sender, OfflinePlayer player, double amount) {
         VaultUtils.setCoins(player, amount);
     }
 
     @Subcommand("coins give")
+    @CommandPermission("cavecrawlers.admin.coins")
     public void coinsGive(CommandSender sender, OfflinePlayer player, double amount) {
         VaultUtils.giveCoins(player, amount);
     }
 
     @Subcommand("coins take")
+    @CommandPermission("cavecrawlers.admin.coins")
     public void coinsTake(CommandSender sender, OfflinePlayer player, double amount) {
         VaultUtils.takeCoins(player, amount);
     }
 
     @Subcommand("coins get")
+    @CommandPermission("cavecrawlers.admin.coins")
     public void coinsGet(CommandSender sender, OfflinePlayer player) {
         double coins = VaultUtils.getCoins(player);
         sender.sendMessage(player.getName() + " has " + coins);
     }
 
     @Subcommand("shop open")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId *")
     public void shopOpen(Player sender, String ID) {
         ShopMenu shopMenu = shopManager.getShop(ID);
@@ -772,6 +821,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("playerviewer")
+    @CommandPermission("cavecrawlers.admin.playerviewer")
     public void playerViewerOpen(Player sender, @Optional Player arg) {
         if (arg == null) {
             arg = sender;
@@ -780,6 +830,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop add")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId @itemID @itemID *")
     public void shopAdd(CommandSender sender, String shopId, String resultId, String ingredientId, int amount) {
         shopManager.addItemToShop(shopId, resultId, ingredientId, amount);
@@ -787,6 +838,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop create")
+    @CommandPermission("cavecrawlers.admin.shop")
     public void shopCreate(CommandSender sender, String shopId) {
         if (shopManager.getShop(shopId) != null) {
             sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP ALREADY EXISTS! <gold>you can edit it with /cc shop editor <shop-name>"));
@@ -804,6 +856,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop update")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId * @itemID *")
     public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
@@ -811,6 +864,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand({"shop editor", "shop edit"})
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId *")
     public void shopEditor(Player sender, String shopId) {
         ShopMenu shopMenu = shopManager.getShop(shopId);
@@ -822,6 +876,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop updateCoins")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId *")
     public void shopUpdateCoins(CommandSender sender, String shopId, int slotId, double coins) {
         shopManager.updateShopCoins(shopId, slotId, coins);
@@ -829,6 +884,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop remove-item")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId *")
     public void shopRemoveItem(CommandSender sender, String shopId, int slotId) {
         shopManager.removeShopItem(shopId, slotId);
@@ -836,6 +892,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("shop remove")
+    @CommandPermission("cavecrawlers.admin.shop")
     @AutoComplete("@shopId")
     public void shopRemove(CommandSender sender, String shopId) {
         shopManager.removeShop(shopId);
@@ -843,12 +900,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("mining test")
+    @CommandPermission("cavecrawlers.admin.mining")
     public void miningTest(CommandSender sender, double miningSpeed, int blockStrength) {
         long ticksToBreak = MiningManager.getTicksToBreak(miningSpeed, blockStrength);
         sender.sendMessage("Ticks to break: " + ticksToBreak);
     }
 
     @Subcommand("mining getMat")
+    @CommandPermission("cavecrawlers.admin.mining")
     public void miningGetMat(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         String mat = hand.getType().name();
@@ -860,6 +919,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("mining getTargetMat")
+    @CommandPermission("cavecrawlers.admin.mining")
     public void miningGetTargetMat(Player sender) {
         Block targetBlock = sender.getTargetBlock(null, 10);
         String mat = targetBlock.getType().name();
@@ -871,6 +931,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("mining setHardness")
+    @CommandPermission("cavecrawlers.admin.mining")
     public void miningSetHardness(Player sender, int strength, int power) {
         Block targetBlock = sender.getTargetBlock(null, 10);
         BlockInfo blockInfo = new BlockInfo(strength, power, new ArrayList<>());
@@ -881,11 +942,13 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("sound play")
+    @CommandPermission("cavecrawlers.admin.sound")
     public void soundPlay(Player sender, Sound sound, @Default("1") float volume, @Default("1") float pitch) {
         sender.playSound(sender, sound, volume, pitch);
     }
 
     @Subcommand("data load")
+    @CommandPermission("cavecrawlers.admin.data")
     public void dataLoad(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         PlayerData playerData = dataManager.loadPlayerData(arg.getUniqueId());
@@ -894,6 +957,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("data save")
+    @CommandPermission("cavecrawlers.admin.data")
     public void dataSave(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.savePlayerData(arg.getUniqueId());
@@ -901,6 +965,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("data reset")
+    @CommandPermission("cavecrawlers.admin.data")
     public void dataReset(Player sender, @Default("me") Player arg) {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.resetPlayerData(arg.getUniqueId());
@@ -908,11 +973,13 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("data migrate h2-to-mysql")
+    @CommandPermission("cavecrawlers.admin.data")
     public void dataMigrateH2ToMySQL(CommandSender sender) {
         migrateDb(sender, "h2", "mysql");
     }
 
     @Subcommand("data migrate mysql-to-h2")
+    @CommandPermission("cavecrawlers.admin.data")
     public void dataMigrateMySQLToH2(CommandSender sender) {
         migrateDb(sender, "mysql", "h2");
     }
@@ -957,6 +1024,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("kill target")
+    @CommandPermission("cavecrawlers.admin.kill")
     public void killTarget(Player sender, @Default("1") int amount) {
         // kill the entity the sender is looking at
         for (int i = 0; i < amount; i++) {
@@ -968,6 +1036,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test refAbility")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testRefAbility(Player sender) throws NoSuchFieldException, IllegalAccessException {
         BoomAbility boomAbility = new BoomAbility(100, 100);
         Field baseAbilityDamage = boomAbility.getClass().getDeclaredField("cost");
@@ -977,6 +1046,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test griffinCrash")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testGriffinCrash(Player sender) {
         Location pos1 = new Location(sender.getWorld(), -88, 88, 148);
 
@@ -990,6 +1060,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test line")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testLine(Player sender) {
         Location pos1 = sender.getEyeLocation();
         Location pos2 = pos1.clone().add(pos1.getDirection().multiply(50));
@@ -1000,6 +1071,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test ability")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testAbility(Player sender, String data) throws ParseException {
         ItemAbility ability = abilityManager.getAbilityByID(data);
         if (ability == null) {
@@ -1010,12 +1082,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test perks")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testPerks(Player sender) {
         Map<String, Perk> perks = perksManager.getPerks(sender);
         sender.sendMessage("Perks: " + perks);
     }
 
     @Subcommand("test bossSpawn")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testBossSpawn(Player sender) {
         if (plugin.getMythicBukkit() == null) {
             sender.sendMessage("MythicBukkit not found!");
@@ -1031,6 +1105,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test bossConfig")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testBossConfig(Player sender) {
         List<BossDrop> drops = List.of(new BossDrop("item", 10, "GOLD_INGOT", 100));
         List<Integer> bonusPoints = List.of(1, 2, 3, 4, 5);
@@ -1039,12 +1114,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test mini-messages")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testMiniMessages(Player sender, @Default("<green>Testing Message") String message) {
         Component component = MiniMessageUtils.miniMessage(message);
         sender.sendMessage(component);
     }
 
     @Subcommand("test prompt")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testPrompt(Player sender) {
         CompletableFuture<String> future = PromptManager.getInstance().prompt(sender, "Search");
         future.thenAccept(s -> {
@@ -1062,6 +1139,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test armorset")
+    @CommandPermission("cavecrawlers.admin.test")
     @AutoComplete("@itemID LEATHER|IRON|GOLD|DIAMOND|NETHERITE|CHAINMAIL *")
     public void testArmorSet(Player sender, String originId, String materialType) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
@@ -1100,6 +1178,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test cooldown")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testCooldown(Player sender) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         if (hand.getType() == Material.AIR) {
@@ -1110,6 +1189,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test blockdata")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testBlockData(Player sender) {
         try {
             BoostedCustomConfig document = new BoostedCustomConfig(
@@ -1127,6 +1207,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test createBlockData")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testCreateBlockData(Player sender, String blockDataString) {
         try {
             BlockData blockData = Bukkit.createBlockData(blockDataString);
@@ -1137,6 +1218,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test getface")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testGetFace(Player sender) {
         Block targetBlock = sender.getTargetBlock(null, 10);
         BlockFace face = targetBlock.getFace(sender.getLocation().getBlock());
@@ -1144,6 +1226,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("test getSkull")
+    @CommandPermission("cavecrawlers.admin.test")
     public void testGetSkull(Player sender, EntityType entityHead) {
         ItemStack skull = EntityHeads.fromEntityType(entityHead);
         sender.getInventory().addItem(skull);
@@ -1151,6 +1234,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("mythic skill")
+    @CommandPermission("cavecrawlers.admin.mythic")
     @AutoComplete("@skillID")
     public void mythicSkill(Player sender, String skill) {
         if (plugin.getMythicBukkit() == null) {
@@ -1161,12 +1245,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("mythic addSpawner")
+    @CommandPermission("cavecrawlers.admin.mythic")
     @AutoComplete("@mobID")
     public void mythicAddSpawner(Player sender, String skill) {
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 
     @Subcommand("altar create")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarCreate(Player sender, String altarName) {
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(sender.getInventory().getItemInMainHand());
         if (itemInfo == null) {
@@ -1182,6 +1268,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setSpawnLocation")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarSetSpawnLocation(Player sender, Altar altar) {
         altar.setSpawnLocation(sender.getLocation());
         altarManager.updateAltar(altar.getId(), altar);
@@ -1189,6 +1276,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar addSummonBlock")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarAddSummonBlock(Player sender, Altar altar) {
         Block block = sender.getTargetBlock(null, 10);
         sender.spawnParticle(Particle.FLAME, block.getLocation(), 100, 1, 1, 1, 0);
@@ -1198,6 +1286,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setMaterial")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarSetMaterial(Player sender, Altar altar, Material material) {
         altar.setAltarMaterial(material);
         altarManager.updateAltar(altar.getId(), altar);
@@ -1205,6 +1294,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setUsedMaterial")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarSetUsedMaterial(Player sender, Altar altar, Material material) {
         altar.setAlterUsedMaterial(material);
         altarManager.updateAltar(altar.getId(), altar);
@@ -1212,6 +1302,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setSpawnItem")
+    @CommandPermission("cavecrawlers.admin.altar")
     @AutoComplete("* @itemID")
     public void altarSetSpawnItem(Player sender, Altar altar, String itemId) {
         ItemInfo itemInfo = itemsManager.getItemByID(itemId);
@@ -1221,6 +1312,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setPointsPerItem")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarSetPointsPerItem(Player sender, Altar altar, int points) {
         altar.setPointsPerItem(points);
         altarManager.updateAltar(altar.getId(), altar);
@@ -1228,6 +1320,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setAltarRechargeTime")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarSetAltarRechargeTime(Player sender, Altar altar, int time) {
         altar.setAltarRechargeTime(time);
         altarManager.updateAltar(altar.getId(), altar);
@@ -1235,6 +1328,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar addSpawn")
+    @CommandPermission("cavecrawlers.admin.altar")
     @AutoComplete("* @mobID *")
     public void altarAddSpawn(Player sender, Altar altar, String mob, double chance) {
         altar.getSpawns().add(new AltarDrop(chance, mob));
@@ -1243,6 +1337,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar setSpawn")
+    @CommandPermission("cavecrawlers.admin.altar")
     @AutoComplete("* * @mobID *")
     public void altarSetSpawn(Player sender, Altar altar, int index, String mob, double chance) {
         if (index < 0 || index >= altar.getSpawns().size()) {
@@ -1255,6 +1350,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar info")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarInfo(CommandSender sender, Altar altar) {
         // show the info in a pretty way
         ItemInfo spawnItem = altar.getItemToSpawn();
@@ -1319,6 +1415,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar showLocations")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarLocationsShow(Player sender, Altar altar) {
         sender.sendMessage("Locations are shown visually with fake blocks");
         for (Location altarLocation : altar.getAltarLocations()) {
@@ -1328,12 +1425,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar reset")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarReset(CommandSender sender, Altar altar) {
         altar.resetAltar();
         sender.sendMessage("Reset Altar!");
     }
 
     @Subcommand("altar disable")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarDisable(CommandSender sender, Altar altar) {
         altar.refundAltar();
         altar.disableAltar();
@@ -1341,12 +1440,14 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("altar resetAll")
+    @CommandPermission("cavecrawlers.admin.altar")
     public void altarResetAll(CommandSender sender) {
         altarManager.reset();
         sender.sendMessage("Reset All Altars!");
     }
 
     @Subcommand("level send")
+    @CommandPermission("cavecrawlers.admin.level")
     public void sendLevel(Player sender) {
         String playerId = sender.getUniqueId().toString();
         int level = levelconfigManager.getPlayerLevel(playerId);
@@ -1370,6 +1471,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("level set lvl")
+    @CommandPermission("cavecrawlers.admin.level")
     public void levelSetLevel(Player sender, int level) {
         String playerId = sender.getUniqueId().toString();
         String colorName = levelconfigManager.getLevelColor(level);
@@ -1384,6 +1486,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Subcommand("level set color")
+    @CommandPermission("cavecrawlers.admin.level")
     public void levelSetColor(Player sender, int level, ChatColor color) {
         levelconfigManager.setLevelColor(level, color);
         sender.sendMessage(ChatColor.GREEN + "Level color for level " + level + " has been set to " + color);

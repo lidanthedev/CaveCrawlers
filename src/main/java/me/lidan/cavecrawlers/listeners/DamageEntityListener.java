@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -121,7 +122,10 @@ public class DamageEntityListener implements Listener {
             Entity attacker = event.getDamager();
             if (attacker instanceof Projectile projectile){
                 if (projectile.getShooter() instanceof Mob mob) {
-                    damage = mob.getAttribute(XAttribute.ATTACK_DAMAGE.get()).getValue();
+                    AttributeInstance attackDamageAttribute = mob.getAttribute(XAttribute.ATTACK_DAMAGE.get());
+                    if (attackDamageAttribute != null) {
+                        damage = attackDamageAttribute.getValue();
+                    }
                 }
             }
         }

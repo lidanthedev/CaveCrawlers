@@ -42,6 +42,7 @@ public class StatCommand {
     }
 
     @Subcommand("add")
+    @CommandPermission("cavecrawlers.stats.admin")
     public void add(Player sender, StatType type, double amount, @Default("me") Player arg) {
         Stats stats = statsManager.getStatsAdder(arg);
         stats.get(type).add(amount);
@@ -49,6 +50,7 @@ public class StatCommand {
     }
 
     @Subcommand("set")
+    @CommandPermission("cavecrawlers.stats.admin")
     public void set(Player sender, StatType type, double amount, @Default("me") Player arg) {
         Stats stats = statsManager.getStatsAdder(arg);
         stats.get(type).setValue(amount);
@@ -61,6 +63,7 @@ public class StatCommand {
     }
 
     @Subcommand("apply")
+    @CommandPermission("cavecrawlers.stats.admin")
     public void apply(Player sender, @Default("me") Player arg) {
         statsManager.applyStats(arg);
         sender.sendMessage("Applied stats for player %s!".formatted(arg.getName()));

@@ -10,6 +10,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.MinecraftKey;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
+import me.lidan.cavecrawlers.storage.db.Database;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -43,6 +45,28 @@ public class PacketManager {
 
                 }
         );
+    }
+
+    public void preventClientPacketsDuringPlayerDataLoad() {
+        Database database = Database.getInstance();
+        PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
+
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(
+                CaveCrawlers.getInstance(),
+                ListenerPriority.NORMAL,
+                PacketType.Play.Client.getInstance().values()
+        ) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
+                    return;
+                }
+
+                if (!database.isAvailable() || skillsManager.isLoaded(event.getPlayer().getUniqueId())) return;
+
+                event.setCancelled(true);
+            }
+        });
     }
 
     public void setBlockDestroyStage(Player player, Location location, int stage) {

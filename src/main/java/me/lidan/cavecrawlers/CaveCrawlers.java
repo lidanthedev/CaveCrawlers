@@ -515,6 +515,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new ChatPromptListener());
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
+        PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();
     }
 
     /**

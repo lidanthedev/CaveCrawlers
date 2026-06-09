@@ -16,3 +16,26 @@ libraries:
   - org.jdbi:jdbi3-sqlobject:3.45.4
   - com.h2database:h2:2.2.224
   - com.mysql:mysql-connector-j:8.3.0
+permissions:
+  cavecrawlers.admin:
+    description: Access to CaveCrawlers admin commands.
+    default: op
+    children:
+      cavecrawlers.admin.help: true
+      cavecrawlers.admin.reload: true
+      cavecrawlers.admin.config: true
+      cavecrawlers.admin.item: true
+      cavecrawlers.admin.packet: true
+      cavecrawlers.admin.nbt: true
+      cavecrawlers.admin.pixel: true
+      cavecrawlers.admin.coins: true
+      cavecrawlers.admin.shop: true
+      cavecrawlers.admin.playerviewer: true
+      cavecrawlers.admin.mining: true
+      cavecrawlers.admin.sound: true
+      cavecrawlers.admin.data: true
+      cavecrawlers.admin.kill: true
+      cavecrawlers.admin.test: true
+      cavecrawlers.admin.mythic: true
+      cavecrawlers.admin.altar: true
+      cavecrawlers.admin.level: true

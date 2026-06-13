@@ -1,4 +1,4 @@
-version: "6" # DO NOT EDIT!
+version: "7" # DO NOT EDIT!
 server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
@@ -19,6 +19,7 @@ loot-share:
 mining-blacklisted-worlds: []
 mining:
   hammer-per-block: 5 # hammer lost per block broken
+  persistence-restore: true # restore broken blocks on startup after a crash from disk persistence
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:

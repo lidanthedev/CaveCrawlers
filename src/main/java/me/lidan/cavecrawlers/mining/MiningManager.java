@@ -38,6 +38,7 @@ public class MiningManager implements MiningAPI {
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_FACE = "experimental.hammer-sort-by-face";
     public static final String MINING_HAMMER_PER_BLOCK_KEY = "mining.hammer-per-block";
+    public static final String MINING_PERSISTENCE_RESTORE_KEY = "mining.persistence-restore";
     private static MiningManager instance;
     @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
@@ -188,6 +189,7 @@ public class MiningManager implements MiningAPI {
     }
 
     private void saveBrokenBlocks() {
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
         CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
         int i = 0;
         for (Map.Entry<Block, BlockData> entry : brokenBlocks.entrySet()) {
@@ -205,6 +207,10 @@ public class MiningManager implements MiningAPI {
 
     public void loadBrokenBlocks() {
         File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) {
+            if (file.exists()) file.delete();
+            return;
+        }
         if (!file.exists()) return;
 
         CustomConfig config = new CustomConfig(file);

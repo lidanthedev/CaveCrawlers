@@ -77,6 +77,7 @@ public class PacketManager {
 
     private PacketType[] getSupportedGuardedClientPackets() {
         List<PacketType> candidates = List.of(
+                // movement
                 PacketType.Play.Client.POSITION,
                 PacketType.Play.Client.POSITION_LOOK,
                 PacketType.Play.Client.LOOK,
@@ -84,7 +85,14 @@ public class PacketManager {
                 PacketType.Play.Client.VEHICLE_MOVE,
                 PacketType.Play.Client.STEER_VEHICLE,
                 PacketType.Play.Client.BOAT_MOVE,
-                PacketType.Play.Client.BLOCK_DIG
+                // interactions/combat
+                PacketType.Play.Client.ARM_ANIMATION,
+                PacketType.Play.Client.USE_ENTITY,
+                PacketType.Play.Client.USE_ITEM,
+                PacketType.Play.Client.BLOCK_PLACE,
+                PacketType.Play.Client.BLOCK_DIG,
+                PacketType.Play.Client.ENTITY_ACTION,
+                PacketType.Play.Client.HELD_ITEM_SLOT
         );
 
         List<PacketType> supported = new ArrayList<>();

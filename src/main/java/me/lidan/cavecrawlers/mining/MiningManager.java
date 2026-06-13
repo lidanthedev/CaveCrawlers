@@ -30,6 +30,9 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -238,6 +241,13 @@ public class MiningManager implements MiningAPI {
         config.save();
     }
 
+    public static MiningManager getInstance() {
+        if (instance == null) {
+            instance = new MiningManager();
+        }
+        return instance;
+    }
+
     public void loadBrokenBlocks() {
         File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
         if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) {
@@ -252,6 +262,7 @@ public class MiningManager implements MiningAPI {
             file.delete();
             return;
         }
+        List<PendingBlockEntry> failedEntries = new ArrayList<>();
         for (String key : blocksSection.getKeys(false)) {
             String worldName = config.getString("blocks." + key + ".world");
             int x = config.getInt("blocks." + key + ".x");
@@ -259,19 +270,40 @@ public class MiningManager implements MiningAPI {
             int z = config.getInt("blocks." + key + ".z");
             String dataStr = config.getString("blocks." + key + ".data");
 
-            if (worldName == null) continue;
+            PendingBlockEntry blockEntry = new PendingBlockEntry(worldName, x, y, z, dataStr);
+            if (worldName == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
             World world = Bukkit.getWorld(worldName);
-            if (world == null) continue;
+            if (world == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+            if (y < world.getMinHeight() || y >= world.getMaxHeight()) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+            if (dataStr == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
 
             Block block = world.getBlockAt(x, y, z);
             if (!block.getChunk().isLoaded()) {
                 block.getChunk().load();
             }
-            if (dataStr != null) {
+            try {
                 block.setBlockData(Bukkit.createBlockData(dataStr));
+            } catch (IllegalArgumentException ex) {
+                failedEntries.add(blockEntry);
             }
         }
-        file.delete();
+        if (failedEntries.isEmpty()) {
+            file.delete();
+            return;
+        }
+        rewritePendingBlocksAtomically(file, failedEntries);
     }
 
     public void handleBreak(BlockBreakEvent event) {
@@ -417,10 +449,35 @@ public class MiningManager implements MiningAPI {
         }
     }
 
-    public static MiningManager getInstance() {
-        if (instance == null) {
-            instance = new MiningManager();
+    private void rewritePendingBlocksAtomically(File file, List<PendingBlockEntry> failedEntries) {
+        File tmpFile = new File(file.getParentFile(), file.getName() + ".tmp");
+        CustomConfig failedConfig = new CustomConfig(tmpFile);
+        failedConfig.set("blocks", null);
+        int i = 0;
+        for (PendingBlockEntry entry : failedEntries) {
+            String prefix = "blocks." + i;
+            failedConfig.set(prefix + ".world", entry.worldName());
+            failedConfig.set(prefix + ".x", entry.x());
+            failedConfig.set(prefix + ".y", entry.y());
+            failedConfig.set(prefix + ".z", entry.z());
+            failedConfig.set(prefix + ".data", entry.dataStr());
+            i++;
         }
-        return instance;
+        failedConfig.save();
+
+        try {
+            Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            try {
+                Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                tmpFile.delete();
+            }
+        } catch (Exception e) {
+            tmpFile.delete();
+        }
+    }
+
+    private record PendingBlockEntry(String worldName, int x, int y, int z, String dataStr) {
     }
 }

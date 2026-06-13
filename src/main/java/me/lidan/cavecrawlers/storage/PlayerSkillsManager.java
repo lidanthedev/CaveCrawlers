@@ -29,7 +29,7 @@ public class PlayerSkillsManager {
     private final Set<UUID> loadedPlayers = ConcurrentHashMap.newKeySet();
     private final Set<UUID> scheduledLoads = ConcurrentHashMap.newKeySet();
     private final Set<UUID> pendingLoads = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<UUID, List<SkillRow>> pendingSaves = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, PendingSaveData> pendingSaves = new ConcurrentHashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     @Setter
     @Getter
@@ -114,7 +114,10 @@ public class PlayerSkillsManager {
             }
 
             List<SkillRow> rows = loadRowsFromDb(uuid);
-            pendingSaves.remove(uuid);
+            PendingSaveData pending = pendingSaves.get(uuid);
+            if (pending != null && areRowsEquivalent(rows, pending.rows())) {
+                pendingSaves.remove(uuid, pending);
+            }
             verbose("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
 
             Skills skills = buildSkillsFromRows(uuid, rows);
@@ -253,8 +256,15 @@ public class PlayerSkillsManager {
 
     private SaveRequest createSaveRequest(UUID uuid, boolean releaseLockAfterSave) {
         if (!loadedPlayers.contains(uuid)) {
+            PendingSaveData pending = pendingSaves.get(uuid);
+            if (pending != null) {
+                pendingLoads.add(uuid);
+                scheduledLoads.remove(uuid);
+                verbose("[SAVE-NOW] {} — not loaded and pending save is newer candidate (ts={}), keeping for retry [thread={}]",
+                        uuid, pending.updatedAt(), Thread.currentThread().getName());
+                return null;
+            }
             activeSkills.remove(uuid);
-            pendingSaves.remove(uuid);
             pendingLoads.remove(uuid);
             scheduledLoads.remove(uuid);
             verbose("[SAVE-NOW] {} — not loaded, skipping [thread={}]",
@@ -330,9 +340,9 @@ public class PlayerSkillsManager {
                 writeRows(rows);
             }
         }
-        for (Map.Entry<UUID, List<SkillRow>> entry : pendingSaves.entrySet()) {
-            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().size());
-            writeRows(entry.getValue());
+        for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
+            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().rows().size());
+            writeRows(entry.getValue().rows());
         }
         pendingSaves.clear();
 
@@ -363,8 +373,8 @@ public class PlayerSkillsManager {
         }
 
         List<PendingSaveBatch> pendingSnapshots = new ArrayList<>();
-        for (Map.Entry<UUID, List<SkillRow>> entry : pendingSaves.entrySet()) {
-            pendingSnapshots.add(new PendingSaveBatch(entry.getKey(), new ArrayList<>(entry.getValue())));
+        for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
+            pendingSnapshots.add(new PendingSaveBatch(entry.getKey(), new ArrayList<>(entry.getValue().rows())));
         }
         pendingSaves.keySet().removeAll(pendingSnapshots.stream().map(PendingSaveBatch::uuid).toList());
 
@@ -542,7 +552,19 @@ public class PlayerSkillsManager {
         if (skills == null) {
             return;
         }
-        pendingSaves.put(uuid, buildRows(uuid, skills));
+        pendingSaves.put(uuid, new PendingSaveData(buildRows(uuid, skills), System.currentTimeMillis()));
+    }
+
+    private boolean areRowsEquivalent(List<SkillRow> left, List<SkillRow> right) {
+        return toRowSignature(left).equals(toRowSignature(right));
+    }
+
+    private Map<String, SkillRowSignature> toRowSignature(List<SkillRow> rows) {
+        Map<String, SkillRowSignature> signature = new HashMap<>();
+        for (SkillRow row : rows) {
+            signature.put(row.getType(), new SkillRowSignature(row.getXp(), row.getLevel(), row.getTotalXp()));
+        }
+        return signature;
     }
 
     private record SaveRequest(UUID uuid, Skills liveSkills, Skills snapshotSkills,
@@ -553,6 +575,12 @@ public class PlayerSkillsManager {
     }
 
     private record PendingSaveBatch(UUID uuid, List<SkillRow> rows) {
+    }
+
+    private record PendingSaveData(List<SkillRow> rows, long updatedAt) {
+    }
+
+    private record SkillRowSignature(double xp, int level, double totalXp) {
     }
 
     private void writeRows(List<SkillRow> rows) {

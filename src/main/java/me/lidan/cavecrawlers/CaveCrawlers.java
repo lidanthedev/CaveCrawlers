@@ -160,6 +160,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
+                MiningManager.getInstance().loadBrokenBlocks();
                 delayedDataReady.set(true);
                 runDatabaseReadyWorkIfPossible();
                 StatsManager.getInstance().loadAllPlayers();
@@ -513,6 +514,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new FirstJoinListener(this));
         registerEvent(new AltarListener());
         registerEvent(new ChatPromptListener());
+        registerEvent(new ChunkUnloadListener());
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
         PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();

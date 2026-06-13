@@ -18,24 +18,19 @@ import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class MiningManager implements MiningAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -50,6 +45,7 @@ public class MiningManager implements MiningAPI {
     private final Map<Block, BlockFace> lastBrokenBlockFace = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());
     private final Map<Block, BlockData> brokenBlocks = new HashMap<>();
+    private final Map<Block, Integer> regenTasks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
 
     @Override
@@ -140,19 +136,103 @@ public class MiningManager implements MiningAPI {
     private void handleBlockRegen(Block block, BlockData originBlockData, BlockInfo blockInfo) {
         brokenBlocks.put(block, originBlockData);
         block.setBlockData(blockInfo.getReplacementBlockData());
+        saveBrokenBlocks();
 
-        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            block.setBlockData(originBlockData);
-            brokenBlocks.remove(block);
-        }, 100);
+        int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> restoreBlock(block), 100);
+
+        regenTasks.put(block, taskId);
+    }
+
+    public void restoreBlock(Block block) {
+        BlockData original = brokenBlocks.get(block);
+        if (original == null) return;
+
+        if (!block.getChunk().isLoaded()) {
+            block.getChunk().load();
+        }
+        block.setBlockData(original);
+
+        Integer taskId = regenTasks.remove(block);
+        if (taskId != null) {
+            Bukkit.getScheduler().cancelTask(taskId);
+        }
+        brokenBlocks.remove(block);
+        saveBrokenBlocks();
+    }
+
+    public void restoreBlocksInChunk(Chunk chunk) {
+        List<Block> toRestore = new ArrayList<>();
+        for (Block block : brokenBlocks.keySet()) {
+            if (block.getChunk().equals(chunk)) {
+                toRestore.add(block);
+            }
+        }
+        if (toRestore.isEmpty()) return;
+        for (Block block : toRestore) {
+            restoreBlock(block);
+        }
     }
 
     public void regenBlocks(){
         for (Block block : brokenBlocks.keySet()) {
             BlockData material = brokenBlocks.get(block);
             block.setBlockData(material);
+            Integer taskId = regenTasks.remove(block);
+            if (taskId != null) {
+                Bukkit.getScheduler().cancelTask(taskId);
+            }
         }
         brokenBlocks.clear();
+        regenTasks.clear();
+        saveBrokenBlocks();
+    }
+
+    private void saveBrokenBlocks() {
+        CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
+        int i = 0;
+        for (Map.Entry<Block, BlockData> entry : brokenBlocks.entrySet()) {
+            Block block = entry.getKey();
+            String prefix = "blocks." + i;
+            config.set(prefix + ".world", block.getWorld().getName());
+            config.set(prefix + ".x", block.getX());
+            config.set(prefix + ".y", block.getY());
+            config.set(prefix + ".z", block.getZ());
+            config.set(prefix + ".data", entry.getValue().getAsString());
+            i++;
+        }
+        config.save();
+    }
+
+    public void loadBrokenBlocks() {
+        File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+        if (!file.exists()) return;
+
+        CustomConfig config = new CustomConfig(file);
+        ConfigurationSection blocksSection = config.getConfigurationSection("blocks");
+        if (blocksSection == null) {
+            file.delete();
+            return;
+        }
+        for (String key : blocksSection.getKeys(false)) {
+            String worldName = config.getString("blocks." + key + ".world");
+            int x = config.getInt("blocks." + key + ".x");
+            int y = config.getInt("blocks." + key + ".y");
+            int z = config.getInt("blocks." + key + ".z");
+            String dataStr = config.getString("blocks." + key + ".data");
+
+            if (worldName == null) continue;
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) continue;
+
+            Block block = world.getBlockAt(x, y, z);
+            if (!block.getChunk().isLoaded()) {
+                block.getChunk().load();
+            }
+            if (dataStr != null) {
+                block.setBlockData(Bukkit.createBlockData(dataStr));
+            }
+        }
+        file.delete();
     }
 
     public void handleBreak(BlockBreakEvent event) {

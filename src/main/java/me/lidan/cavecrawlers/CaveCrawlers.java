@@ -134,6 +134,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerCommands();
         registerEvents();
 
+        EntityManager.getInstance().startSweepTask();
+
         loadDelayedData();
 
         long diff = System.currentTimeMillis() - start;
@@ -515,6 +517,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new AltarListener());
         registerEvent(new ChatPromptListener());
         registerEvent(new ChunkUnloadListener());
+        registerEvent(new EntityRemoveListener());
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
         PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();
@@ -586,6 +589,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();
+        EntityManager.getInstance().clear();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && caveCrawlersExpansion != null) {
             caveCrawlersExpansion.unregister();
         }

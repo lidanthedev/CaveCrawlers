@@ -102,11 +102,13 @@ skill-need-xp:
 
 
 experimental:
-  enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
+  enable-cooldown-animation: true # Enable cooldown animation for abilities (may cause issues)
   enable-leveling: false # Enable experimental leveling system (may cause issues)
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
-  hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)
+  hammer-sort-by-face: true # Sort hammer blocks by block face (may cause performance issues)
   mythicmobs-items-supplier: false # Register CaveCrawlers Items for MythicMobs (unstable)
+  safe-load: true # WARNING! This feature prevents the player from doing ANYTHING while loading to act as a safety net for potential wipes by changing the player's data while it loads, DISABLE AT YOUR OWN RISK.
+
 
 database:
   type: h2 # h2 or mysql

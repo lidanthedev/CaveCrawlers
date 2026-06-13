@@ -25,6 +25,7 @@ import java.util.List;
 public class PacketManager {
 
     private static final Logger log = LoggerFactory.getLogger(PacketManager.class);
+    private static final String EXPERIMENTAL_SAFE_LOAD_KEY = "experimental.safe-load";
     private static PacketManager instance;
 
     public static PacketManager getInstance() {
@@ -51,6 +52,10 @@ public class PacketManager {
     }
 
     public void preventClientPacketsDuringPlayerDataLoad() {
+        if (!CaveCrawlers.getInstance().getConfig().getBoolean(EXPERIMENTAL_SAFE_LOAD_KEY, true)) {
+            return;
+        }
+
         Database database = Database.getInstance();
         PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
         PacketType[] guardedPackets = getSupportedGuardedClientPackets();

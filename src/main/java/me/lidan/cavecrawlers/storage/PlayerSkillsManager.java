@@ -329,20 +329,25 @@ public class PlayerSkillsManager {
 
         verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
                 activeSkills.size(), pendingSaves.size(), Thread.currentThread().getName());
+        Set<UUID> activeRowUuids = new HashSet<>();
         for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
             if (!loadedPlayers.contains(entry.getKey())) {
                 continue;
             }
             savePlayerData(entry.getKey());
             List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
+            activeRowUuids.add(entry.getKey());
             if (!rows.isEmpty()) {
                 verbose("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
                 writeRows(rows);
             }
         }
         for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
-            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), entry.getValue().rows().size());
-            writeRows(entry.getValue().rows());
+            List<SkillRow> filteredRows = filterPendingRows(entry.getValue().rows(), activeRowUuids);
+            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), filteredRows.size());
+            if (!filteredRows.isEmpty()) {
+                writeRows(filteredRows);
+            }
         }
         pendingSaves.clear();
 
@@ -365,11 +370,13 @@ public class PlayerSkillsManager {
         }
 
         List<SaveAllSnapshot> activeSnapshots = new ArrayList<>();
+        Set<UUID> activeRowUuids = new HashSet<>();
         for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
             if (!loadedPlayers.contains(entry.getKey())) {
                 continue;
             }
             activeSnapshots.add(new SaveAllSnapshot(entry.getKey(), copySkills(entry.getValue())));
+            activeRowUuids.add(entry.getKey());
         }
 
         List<PendingSaveBatch> pendingSnapshots = new ArrayList<>();
@@ -390,8 +397,11 @@ public class PlayerSkillsManager {
                 }
             }
             for (PendingSaveBatch entry : pendingSnapshots) {
-                verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.uuid(), entry.rows().size());
-                writeRows(entry.rows());
+                List<SkillRow> filteredRows = filterPendingRows(entry.rows(), activeRowUuids);
+                verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.uuid(), filteredRows.size());
+                if (!filteredRows.isEmpty()) {
+                    writeRows(filteredRows);
+                }
             }
 
             String currentServerId = serverId;
@@ -565,6 +575,27 @@ public class PlayerSkillsManager {
             signature.put(row.getType(), new SkillRowSignature(row.getXp(), row.getLevel(), row.getTotalXp()));
         }
         return signature;
+    }
+
+    private List<SkillRow> filterPendingRows(List<SkillRow> rows, Set<UUID> activeRowUuids) {
+        if (rows.isEmpty() || activeRowUuids.isEmpty()) {
+            return rows;
+        }
+
+        List<SkillRow> filtered = new ArrayList<>(rows.size());
+        for (SkillRow row : rows) {
+            UUID rowUuid;
+            try {
+                rowUuid = UUID.fromString(row.getPlayerUuid());
+            } catch (Exception ignored) {
+                filtered.add(row);
+                continue;
+            }
+            if (!activeRowUuids.contains(rowUuid)) {
+                filtered.add(row);
+            }
+        }
+        return filtered;
     }
 
     private record SaveRequest(UUID uuid, Skills liveSkills, Skills snapshotSkills,

@@ -24,6 +24,8 @@ public class Database {
     private final CopyOnWriteArrayList<PlayerDataSqlTable> playerDataTables = new CopyOnWriteArrayList<>();
     @Getter
     private volatile boolean available;
+    @Getter
+    private volatile boolean isInitialized = false; // set to true initialize() is finished even if failed
 
     private Database() {
     }
@@ -167,9 +169,11 @@ public class Database {
                     "CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)"
             ));
             available = true;
+            isInitialized = true;
             return true;
         } catch (Exception e) {
             log.warn("Database initialization failed: {}", e.getMessage());
+            isInitialized = true;
             shutdown();
             return false;
         }

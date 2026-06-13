@@ -565,7 +565,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     public boolean isLoginAllowed() {
-        return delayedDataReady.get() && legacyYamlMigrationComplete.get();
+        Database database = Database.getInstance();
+        return (database.isInitialized() && !database.isAvailable()) || (delayedDataReady.get() && legacyYamlMigrationComplete.get());
     }
 
     public void markLegacyYamlMigrationComplete() {

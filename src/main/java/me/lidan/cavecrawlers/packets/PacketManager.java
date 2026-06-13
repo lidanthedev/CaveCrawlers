@@ -19,6 +19,9 @@ import org.bukkit.entity.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PacketManager {
 
     private static final Logger log = LoggerFactory.getLogger(PacketManager.class);
@@ -50,23 +53,47 @@ public class PacketManager {
     public void preventClientPacketsDuringPlayerDataLoad() {
         Database database = Database.getInstance();
         PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
+        PacketType[] guardedPackets = getSupportedGuardedClientPackets();
+        if (guardedPackets.length == 0) {
+            log.warn("No supported movement/block-dig client packet types found; load guard listener not registered.");
+            return;
+        }
 
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(
                 CaveCrawlers.getInstance(),
                 ListenerPriority.NORMAL,
-                PacketType.Play.Client.getInstance().values()
+                guardedPackets
         ) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
+                if (!database.isAvailable() || skillsManager.isLoaded(event.getPlayer().getUniqueId())) {
                     return;
                 }
-
-                if (!database.isAvailable() || skillsManager.isLoaded(event.getPlayer().getUniqueId())) return;
 
                 event.setCancelled(true);
             }
         });
+    }
+
+    private PacketType[] getSupportedGuardedClientPackets() {
+        List<PacketType> candidates = List.of(
+                PacketType.Play.Client.POSITION,
+                PacketType.Play.Client.POSITION_LOOK,
+                PacketType.Play.Client.LOOK,
+                PacketType.Play.Client.GROUND,
+                PacketType.Play.Client.VEHICLE_MOVE,
+                PacketType.Play.Client.STEER_VEHICLE,
+                PacketType.Play.Client.BOAT_MOVE,
+                PacketType.Play.Client.BLOCK_DIG
+        );
+
+        List<PacketType> supported = new ArrayList<>();
+        for (PacketType packetType : candidates) {
+            if (packetType.isSupported()) {
+                supported.add(packetType);
+            }
+        }
+        return supported.toArray(PacketType[]::new);
     }
 
     public void setBlockDestroyStage(Player player, Location location, int stage) {

@@ -7,7 +7,6 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
-import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
@@ -130,7 +129,6 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
         Skills playerSkills = PlayerDataManager.getInstance().getSkills(player);
-        PlayerSkillsManager.getInstance().markPreLoadDirtyIfNotLoaded(player.getUniqueId());
         Skill skill = playerSkills.get(skillType);
         if (skill == null) {
             skill = new Skill(skillType, 0);

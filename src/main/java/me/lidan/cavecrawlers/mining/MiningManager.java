@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MiningManager implements MiningAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -45,9 +47,12 @@ public class MiningManager implements MiningAPI {
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final Map<Block, BlockFace> lastBrokenBlockFace = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());
-    private final Map<Block, BlockData> brokenBlocks = new HashMap<>();
+    private static final long BROKEN_BLOCKS_FLUSH_DEBOUNCE_TICKS = 20L;
     private final Map<Block, Integer> regenTasks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
+    private final Map<Block, BlockData> brokenBlocks = new ConcurrentHashMap<>();
+    private final AtomicBoolean brokenBlocksDirty = new AtomicBoolean(false);
+    private final AtomicBoolean brokenBlocksFlushScheduled = new AtomicBoolean(false);
 
     @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
@@ -137,7 +142,7 @@ public class MiningManager implements MiningAPI {
     private void handleBlockRegen(Block block, BlockData originBlockData, BlockInfo blockInfo) {
         brokenBlocks.put(block, originBlockData);
         block.setBlockData(blockInfo.getReplacementBlockData());
-        saveBrokenBlocks();
+        markDirtyBrokenBlocks();
 
         int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> restoreBlock(block), 100);
 
@@ -158,7 +163,7 @@ public class MiningManager implements MiningAPI {
             Bukkit.getScheduler().cancelTask(taskId);
         }
         brokenBlocks.remove(block);
-        saveBrokenBlocks();
+        markDirtyBrokenBlocks();
     }
 
     public void restoreBlocksInChunk(Chunk chunk) {
@@ -185,14 +190,42 @@ public class MiningManager implements MiningAPI {
         }
         brokenBlocks.clear();
         regenTasks.clear();
-        saveBrokenBlocks();
+        markDirtyBrokenBlocks();
     }
 
-    private void saveBrokenBlocks() {
+    private void markDirtyBrokenBlocks() {
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
+        brokenBlocksDirty.set(true);
+        scheduleBrokenBlocksFlush();
+    }
+
+    private void scheduleBrokenBlocksFlush() {
+        if (!brokenBlocksFlushScheduled.compareAndSet(false, true)) {
+            return;
+        }
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::flushBrokenBlocksAsync, BROKEN_BLOCKS_FLUSH_DEBOUNCE_TICKS);
+    }
+
+    private void flushBrokenBlocksAsync() {
+        try {
+            if (!brokenBlocksDirty.getAndSet(false)) {
+                return;
+            }
+            writeBrokenBlocksSnapshot(new HashMap<>(brokenBlocks));
+        } finally {
+            brokenBlocksFlushScheduled.set(false);
+            if (brokenBlocksDirty.get()) {
+                scheduleBrokenBlocksFlush();
+            }
+        }
+    }
+
+    private void writeBrokenBlocksSnapshot(Map<Block, BlockData> snapshot) {
         if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
         CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
+        config.set("blocks", null);
         int i = 0;
-        for (Map.Entry<Block, BlockData> entry : brokenBlocks.entrySet()) {
+        for (Map.Entry<Block, BlockData> entry : snapshot.entrySet()) {
             Block block = entry.getKey();
             String prefix = "blocks." + i;
             config.set(prefix + ".world", block.getWorld().getName());

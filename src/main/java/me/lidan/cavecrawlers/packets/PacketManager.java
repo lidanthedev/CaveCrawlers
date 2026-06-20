@@ -52,7 +52,7 @@ public class PacketManager {
     }
 
     public void preventClientPacketsDuringPlayerDataLoad() {
-        if (!CaveCrawlers.getInstance().getConfig().getBoolean(EXPERIMENTAL_SAFE_LOAD_KEY, true)) {
+        if (!CaveCrawlers.getInstance().getConfig().getBoolean(EXPERIMENTAL_SAFE_LOAD_KEY, false)) {
             return;
         }
 

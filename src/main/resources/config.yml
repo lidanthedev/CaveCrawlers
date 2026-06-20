@@ -107,7 +107,7 @@ experimental:
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
   hammer-sort-by-face: true # Sort hammer blocks by block face (may cause performance issues)
   mythicmobs-items-supplier: false # Register CaveCrawlers Items for MythicMobs (unstable)
-  safe-load: true # WARNING! This feature prevents the player from doing ANYTHING while loading to act as a safety net for potential wipes by changing the player's data while it loads, DISABLE AT YOUR OWN RISK.
+  safe-load: false # Prevents Players from moving, breaking blocks, or interacting with entities during data loading (may cause issues with anti-cheat plugins)
 
 
 database:

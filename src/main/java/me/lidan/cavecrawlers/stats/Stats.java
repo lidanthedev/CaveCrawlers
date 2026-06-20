@@ -7,6 +7,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -15,7 +16,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     private Map<StatType, Stat> stats;
 
     public Stats(List<Stat> statList) {
-        this.stats = new HashMap<>();
+        this.stats = new ConcurrentHashMap<>();
         for (Stat stat : statList) {
             this.stats.put(stat.getType(), stat);
         }
@@ -142,7 +143,7 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     @NotNull
     @Override
     public Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new ConcurrentHashMap<>();
         for (StatType statType : stats.keySet()) {
             map.put(statType.name(), get(statType).getValue());
         }

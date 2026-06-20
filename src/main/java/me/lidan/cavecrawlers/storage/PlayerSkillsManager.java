@@ -37,12 +37,20 @@ public class PlayerSkillsManager {
             LOADING_SUBTITLE,
             Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofMillis(250))
     );
+    private static final Component LOADED_TITLE = MiniMessageUtils.miniMessage("<green><bold>Data loaded");
+    private static final Component LOADED_SUBTITLE = MiniMessageUtils.miniMessage("<gray>You can continue playing.");
+    private static final Title LOADED_TITLE_TEMPLATE = Title.title(
+            LOADED_TITLE,
+            LOADED_SUBTITLE,
+            Title.Times.times(Duration.ZERO, Duration.ofMillis(1200), Duration.ofMillis(200))
+    );
     private static PlayerSkillsManager instance;
     private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
     private final Set<UUID> loadedPlayers = ConcurrentHashMap.newKeySet();
     private final Set<UUID> scheduledLoads = ConcurrentHashMap.newKeySet();
     private final Set<UUID> pendingLoads = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<UUID, BukkitTask> loadingTitleTasks = new ConcurrentHashMap<>();
+    private final Set<UUID> loadingTitleShown = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<UUID, PendingSaveData> pendingSaves = new ConcurrentHashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     @Setter
@@ -136,6 +144,7 @@ public class PlayerSkillsManager {
             if (onlinePlayer == null || loadedPlayers.contains(uuid)) {
                 return;
             }
+            loadingTitleShown.add(uuid);
             onlinePlayer.showTitle(LOADING_TITLE_TEMPLATE);
         }, LOADING_TITLE_DELAY_TICKS);
 
@@ -145,11 +154,27 @@ public class PlayerSkillsManager {
         }
     }
 
-    private void cancelLoadingTitle(UUID uuid) {
+    private void cancelLoadingTitleTask(UUID uuid) {
         BukkitTask task = loadingTitleTasks.remove(uuid);
         if (task != null) {
             task.cancel();
         }
+    }
+
+    private void clearLoadingTitleState(UUID uuid) {
+        cancelLoadingTitleTask(uuid);
+        loadingTitleShown.remove(uuid);
+    }
+
+    private void showLoadedTitleIfNeeded(UUID uuid) {
+        if (!loadingTitleShown.remove(uuid)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            return;
+        }
+        player.showTitle(LOADED_TITLE_TEMPLATE);
     }
 
     private void loadPlayerFromDatabase(UUID uuid) {
@@ -176,8 +201,9 @@ public class PlayerSkillsManager {
             activeSkills.put(uuid, skills);
             loadedPlayers.add(uuid);
             pendingLoads.remove(uuid);
-            cancelLoadingTitle(uuid);
+            cancelLoadingTitleTask(uuid);
             loadPlayerData(uuid);
+            showLoadedTitleIfNeeded(uuid);
 
             if (Bukkit.getPlayer(uuid) == null) {
                 verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
@@ -496,7 +522,7 @@ public class PlayerSkillsManager {
         scheduledLoads.remove(uuid);
         pendingLoads.remove(uuid);
         pendingSaves.remove(uuid);
-        cancelLoadingTitle(uuid);
+        clearLoadingTitleState(uuid);
     }
 
     public void resetPlayerData(UUID uuid) {
@@ -508,7 +534,7 @@ public class PlayerSkillsManager {
         scheduledLoads.remove(uuid);
         pendingLoads.remove(uuid);
         pendingSaves.remove(uuid);
-        cancelLoadingTitle(uuid);
+        clearLoadingTitleState(uuid);
 
         if (isPersistenceAvailable()) {
             String uuidStr = uuid.toString();
@@ -525,7 +551,7 @@ public class PlayerSkillsManager {
         scheduledLoads.remove(uuid);
         pendingLoads.remove(uuid);
         pendingSaves.remove(uuid);
-        cancelLoadingTitle(uuid);
+        clearLoadingTitleState(uuid);
     }
 
     public boolean isLoaded(UUID uuid) {

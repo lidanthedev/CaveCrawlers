@@ -7,6 +7,8 @@ import me.lidan.cavecrawlers.api.SkillsAPI;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.storage.PlayerDataManager;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
+import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
@@ -96,6 +98,9 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     @Override
     public void tryGiveXp(SkillAction reason, String material, Player player) {
+        if (!canAwardSkillXp(player)) {
+            return;
+        }
         Skills skills = PlayerDataManager.getInstance().getSkills(player);
         for (Skill skill : skills) {
             SkillInfo skillType = skill.getType();
@@ -128,6 +133,9 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
     }
 
     public void giveXp(Player player, SkillInfo skillType, double xp, boolean showMessage) {
+        if (!canAwardSkillXp(player)) {
+            return;
+        }
         Skills playerSkills = PlayerDataManager.getInstance().getSkills(player);
         Skill skill = playerSkills.get(skillType);
         if (skill == null) {
@@ -147,6 +155,11 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
             ActionBarManager.getInstance().showActionBar(player, component);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
         }
+    }
+
+    private boolean canAwardSkillXp(Player player) {
+        PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
+        return Database.getInstance().isAvailable() && skillsManager.isLoaded(player.getUniqueId());
     }
 
     public BoostedCustomConfig getConfig(SkillInfo type) {

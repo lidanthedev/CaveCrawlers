@@ -677,6 +677,7 @@ public class CaveCrawlersMainCommand {
     }
 
     @Command("lores")
+    @CommandPermission("cavecrawlers.admin.item")
     public void loresCommand(Player sender) {
         showLore(sender);
     }

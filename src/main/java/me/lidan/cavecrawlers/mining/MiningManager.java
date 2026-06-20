@@ -30,6 +30,7 @@ import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -199,6 +200,10 @@ public class MiningManager implements MiningAPI {
     private void markDirtyBrokenBlocks() {
         if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
         brokenBlocksDirty.set(true);
+        if (!plugin.isEnabled()) {
+            flushBrokenBlocksNow();
+            return;
+        }
         scheduleBrokenBlocksFlush();
     }
 
@@ -207,6 +212,17 @@ public class MiningManager implements MiningAPI {
             return;
         }
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::flushBrokenBlocksAsync, BROKEN_BLOCKS_FLUSH_DEBOUNCE_TICKS);
+    }
+
+    private void flushBrokenBlocksNow() {
+        try {
+            if (!brokenBlocksDirty.getAndSet(false)) {
+                return;
+            }
+            writeBrokenBlocksSnapshot(new HashMap<>(brokenBlocks));
+        } finally {
+            brokenBlocksFlushScheduled.set(false);
+        }
     }
 
     private void flushBrokenBlocksAsync() {
@@ -218,13 +234,27 @@ public class MiningManager implements MiningAPI {
         } finally {
             brokenBlocksFlushScheduled.set(false);
             if (brokenBlocksDirty.get()) {
-                scheduleBrokenBlocksFlush();
+                if (plugin.isEnabled()) {
+                    scheduleBrokenBlocksFlush();
+                } else {
+                    flushBrokenBlocksNow();
+                }
             }
         }
     }
 
     private void writeBrokenBlocksSnapshot(Map<Block, BlockData> snapshot) {
         if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
+        File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+        if (snapshot.isEmpty()) {
+            try {
+                Files.deleteIfExists(file.toPath());
+            } catch (IOException e) {
+                System.out.println("Couldn't delete file " + file.getName());
+                e.printStackTrace();
+            }
+            return;
+        }
         CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
         config.set("blocks", null);
         int i = 0;

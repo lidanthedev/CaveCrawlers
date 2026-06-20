@@ -43,8 +43,6 @@ permissions:
   cavecrawlers.stats:
     description: Access to stats commands.
     default: op
-    children:
-      cavecrawlers.stats.admin: true
   cavecrawlers.stats.admin:
     description: Access to stats admin commands.
     default: op

@@ -57,7 +57,6 @@ public class EntityManager implements EntityAPI {
         EntityData entityData = entityDataMap.get(entity.getUniqueId());
         if (entityData != null) {
             entityData.onDeath(event);
-            entityDataMap.remove(entity.getUniqueId());
         }
     }
 

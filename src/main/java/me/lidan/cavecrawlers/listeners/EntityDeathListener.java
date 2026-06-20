@@ -13,12 +13,13 @@ public class EntityDeathListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onEntityDeath(EntityDeathEvent event) {
-        entityManager.onDeath(event);
         LivingEntity entity = event.getEntity();
         EntityDamageEvent lastDamageCause = entity.getLastDamageCause();
         if (entity.getKiller() != null && lastDamageCause != null && lastDamageCause.getCause() != EntityDamageEvent.DamageCause.VOID){
+            entityManager.onDeath(event);
             event.setDroppedExp(0);
             event.getDrops().clear();
         }
+        entityManager.onEntityRemove(entity);
     }
 }

@@ -37,6 +37,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class MiningManager implements MiningAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -57,6 +58,7 @@ public class MiningManager implements MiningAPI {
     private final Map<Block, BlockData> brokenBlocks = new ConcurrentHashMap<>();
     private final AtomicBoolean brokenBlocksDirty = new AtomicBoolean(false);
     private final AtomicBoolean brokenBlocksFlushScheduled = new AtomicBoolean(false);
+    private final ReentrantLock brokenBlocksWriteLock = new ReentrantLock();
 
     @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
@@ -245,30 +247,35 @@ public class MiningManager implements MiningAPI {
 
     private void writeBrokenBlocksSnapshot(Map<Block, BlockData> snapshot) {
         if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
-        File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
-        if (snapshot.isEmpty()) {
-            try {
-                Files.deleteIfExists(file.toPath());
-            } catch (IOException e) {
-                System.out.println("Couldn't delete file " + file.getName());
-                e.printStackTrace();
+        brokenBlocksWriteLock.lock();
+        try {
+            File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+            if (snapshot.isEmpty()) {
+                try {
+                    Files.deleteIfExists(file.toPath());
+                } catch (IOException e) {
+                    System.out.println("Couldn't delete file " + file.getName());
+                    e.printStackTrace();
+                }
+                return;
             }
-            return;
+            CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
+            config.set("blocks", null);
+            int i = 0;
+            for (Map.Entry<Block, BlockData> entry : snapshot.entrySet()) {
+                Block block = entry.getKey();
+                String prefix = "blocks." + i;
+                config.set(prefix + ".world", block.getWorld().getName());
+                config.set(prefix + ".x", block.getX());
+                config.set(prefix + ".y", block.getY());
+                config.set(prefix + ".z", block.getZ());
+                config.set(prefix + ".data", entry.getValue().getAsString());
+                i++;
+            }
+            config.save();
+        } finally {
+            brokenBlocksWriteLock.unlock();
         }
-        CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
-        config.set("blocks", null);
-        int i = 0;
-        for (Map.Entry<Block, BlockData> entry : snapshot.entrySet()) {
-            Block block = entry.getKey();
-            String prefix = "blocks." + i;
-            config.set(prefix + ".world", block.getWorld().getName());
-            config.set(prefix + ".x", block.getX());
-            config.set(prefix + ".y", block.getY());
-            config.set(prefix + ".z", block.getZ());
-            config.set(prefix + ".data", entry.getValue().getAsString());
-            i++;
-        }
-        config.save();
     }
 
     public static MiningManager getInstance() {

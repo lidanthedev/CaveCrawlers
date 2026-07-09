@@ -1,4 +1,4 @@
-version: "6" # DO NOT EDIT!
+version: "7" # DO NOT EDIT!
 server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
@@ -19,6 +19,7 @@ loot-share:
 mining-blacklisted-worlds: []
 mining:
   hammer-per-block: 5 # hammer lost per block broken
+  persistence-restore: true # restore broken blocks on startup after a crash from disk persistence
 actionbar:
   # The actionbar is the text that appears at the bottom of the screen.
   # You can use the following placeholders:
@@ -101,11 +102,13 @@ skill-need-xp:
 
 
 experimental:
-  enable-cooldown-animation: false # Enable cooldown animation for abilities (may cause issues)
+  enable-cooldown-animation: true # Enable cooldown animation for abilities (may cause issues)
   enable-leveling: false # Enable experimental leveling system (may cause issues)
   hammer-sort-by-distance: false # Sort hammer blocks by distance (may cause performance issues)
-  hammer-sort-by-face: false # Sort hammer blocks by block face (may cause performance issues)
+  hammer-sort-by-face: true # Sort hammer blocks by block face (may cause performance issues)
   mythicmobs-items-supplier: false # Register CaveCrawlers Items for MythicMobs (unstable)
+  safe-load: false # Prevents Players from moving, breaking blocks, or interacting with entities during data loading (may cause issues with anti-cheat plugins)
+
 
 database:
   type: h2 # h2 or mysql

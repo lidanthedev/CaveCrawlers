@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.entities;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.EntityAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -56,8 +57,26 @@ public class EntityManager implements EntityAPI {
         EntityData entityData = entityDataMap.get(entity.getUniqueId());
         if (entityData != null) {
             entityData.onDeath(event);
-            entityDataMap.remove(entity.getUniqueId());
         }
+    }
+
+    public void onEntityRemove(Entity entity) {
+        entityDataMap.remove(entity.getUniqueId());
+    }
+
+    public void sweep() {
+        entityDataMap.entrySet().removeIf(entry -> {
+            EntityData data = entry.getValue();
+            return data.entity == null || data.entity.isDead() || !data.entity.isValid();
+        });
+    }
+
+    public void clear() {
+        entityDataMap.clear();
+    }
+
+    public void startSweepTask() {
+        Bukkit.getScheduler().runTaskTimer(plugin, this::sweep, 20L * 60 * 5, 20L * 60 * 5);
     }
 
     public static EntityManager getInstance() {

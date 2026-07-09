@@ -18,24 +18,25 @@ import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MiningManager implements MiningAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -43,14 +44,19 @@ public class MiningManager implements MiningAPI {
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_DISTANCE = "experimental.hammer-sort-by-distance";
     public static final String EXPERIMENTAL_HAMMER_SORT_BY_FACE = "experimental.hammer-sort-by-face";
     public static final String MINING_HAMMER_PER_BLOCK_KEY = "mining.hammer-per-block";
+    public static final String MINING_PERSISTENCE_RESTORE_KEY = "mining.persistence-restore";
     private static MiningManager instance;
     @Getter
     private final Map<Material, BlockInfo> blockInfoMap = new HashMap<>();
     private final Map<UUID, MiningRunnable> progressMap = new HashMap<>();
     private final Map<Block, BlockFace> lastBrokenBlockFace = new HashMap<>();
     private final BlockInfo UNBREAKABLE_BLOCK = new BlockInfo(100000000, 10000, List.of());
-    private final Map<Block, BlockData> brokenBlocks = new HashMap<>();
+    private static final long BROKEN_BLOCKS_FLUSH_DEBOUNCE_TICKS = 20L;
+    private final Map<Block, Integer> regenTasks = new HashMap<>();
     private final Cooldown<UUID> hammerCooldown = new Cooldown<>(HAMMER_COOLDOWN);
+    private final Map<Block, BlockData> brokenBlocks = new ConcurrentHashMap<>();
+    private final AtomicBoolean brokenBlocksDirty = new AtomicBoolean(false);
+    private final AtomicBoolean brokenBlocksFlushScheduled = new AtomicBoolean(false);
 
     @Override
     public void registerBlock(Material block, BlockInfo blockInfo){
@@ -140,19 +146,194 @@ public class MiningManager implements MiningAPI {
     private void handleBlockRegen(Block block, BlockData originBlockData, BlockInfo blockInfo) {
         brokenBlocks.put(block, originBlockData);
         block.setBlockData(blockInfo.getReplacementBlockData());
+        markDirtyBrokenBlocks();
 
-        Bukkit.getScheduler().runTaskLater(plugin, bukkitTask -> {
-            block.setBlockData(originBlockData);
-            brokenBlocks.remove(block);
-        }, 100);
+        int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> restoreBlock(block), 100);
+
+        regenTasks.put(block, taskId);
+    }
+
+    public void restoreBlock(Block block) {
+        BlockData original = brokenBlocks.get(block);
+        if (original == null) return;
+
+        if (!block.getChunk().isLoaded()) {
+            block.getChunk().load();
+        }
+        block.setBlockData(original);
+
+        Integer taskId = regenTasks.remove(block);
+        if (taskId != null) {
+            Bukkit.getScheduler().cancelTask(taskId);
+        }
+        brokenBlocks.remove(block);
+        markDirtyBrokenBlocks();
+    }
+
+    public void restoreBlocksInChunk(Chunk chunk) {
+        List<Block> toRestore = new ArrayList<>();
+        for (Block block : brokenBlocks.keySet()) {
+            if (block.getChunk().equals(chunk)) {
+                toRestore.add(block);
+            }
+        }
+        if (toRestore.isEmpty()) return;
+        for (Block block : toRestore) {
+            restoreBlock(block);
+        }
     }
 
     public void regenBlocks(){
         for (Block block : brokenBlocks.keySet()) {
             BlockData material = brokenBlocks.get(block);
             block.setBlockData(material);
+            Integer taskId = regenTasks.remove(block);
+            if (taskId != null) {
+                Bukkit.getScheduler().cancelTask(taskId);
+            }
         }
         brokenBlocks.clear();
+        regenTasks.clear();
+        markDirtyBrokenBlocks();
+    }
+
+    private void markDirtyBrokenBlocks() {
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
+        brokenBlocksDirty.set(true);
+        if (!plugin.isEnabled()) {
+            flushBrokenBlocksNow();
+            return;
+        }
+        scheduleBrokenBlocksFlush();
+    }
+
+    private void scheduleBrokenBlocksFlush() {
+        if (!brokenBlocksFlushScheduled.compareAndSet(false, true)) {
+            return;
+        }
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::flushBrokenBlocksAsync, BROKEN_BLOCKS_FLUSH_DEBOUNCE_TICKS);
+    }
+
+    private void flushBrokenBlocksNow() {
+        try {
+            if (!brokenBlocksDirty.getAndSet(false)) {
+                return;
+            }
+            writeBrokenBlocksSnapshot(new HashMap<>(brokenBlocks));
+        } finally {
+            brokenBlocksFlushScheduled.set(false);
+        }
+    }
+
+    private void flushBrokenBlocksAsync() {
+        try {
+            if (!brokenBlocksDirty.getAndSet(false)) {
+                return;
+            }
+            writeBrokenBlocksSnapshot(new HashMap<>(brokenBlocks));
+        } finally {
+            brokenBlocksFlushScheduled.set(false);
+            if (brokenBlocksDirty.get()) {
+                if (plugin.isEnabled()) {
+                    scheduleBrokenBlocksFlush();
+                } else {
+                    flushBrokenBlocksNow();
+                }
+            }
+        }
+    }
+
+    private void writeBrokenBlocksSnapshot(Map<Block, BlockData> snapshot) {
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) return;
+        File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+        if (snapshot.isEmpty()) {
+            try {
+                Files.deleteIfExists(file.toPath());
+            } catch (IOException e) {
+                System.out.println("Couldn't delete file " + file.getName());
+                e.printStackTrace();
+            }
+            return;
+        }
+        CustomConfig config = new CustomConfig(new File(plugin.getDataFolder(), "pending-blocks.yml"));
+        config.set("blocks", null);
+        int i = 0;
+        for (Map.Entry<Block, BlockData> entry : snapshot.entrySet()) {
+            Block block = entry.getKey();
+            String prefix = "blocks." + i;
+            config.set(prefix + ".world", block.getWorld().getName());
+            config.set(prefix + ".x", block.getX());
+            config.set(prefix + ".y", block.getY());
+            config.set(prefix + ".z", block.getZ());
+            config.set(prefix + ".data", entry.getValue().getAsString());
+            i++;
+        }
+        config.save();
+    }
+
+    public static MiningManager getInstance() {
+        if (instance == null) {
+            instance = new MiningManager();
+        }
+        return instance;
+    }
+
+    public void loadBrokenBlocks() {
+        File file = new File(plugin.getDataFolder(), "pending-blocks.yml");
+        if (!plugin.getConfig().getBoolean(MINING_PERSISTENCE_RESTORE_KEY, true)) {
+            if (file.exists()) file.delete();
+            return;
+        }
+        if (!file.exists()) return;
+
+        CustomConfig config = new CustomConfig(file);
+        ConfigurationSection blocksSection = config.getConfigurationSection("blocks");
+        if (blocksSection == null) {
+            file.delete();
+            return;
+        }
+        List<PendingBlockEntry> failedEntries = new ArrayList<>();
+        for (String key : blocksSection.getKeys(false)) {
+            String worldName = config.getString("blocks." + key + ".world");
+            int x = config.getInt("blocks." + key + ".x");
+            int y = config.getInt("blocks." + key + ".y");
+            int z = config.getInt("blocks." + key + ".z");
+            String dataStr = config.getString("blocks." + key + ".data");
+
+            PendingBlockEntry blockEntry = new PendingBlockEntry(worldName, x, y, z, dataStr);
+            if (worldName == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+            if (y < world.getMinHeight() || y >= world.getMaxHeight()) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+            if (dataStr == null) {
+                failedEntries.add(blockEntry);
+                continue;
+            }
+
+            Block block = world.getBlockAt(x, y, z);
+            if (!block.getChunk().isLoaded()) {
+                block.getChunk().load();
+            }
+            try {
+                block.setBlockData(Bukkit.createBlockData(dataStr));
+            } catch (IllegalArgumentException ex) {
+                failedEntries.add(blockEntry);
+            }
+        }
+        if (failedEntries.isEmpty()) {
+            file.delete();
+            return;
+        }
+        rewritePendingBlocksAtomically(file, failedEntries);
     }
 
     public void handleBreak(BlockBreakEvent event) {
@@ -298,10 +479,35 @@ public class MiningManager implements MiningAPI {
         }
     }
 
-    public static MiningManager getInstance() {
-        if (instance == null) {
-            instance = new MiningManager();
+    private void rewritePendingBlocksAtomically(File file, List<PendingBlockEntry> failedEntries) {
+        File tmpFile = new File(file.getParentFile(), file.getName() + ".tmp");
+        CustomConfig failedConfig = new CustomConfig(tmpFile);
+        failedConfig.set("blocks", null);
+        int i = 0;
+        for (PendingBlockEntry entry : failedEntries) {
+            String prefix = "blocks." + i;
+            failedConfig.set(prefix + ".world", entry.worldName());
+            failedConfig.set(prefix + ".x", entry.x());
+            failedConfig.set(prefix + ".y", entry.y());
+            failedConfig.set(prefix + ".z", entry.z());
+            failedConfig.set(prefix + ".data", entry.dataStr());
+            i++;
         }
-        return instance;
+        failedConfig.save();
+
+        try {
+            Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException ignored) {
+            try {
+                Files.move(tmpFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                tmpFile.delete();
+            }
+        } catch (Exception e) {
+            tmpFile.delete();
+        }
+    }
+
+    private record PendingBlockEntry(String worldName, int x, int y, int z, String dataStr) {
     }
 }

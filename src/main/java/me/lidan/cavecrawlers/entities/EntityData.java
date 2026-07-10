@@ -7,8 +7,6 @@ import me.lidan.cavecrawlers.drops.EntityDrops;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +14,6 @@ import java.util.UUID;
 
 @ToString
 public class EntityData {
-    private static final Logger log = LoggerFactory.getLogger(EntityData.class);
     protected final LivingEntity entity;
     @Getter
     protected final Map<UUID, Double> damageMap = new HashMap<>();

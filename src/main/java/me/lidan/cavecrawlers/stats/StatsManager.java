@@ -14,50 +14,26 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StatsManager implements StatsAPI {
     public static final int SPEED_LIMIT = 500;
     public static final int ATTACK_SPEED_LIMIT = 100;
-    private final Map<UUID, Stats> statsMap;
-    private final Map<UUID, Stats> statsAdder;
+    private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static StatsManager instance;
-    private static CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private final Map<UUID, Stats> statsMap = new ConcurrentHashMap<>();
+    private final Map<UUID, Stats> statsAdder = new ConcurrentHashMap<>();
 
     private StatsManager() {
-        this.statsMap = new HashMap<>();
-        this.statsAdder = new HashMap<>();
     }
 
     public static StatsManager getInstance() {
-        if (instance == null){
+        if (instance == null) {
             instance = new StatsManager();
         }
         return instance;
-    }
-
-    @Override
-    public Stats getStats(UUID uuid){
-        return statsMap.computeIfAbsent(uuid, uuid1 -> new Stats());
-    }
-
-    @Override
-    public Stats getStats(Player player){
-        return getStats(player.getUniqueId());
-    }
-
-    public Stats getStatsAdder(Player player){
-        return statsAdder.get(player.getUniqueId());
-    }
-
-    public void loadPlayer(Player player){
-        applyStats(player);
-        Stats stats = getStats(player);
-        player.setHealth(player.getMaxHealth());
-        double value = stats.get(StatType.INTELLIGENCE).getValue();
-        stats.get(StatType.MANA).setValue(value);
     }
 
     public static void healPlayerPercent(Player player, double percent) {
@@ -71,10 +47,61 @@ public class StatsManager implements StatsAPI {
         player.setHealth(Math.min(health + healthRegen, maxHealth));
     }
 
-    public void applyStats(Player player){
+    public static Stats getStatsFromInventory(Player player) {
+        Stats stats = new Stats();
+        ItemStack[] contents = player.getInventory().getContents();
+        for (ItemStack itemStack : contents) {
+            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.INVENTORY);
+            if (itemStats != null) {
+                stats.add(itemStats);
+            }
+        }
+        return stats;
+    }
+
+    private static Stats getStatsFromSkills(Player player) {
+        return PlayerDataManager.getInstance().getStatsFromSkills(player);
+    }
+
+    public static Stats getStatsFromHotBar(Player player) {
+        Stats stats = new Stats();
+        ItemStack[] hotbar = new ItemStack[9];
+        System.arraycopy(player.getInventory().getContents(), 0, hotbar, 0, 9);
+        for (ItemStack itemStack : hotbar) {
+            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.HOTBAR);
+            if (itemStats != null) {
+                stats.add(itemStats);
+            }
+        }
+        return stats;
+    }
+
+    @Override
+    public Stats getStats(UUID uuid) {
+        return statsMap.computeIfAbsent(uuid, uuid1 -> new Stats());
+    }
+
+    @Override
+    public Stats getStats(Player player) {
+        return getStats(player.getUniqueId());
+    }
+
+    public Stats getStatsAdder(Player player) {
+        return statsAdder.get(player.getUniqueId());
+    }
+
+    public void loadPlayer(Player player) {
+        applyStats(player);
+        Stats stats = getStats(player);
+        player.setHealth(player.getMaxHealth());
+        double value = stats.get(StatType.INTELLIGENCE).getValue();
+        stats.get(StatType.MANA).setValue(value);
+    }
+
+    public void applyStats(Player player) {
         Stats stats = calculateStats(player);
 
-        if (player.isDead()){
+        if (player.isDead()) {
             player.spigot().respawn();
         }
 
@@ -82,7 +109,7 @@ public class StatsManager implements StatsAPI {
 
         // speed
         double speed = stats.get(StatType.SPEED).getValue();
-        player.setWalkSpeed((float) (speed/ SPEED_LIMIT));
+        player.setWalkSpeed((float) (speed / SPEED_LIMIT));
 
         // health regen
         double maxHealth = stats.get(StatType.HEALTH).getValue();
@@ -111,38 +138,9 @@ public class StatsManager implements StatsAPI {
         return stats;
     }
 
-    public static Stats getStatsFromInventory(Player player) {
-        Stats stats = new Stats();
-        ItemStack[] contents = player.getInventory().getContents();
-        for (ItemStack itemStack : contents) {
-            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.INVENTORY);
-            if (itemStats != null) {
-                stats.add(itemStats);
-            }
-        }
-        return stats;
-    }
-
     @Override
     public void register(String id, StatType statType) {
         StatType.register(id, statType);
-    }
-
-    private static Stats getStatsFromSkills(Player player) {
-        return PlayerDataManager.getInstance().getStatsFromSkills(player);
-    }
-
-    public static Stats getStatsFromHotBar(Player player) {
-        Stats stats = new Stats();
-        ItemStack[] hotbar = new ItemStack[9];
-        System.arraycopy(player.getInventory().getContents(), 0, hotbar, 0, 9);
-        for (ItemStack itemStack : hotbar) {
-            Stats itemStats = StatsManager.getInstance().getStatsFromItemStack(itemStack, ItemSlot.HOTBAR);
-            if (itemStats != null) {
-                stats.add(itemStats);
-            }
-        }
-        return stats;
     }
 
     @Override
@@ -154,7 +152,7 @@ public class StatsManager implements StatsAPI {
         Stats statsFromSkills = getStatsFromSkills(player);
         double manaAmount = oldStats.get(StatType.MANA).getValue();
         stats.set(StatType.MANA, manaAmount);
-        if (!statsAdder.containsKey(player.getUniqueId())){
+        if (!statsAdder.containsKey(player.getUniqueId())) {
             statsAdder.put(player.getUniqueId(), new Stats());
         }
         stats.add(statsFromEquipment);
@@ -166,10 +164,10 @@ public class StatsManager implements StatsAPI {
         // stat limits
         Stat speedStat = stats.get(StatType.SPEED);
         Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
-        if (speedStat.getValue() > SPEED_LIMIT){
+        if (speedStat.getValue() > SPEED_LIMIT) {
             speedStat.setValue(SPEED_LIMIT);
         }
-        if (attackSpeedStat.getValue() > ATTACK_SPEED_LIMIT){
+        if (attackSpeedStat.getValue() > ATTACK_SPEED_LIMIT) {
             attackSpeedStat.setValue(ATTACK_SPEED_LIMIT);
         }
 
@@ -180,7 +178,7 @@ public class StatsManager implements StatsAPI {
         return stats;
     }
 
-    public Stats getStatsFromPlayerEquipment(Player player){
+    public Stats getStatsFromPlayerEquipment(Player player) {
         Stats stats = new Stats();
         EntityEquipment equipment = player.getEquipment();
         ItemStack[] armor = equipment.getArmorContents();
@@ -205,29 +203,28 @@ public class StatsManager implements StatsAPI {
 
     }
 
-    public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot){
+    public @Nullable Stats getStatsFromItemStack(ItemStack itemStack, ItemSlot slot) {
         try {
             ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(itemStack);
             if (itemInfo != null) {
                 ItemType type = itemInfo.getType();
-                if (type.getSlot() != slot){
+                if (type.getSlot() != slot) {
                     return null;
                 }
                 return itemInfo.getStats();
             }
-        }
-        catch (IllegalArgumentException ignored){}
-        catch (Exception e) {
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    public void loadAllPlayers(){
+    public void loadAllPlayers() {
         Bukkit.getOnlinePlayers().forEach(this::loadPlayer);
     }
 
-    public void statLoop(){
+    public void statLoop() {
         Bukkit.getOnlinePlayers().forEach(this::applyStats);
     }
 }

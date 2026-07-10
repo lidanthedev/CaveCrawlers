@@ -4,7 +4,6 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.ActionBarAPI;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
@@ -64,9 +63,7 @@ public class ActionBarManager implements ActionBarAPI {
         if (!enabled) {
             return;
         }
-        try (BukkitAudiences adventure = BukkitAudiences.builder(CaveCrawlers.getInstance()).build()) {
-            adventure.player(player).sendActionBar(message);
-        }
+        player.sendActionBar(message);
     }
 
     @Override

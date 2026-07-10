@@ -85,21 +85,54 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static final long MAX_RETRY_DELAY = 512;
     public static Economy economy = null;
     public static boolean usePlaceholderAPI = false;
-    private BukkitCommandHandler commandHandler;
-    private MythicBukkit mythicBukkit;
-    private CaveCrawlersExpansion caveCrawlersExpansion;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationComplete = new AtomicBoolean(false);
     private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
     private final AtomicBoolean databaseReadyWorkRan = new AtomicBoolean(false);
+    private BukkitCommandHandler commandHandler;
+    private MythicBukkit mythicBukkit;
+    private CaveCrawlersExpansion caveCrawlersExpansion;
 
     /**
      * Get the plugin instance
+     *
      * @return the plugin instance
      */
     public static CaveCrawlers getInstance() {
         return CaveCrawlers.getPlugin(CaveCrawlers.class);
+    }
+
+    /**
+     * Register serializer
+     */
+    private static void registerSerializer() {
+        ConfigurationSerialization.registerClass(Stats.class);
+        ConfigurationSerialization.registerClass(ItemInfo.class);
+        ConfigurationSerialization.registerClass(ShopMenu.class);
+        ConfigurationSerialization.registerClass(BlockInfo.class);
+        ConfigurationSerialization.registerClass(SimpleDrop.class);
+        ConfigurationSerialization.registerClass(EntityDrops.class);
+        ConfigurationSerialization.registerClass(Cuboid.class);
+        ConfigurationSerialization.registerClass(Skill.class);
+        ConfigurationSerialization.registerClass(Skills.class);
+        ConfigurationSerialization.registerClass(BossDrop.class);
+        ConfigurationSerialization.registerClass(BossDrops.class);
+        ConfigurationSerialization.registerClass(Perk.class);
+        ConfigurationSerialization.registerClass(ConfigMessage.class);
+        ConfigurationSerialization.registerClass(SoundOptions.class);
+        ConfigurationSerialization.registerClass(TitleOptions.class);
+        ConfigurationSerialization.registerClass(Drop.class);
+        ConfigurationSerialization.registerClass(AltarDrop.class);
+        ConfigurationSerialization.registerClass(Altar.class);
+        ConfigurationSerialization.registerClass(CoinSkillReward.class);
+        ConfigurationSerialization.registerClass(ItemSkillReward.class);
+        ConfigurationSerialization.registerClass(StatSkillReward.class);
+        ConfigurationSerialization.registerClass(SkillInfo.class);
+    }
+
+    public static CaveCrawlersAPI getAPI() {
+        return CaveCrawlers.getInstance();
     }
 
     /**
@@ -134,6 +167,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerCommands();
         registerEvents();
 
+        EntityManager.getInstance().startSweepTask();
+
         loadDelayedData();
 
         long diff = System.currentTimeMillis() - start;
@@ -160,6 +195,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             public void run() {
                 long delayStart = System.currentTimeMillis();
                 registerFromDataDir();
+                MiningManager.getInstance().loadBrokenBlocks();
                 delayedDataReady.set(true);
                 runDatabaseReadyWorkIfPossible();
                 StatsManager.getInstance().loadAllPlayers();
@@ -269,34 +305,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerLevels() {
         LevelConfigManager.getInstance().saveDefaultConfig();
-    }
-
-    /**
-     * Register serializer
-     */
-    private static void registerSerializer() {
-        ConfigurationSerialization.registerClass(Stats.class);
-        ConfigurationSerialization.registerClass(ItemInfo.class);
-        ConfigurationSerialization.registerClass(ShopMenu.class);
-        ConfigurationSerialization.registerClass(BlockInfo.class);
-        ConfigurationSerialization.registerClass(SimpleDrop.class);
-        ConfigurationSerialization.registerClass(EntityDrops.class);
-        ConfigurationSerialization.registerClass(Cuboid.class);
-        ConfigurationSerialization.registerClass(Skill.class);
-        ConfigurationSerialization.registerClass(Skills.class);
-        ConfigurationSerialization.registerClass(BossDrop.class);
-        ConfigurationSerialization.registerClass(BossDrops.class);
-        ConfigurationSerialization.registerClass(Perk.class);
-        ConfigurationSerialization.registerClass(ConfigMessage.class);
-        ConfigurationSerialization.registerClass(SoundOptions.class);
-        ConfigurationSerialization.registerClass(TitleOptions.class);
-        ConfigurationSerialization.registerClass(Drop.class);
-        ConfigurationSerialization.registerClass(AltarDrop.class);
-        ConfigurationSerialization.registerClass(Altar.class);
-        ConfigurationSerialization.registerClass(CoinSkillReward.class);
-        ConfigurationSerialization.registerClass(ItemSkillReward.class);
-        ConfigurationSerialization.registerClass(StatSkillReward.class);
-        ConfigurationSerialization.registerClass(SkillInfo.class);
     }
 
     /**
@@ -513,8 +521,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new FirstJoinListener(this));
         registerEvent(new AltarListener());
         registerEvent(new ChatPromptListener());
+        registerEvent(new ChunkUnloadListener());
+        registerEvent(new EntityRemoveListener());
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
+        PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();
     }
 
     /**
@@ -562,7 +573,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     public boolean isLoginAllowed() {
-        return delayedDataReady.get() && legacyYamlMigrationComplete.get();
+        Database database = Database.getInstance();
+        return delayedDataReady.get()
+                && ((database.isInitialized() && !database.isAvailable())
+                || legacyYamlMigrationComplete.get());
     }
 
     public void markLegacyYamlMigrationComplete() {
@@ -582,6 +596,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();
+        EntityManager.getInstance().clear();
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") && caveCrawlersExpansion != null) {
             caveCrawlersExpansion.unregister();
         }
@@ -613,6 +628,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
     /**
      * Setup economy
+     *
      * @return true if economy is setup
      */
     private boolean setupEconomy() {
@@ -630,8 +646,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     /**
      * Save a resource to a file path
      * Used to save resources to subdirectories in the plugin folder
+     *
      * @param resource the resource
-     * @param path the path as File object
+     * @param path     the path as File object
      */
     public void saveResource(String resource, File path) {
         if (!path.exists()) {
@@ -651,10 +668,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 log.error("Failed to save resource: {}", resource, e);
             }
         }
-    }
-
-    public static CaveCrawlersAPI getAPI() {
-        return CaveCrawlers.getInstance();
     }
 
     @Override

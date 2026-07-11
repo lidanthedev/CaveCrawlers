@@ -31,6 +31,7 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
+import me.lidan.cavecrawlers.requirements.RequirementEvaluator;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -1119,6 +1120,17 @@ public class CaveCrawlersMainCommand {
     public void testMiniMessages(Player sender, @Default("<green>Testing Message") String message) {
         Component component = MiniMessageUtils.miniMessage(message);
         sender.sendMessage(component);
+    }
+
+    @Subcommand("test mvel")
+    @CommandPermission("cavecrawlers.admin.test")
+    public void testMvel(Player sender, @Default("player.getLevel() >= 10") String expression) {
+        try {
+            Object result = RequirementEvaluator.eval(sender, expression);
+            sender.sendMessage("MVEL Result: " + result);
+        } catch (Exception e) {
+            sender.sendMessage("Error occurred while evaluating MVEL expression: " + e.getMessage());
+        }
     }
 
     @Subcommand("test prompt")

@@ -45,6 +45,7 @@ dependencies {
     implementation("dev.triumphteam:triumph-gui:3.1.13") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
+    implementation("org.mvel:mvel2:2.5.2.Final")
     implementation("com.github.lidanthedev.Lamp:common:3.3.7")
     implementation("com.github.lidanthedev.Lamp:brigadier:3.3.7")
     implementation("com.github.lidanthedev.Lamp:bukkit:3.3.7")

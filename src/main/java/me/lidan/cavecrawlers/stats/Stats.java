@@ -49,6 +49,10 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         return stats.computeIfAbsent(statType, Stat::new);
     }
 
+    public Stat get(String type) throws IllegalArgumentException {
+        return get(StatType.valueOf(type));
+    }
+
     public void set(StatType type, double amount) {
         if (!stats.containsKey(type)) {
             stats.put(type, new Stat(type));

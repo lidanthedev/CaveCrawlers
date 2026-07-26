@@ -1129,7 +1129,7 @@ public class CaveCrawlersMainCommand {
             Object result = RequirementEvaluator.eval(sender, expression);
             sender.sendMessage("MVEL Result: " + result);
         } catch (Exception e) {
-            sender.sendMessage("Error occurred while evaluating MVEL expression: " + e.getMessage());
+            sender.sendMessage("Error occurred while evaluating MVEL expression: " + e.getCause().getMessage());
         }
     }
 

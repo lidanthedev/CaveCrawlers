@@ -62,6 +62,10 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
         return skills.computeIfAbsent(type, t -> new Skill(t, 0));
     }
 
+    public Skill get(String type) {
+        return get(SkillsManager.getInstance().getSkillInfo(type));
+    }
+
     public void set(SkillInfo type, Skill skill) {
         skills.put(type, skill);
     }

@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers;
 
 import com.cryptomorin.xseries.XSound;
-import com.cryptomorin.xseries.base.XModule;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -77,6 +76,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -416,7 +416,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerCommandCompletions() {
         commandHandlerBuilder.suggestionProviders(builder -> {
             builder.addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
-                    .addProvider(Sound.class, context -> XSound.getValues().stream().map(XModule::name).toList())
+                    .addProvider(Sound.class, context -> XSound.getValues().stream()
+                            .map(XSound::parseSound)
+                            .filter(Objects::nonNull)
+                            .map(sound -> Registry.SOUNDS.getKey(sound).getKey())
+                            .toList())
                     .addProvider(Material.class, context -> Arrays.stream(Material.values()).map(Enum::name).toList())
                     .addProvider(ItemType.class, context -> Arrays.stream(ItemType.values()).map(ItemType::name).toList())
                     .addProvider(Rarity.class, context -> Arrays.stream(Rarity.values()).map(Enum::name).toList())

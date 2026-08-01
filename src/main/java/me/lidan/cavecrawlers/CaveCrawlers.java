@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers;
 
 import com.cryptomorin.xseries.XSound;
-import com.cryptomorin.xseries.base.XModule;
 import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
@@ -68,13 +67,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
-import revxrsal.commands.bukkit.BukkitCommandHandler;
+import revxrsal.commands.Lamp;
+import revxrsal.commands.bukkit.BukkitLamp;
+import revxrsal.commands.bukkit.actor.BukkitCommandActor;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -90,7 +92,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private final AtomicBoolean legacyYamlMigrationComplete = new AtomicBoolean(false);
     private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
     private final AtomicBoolean databaseReadyWorkRan = new AtomicBoolean(false);
-    private BukkitCommandHandler commandHandler;
+    private Lamp.Builder<BukkitCommandActor> commandHandlerBuilder;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
 
@@ -142,7 +144,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public void onEnable() {
         // Plugin startup logic
         long start = System.currentTimeMillis();
-        commandHandler = BukkitCommandHandler.create(this);
+        commandHandlerBuilder = BukkitLamp.builder(this);
         if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -375,40 +377,36 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register commands
      */
     public void registerCommands() {
+        Lamp<BukkitCommandActor> commandHandler = commandHandlerBuilder.build();
         commandHandler.register(new StatCommand());
-        commandHandler.register(new CaveCrawlersMainCommand(commandHandler));
+        commandHandler.register(new CaveCrawlersMainCommand());
         commandHandler.register(new SkillCommand());
         commandHandler.register(new QolCommand());
         commandHandler.register(new MenuCommands());
         commandHandler.register(new SellCommand());
         commandHandler.register(new IndexCommand());
-        commandHandler.registerBrigadier();
     }
 
     /**
      * Register command resolvers
      */
     private void registerCommandResolvers() {
-        commandHandler.registerValueResolver(Altar.class, valueResolverContext -> {
-            return AltarManager.getInstance().getAltar(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(ChatColor.class, valueResolverContext -> {
-            return ChatColor.valueOf(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(SkillInfo.class, valueResolverContext -> {
-            return SkillsManager.getInstance().getSkillInfo(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(StatType.class, valueResolverContext -> {
-            return StatType.valueOf(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(ItemType.class, valueResolverContext -> {
-            return ItemType.valueOf(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(IndexCategory.class, valueResolverContext -> {
-            return IndexCategory.valueOf(valueResolverContext.pop());
-        });
-        commandHandler.registerValueResolver(Sound.class, valueResolverContext -> {
-            return Registry.SOUNDS.get(NamespacedKey.minecraft(valueResolverContext.pop()));
+        commandHandlerBuilder.parameterTypes(builder -> {
+            builder.addParameterType(Altar.class, (mutableStringStream, executionContext) -> {
+                return AltarManager.getInstance().getAltar(mutableStringStream.readString());
+            }).addParameterType(ChatColor.class, (mutableStringStream, executionContext) -> {
+                return ChatColor.valueOf(mutableStringStream.readString());
+            }).addParameterType(SkillInfo.class, (mutableStringStream, executionContext) -> {
+                return SkillsManager.getInstance().getSkillInfo(mutableStringStream.readString());
+            }).addParameterType(StatType.class, (mutableStringStream, executionContext) -> {
+                return StatType.valueOf(mutableStringStream.readString());
+            }).addParameterType(ItemType.class, (mutableStringStream, executionContext) -> {
+                return ItemType.valueOf(mutableStringStream.readString());
+            }).addParameterType(IndexCategory.class, (mutableStringStream, executionContext) -> {
+                return IndexCategory.valueOf(mutableStringStream.readString());
+            }).addParameterType(Sound.class, (mutableStringStream, executionContext) -> {
+                return Registry.SOUNDS.get(NamespacedKey.minecraft(mutableStringStream.readString()));
+            });
         });
     }
 
@@ -416,24 +414,20 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      * Register command completions
      */
     private void registerCommandCompletions() {
-        commandHandler.getAutoCompleter().registerParameterSuggestions(OfflinePlayer.class, (args, sender, command) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Sound.class, (args, sender, command) -> {
-            return XSound.getValues().stream().map(XModule::name).toList();
+        commandHandlerBuilder.suggestionProviders(builder -> {
+            builder.addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+                    .addProvider(Sound.class, context -> XSound.getValues().stream()
+                            .map(XSound::parseSound)
+                            .filter(Objects::nonNull)
+                            .map(sound -> Registry.SOUNDS.getKey(sound).getKey())
+                            .toList())
+                    .addProvider(Material.class, context -> Arrays.stream(Material.values()).map(Enum::name).toList())
+                    .addProvider(ItemType.class, context -> Arrays.stream(ItemType.values()).map(ItemType::name).toList())
+                    .addProvider(Rarity.class, context -> Arrays.stream(Rarity.values()).map(Enum::name).toList())
+                    .addProvider(Altar.class, context -> AltarManager.getInstance().getAltarNames())
+                    .addProvider(StatType.class, context -> StatType.names())
+                    .addProvider(SkillInfo.class, context -> SkillsManager.getInstance().getSkillInfoMap().keySet());
         });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Material.class, (args, sender, command) -> {
-            return Arrays.stream(Material.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(ItemType.class, (args, sender, command) -> {
-            return Arrays.stream(ItemType.values()).map(ItemType::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Rarity.class, (args, sender, command) -> {
-            return Arrays.stream(Rarity.values()).map(Enum::name).toList();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(Altar.class, (args, sender, command) -> {
-            return AltarManager.getInstance().getAltarNames();
-        });
-        commandHandler.getAutoCompleter().registerParameterSuggestions(StatType.class, (args, sender, command) -> StatType.names());
-        commandHandler.getAutoCompleter().registerParameterSuggestions(SkillInfo.class, (args, sender, command) -> SkillsManager.getInstance().getSkillInfoMap().keySet());
     }
 
     private void registerDB() {

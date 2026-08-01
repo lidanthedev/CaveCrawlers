@@ -12,7 +12,10 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Command;
+import revxrsal.commands.annotation.Default;
+import revxrsal.commands.annotation.Optional;
+import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.util.HashMap;
@@ -107,8 +110,12 @@ public class SkillCommand {
         sender.sendMessage(loadedSkills.toFormatString());
     }
 
+    @Command("skills")
+    public void openGuiDefault(Player sender) {
+        openGui(sender);
+    }
+
     @Subcommand("gui")
-    @DefaultFor("skills")
     public void openGui(Player sender){
         new SkillsGui(sender).open();
     }

@@ -10,6 +10,7 @@ import me.lidan.cavecrawlers.altar.AltarDrop;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import me.lidan.cavecrawlers.bosses.BossDrop;
 import me.lidan.cavecrawlers.bosses.BossDrops;
+import me.lidan.cavecrawlers.commands.completions.*;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
@@ -65,15 +66,16 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
-import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static org.bukkit.Bukkit.getConsoleSender;
@@ -94,39 +96,8 @@ public class CaveCrawlersMainCommand {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final CustomConfig config = new CustomConfig("test");
 
-    public CaveCrawlersMainCommand(CommandHandler handler) {
-        handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
-        handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
-        handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
-            Player player = Bukkit.getPlayer(sender.getName());
-            if (player != null) {
-                return getFillID(player);
-            }
-            return Collections.singleton("");
-        });
-        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
-        if (plugin.getMythicBukkit() != null) {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> plugin.getMythicBukkit().getMobManager().getMobNames());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> plugin.getMythicBukkit().getSkillManager().getSkillNames());
-        } else {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> Collections.emptySet());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
-        }
-        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
-    }
+    public CaveCrawlersMainCommand() {
 
-    @NotNull
-    private static Set<String> getFillID(Player player) {
-        ItemStack hand = player.getEquipment().getItemInMainHand();
-        ItemMeta meta = hand.getItemMeta();
-        if (meta == null || !meta.hasDisplayName()) {
-            return Collections.singleton("");
-        }
-        String name = meta.getDisplayName();
-        name = ChatColor.stripColor(name);
-        name = name.toUpperCase(Locale.ROOT);
-        name = name.replaceAll(" ", "_");
-        return Collections.singleton(name);
     }
 
     private Component getHelpMessage(HelpCommandType type, String command, String description) {
@@ -144,9 +115,13 @@ public class CaveCrawlersMainCommand {
         return MiniMessageUtils.miniMessageString("<red>ERROR</red>");
     }
 
+    @Command({"ct", "cc", "cavecrawlers"})
+    public void mainHelpDefault(CommandSender sender) {
+        mainHelp(sender);
+    }
+
     @Subcommand("help")
     @CommandPermission("cavecrawlers.admin.help")
-    @DefaultFor({"ct", "cc", "cavecrawlers"})
     public void mainHelp(CommandSender sender) {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Help", ""));
@@ -156,9 +131,14 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop", "shop commands"));
     }
 
+    @Command({"ct item", "cc item", "cavecrawlers item"})
+    @CommandPermission("cavecrawlers.admin.help")
+    public void itemHelpDefault(CommandSender sender) {
+        itemHelp(sender);
+    }
+
     @Subcommand("help item")
     @CommandPermission("cavecrawlers.admin.help")
-    @DefaultFor({"ct item", "cc item", "cavecrawlers item"})
     public void itemHelp(CommandSender sender) {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Item Help", ""));
@@ -180,9 +160,14 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item import <id>", "import the item in your hand (advanced)"));
     }
 
+    @Command({"ct shop", "cc shop", "cavecrawlers shop"})
+    @CommandPermission("cavecrawlers.admin.help")
+    public void shopHelpDefault(CommandSender sender) {
+        shopHelp(sender);
+    }
+
     @Subcommand("help shop")
     @CommandPermission("cavecrawlers.admin.help")
-    @DefaultFor({"ct shop", "cc shop", "cavecrawlers shop"})
     public void shopHelp(CommandSender sender) {
         sender.sendMessage("");
         sender.sendMessage(getHelpMessage(HelpCommandType.TITLE, "CaveCrawlers Shop Help", ""));
@@ -192,9 +177,14 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop editor <shop-name>", "open the shop editor"));
     }
 
+    @Command({"ct altar", "cc altar", "cavecrawlers altar"})
+    @CommandPermission("cavecrawlers.admin.help")
+    public void altarHelpDefault(CommandSender sender) {
+        altarHelp(sender);
+    }
+
     @Subcommand("help altar")
     @CommandPermission("cavecrawlers.admin.help")
-    @DefaultFor({"ct altar", "cc altar", "cavecrawlers altar"})
     public void altarHelp(CommandSender sender) {
         /*
         Altar commands:
@@ -353,8 +343,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item give")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("* @itemID *")
-    public void itemGive(CommandSender sender, Player player, @Named("Item id") String id, @Default("1") int amount) {
+    public void itemGive(CommandSender sender, Player player, @Named("Item id") @SuggestWith(ItemIDCompletions.class) String id, @Default("1") int amount) {
         ItemInfo itemInfo = itemsManager.getItemByID(id);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
@@ -365,15 +354,13 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item get")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@itemID *")
-    public void itemGet(Player sender, @Named("Item ID") String id, @Default("1") int amount) {
+    public void itemGet(Player sender, @Named("Item ID") @SuggestWith(ItemIDCompletions.class) String id, @Default("1") int amount) {
         itemGive(sender, sender, id, amount);
     }
 
     @Subcommand("item editBase")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@itemID *")
-    public void itemEditBase(Player sender, @Optional @Named("Item ID") String id) {
+    public void itemEditBase(Player sender, @Optional @Named("Item ID") @SuggestWith(ItemIDCompletions.class) String id) {
         if (id == null) {
             id = itemsManager.getIDofItemStackSafe(sender.getEquipment().getItemInMainHand());
         }
@@ -390,8 +377,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item import")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@handID *")
-    public void itemImport(Player sender, String id) {
+    public void itemImport(Player sender, @SuggestWith(HandIDCompletions.class) String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
 
         ItemInfo oldInfo = itemsManager.getItemFromItemStackSafe(hand);
@@ -402,7 +388,7 @@ public class CaveCrawlersMainCommand {
         }
 
         if (id.equals("FILL")) {
-            id = getFillID(sender).iterator().next();
+            id = HandIDCompletions.getFillID(sender).iterator().next();
             sender.sendMessage("Fill: " + id);
         }
 
@@ -440,8 +426,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item remove")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@itemID *")
-    public void itemRemove(CommandSender sender, @Named("Item ID") String id, @Default("false") boolean confirm) {
+    public void itemRemove(CommandSender sender, @Named("Item ID") @SuggestWith(ItemIDCompletions.class) String id, @Default("false") boolean confirm) {
         ItemInfo itemInfo = itemsManager.getItemByID(id);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
@@ -494,8 +479,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item clone")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@itemID *")
-    public void itemClone(Player sender, String originId, String id) {
+    public void itemClone(Player sender, @SuggestWith(ItemIDCompletions.class) String originId, String id) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
@@ -530,8 +514,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item edit ability")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@abilityID")
-    public void itemEditAbility(Player sender, String abilityId) {
+    public void itemEditAbility(Player sender, @SuggestWith(AbilityIDCompletions.class) String abilityId) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfo = itemsManager.getItemFromItemStackSafe(hand);
         if (itemInfo == null) {
@@ -625,8 +608,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item edit baseItemToHand")
     @CommandPermission("cavecrawlers.admin.item")
-    @AutoComplete("@itemID")
-    public void itemEditBaseItemToHand(Player sender, String id) {
+    public void itemEditBaseItemToHand(Player sender, @SuggestWith(ItemIDCompletions.class) String id) {
         ItemStack hand = sender.getEquipment().getItemInMainHand();
         ItemInfo itemInfoHand = itemsManager.getItemFromItemStack(hand);
         if (itemInfoHand != null) {
@@ -815,8 +797,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop open")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId *")
-    public void shopOpen(Player sender, String ID) {
+    public void shopOpen(Player sender, @SuggestWith(ShopIDCompletions.class) String ID) {
         ShopMenu shopMenu = shopManager.getShop(ID);
         shopMenu.open(sender);
     }
@@ -832,8 +813,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop add")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId @itemID @itemID *")
-    public void shopAdd(CommandSender sender, String shopId, String resultId, String ingredientId, int amount) {
+    public void shopAdd(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String shopId, @SuggestWith(ItemIDCompletions.class) String resultId, @SuggestWith(ItemIDCompletions.class) String ingredientId, int amount) {
         shopManager.addItemToShop(shopId, resultId, ingredientId, amount);
         sender.sendMessage("Added item to shop!");
     }
@@ -858,16 +838,14 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop update")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId * @itemID *")
-    public void shopUpdate(CommandSender sender, String shopId, int slotId, String ingredientId, int amount) {
+    public void shopUpdate(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String shopId, int slotId, @SuggestWith(ItemIDCompletions.class) String ingredientId, int amount) {
         shopManager.updateShop(shopId, slotId, ingredientId, amount);
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>Updated shop!"));
     }
 
     @Subcommand({"shop editor", "shop edit"})
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId *")
-    public void shopEditor(Player sender, String shopId) {
+    public void shopEditor(Player sender, @SuggestWith(ShopIDCompletions.class) String shopId) {
         ShopMenu shopMenu = shopManager.getShop(shopId);
         if (shopMenu == null) {
             sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! SHOP NOT FOUND!"));
@@ -878,24 +856,21 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("shop updateCoins")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId *")
-    public void shopUpdateCoins(CommandSender sender, String shopId, int slotId, double coins) {
+    public void shopUpdateCoins(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String shopId, int slotId, double coins) {
         shopManager.updateShopCoins(shopId, slotId, coins);
         sender.sendMessage("Updated shop!");
     }
 
     @Subcommand("shop remove-item")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId *")
-    public void shopRemoveItem(CommandSender sender, String shopId, int slotId) {
+    public void shopRemoveItem(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String shopId, int slotId) {
         shopManager.removeShopItem(shopId, slotId);
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed slot from shop!"));
     }
 
     @Subcommand("shop remove")
     @CommandPermission("cavecrawlers.admin.shop")
-    @AutoComplete("@shopId")
-    public void shopRemove(CommandSender sender, String shopId) {
+    public void shopRemove(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String shopId) {
         shopManager.removeShop(shopId);
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>Removed shop successfully!"));
     }
@@ -1141,8 +1116,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("test armorset")
     @CommandPermission("cavecrawlers.admin.test")
-    @AutoComplete("@itemID LEATHER|IRON|GOLD|DIAMOND|NETHERITE|CHAINMAIL *")
-    public void testArmorSet(Player sender, String originId, String materialType) {
+    public void testArmorSet(Player sender, @SuggestWith(ItemIDCompletions.class) String originId, @Suggest({"LEATHER", "IRON", "GOLD", "DIAMOND", "NETHERITE", "CHAINMAIL"}) String materialType) {
         ItemInfo itemInfo = itemsManager.getItemByID(originId);
         if (itemInfo == null) {
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");
@@ -1236,8 +1210,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("mythic skill")
     @CommandPermission("cavecrawlers.admin.mythic")
-    @AutoComplete("@skillID")
-    public void mythicSkill(Player sender, String skill) {
+    public void mythicSkill(Player sender, @SuggestWith(SkillIDCompletions.class) String skill) {
         if (plugin.getMythicBukkit() == null) {
             sender.sendMessage("MythicBukkit not found!");
             return;
@@ -1247,8 +1220,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("mythic addSpawner")
     @CommandPermission("cavecrawlers.admin.mythic")
-    @AutoComplete("@mobID")
-    public void mythicAddSpawner(Player sender, String skill) {
+    public void mythicAddSpawner(Player sender, @SuggestWith(MobIDCompletions.class) String skill) {
         plugin.getMythicBukkit().getAPIHelper().castSkill(sender, skill, sender.getLocation());
     }
 
@@ -1304,8 +1276,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("altar setSpawnItem")
     @CommandPermission("cavecrawlers.admin.altar")
-    @AutoComplete("* @itemID")
-    public void altarSetSpawnItem(Player sender, Altar altar, String itemId) {
+    public void altarSetSpawnItem(Player sender, Altar altar, @SuggestWith(ItemIDCompletions.class) String itemId) {
         ItemInfo itemInfo = itemsManager.getItemByID(itemId);
         altar.setItemToSpawn(itemInfo);
         altarManager.updateAltar(altar.getId(), altar);
@@ -1330,8 +1301,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("altar addSpawn")
     @CommandPermission("cavecrawlers.admin.altar")
-    @AutoComplete("* @mobID *")
-    public void altarAddSpawn(Player sender, Altar altar, String mob, double chance) {
+    public void altarAddSpawn(Player sender, Altar altar, @SuggestWith(MobIDCompletions.class) String mob, double chance) {
         altar.getSpawns().add(new AltarDrop(chance, mob));
         altarManager.updateAltar(altar.getId(), altar);
         sender.sendMessage(ChatColor.GREEN + "Success add spawn for %s to %s with chance %s".formatted(altar.getId(), mob, chance));
@@ -1339,8 +1309,7 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("altar setSpawn")
     @CommandPermission("cavecrawlers.admin.altar")
-    @AutoComplete("* * @mobID *")
-    public void altarSetSpawn(Player sender, Altar altar, int index, String mob, double chance) {
+    public void altarSetSpawn(Player sender, Altar altar, int index, @SuggestWith(MobIDCompletions.class) String mob, double chance) {
         if (index < 0 || index >= altar.getSpawns().size()) {
             sender.sendMessage(ChatColor.RED + "Invalid index!");
             return;

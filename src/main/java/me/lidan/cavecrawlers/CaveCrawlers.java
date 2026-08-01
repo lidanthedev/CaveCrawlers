@@ -43,7 +43,6 @@ import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksLoader;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
-import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.*;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
@@ -425,26 +424,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                     .addProvider(StatType.class, context -> StatType.names())
                     .addProvider(SkillInfo.class, context -> SkillsManager.getInstance().getSkillInfoMap().keySet());
         });
-
-        // lamp v3 code
-        handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> ItemsManager.getInstance().getKeys());
-        handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
-        handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
-            Player player = Bukkit.getPlayer(sender.getName());
-            if (player != null) {
-                return getFillID(player);
-            }
-            return Collections.singleton("");
-        });
-        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
-        if (plugin.getMythicBukkit() != null) {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> plugin.getMythicBukkit().getMobManager().getMobNames());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> plugin.getMythicBukkit().getSkillManager().getSkillNames());
-        } else {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> Collections.emptySet());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
-        }
-
     }
 
     private void registerDB() {

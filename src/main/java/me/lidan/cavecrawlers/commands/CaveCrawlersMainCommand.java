@@ -65,7 +65,6 @@ import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import revxrsal.commands.CommandHandler;
 import revxrsal.commands.annotation.*;
 import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -94,25 +93,8 @@ public class CaveCrawlersMainCommand {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private final CustomConfig config = new CustomConfig("test");
 
-    public CaveCrawlersMainCommand(CommandHandler handler) {
-        handler.getAutoCompleter().registerSuggestion("itemID", (args, sender, command) -> itemsManager.getKeys());
-        handler.getAutoCompleter().registerSuggestion("shopId", (args, sender, command) -> ShopManager.getInstance().getKeys());
-        handler.getAutoCompleter().registerSuggestion("handID", (args, sender, command) -> {
-            Player player = Bukkit.getPlayer(sender.getName());
-            if (player != null) {
-                return getFillID(player);
-            }
-            return Collections.singleton("");
-        });
-        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
-        if (plugin.getMythicBukkit() != null) {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> plugin.getMythicBukkit().getMobManager().getMobNames());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> plugin.getMythicBukkit().getSkillManager().getSkillNames());
-        } else {
-            handler.getAutoCompleter().registerSuggestion("mobID", (args, sender, command) -> Collections.emptySet());
-            handler.getAutoCompleter().registerSuggestion("skillID", (args, sender, command) -> Collections.emptySet());
-        }
-        handler.getAutoCompleter().registerSuggestion("abilityID", (args, sender, command) -> abilityManager.getAbilityMap().keySet());
+    public CaveCrawlersMainCommand() {
+
     }
 
     @NotNull

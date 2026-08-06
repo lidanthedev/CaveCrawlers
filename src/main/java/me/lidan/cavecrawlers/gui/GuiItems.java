@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.GuiItem;
-import dev.triumphteam.gui.guis.PaginatedGui;
 import me.lidan.cavecrawlers.commands.MenuCommands;
+import me.lidan.cavecrawlers.gui.framework.GuiItem;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
+import me.lidan.cavecrawlers.gui.framework.PaginatedGui;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

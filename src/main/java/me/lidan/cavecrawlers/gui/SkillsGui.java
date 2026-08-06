@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.Gui;
-import dev.triumphteam.gui.guis.GuiItem;
 import lombok.extern.slf4j.Slf4j;
+import me.lidan.cavecrawlers.gui.framework.Gui;
+import me.lidan.cavecrawlers.gui.framework.GuiItem;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.SkillInfo;
 import me.lidan.cavecrawlers.skills.SkillReward;

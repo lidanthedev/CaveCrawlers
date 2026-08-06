@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;

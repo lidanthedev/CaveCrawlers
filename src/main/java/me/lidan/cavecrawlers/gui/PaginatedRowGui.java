@@ -1,8 +1,8 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.Gui;
-import dev.triumphteam.gui.guis.GuiItem;
+import me.lidan.cavecrawlers.gui.framework.Gui;
+import me.lidan.cavecrawlers.gui.framework.GuiItem;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 

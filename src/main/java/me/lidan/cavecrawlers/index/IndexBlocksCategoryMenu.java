@@ -1,6 +1,6 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import net.md_5.bungee.api.ChatColor;

@@ -6,7 +6,6 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import dev.dejvokep.boostedyaml.spigot.SpigotSerializer;
-import dev.triumphteam.gui.guis.BaseGui;
 import fr.robotv2.placeholderannotationlib.api.PlaceholderAnnotationProcessor;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import lombok.Getter;
@@ -24,6 +23,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.gui.framework.Gui;
 import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
@@ -70,6 +70,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
+import xyz.xenondevs.invui.InvUI;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -144,6 +145,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public void onEnable() {
         // Plugin startup logic
         long start = System.currentTimeMillis();
+        InvUI.getInstance().setPlugin(this);
         commandHandlerBuilder = BukkitLamp.builder(this);
         if (!setupEconomy()) {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
@@ -601,9 +603,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void closeAllGuis() {
         Bukkit.getOnlinePlayers().forEach(player -> {
-            if (player.getOpenInventory().getTopInventory().getHolder() instanceof BaseGui) {
-                player.closeInventory();
-            }
+            Gui.closeOpenGui(player);
         });
     }
 

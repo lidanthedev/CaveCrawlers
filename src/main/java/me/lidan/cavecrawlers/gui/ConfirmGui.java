@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.Gui;
+import me.lidan.cavecrawlers.gui.framework.Gui;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;

@@ -3,7 +3,6 @@ package me.lidan.cavecrawlers.commands;
 import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
 import com.zaxxer.hikari.HikariDataSource;
-import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarDrop;

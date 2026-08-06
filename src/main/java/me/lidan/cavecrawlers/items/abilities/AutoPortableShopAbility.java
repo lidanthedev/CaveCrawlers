@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonObject;
-import dev.triumphteam.gui.components.util.ItemNbt;
+import me.lidan.cavecrawlers.items.ItemNbt;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;

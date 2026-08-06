@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.listeners;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

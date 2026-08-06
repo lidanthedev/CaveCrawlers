@@ -1,7 +1,7 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import lombok.Getter;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;

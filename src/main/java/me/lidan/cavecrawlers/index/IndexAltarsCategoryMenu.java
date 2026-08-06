@@ -1,8 +1,8 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarManager;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 

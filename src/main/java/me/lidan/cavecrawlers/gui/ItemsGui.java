@@ -1,9 +1,9 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.guis.Gui;
-import dev.triumphteam.gui.guis.GuiItem;
-import dev.triumphteam.gui.guis.PaginatedGui;
+import me.lidan.cavecrawlers.gui.framework.Gui;
+import me.lidan.cavecrawlers.gui.framework.GuiItem;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
+import me.lidan.cavecrawlers.gui.framework.PaginatedGui;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;

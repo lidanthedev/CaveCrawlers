@@ -1,8 +1,7 @@
 plugins {
     java
     `maven-publish`
-    id("com.gradleup.shadow") version "8.3.6"
-    id("io.freefair.lombok") version "8.11"
+    id("com.gradleup.shadow") version "9.3.2"
 }
 
 group = "me.lidan"
@@ -34,17 +33,18 @@ repositories {
     maven {
         url = uri("https://repo.granny.dev/snapshots/")
     }
+    maven("https://repo.xenondevs.xyz/releases")
 }
 
 dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("com.zaxxer:HikariCP:5.1.0")
     compileOnly("org.jdbi:jdbi3-core:3.45.4")
     compileOnly("org.jdbi:jdbi3-sqlobject:3.45.4")
     compileOnly("org.jetbrains:annotations:23.0.0")
-    implementation("dev.triumphteam:triumph-gui:3.1.13") {
-        exclude(group = "com.google.code.gson", module = "gson")
-    }
+    implementation("xyz.xenondevs.invui:invui:2.1.0")
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.17")
     implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.17")
     implementation("io.github.revxrsal:lamp.brigadier:4.0.0-rc.17")
@@ -69,7 +69,7 @@ tasks.compileJava {
 tasks.shadowJar {
     archiveClassifier.set(null as String?)
     relocate("revxrsal.commands", "me.lidan.cavecrawlers.lamp")
-    relocate("dev.triumphteam.gui", "me.lidan.cavecrawlers.gui")
+    relocate("xyz.xenondevs.invui", "me.lidan.cavecrawlers.invui")
     relocate("com.cryptomorin.xseries", "me.lidan.cavecrawlers.xseries")
     relocate("dev.dejvokep.boostedyaml", "me.lidan.cavecrawlers.boostedyaml")
     relocate("fr.robotv2.placeholderannotationlib", "me.lidan.cavecrawlers.placeholderannotationlib")
@@ -83,21 +83,14 @@ tasks.named("build") {
     dependsOn(tasks.shadowJar)
 }
 
-val targetJavaVersion = 21
+val targetJavaVersion = 25
 java {
-    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
-    }
+    toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
 }
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
-        options.release.set(targetJavaVersion)
-    }
+    options.release.set(targetJavaVersion)
 }
 
 tasks.processResources {

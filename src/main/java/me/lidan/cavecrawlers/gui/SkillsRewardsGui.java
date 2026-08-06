@@ -1,6 +1,6 @@
 package me.lidan.cavecrawlers.gui;
 
-import dev.triumphteam.gui.guis.Gui;
+import me.lidan.cavecrawlers.gui.framework.Gui;
 import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;

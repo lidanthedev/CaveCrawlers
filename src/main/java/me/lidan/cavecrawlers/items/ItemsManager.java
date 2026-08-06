@@ -1,9 +1,8 @@
 package me.lidan.cavecrawlers.items;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
-import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.ItemsAPI;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;

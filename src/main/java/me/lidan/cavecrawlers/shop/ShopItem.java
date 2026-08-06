@@ -1,8 +1,8 @@
 package me.lidan.cavecrawlers.shop;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import lombok.Data;
 import lombok.NonNull;
+import me.lidan.cavecrawlers.gui.framework.ItemBuilder;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.objects.ConfigMessage;

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.entities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
@@ -46,8 +47,8 @@ public class BossEntityData extends EntityData {
         for (Runnable runnable : onDeathRunnable) {
             runnable.run();
         }
-        String name = entity.getName();
-        BossDrops drops = BossManager.getInstance().getEntityDrops(name);
+        String mobId = MythicMobsHook.getInstance().getMobID(entity);
+        BossDrops drops = BossManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;
         List<Integer> bonusPoints = drops.getBonusPoints();
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()
@@ -77,7 +78,7 @@ public class BossEntityData extends EntityData {
             placeholders.put("leaderboard_" + placement + "_points", String.valueOf(playerPoints));
             placeholders.put("leaderboard_" + placement + "_damage", StringUtils.getNumberFormat(damage));
         }
-        placeholders.put("boss_name", name);
+        placeholders.put("boss_name", mobId);
         placeholders.put("boss_time", String.valueOf((System.currentTimeMillis() - startTime) / 1000));
         Player killer = event.getEntity().getKiller();
         if (killer != null) {

@@ -1,7 +1,9 @@
 package me.lidan.cavecrawlers.bosses;
 
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 
+@Slf4j
 public class BossLoader extends ConfigLoader<BossDrops> {
     private static BossLoader instance;
 
@@ -12,6 +14,14 @@ public class BossLoader extends ConfigLoader<BossDrops> {
     @Override
     public void register(String key, BossDrops value) {
         BossManager.getInstance().registerEntityDrops(value.getMobId(), value);
+        setupMigrations(builder ->
+                builder.addCustomLogic("1", doc -> {
+                    if (doc.getFile() == null) {
+                        return;
+                    }
+                    log.info("Migrating Boss to version 1 for {}...", doc.getFile().getName());
+                })
+        );
     }
 
     public static BossLoader getInstance() {

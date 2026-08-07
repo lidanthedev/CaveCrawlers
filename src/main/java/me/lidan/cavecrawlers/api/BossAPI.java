@@ -10,16 +10,16 @@ public interface BossAPI {
     /**
      * Registers boss drops for a specific entity name.
      *
-     * @param entityName  the name of the boss entity
+     * @param mobId  the mythic id of the mob
      * @param entityDrops the BossDrops to register for the entity
      */
-    void registerEntityDrops(String entityName, BossDrops entityDrops);
+    void registerEntityDrops(String mobId, BossDrops entityDrops);
 
     /**
      * Retrieves the BossDrops for a given entity name.
      *
-     * @param name the name of the boss entity
+     * @param mobId the mythic id of the mob
      * @return the BossDrops associated with the entity, or null if not found
      */
-    BossDrops getEntityDrops(String name);
+    BossDrops getEntityDrops(String mobId);
 }

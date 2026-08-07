@@ -78,7 +78,7 @@ public class BossEntityData extends EntityData {
             placeholders.put("leaderboard_" + placement + "_points", String.valueOf(playerPoints));
             placeholders.put("leaderboard_" + placement + "_damage", StringUtils.getNumberFormat(damage));
         }
-        placeholders.put("boss_name", mobId);
+        placeholders.put("boss_name", MythicMobsHook.getInstance().getMobNameByID(mobId));
         placeholders.put("boss_time", String.valueOf((System.currentTimeMillis() - startTime) / 1000));
         Player killer = event.getEntity().getKiller();
         if (killer != null) {

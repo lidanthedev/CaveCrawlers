@@ -342,11 +342,11 @@ public class IndexManager {
     }
 
     public List<Component> entityDropsToLore(EntityDrops entityDrops) {
-        List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getEntityName()));
+        List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getEntityId()));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(entityDrops.getDropList()));
         lore.add(Component.empty());
-        MythicMob mob = getMobByName(entityDrops.getEntityName());
+        MythicMob mob = getMobByName(entityDrops.getEntityId());
         if (mob != null) {
             lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
         }
@@ -356,7 +356,7 @@ public class IndexManager {
     public ItemStack entityDropsToItemStack(EntityDrops entityDrops) {
         List<Component> lore = entityDropsToLore(entityDrops);
         ItemStack baseMaterial = new ItemStack(Material.SKELETON_SKULL);
-        return entityDropsToItemStack(lore, baseMaterial, entityDrops.getEntityName());
+        return entityDropsToItemStack(lore, baseMaterial, entityDrops.getEntityId());
     }
 
     @NonNull

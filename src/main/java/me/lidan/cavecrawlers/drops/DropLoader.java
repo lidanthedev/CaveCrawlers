@@ -1,7 +1,5 @@
 package me.lidan.cavecrawlers.drops;
 
-import io.lumine.mythic.api.mobs.MythicMob;
-import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.objects.ConfigLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,25 +24,13 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
                     return;
                 }
                 log.info("Migrating Drops to version 2 for {}...", doc.getFile().getName());
-                for (Object key : doc.getKeys()) {
-                    log.info("key {} class: {}", key, key.getClass());
-                    if (key instanceof String keyString) {
-                        String entityName = (String) doc.getSection(keyString).get("entityName");
-                        log.info("Entity Name: {}", entityName);
-                        if (entityName != null) {
-                            MythicMob mythicMob = MythicMobsHook.getInstance().getMobByName(entityName);
-                            log.info("Found MythicMob: {}", mythicMob);
-                        }
-                    }
-                }
-                throw new RuntimeException("Fail now!");
             });
         });
     }
 
     @Override
     public void register(String key, EntityDrops value) {
-        dropsManager.register(value.getEntityName(), value);
+        dropsManager.register(value.getEntityId(), value);
     }
 
     public static DropLoader getInstance() {

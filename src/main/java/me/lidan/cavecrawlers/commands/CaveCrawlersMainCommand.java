@@ -1085,7 +1085,7 @@ public class CaveCrawlersMainCommand {
     public void testBossConfig(Player sender) {
         List<BossDrop> drops = List.of(new BossDrop("item", 10, "GOLD_INGOT", 100));
         List<Integer> bonusPoints = List.of(1, 2, 3, 4, 5);
-        config.set("bossDrops", new BossDrops(drops, "&4&lUnstable Dragon", null, bonusPoints));
+        config.set("bossDrops", new BossDrops(drops, "SkeletalKnight2", null, bonusPoints));
         config.save();
     }
 

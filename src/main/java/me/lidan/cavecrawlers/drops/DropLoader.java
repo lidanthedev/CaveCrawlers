@@ -40,7 +40,7 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
             mobId = mob != null ? mob.getInternalName() : null;
             if (mobId == null) {
                 log.warn("Failed to migrate entity {}", entityName);
-                throw new IllegalArgumentException("Failed to migrate entity");
+                throw new IllegalArgumentException("Failed to migrate entity " + entityName);
             }
             log.info("Migrated entity: {} from {}", mobId, entityName);
         }

@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.entities;
 import lombok.ToString;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
@@ -31,8 +32,8 @@ public class LootShareEntityData extends EntityData{
 
     @Override
     public void onDeath(EntityDeathEvent event) {
-        String name = entity.getName();
-        EntityDrops drops = DropsManager.getInstance().getEntityDrops(name);
+        String mobId = MythicMobsHook.getInstance().getMobID(entity);
+        EntityDrops drops = DropsManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;
         giveDropsToPlayers(drops::roll);
     }

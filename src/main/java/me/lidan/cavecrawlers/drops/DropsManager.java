@@ -20,8 +20,8 @@ public class DropsManager implements DropsAPI {
     }
 
     @Override
-    public EntityDrops getEntityDrops(String entityName){
-        return entityDropsMap.get(entityName);
+    public EntityDrops getEntityDrops(String entityId) {
+        return entityDropsMap.get(entityId);
     }
 
     public void rollDropsForPlayer(Player player, List<Drop> drops) {

@@ -32,6 +32,7 @@ public class MythicMobsHook implements Listener {
     private final MythicBukkit mythicBukkit;
     private final BukkitAPIHelper mythicAPIHelper;
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
+    private final Map<String, MythicMob> mobIdCache = new HashMap<>();
 
     private MythicMobsHook() {
         this.mythicBukkit = plugin.getMythicBukkit();
@@ -45,6 +46,7 @@ public class MythicMobsHook implements Listener {
 
     public void load() {
         reverseMobNameCache.clear();
+        mobIdCache.clear();
         tryRegisterItemSuppliers();
     }
 
@@ -130,7 +132,7 @@ public class MythicMobsHook implements Listener {
 
     public @Nullable MythicMob getMobByID(String id) {
         if (mythicAPIHelper == null || id == null) return null;
-        return mythicAPIHelper.getMythicMob(id);
+        return mobIdCache.computeIfAbsent(id, mythicAPIHelper::getMythicMob);
     }
 
     public @Nullable String getMobID(Entity entity) {

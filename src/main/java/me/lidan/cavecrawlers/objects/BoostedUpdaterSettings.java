@@ -64,7 +64,6 @@ public class BoostedUpdaterSettings {
         int version = tryParseInt(versionId, 1);
         if (version > lastVersion) {
             lastVersion = version;
-            log.info("Updating version to {}", lastVersion);
         }
     }
 }

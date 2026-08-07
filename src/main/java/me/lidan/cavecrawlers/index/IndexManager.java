@@ -466,6 +466,6 @@ public class IndexManager {
     }
 
     public ItemStack errorItem(String message) {
-        return entityDropsToItemStack(List.of(MiniMessageUtils.miniMessage("<red>Error: " + message)), new ItemStack(Material.BARRIER), "error");
+        return ItemBuilder.from(Material.BARRIER).lore(List.of(MiniMessageUtils.miniMessage("<red>Error: " + message))).name(MiniMessageUtils.miniMessage("<red>Error!")).build();
     }
 }

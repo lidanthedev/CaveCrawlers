@@ -42,7 +42,8 @@ dependencies {
     compileOnly("org.jdbi:jdbi3-core:3.45.4")
     compileOnly("org.jdbi:jdbi3-sqlobject:3.45.4")
     compileOnly("org.jetbrains:annotations:23.0.0")
-    implementation("dev.triumphteam:triumph-gui:3.1.13") {
+    // waiting until dev.triumphteam:triumph-gui is updated for now using my fork
+    implementation("com.github.lidanthedev:triumph-gui:3.1.14") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
     implementation("io.github.revxrsal:lamp.common:4.0.0-rc.17")

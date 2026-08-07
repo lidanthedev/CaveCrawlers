@@ -50,6 +50,14 @@ public class StatType {
         return statType;
     }
 
+    public static StatType valueOfOrNull(String key) {
+        try {
+            return valueOf(key);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     public String getFormatName(){
         return color + icon + " " + name;
     }

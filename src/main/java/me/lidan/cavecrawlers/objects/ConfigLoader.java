@@ -154,10 +154,12 @@ public abstract class ConfigLoader<T extends ConfigurationSerializable> {
         configMap.clear();
     }
 
-    public void setupMigrations(Consumer<UpdaterSettings.Builder> updaterSettingsSupplier) {
-        BasicDefaultVersioning versioning = new BasicDefaultVersioning(VERSION_KEY);
+    public void setupMigrations(Consumer<BoostedUpdaterSettings> updaterSettingsSupplier) {
         UpdaterSettings.Builder updaterBuilder = UpdaterSettings.builder().setVersioning(versioning).setKeepAll(true).setOptionSorting(UpdaterSettings.OptionSorting.NONE);
-        updaterSettingsSupplier.accept(updaterBuilder);
+        BoostedUpdaterSettings updaterSettings = new BoostedUpdaterSettings(updaterBuilder);
+        updaterSettingsSupplier.accept(updaterSettings);
+        BasicDefaultVersioning versioning = new BasicDefaultVersioning(VERSION_KEY, updaterSettings.getLastVersion());
+        updaterBuilder.setVersioning(versioning);
         Settings[] settings = new Settings[]{
                 LoaderSettings.builder().setAutoUpdate(true).build(),
                 updaterBuilder.build()

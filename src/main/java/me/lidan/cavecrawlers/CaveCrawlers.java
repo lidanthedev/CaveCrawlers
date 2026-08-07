@@ -34,6 +34,7 @@ import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.objects.SoundOptions;
 import me.lidan.cavecrawlers.objects.TitleOptions;
@@ -260,7 +261,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerConfig() {
         try {
-            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning("version")).build(), LoaderSettings.builder().setAutoUpdate(true).build());
+            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning(ConfigLoader.VERSION_KEY, 1)).build(), LoaderSettings.builder().setAutoUpdate(true).build());
         } catch (IOException | NullPointerException e) {
             log.error("Failed to load config.yml", e);
             throw new RuntimeException(e);

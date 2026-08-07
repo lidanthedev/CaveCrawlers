@@ -23,7 +23,7 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, EntityDrops> dropsMap = DropsManager.getInstance().getEntityDropsMap();
         List<Map.Entry<String, EntityDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityId());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))

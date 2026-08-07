@@ -15,12 +15,12 @@ import java.util.Map;
 @Slf4j
 @Getter
 public class EntityDrops implements ConfigurationSerializable {
-    private final String entityId;
+    private final String mobId;
     private final List<Drop> dropList;
     private final int xp;
 
-    public EntityDrops(String entityId, List<Drop> dropList, int xp) {
-        this.entityId = entityId;
+    public EntityDrops(String mobId, List<Drop> dropList, int xp) {
+        this.mobId = mobId;
         this.dropList = dropList;
         this.xp = xp;
     }
@@ -33,16 +33,16 @@ public class EntityDrops implements ConfigurationSerializable {
     }
 
     public static EntityDrops deserialize(Map<String, Object> map){
-        String entityId = (String) map.get("entityId");
-        if (entityId == null && map.containsKey("entityName")) {
+        String mobId = (String) map.get("mobId");
+        if (mobId == null && map.containsKey("entityName")) {
             String entityName = (String) map.get("entityName");
             MythicMob mob = MythicMobsHook.getInstance().getMobByName(entityName);
-            entityId = mob != null ? mob.getInternalName() : null;
-            if (entityId == null) {
+            mobId = mob != null ? mob.getInternalName() : null;
+            if (mobId == null) {
                 log.warn("Failed to migrate entity");
                 throw new IllegalArgumentException("Failed to migrate entity");
             }
-            log.info("Migrated entity: {} from {}", entityId, entityName);
+            log.info("Migrated entity: {} from {}", mobId, entityName);
         }
 
         int xp = (int) map.get("xp");
@@ -59,14 +59,14 @@ public class EntityDrops implements ConfigurationSerializable {
             drops = (List<Drop>) map.get("drops");
         }
 
-        return new EntityDrops(entityId, drops, xp);
+        return new EntityDrops(mobId, drops, xp);
     }
 
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("entityId", entityId);
+        map.put("mobId", mobId);
         map.put("xp", xp);
         map.put("drops", dropList);
         return map;

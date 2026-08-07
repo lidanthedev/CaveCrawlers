@@ -30,7 +30,7 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
 
     @Override
     public void register(String key, EntityDrops value) {
-        dropsManager.register(value.getEntityId(), value);
+        dropsManager.register(value.getMobId(), value);
     }
 
     public static DropLoader getInstance() {

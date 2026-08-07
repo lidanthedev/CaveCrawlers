@@ -15,13 +15,13 @@ public class DropsManager implements DropsAPI {
     private final Map<String, EntityDrops> entityDropsMap = new HashMap<>();
 
     @Override
-    public void register(String entityId, EntityDrops entityDrops) {
-        entityDropsMap.put(entityId, entityDrops);
+    public void register(String mobId, EntityDrops entityDrops) {
+        entityDropsMap.put(mobId, entityDrops);
     }
 
     @Override
-    public EntityDrops getEntityDrops(String entityId) {
-        return entityDropsMap.get(entityId);
+    public EntityDrops getEntityDrops(String mobId) {
+        return entityDropsMap.get(mobId);
     }
 
     public void rollDropsForPlayer(Player player, List<Drop> drops) {

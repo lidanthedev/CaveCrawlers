@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.entities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import org.bukkit.Bukkit;
@@ -47,7 +48,8 @@ public class BossEntityData extends EntityData {
             runnable.run();
         }
         String name = entity.getName();
-        BossDrops drops = BossManager.getInstance().getEntityDrops(name);
+        String mobId = MythicMobsHook.getInstance().getMobID(entity);
+        BossDrops drops = BossManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;
         List<Integer> bonusPoints = drops.getBonusPoints();
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()

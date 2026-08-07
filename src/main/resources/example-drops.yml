@@ -14,7 +14,7 @@ SkeletalKnight:
       announce: null
       chanceModifier: null
       ==: me.lidan.cavecrawlers.drops.Drop
-  entityName: '&aSkeletal Knight'
+  mobId: SkeletalKnight
   xp: 0
   ==: me.lidan.cavecrawlers.drops.EntityDrops
 
@@ -41,7 +41,7 @@ SkeletonKing:
       announce: null
       chanceModifier: null
       ==: me.lidan.cavecrawlers.drops.Drop
-  entityName: '&6Skeleton King'
+  mobId: SkeletonKing
   xp: 0
   ==: me.lidan.cavecrawlers.drops.EntityDrops
-version: '1'
+version: '2'

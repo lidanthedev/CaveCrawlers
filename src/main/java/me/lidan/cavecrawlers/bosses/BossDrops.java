@@ -12,13 +12,13 @@ import java.util.*;
 @Getter
 public class BossDrops implements ConfigurationSerializable {
     private final List<BossDrop> drops;
-    private final String entityName;
+    private final String mobId;
     private final ConfigMessage announce;
     private final List<Integer> bonusPoints;
 
-    public BossDrops(List<BossDrop> drops, String entityName, ConfigMessage announce, List<Integer> bonusPoints) {
+    public BossDrops(List<BossDrop> drops, String mobId, ConfigMessage announce, List<Integer> bonusPoints) {
         this.drops = drops;
-        this.entityName = entityName;
+        this.mobId = mobId;
         this.announce = announce;
         this.bonusPoints = bonusPoints;
     }
@@ -29,10 +29,10 @@ public class BossDrops implements ConfigurationSerializable {
 
     public static BossDrops deserialize(Map<String, Object> map) {
         List<BossDrop> dropsList = (List<BossDrop>) map.get("drops");
-        String entityName = (String) map.get("entityName");
+        String mobId = (String) map.get("mobId");
         ConfigMessage announce = ConfigMessage.getMessage((String) map.getOrDefault("announce", ""));
         List<Integer> bonusPoints = (List<Integer>) map.getOrDefault("bonusPoints", List.of(300, 250, 200, 150, 100));
-        return new BossDrops(dropsList, entityName, announce, bonusPoints);
+        return new BossDrops(dropsList, mobId, announce, bonusPoints);
     }
 
     @NotNull
@@ -40,7 +40,7 @@ public class BossDrops implements ConfigurationSerializable {
     public Map<String, Object> serialize() {
         Map<String, Object> serialized = new HashMap<>();
         serialized.put("drops", drops);
-        serialized.put("entityName", entityName);
+        serialized.put("mobId", mobId);
         serialized.put("announce", ConfigMessage.getIdOfMessage(announce));
         serialized.put("bonusPoints", bonusPoints);
         return serialized;

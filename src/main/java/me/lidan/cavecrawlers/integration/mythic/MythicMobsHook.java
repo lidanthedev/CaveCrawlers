@@ -128,9 +128,20 @@ public class MythicMobsHook implements Listener {
         });
     }
 
+    public @Nullable MythicMob getMobByID(String id) {
+        if (mythicAPIHelper == null || id == null) return null;
+        return mythicAPIHelper.getMythicMob(id);
+    }
+
+    public @Nullable String getMobID(Entity entity) {
+        if (mythicAPIHelper == null || entity == null) return null;
+        var activeMob = mythicAPIHelper.getMythicMobInstance(entity);
+        return activeMob == null ? null : activeMob.getType().getInternalName();
+    }
+
     public @Nullable String getMobNameByID(String id) {
         if (mythicBukkit == null) return null;
-        MythicMob mob = mythicBukkit.getAPIHelper().getMythicMob(id);
+        MythicMob mob = getMobByID(id);
         if (mob == null || !mob.getDisplayName().isPresent()) {
             return null;
         }

@@ -11,12 +11,12 @@ import java.util.Map;
 
 @Getter
 public class EntityDrops implements ConfigurationSerializable {
-    private final String entityName;
+    private final String mobId;
     private final List<Drop> dropList;
     private final int xp;
 
-    public EntityDrops(String entityName, List<Drop> dropList, int xp) {
-        this.entityName = entityName;
+    public EntityDrops(String mobId, List<Drop> dropList, int xp) {
+        this.mobId = mobId;
         this.dropList = dropList;
         this.xp = xp;
     }
@@ -29,7 +29,7 @@ public class EntityDrops implements ConfigurationSerializable {
     }
 
     public static EntityDrops deserialize(Map<String, Object> map){
-        String entityName = (String) map.get("entityName");
+        String mobId = (String) map.get("mobId");
         int xp = (int) map.get("xp");
 
         List<Drop> drops = null;
@@ -44,14 +44,14 @@ public class EntityDrops implements ConfigurationSerializable {
             drops = (List<Drop>) map.get("drops");
         }
 
-        return new EntityDrops(entityName, drops, xp);
+        return new EntityDrops(mobId, drops, xp);
     }
 
     @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        map.put("entityName", entityName);
+        map.put("mobId", mobId);
         map.put("xp", xp);
         map.put("drops", dropList);
         return map;

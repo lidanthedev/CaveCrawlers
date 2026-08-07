@@ -23,13 +23,15 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, EntityDrops> dropsMap = DropsManager.getInstance().getEntityDropsMap();
         List<Map.Entry<String, EntityDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityName());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByID(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))
                 .toList();
         for (Map.Entry<String, EntityDrops> dropsEntry : entries) {
-            String mobName = dropsEntry.getKey();
+            String mobName = dropsEntry.getValue().getMobId();
+            MythicMob mob = MythicMobsHook.getInstance().getMobByID(mobName);
+            if (mob != null && mob.getDisplayName().isPresent()) mobName = mob.getDisplayName().get();
             if (!ChatColor.stripColor(mobName.toLowerCase()).contains(query)) continue;
             addItem(mobName, ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem());
         }

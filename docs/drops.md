@@ -264,15 +264,15 @@ The `%dropRarity%` placeholder is automatically determined by the drop's base ch
 Entity drops define loot tables for regular MythicMobs entities. When a player kills a mob, CaveCrawlers rolls each drop
 independently and rewards the player.
 
-Each top-level key is a **MythicMobs internal name**. Under it you define an `EntityDrops` entry.
+Each top-level key is a configuration key. The entry’s `mobId` must be the **MythicMobs internal name**.
 
 ### EntityDrops Properties
 
-| Property     | Type          | Description                                                                  |
-|--------------|---------------|------------------------------------------------------------------------------|
-| `entityName` | String        | Display name of the entity (supports `&` color codes). Used for UI/display.  |
-| `xp`         | Integer       | Amount of vanilla XP given to the player when the mob is killed.             |
-| `drops`      | List of Drops | A list of individual drop entries (see [Drop Properties](#drop-properties)). |
+| Property | Type          | Required | Default | Description                                                                           |
+|----------|---------------|----------|---------|---------------------------------------------------------------------------------------|
+| `mobId`  | String        | ✅       | —       | MythicMobs internal mob ID used for matching. Display names are read from MythicMobs. |
+| `xp`     | Integer       | ❌       | `0`     | Amount of vanilla XP given to the player when the mob is killed.                      |
+| `drops`  | List of Drops | ✅       | —       | A list of individual drop entries (see [Drop Properties](#drop-properties)).          |
 
 ### Entity Drops Example
 
@@ -282,7 +282,7 @@ Here is a complete entity drop file for a floor with two mobs:
 # plugins/CaveCrawlers/drops/floor1.yml
 
 SKELETAL_KNIGHT:
-  entityName: '&aSkeletal Knight'
+  mobId: SkeletalKnight
   xp: 10
   drops:
     - ==: me.lidan.cavecrawlers.drops.Drop
@@ -309,7 +309,7 @@ SKELETAL_KNIGHT:
   ==: me.lidan.cavecrawlers.drops.EntityDrops
 
 CAVE_SPIDER_QUEEN:
-  entityName: '&cCave Spider Queen'
+  mobId: CaveSpiderQueen
   xp: 50
   drops:
     - ==: me.lidan.cavecrawlers.drops.Drop
@@ -450,10 +450,10 @@ When a boss dies, the system:
 
 | Property      | Type              | Required | Default                     | Description                                                                                |
 |---------------|-------------------|----------|-----------------------------|--------------------------------------------------------------------------------------------|
-| `entityName`  | String            | ✅        | —                           | Display name of the boss (supports `&` color codes).                                       |
-| `drops`       | List of BossDrops | ✅        | —                           | List of boss drop entries (see below).                                                     |
-| `announce`    | String            | ❌        | `null`                      | Message key from `messages.yml` sent to all players in the world when the boss dies.       |
-| `bonusPoints` | List of Integers  | ❌        | `[300, 250, 200, 150, 100]` | Bonus points awarded to top damage dealers. Index 0 = 1st place, index 1 = 2nd place, etc. |
+| `mobId`       | String            | ✅       | —                           | MythicMobs internal mob ID used to identify the boss.                                      |
+| `drops`       | List of BossDrops | ✅       | —                           | List of boss drop entries (see below).                                                     |
+| `announce`    | String            | ❌       | `null`                      | Message key from `messages.yml` sent to all players in the world when the boss dies.       |
+| `bonusPoints` | List of Integers  | ❌       | `[300, 250, 200, 150, 100]` | Bonus points awarded to top damage dealers. Index 0 = 1st place, index 1 = 2nd place, etc. |
 
 ### BossDrop Properties
 
@@ -493,7 +493,7 @@ Drops with `track: null` are independent and do not block other drops.
 # plugins/CaveCrawlers/bosses/dragon.yml
 
 CAVE_DRAGON:
-  entityName: '&4&lCave Dragon'
+  mobId: CaveDragon
   announce: boss_death_message
   bonusPoints:
     - 300
@@ -694,7 +694,5 @@ DRAGON_ALTAR:
 - **Altar + Boss synergy:** Set up an altar to spawn a boss, and a matching boss drops config to distribute loot based
   on contribution.
 - **Tracks for bosses:** Use tracks to create "pick one" loot categories — e.g. one weapon OR one armor piece, not both.
-
-
 
 

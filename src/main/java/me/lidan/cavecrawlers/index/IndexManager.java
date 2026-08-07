@@ -326,9 +326,9 @@ public class IndexManager {
         return ItemBuilder.from(blockInfo.getBlock()).lore(lore).build();
     }
 
-    private List<Component> mobInfoToLore(String bossDrops) {
+    private List<Component> mobInfoToLore(String mobId) {
         List<Component> lore = new ArrayList<>();
-        MythicMob mob = getMobByName(bossDrops);
+        MythicMob mob = getMobByID(mobId);
         if (mob != null) {
             lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
             lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
@@ -337,16 +337,16 @@ public class IndexManager {
         return lore;
     }
 
-    private MythicMob getMobByName(String mobName) {
-        return MythicMobsHook.getInstance().getMobByName(mobName);
+    private MythicMob getMobByID(String mobId) {
+        return MythicMobsHook.getInstance().getMobByID(mobId);
     }
 
     public List<Component> entityDropsToLore(EntityDrops entityDrops) {
-        List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getEntityName()));
+        List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getMobId()));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(entityDrops.getDropList()));
         lore.add(Component.empty());
-        MythicMob mob = getMobByName(entityDrops.getEntityName());
+        MythicMob mob = getMobByID(entityDrops.getMobId());
         if (mob != null) {
             lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
         }
@@ -356,20 +356,23 @@ public class IndexManager {
     public ItemStack entityDropsToItemStack(EntityDrops entityDrops) {
         List<Component> lore = entityDropsToLore(entityDrops);
         ItemStack baseMaterial = new ItemStack(Material.SKELETON_SKULL);
-        return entityDropsToItemStack(lore, baseMaterial, entityDrops.getEntityName());
+        return entityDropsToItemStack(lore, baseMaterial, entityDrops.getMobId());
     }
 
     @NonNull
-    private ItemStack entityDropsToItemStack(List<Component> lore, ItemStack baseMaterial, String entityName) {
+    private ItemStack entityDropsToItemStack(List<Component> lore, ItemStack baseMaterial, String mobId) {
         try {
-            MythicMob mob = getMobByName(entityName);
+            MythicMob mob = getMobByID(mobId);
             if (mob != null) {
                 baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
             }
         } catch (Exception ignored) {
         }
 
-        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityName)))).lore(lore).build();
+        String displayName = mobId;
+        MythicMob mob = getMobByID(mobId);
+        if (mob != null && mob.getDisplayName().isPresent()) displayName = mob.getDisplayName().get();
+        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", displayName))).lore(lore).build();
     }
 
     public List<Component> altarToLore(Altar altar) {
@@ -390,8 +393,8 @@ public class IndexManager {
     }
 
     public List<Component> bossDropsToLore(BossDrops bossDrops) {
-        List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getEntityName()));
-        MythicMob mob = getMobByName(bossDrops.getEntityName());
+        List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getMobId()));
+        MythicMob mob = getMobByID(bossDrops.getMobId());
         if (mob != null) {
             lore.addAll(altarPointsToLore(mob));
         }
@@ -439,7 +442,7 @@ public class IndexManager {
     public ItemStack bossDropsToItemStack(BossDrops bossDrops) {
         List<Component> lore = bossDropsToLore(bossDrops);
         ItemStack baseMaterial = new ItemStack(Material.DRAGON_HEAD);
-        return entityDropsToItemStack(lore, baseMaterial, bossDrops.getEntityName());
+        return entityDropsToItemStack(lore, baseMaterial, bossDrops.getMobId());
     }
 
     public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {

@@ -23,13 +23,15 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, BossDrops> dropsMap = BossManager.getInstance().getDropsMap();
         List<Map.Entry<String, BossDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityName());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByID(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))
                 .toList();
         for (Map.Entry<String, BossDrops> dropsEntry : entries) {
-            String name = String.valueOf(dropsEntry.getKey());
+            String name = dropsEntry.getValue().getMobId();
+            MythicMob mob = MythicMobsHook.getInstance().getMobByID(name);
+            if (mob != null && mob.getDisplayName().isPresent()) name = mob.getDisplayName().get();
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
             addItem(name, ItemBuilder.from(itemGenerator.bossDropsToItemStack(dropsEntry.getValue())).asGuiItem());
         }

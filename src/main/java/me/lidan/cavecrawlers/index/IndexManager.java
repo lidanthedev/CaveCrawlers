@@ -390,8 +390,8 @@ public class IndexManager {
     }
 
     public List<Component> bossDropsToLore(BossDrops bossDrops) {
-        List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getEntityName()));
-        MythicMob mob = getMobByName(bossDrops.getEntityName());
+        List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getMobId()));
+        MythicMob mob = getMobByName(bossDrops.getMobId());
         if (mob != null) {
             lore.addAll(altarPointsToLore(mob));
         }
@@ -439,7 +439,7 @@ public class IndexManager {
     public ItemStack bossDropsToItemStack(BossDrops bossDrops) {
         List<Component> lore = bossDropsToLore(bossDrops);
         ItemStack baseMaterial = new ItemStack(Material.DRAGON_HEAD);
-        return entityDropsToItemStack(lore, baseMaterial, bossDrops.getEntityName());
+        return entityDropsToItemStack(lore, baseMaterial, bossDrops.getMobId());
     }
 
     public <T extends Drop> List<Component> dropsToComponents(List<T> drops) {

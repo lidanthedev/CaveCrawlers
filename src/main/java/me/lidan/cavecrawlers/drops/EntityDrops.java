@@ -1,9 +1,7 @@
 package me.lidan.cavecrawlers.drops;
 
-import io.lumine.mythic.api.mobs.MythicMob;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -33,17 +31,7 @@ public class EntityDrops implements ConfigurationSerializable {
     }
 
     public static EntityDrops deserialize(Map<String, Object> map){
-        String mobId = (String) map.get("mobId");
-        if (mobId == null && map.containsKey("entityName")) {
-            String entityName = (String) map.get("entityName");
-            MythicMob mob = MythicMobsHook.getInstance().getMobByName(entityName);
-            mobId = mob != null ? mob.getInternalName() : null;
-            if (mobId == null) {
-                log.warn("Failed to migrate entity");
-                throw new IllegalArgumentException("Failed to migrate entity");
-            }
-            log.info("Migrated entity: {} from {}", mobId, entityName);
-        }
+        String mobId = DropLoader.getOrMigrateMobId(map);
 
         int xp = (int) map.get("xp");
 

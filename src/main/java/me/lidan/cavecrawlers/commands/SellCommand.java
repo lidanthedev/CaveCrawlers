@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.SuggestWith;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
@@ -18,7 +19,14 @@ public class SellCommand {
 
     @Command({"setprice","setsell"})
     @CommandPermission("cavecrawlers.sell.setprice")
-    public void setPrice(Player sender, @SuggestWith(ItemIDCompletions.class) String itemId, double price) {
+    public void setPrice(Player sender, double price, @Optional @SuggestWith(ItemIDCompletions.class) String itemId) {
+        if (itemId == null) {
+            itemId = ItemsManager.getInstance().getIDofItemStack(sender.getEquipment().getItemInMainHand());
+            if (itemId == null) {
+                sender.sendMessage("ERROR! YOU MUST HOLD AN ITEM!");
+                return;
+            }
+        }
         ItemInfo itemInfo = ItemsManager.getInstance().getItemByID(itemId);
         if (itemInfo == null){
             sender.sendMessage("ERROR! ITEM DOESN'T EXIST!");

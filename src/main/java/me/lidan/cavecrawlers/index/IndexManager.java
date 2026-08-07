@@ -45,6 +45,7 @@ public class IndexManager {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static IndexManager INSTANCE;
     private final BoostedCustomConfig config;
+    private final MythicMobsHook mythicMobsHook = MythicMobsHook.getInstance();
 
     private IndexManager() {
         try {
@@ -326,30 +327,33 @@ public class IndexManager {
         return ItemBuilder.from(blockInfo.getBlock()).lore(lore).build();
     }
 
-    private List<Component> mobInfoToLore(String bossDrops) {
+    private List<Component> mobInfoToLore(String mobId) {
         List<Component> lore = new ArrayList<>();
-        MythicMob mob = getMobByName(bossDrops);
-        if (mob != null) {
-            lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
-            lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
-            lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
+        MythicMob mob = getMobById(mobId);
+        if (mob == null) {
+            log.warn("Mob not found for ID: {}", mobId);
+            return lore;
         }
+        lore.add(MiniMessageUtils.miniMessage("<gray>-- Mob Info --"));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Health: <red><health>", Map.of("health", StringUtils.getNumberFormat(mob.getHealth().get()))));
+        lore.add(MiniMessageUtils.miniMessage("<gray>Damage: <red><damage>", Map.of("damage", StringUtils.getNumberFormat(mob.getDamage().get()))));
         return lore;
     }
 
-    private MythicMob getMobByName(String mobName) {
-        return MythicMobsHook.getInstance().getMobByName(mobName);
+    private MythicMob getMobById(String mobId) {
+        return MythicMobsHook.getInstance().getMobByID(mobId);
     }
 
     public List<Component> entityDropsToLore(EntityDrops entityDrops) {
         List<Component> lore = new ArrayList<>(mobInfoToLore(entityDrops.getMobId()));
+        MythicMob mob = getMobById(entityDrops.getMobId());
+        if (mob == null) {
+            return lore;
+        }
         lore.add(Component.empty());
         lore.addAll(dropsToLore(entityDrops.getDropList()));
         lore.add(Component.empty());
-        MythicMob mob = getMobByName(entityDrops.getMobId());
-        if (mob != null) {
-            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
-        }
+        lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
         return lore;
     }
 
@@ -360,16 +364,17 @@ public class IndexManager {
     }
 
     @NonNull
-    private ItemStack entityDropsToItemStack(List<Component> lore, ItemStack baseMaterial, String entityName) {
+    private ItemStack entityDropsToItemStack(List<Component> lore, ItemStack baseMaterial, String mobId) {
+        MythicMob mob = getMobById(mobId);
+        if (mob == null) {
+            return errorItem("Mob not found: " + mobId);
+        }
         try {
-            MythicMob mob = getMobByName(entityName);
-            if (mob != null) {
-                baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
-            }
+            baseMaterial = EntityHeads.fromEntityType(EntityType.valueOf(mob.getEntityTypeString()));
         } catch (Exception ignored) {
         }
 
-        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', entityName)))).lore(lore).build();
+        return ItemBuilder.from(baseMaterial).name(MiniMessageUtils.miniMessage("<mob_name>", Map.of("mob_name", ChatColor.translateAlternateColorCodes('&', mythicMobsHook.getMobNameByMythicMob(mob))))).lore(lore).build();
     }
 
     public List<Component> altarToLore(Altar altar) {
@@ -391,18 +396,17 @@ public class IndexManager {
 
     public List<Component> bossDropsToLore(BossDrops bossDrops) {
         List<Component> lore = new ArrayList<>(mobInfoToLore(bossDrops.getMobId()));
-        MythicMob mob = getMobByName(bossDrops.getMobId());
-        if (mob != null) {
-            lore.addAll(altarPointsToLore(mob));
+        MythicMob mob = getMobById(bossDrops.getMobId());
+        if (mob == null) {
+            return lore;
         }
+        lore.addAll(altarPointsToLore(mob));
         lore.add(Component.empty());
         lore.addAll(bossBonusPointsToLore(bossDrops));
         lore.add(Component.empty());
         lore.addAll(dropsToLore(bossDrops.getDrops()));
         lore.add(Component.empty());
-        if (mob != null) {
-            lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
-        }
+        lore.addAll(skillObjectivesToLore(SkillAction.KILL, mob.getInternalName(), "Skills"));
         return lore;
     }
 
@@ -459,5 +463,9 @@ public class IndexManager {
     public void toggleHiddenEntry(String fullEntry) {
         boolean currentlyHidden = isHiddenEntry(fullEntry);
         setHiddenEntry(fullEntry, !currentlyHidden);
+    }
+
+    public ItemStack errorItem(String message) {
+        return entityDropsToItemStack(List.of(MiniMessageUtils.miniMessage("<red>Error: " + message)), new ItemStack(Material.BARRIER), "error");
     }
 }

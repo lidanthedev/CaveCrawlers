@@ -145,6 +145,16 @@ public class MythicMobsHook implements Listener {
         if (mob == null || !mob.getDisplayName().isPresent()) {
             return null;
         }
+        return getMobNameByMythicMob(mob);
+    }
+
+    public String getMobNameByMythicMob(MythicMob mob) {
+        if (mob == null) {
+            return "Error";
+        }
+        if (!mob.getDisplayName().isPresent()) {
+            return mob.getInternalName();
+        }
         return mob.getDisplayName().get();
     }
 

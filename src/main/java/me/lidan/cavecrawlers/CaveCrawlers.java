@@ -261,7 +261,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerConfig() {
         try {
-            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning(ConfigLoader.VERSION_KEY, 1)).build(), LoaderSettings.builder().setAutoUpdate(true).build());
+            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning(ConfigLoader.VERSION_KEY)).build(), LoaderSettings.builder().setAutoUpdate(true).build());
         } catch (IOException | NullPointerException e) {
             log.error("Failed to load config.yml", e);
             throw new RuntimeException(e);

@@ -13,6 +13,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MiniMessageUtils class to manage MiniMessage
@@ -22,6 +23,7 @@ public class MiniMessageUtils {
 
     public static final @NotNull MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     public static final @NotNull LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
+    private static final Map<String, Component> MINI_MESSAGE_CACHE = new ConcurrentHashMap<>();
 
     /**
      * Convert a string to a MiniMessage Component
@@ -81,7 +83,8 @@ public class MiniMessageUtils {
      * @return the MiniMessage Component
      */
     public static Component miniMessageString(String message) {
-        return MINI_MESSAGE.deserialize(message).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
+        return MINI_MESSAGE_CACHE.computeIfAbsent(message, key ->
+                MINI_MESSAGE.deserialize(key).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE));
     }
 
     /**

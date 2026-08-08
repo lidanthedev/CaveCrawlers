@@ -11,6 +11,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +25,14 @@ public class MiniMessageUtils {
     public static final @NotNull MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
     public static final @NotNull LegacyComponentSerializer LEGACY_SECTION = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
     private static final int MINI_MESSAGE_CACHE_MAX_SIZE = 256;
-    private static final Map<String, Component> MINI_MESSAGE_CACHE = new LinkedHashMap<>(MINI_MESSAGE_CACHE_MAX_SIZE, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Component> eldest) {
-            return size() > MINI_MESSAGE_CACHE_MAX_SIZE;
-        }
-    };
+    private static final Map<String, Component> MINI_MESSAGE_CACHE = Collections.synchronizedMap(
+            new LinkedHashMap<String, Component>(MINI_MESSAGE_CACHE_MAX_SIZE, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Component> eldest) {
+                    return size() > MINI_MESSAGE_CACHE_MAX_SIZE;
+                }
+            }
+    );
 
     /**
      * Convert a string to a MiniMessage Component

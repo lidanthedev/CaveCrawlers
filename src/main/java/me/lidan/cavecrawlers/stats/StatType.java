@@ -43,11 +43,22 @@ public class StatType {
     }
 
     public static StatType valueOf(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Stat type key cannot be null!");
+        }
         StatType statType = stats.get(key.toUpperCase());
         if (statType == null) {
             throw new IllegalArgumentException("Stat type " + key + " does not exist!");
         }
         return statType;
+    }
+
+    public static StatType valueOfOrNull(String key) {
+        try {
+            return valueOf(key);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public String getFormatName(){

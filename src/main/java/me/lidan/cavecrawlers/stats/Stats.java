@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.stats;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -12,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@Slf4j
 public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneable {
     private Map<StatType, Stat> stats;
 
@@ -34,9 +36,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
     public static Stats deserialize(Map<String, Object> map) {
         Stats stats = new Stats();
         for (String key : map.keySet()) {
-            StatType type = StatType.valueOf(key);
-            Double value = (Double) map.get(key);
-            stats.set(type, value);
+            try {
+                StatType type = StatType.valueOf(key);
+                Double value = (Double) map.get(key);
+                stats.set(type, value);
+            } catch (IllegalArgumentException | ClassCastException exception) {
+                log.warn("Stats Deserialize Error for key: {}", key, exception);
+            }
         }
         return stats;
     }

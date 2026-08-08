@@ -23,6 +23,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,21 +95,25 @@ public class Drop implements ConfigurationSerializable {
         double chance = (double) map.get("chance");
         if (map.containsKey("itemID")) {
             // legacy support
-            String itemID = (String) map.get("itemID");
-            String amountStr = map.get("amount").toString();
-            ConfigMessage announce = null;
-            if (map.getOrDefault("announce", false).equals(true)) {
-                announce = RARE_DROP_MESSAGE;
-            }
-            return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
+            return deserializeLegacySupport(map, chance);
         }
 
         DropType dropType = DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT));
         String value = (String) map.get("value");
         ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
-        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOf((String) map.get("chanceModifier")) : null;
-        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOf((String) map.get("amountModifier")) : null;
+        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOfOrNull((String) map.get("chanceModifier")) : null;
+        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOfOrNull((String) map.get("amountModifier")) : null;
         return new Drop(dropType, chance, value, announce, chanceModifier, amountModifier);
+    }
+
+    private static @NonNull Drop deserializeLegacySupport(Map<String, Object> map, double chance) {
+        String itemID = (String) map.get("itemID");
+        String amountStr = map.get("amount").toString();
+        ConfigMessage announce = null;
+        if (map.getOrDefault("announce", false).equals(true)) {
+            announce = RARE_DROP_MESSAGE;
+        }
+        return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
     }
 
     public void roll(Player player) {

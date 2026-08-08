@@ -18,6 +18,7 @@ import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.index.EntityHeads;
+import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -209,6 +210,7 @@ public class CaveCrawlersMainCommand {
     public void reloadItems(CommandSender sender) {
         ItemsLoader loader = ItemsLoader.getInstance();
         loader.clear();
+        IndexBaseCategoryMenu.clearItemCache();
         loader.load();
         sender.sendMessage("reloaded Items!");
     }
@@ -218,6 +220,7 @@ public class CaveCrawlersMainCommand {
     public void reloadShops(CommandSender sender) {
         ShopLoader loader = ShopLoader.getInstance();
         loader.clear();
+        IndexBaseCategoryMenu.clearItemCache();
         loader.load();
         sender.sendMessage("reloaded Shops!");
     }
@@ -227,6 +230,7 @@ public class CaveCrawlersMainCommand {
     public void reloadBlocks(CommandSender sender) {
         BlockLoader loader = BlockLoader.getInstance();
         loader.clear();
+        IndexBaseCategoryMenu.clearItemCache();
         loader.load();
         sender.sendMessage("reloaded Blocks!");
     }
@@ -236,6 +240,7 @@ public class CaveCrawlersMainCommand {
     public void reloadDrops(CommandSender sender) {
         DropLoader loader = DropLoader.getInstance();
         loader.clear();
+        IndexBaseCategoryMenu.clearItemCache();
         loader.load();
         sender.sendMessage("reloaded Drops!");
     }
@@ -1085,7 +1090,7 @@ public class CaveCrawlersMainCommand {
     public void testBossConfig(Player sender) {
         List<BossDrop> drops = List.of(new BossDrop("item", 10, "GOLD_INGOT", 100));
         List<Integer> bonusPoints = List.of(1, 2, 3, 4, 5);
-        config.set("bossDrops", new BossDrops(drops, "&4&lUnstable Dragon", null, bonusPoints));
+        config.set("bossDrops", new BossDrops(drops, "SkeletalKnight2", null, bonusPoints));
         config.save();
     }
 

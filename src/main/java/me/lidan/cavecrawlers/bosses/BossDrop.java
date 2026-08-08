@@ -97,8 +97,8 @@ public class BossDrop extends Drop implements ConfigurationSerializable {
         String value = (String) map.get("value");
         int requiredPoints = (int) map.get("requiredPoints");
         String track = (String) map.get("track");
-        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOf((String) map.get("chanceModifier")) : null;
-        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOf((String) map.get("amountModifier")) : null;
+        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOfOrNull((String) map.get("chanceModifier")) : null;
+        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOfOrNull((String) map.get("amountModifier")) : null;
         ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
         return new BossDrop(DropType.valueOf(type), chance, value, announce, chanceModifier, amountModifier, requiredPoints, track);
     }

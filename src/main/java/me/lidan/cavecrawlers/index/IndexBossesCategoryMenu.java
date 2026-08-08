@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
@@ -23,7 +22,7 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, BossDrops> dropsMap = BossManager.getInstance().getDropsMap();
         List<Map.Entry<String, BossDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityName());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByID(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))
@@ -31,7 +30,7 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<String, BossDrops> dropsEntry : entries) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.bossDropsToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, () -> itemGenerator.bossDropsToItemStack(dropsEntry.getValue()));
         }
     }
 

@@ -19,6 +19,7 @@ public class BossLoader extends ConfigLoader<BossDrops> {
                     if (doc.getFile() == null) {
                         return;
                     }
+                    // will run deserialize and serialize and that will actually do the migration
                     log.info("Migrating Boss to version 1 for {}...", doc.getFile().getName());
                 })
         );

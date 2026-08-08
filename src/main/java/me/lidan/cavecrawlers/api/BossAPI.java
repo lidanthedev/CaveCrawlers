@@ -8,7 +8,7 @@ import me.lidan.cavecrawlers.bosses.BossDrops;
  */
 public interface BossAPI {
     /**
-     * Registers boss drops for a specific entity name.
+     * Registers boss drops for a specific MythicMobs internal mob ID.
      *
      * @param mobId  the mythic id of the mob
      * @param entityDrops the BossDrops to register for the entity
@@ -16,7 +16,7 @@ public interface BossAPI {
     void registerEntityDrops(String mobId, BossDrops entityDrops);
 
     /**
-     * Retrieves the BossDrops for a given entity name.
+     * Retrieves the BossDrops for a given MythicMobs internal mob ID.
      *
      * @param mobId the mythic id of the mob
      * @return the BossDrops associated with the entity, or null if not found

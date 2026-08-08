@@ -146,8 +146,8 @@ public class MythicMobsHook implements Listener {
     public @Nullable String getMobNameByID(String id) {
         if (mythicBukkit == null) return null;
         MythicMob mob = getMobByID(id);
-        if (mob == null || !mob.getDisplayName().isPresent()) {
-            return null;
+        if (mob == null) {
+            return "Error";
         }
         return getMobNameByMythicMob(mob);
     }

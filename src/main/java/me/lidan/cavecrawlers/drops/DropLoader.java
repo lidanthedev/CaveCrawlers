@@ -27,6 +27,7 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
                 if (doc.getFile() == null) {
                     return;
                 }
+                // will run deserialize and serialize and that will actually do the migration
                 log.info("Migrating Drops to version 2 for {}...", doc.getFile().getName());
             });
         });
@@ -43,6 +44,9 @@ public class DropLoader extends ConfigLoader<EntityDrops> {
                 throw new IllegalArgumentException("Failed to migrate entity " + entityName);
             }
             log.info("Migrated entity: {} from {}", mobId, entityName);
+        }
+        if (mobId == null || mobId.isBlank()) {
+            throw new IllegalArgumentException("Mob ID must not be null or blank");
         }
         return mobId;
     }

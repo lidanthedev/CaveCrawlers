@@ -22,7 +22,7 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, BossDrops> dropsMap = BossManager.getInstance().getDropsMap();
         List<Map.Entry<String, BossDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getMobId());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByID(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))

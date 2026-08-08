@@ -16,16 +16,31 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 public class AntiStupidStuffListener implements Listener {
 
     public static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    public static final boolean ALLOW_CRAFTING = plugin.getConfig().getBoolean("vanilla.crafting", false);
-    public static final boolean ALLOW_ANVIL = plugin.getConfig().getBoolean("vanilla.anvil", false);
-    public static final boolean ALLOW_ENCHANTING = plugin.getConfig().getBoolean("vanilla.enchanting", false);
-    public static final boolean ALLOW_DROP = plugin.getConfig().getBoolean("vanilla.drop", false);
-    public static final boolean ALLOW_SWAP_HANDS = plugin.getConfig().getBoolean("vanilla.swap_hands", false);
+
+    private boolean isCraftingAllowed() {
+        return plugin.getConfig().getBoolean("vanilla.crafting", false);
+    }
+
+    private boolean isAnvilAllowed() {
+        return plugin.getConfig().getBoolean("vanilla.anvil", false);
+    }
+
+    private boolean isEnchantingAllowed() {
+        return plugin.getConfig().getBoolean("vanilla.enchanting", false);
+    }
+
+    private boolean isDroppingAllowed() {
+        return plugin.getConfig().getBoolean("vanilla.drop", false);
+    }
+
+    private boolean isSwapHandsAllowed() {
+        return plugin.getConfig().getBoolean("vanilla.swap_hands", false);
+    }
 
 
     @EventHandler(ignoreCancelled = true)
     public void onCraftItem(CraftItemEvent event) {
-        if (ALLOW_CRAFTING) return;
+        if (isCraftingAllowed()) return;
         event.setCancelled(true);
     }
 
@@ -33,9 +48,9 @@ public class AntiStupidStuffListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Material clickedMat = event.getClickedBlock().getType();
-            if (!ALLOW_ENCHANTING && clickedMat == Material.ENCHANTING_TABLE) {
+            if (!isEnchantingAllowed() && clickedMat == Material.ENCHANTING_TABLE) {
                 event.setCancelled(true);
-            } else if (!ALLOW_ANVIL && clickedMat.toString().contains("ANVIL")) {
+            } else if (!isAnvilAllowed() && clickedMat.toString().contains("ANVIL")) {
                 event.setCancelled(true);
             }
         }
@@ -43,7 +58,7 @@ public class AntiStupidStuffListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        if (ALLOW_DROP) return;
+        if (isDroppingAllowed()) return;
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.CREATIVE) return;
 
@@ -57,7 +72,7 @@ public class AntiStupidStuffListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
-        if (ALLOW_SWAP_HANDS) return;
+        if (isSwapHandsAllowed()) return;
         event.setCancelled(true);
     }
 }

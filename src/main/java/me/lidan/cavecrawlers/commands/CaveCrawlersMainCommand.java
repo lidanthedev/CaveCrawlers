@@ -18,7 +18,6 @@ import me.lidan.cavecrawlers.gui.ConfirmGui;
 import me.lidan.cavecrawlers.gui.ItemsGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.index.EntityHeads;
-import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
@@ -132,7 +131,7 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop", "shop commands"));
     }
 
-    @Command({"ct item", "cc item", "cavecrawlers item"})
+    @Subcommand("item")
     @CommandPermission("cavecrawlers.admin.help")
     public void itemHelpDefault(CommandSender sender) {
         itemHelp(sender);
@@ -161,7 +160,7 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc item import <id>", "import the item in your hand (advanced)"));
     }
 
-    @Command({"ct shop", "cc shop", "cavecrawlers shop"})
+    @Subcommand("shop")
     @CommandPermission("cavecrawlers.admin.help")
     public void shopHelpDefault(CommandSender sender) {
         shopHelp(sender);
@@ -178,7 +177,7 @@ public class CaveCrawlersMainCommand {
         sender.sendMessage(getHelpMessage(HelpCommandType.COMMAND, "/cc shop editor <shop-name>", "open the shop editor"));
     }
 
-    @Command({"ct altar", "cc altar", "cavecrawlers altar"})
+    @Subcommand("altar")
     @CommandPermission("cavecrawlers.admin.help")
     public void altarHelpDefault(CommandSender sender) {
         altarHelp(sender);
@@ -208,61 +207,76 @@ public class CaveCrawlersMainCommand {
     @Subcommand("reload items")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadItems(CommandSender sender) {
-        ItemsLoader loader = ItemsLoader.getInstance();
-        loader.clear();
-        IndexBaseCategoryMenu.clearItemCache();
-        loader.load();
+        plugin.reloadContent(ItemsLoader.getInstance());
         sender.sendMessage("reloaded Items!");
     }
 
     @Subcommand("reload shops")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadShops(CommandSender sender) {
-        ShopLoader loader = ShopLoader.getInstance();
-        loader.clear();
-        IndexBaseCategoryMenu.clearItemCache();
-        loader.load();
+        plugin.reloadContent(ShopLoader.getInstance());
         sender.sendMessage("reloaded Shops!");
     }
 
     @Subcommand("reload blocks")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadBlocks(CommandSender sender) {
-        BlockLoader loader = BlockLoader.getInstance();
-        loader.clear();
-        IndexBaseCategoryMenu.clearItemCache();
-        loader.load();
+        plugin.reloadContent(BlockLoader.getInstance());
         sender.sendMessage("reloaded Blocks!");
     }
 
     @Subcommand("reload drops")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadDrops(CommandSender sender) {
-        DropLoader loader = DropLoader.getInstance();
-        loader.clear();
-        IndexBaseCategoryMenu.clearItemCache();
-        loader.load();
+        plugin.reloadContent(DropLoader.getInstance());
         sender.sendMessage("reloaded Drops!");
+    }
+
+    @Subcommand("reload")
+    @CommandPermission("cavecrawlers.admin.reload")
+    public void reload(CommandSender sender) {
+        reloadLite(sender);
+    }
+
+    @Subcommand("reload lite")
+    @CommandPermission("cavecrawlers.admin.reload")
+    public void reloadLite(CommandSender sender) {
+        plugin.reloadLite(sender);
+        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers gameplay configuration reloaded!");
     }
 
     @Subcommand("reload plugin")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadPlugin(CommandSender sender) {
-        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
-            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+        if (!requirePlugMan(sender)) {
             return;
         }
-        Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
+        reloadPluginInternal();
         sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
     }
 
     @Subcommand("reload addons")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadAddons(CommandSender sender) {
-        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
-            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+        if (!requirePlugMan(sender)) {
             return;
         }
+        reloadAddonsInternal(sender);
+    }
+
+    private boolean requirePlugMan(CommandSender sender) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlugMan")) {
+            return true;
+        }
+        sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+        return false;
+    }
+
+    private void reloadPluginInternal() {
+        Bukkit.dispatchCommand(getConsoleSender(), "plugman reload CaveCrawlers");
+    }
+
+    private void reloadAddonsInternal(CommandSender sender) {
         @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
         for (Plugin plugin : plugins) {
             if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
@@ -275,12 +289,12 @@ public class CaveCrawlersMainCommand {
     @Subcommand("reload all")
     @CommandPermission("cavecrawlers.admin.reload")
     public void reloadAll(CommandSender sender) {
-        if (Bukkit.getPluginManager().getPlugin("PlugMan") == null) {
-            sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");
+        if (!requirePlugMan(sender)) {
             return;
         }
-        reloadPlugin(sender);
-        reloadAddons(sender);
+        reloadPluginInternal();
+        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+        reloadAddonsInternal(sender);
     }
 
     @Subcommand("config saveStats")
@@ -450,7 +464,10 @@ public class CaveCrawlersMainCommand {
 
     @Subcommand("item browse")
     @CommandPermission("cavecrawlers.admin.item")
-    public void itemBrowse(Player sender, @Default("") String query) {
+    public void itemBrowse(Player sender, @Optional String query) {
+        if (query == null) {
+            query = "";
+        }
         new ItemsGui(sender, query).open();
     }
 

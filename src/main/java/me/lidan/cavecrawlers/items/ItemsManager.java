@@ -26,12 +26,14 @@ public class ItemsManager implements ItemsAPI {
     public static final String NO_UPDATE = "NO_UPDATE";
     private static ItemsManager instance;
     private final Map<String, ItemInfo> itemsMap;
-    private final ConfigurationSection vanillaConversion;
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+
+    private @Nullable ConfigurationSection getVanillaConversion() {
+        return plugin.getConfig().getConfigurationSection("vanilla-convert");
+    }
 
     private ItemsManager() {
         itemsMap = new HashMap<>();
-        vanillaConversion = CaveCrawlers.getInstance().getConfig().getConfigurationSection("vanilla-convert");
     }
 
     public void registerItem(String ID, ItemInfo info){
@@ -136,7 +138,8 @@ public class ItemsManager implements ItemsAPI {
         try {
             String itemId = itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, ITEM_ID), PersistentDataType.STRING);
             if (itemId == null){
-                return vanillaConversion.getString(itemStack.getType().name());
+                ConfigurationSection vanillaConversion = getVanillaConversion();
+                return vanillaConversion == null ? null : vanillaConversion.getString(itemStack.getType().name());
             }
             return itemId;
         } catch (NullPointerException nullPointerException) {

@@ -40,7 +40,10 @@ public class DamageEntityListener implements Listener {
     private static final EntityManager entityManager = EntityManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final double VOID_DAMAGE = 1000000000;
-    private static double serverDamageMultiplier = plugin.getConfig().getDouble("server-damage-multiplier", 1);
+
+    private double getServerDamageMultiplier() {
+        return plugin.getConfig().getDouble("server-damage-multiplier", 1);
+    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -82,7 +85,7 @@ public class DamageEntityListener implements Listener {
             onPlayerDamageMob(event, player, mob);
             return;
         }
-        calculated *= serverDamageMultiplier;
+        calculated *= getServerDamageMultiplier();
         damageMobAfterCalculation(event, player, mob, calculated, crit);
     }
 
@@ -104,7 +107,7 @@ public class DamageEntityListener implements Listener {
         DamageCalculation calculation = damageManager.getDamageCalculation(player);
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
-        damage *= serverDamageMultiplier;
+        damage *= getServerDamageMultiplier();
         damageMobAfterCalculation(event, player, mob, damage, crit);
     }
 

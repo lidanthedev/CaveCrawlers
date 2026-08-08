@@ -48,6 +48,13 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
     }
 
     @Override
+    public void clear() {
+        super.clear();
+        skillConfigs.clear();
+        skillInfoMap.clear();
+    }
+
+    @Override
     public void register(String key, SkillInfo value) {
         if (key.length() >= SKILL_TYPE_MAX_LENGTH) {
             log.error("Skill type name is too long: {}", key);

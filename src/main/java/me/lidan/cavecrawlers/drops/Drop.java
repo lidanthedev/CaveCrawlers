@@ -33,7 +33,6 @@ import java.util.Map;
 
 @Data
 public class Drop implements ConfigurationSerializable {
-    public static final ConfigMessage RARE_DROP_MESSAGE = ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
     private static final Logger log = LoggerFactory.getLogger(Drop.class);
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -46,6 +45,10 @@ public class Drop implements ConfigurationSerializable {
     protected @Nullable StatType chanceModifier;
     protected @Nullable StatType amountModifier;
     protected Map<String, String> placeholders = new HashMap<>();
+
+    private static ConfigMessage getRareDropMessage() {
+        return ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
+    }
 
     public Drop(DropType type, double chance, String value, @Nullable ConfigMessage announce, @Nullable StatType chanceModifier, @Nullable StatType amountModifier) {
         this.type = type;
@@ -111,7 +114,7 @@ public class Drop implements ConfigurationSerializable {
         String amountStr = map.get("amount").toString();
         ConfigMessage announce = null;
         if (map.getOrDefault("announce", false).equals(true)) {
-            announce = RARE_DROP_MESSAGE;
+            announce = getRareDropMessage();
         }
         return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
     }

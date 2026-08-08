@@ -22,4 +22,10 @@ public class PerksLoader extends ConfigLoader<Perk> {
         }
         return instance;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        manager.clear();
+    }
 }

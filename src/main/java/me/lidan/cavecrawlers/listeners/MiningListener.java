@@ -20,13 +20,16 @@ public class MiningListener implements Listener {
 
     private final MiningManager miningManager = MiningManager.getInstance();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private List<String> blacklistedWorlds = plugin.getConfig().getStringList("mining-blacklisted-worlds");
+
+    private List<String> getBlacklistedWorlds() {
+        return plugin.getConfig().getStringList("mining-blacklisted-worlds");
+    }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
-        if (blacklistedWorlds.contains(name)) {
+        if (getBlacklistedWorlds().contains(name)) {
             if (player.hasPotionEffect(XPotion.MINING_FATIGUE.get())) {
                 int duration = player.getPotionEffect(XPotion.MINING_FATIGUE.get()).getDuration();
                 if (duration == -1){
@@ -53,7 +56,7 @@ public class MiningListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
-        if (blacklistedWorlds.contains(name)) {
+        if (getBlacklistedWorlds().contains(name)) {
             return;
         }
         if (player.getGameMode() != GameMode.SURVIVAL) {
@@ -66,7 +69,7 @@ public class MiningListener implements Listener {
     public void onBlockDamageAbort(BlockDamageAbortEvent event) {
         Player player = event.getPlayer();
         String name = player.getWorld().getName();
-        if (blacklistedWorlds.contains(name)) {
+        if (getBlacklistedWorlds().contains(name)) {
             return;
         }
         if (player.getGameMode() != GameMode.SURVIVAL) {

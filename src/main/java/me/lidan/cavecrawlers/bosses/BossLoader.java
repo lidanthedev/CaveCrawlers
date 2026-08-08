@@ -31,4 +31,10 @@ public class BossLoader extends ConfigLoader<BossDrops> {
         }
         return instance;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        BossManager.getInstance().clear();
+    }
 }

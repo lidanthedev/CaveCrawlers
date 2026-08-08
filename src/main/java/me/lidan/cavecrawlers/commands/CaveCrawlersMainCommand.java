@@ -265,7 +265,7 @@ public class CaveCrawlersMainCommand {
     }
 
     private boolean requirePlugMan(CommandSender sender) {
-        if (Bukkit.getPluginManager().getPlugin("PlugMan") != null) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlugMan")) {
             return true;
         }
         sender.sendMessage(ChatColor.RED + "PlugMan is required for this command!");

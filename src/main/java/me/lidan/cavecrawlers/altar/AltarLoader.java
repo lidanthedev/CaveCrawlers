@@ -21,4 +21,10 @@ public class AltarLoader extends ConfigLoader<Altar> {
         }
         return instance;
     }
+
+    @Override
+    public void clear() {
+        super.clear();
+        altarManager.clear();
+    }
 }

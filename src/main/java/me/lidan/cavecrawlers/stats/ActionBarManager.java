@@ -16,10 +16,19 @@ public class ActionBarManager implements ActionBarAPI {
     public static final int ACTION_BAR_COOLDOWN = 1000;
     private static ActionBarManager instance;
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private static final String format = plugin.getConfig().getString("actionbar.format", "<red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎");
-    private static final boolean enabled = plugin.getConfig().getBoolean("actionbar.enabled", true);
 
     private final Cooldown<UUID> cooldown;
+
+    private static void sendActionBar(Player player, Component message) {
+        if (!ActionBarManager.getInstance().isEnabled()) {
+            return;
+        }
+        player.sendActionBar(message);
+    }
+
+    private String getFormat() {
+        return plugin.getConfig().getString("actionbar.format", "<red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎");
+    }
 
     public ActionBarManager() {
         cooldown = new Cooldown<>();
@@ -34,8 +43,12 @@ public class ActionBarManager implements ActionBarAPI {
         return actionBarBuildAdventure(player, alert);
     }
 
+    private boolean isEnabled() {
+        return plugin.getConfig().getBoolean("actionbar.enabled", true);
+    }
+
     public Component actionBarBuildAdventure(Player player, Component alert) {
-        String formatCopy = format;
+        String formatCopy = getFormat();
         assert formatCopy != null : "Action bar format cannot be null";
         if (alert == null) {
             alert = Component.empty();
@@ -57,13 +70,6 @@ public class ActionBarManager implements ActionBarAPI {
             placeholders.putIfAbsent(statType.name().toLowerCase() + "-icon", statType.getIcon());
         }
         return MiniMessageUtils.miniMessage(formatCopy, placeholders);
-    }
-
-    private static void sendActionBar(Player player, Component message) {
-        if (!enabled) {
-            return;
-        }
-        player.sendActionBar(message);
     }
 
     @Override

@@ -19,10 +19,13 @@ import java.util.function.Consumer;
 
 @ToString(callSuper = true)
 public class LootShareEntityData extends EntityData{
-    public final static ConfigMessage LOOT_SHARE_MESSAGE = ConfigMessage.getMessageOrDefault("loot-share-message", "&9&lLoot Share for helping %summoner%!");
     private static final Logger log = LoggerFactory.getLogger(LootShareEntityData.class);
     private final int damageThresholdPercent;
     private final UUID summoner;
+
+    private static ConfigMessage getLootShareMessage() {
+        return ConfigMessage.getMessageOrDefault("loot-share-message", "&9&lLoot Share for helping %summoner%!");
+    }
 
     public LootShareEntityData(LivingEntity entity, int damageThresholdPercent, UUID summoner) {
         super(entity);
@@ -54,7 +57,7 @@ public class LootShareEntityData extends EntityData{
                 Player player = Bukkit.getPlayer(entry.getKey());
                 if (player == null) continue;
                 if (!entry.getKey().equals(summoner)) {
-                    LOOT_SHARE_MESSAGE.sendMessage(player, placeholders);
+                    getLootShareMessage().sendMessage(player, placeholders);
                 }
                 onGive.accept(player);
             }

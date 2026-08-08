@@ -35,6 +35,10 @@ public class PerksManager {
         return playerPerks;
     }
 
+    public void clear() {
+        perks.clear();
+    }
+
     public static PerksManager getInstance() {
         if (instance == null) {
             instance = new PerksManager();

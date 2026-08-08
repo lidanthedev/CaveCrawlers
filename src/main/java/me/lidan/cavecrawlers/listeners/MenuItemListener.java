@@ -17,21 +17,21 @@ public class MenuItemListener implements Listener {
 
     public static final String SERVER_GUIDE_NAME = "§6Server Guide §7(Right Click)";
     public static final String MENU = "menu";
-    public final static boolean IS_MENU_ENABLED = CaveCrawlers.getInstance().getConfig().getBoolean("menu.item-enabled", false);
+
+    private boolean isMenuEnabled() {
+        return CaveCrawlers.getInstance().getConfig().getBoolean("menu.item-enabled", false);
+    }
 
     ItemStack menuItem;
 
     public MenuItemListener() {
-        if (!IS_MENU_ENABLED) {
-            return;
-        }
         menuItem = ItemBuilder.from(Material.NETHER_STAR).setName(SERVER_GUIDE_NAME).build();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(CaveCrawlers.getInstance(), this::playersTick, 0, 20);
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (!IS_MENU_ENABLED) {
+        if (!isMenuEnabled()) {
             return;
         }
         Player player = event.getPlayer();
@@ -49,7 +49,7 @@ public class MenuItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerDropItem(PlayerDropItemEvent event) {
-        if (!IS_MENU_ENABLED) {
+        if (!isMenuEnabled()) {
             return;
         }
         if (event.getItemDrop().getItemStack().getItemMeta().getDisplayName().equals(SERVER_GUIDE_NAME)) {
@@ -59,7 +59,7 @@ public class MenuItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!IS_MENU_ENABLED) {
+        if (!isMenuEnabled()) {
             return;
         }
         if (event.getCurrentItem() == null) {
@@ -77,7 +77,7 @@ public class MenuItemListener implements Listener {
     }
 
     public void putMenuInHotbar(Player player) {
-        if (!IS_MENU_ENABLED) {
+        if (!isMenuEnabled()) {
             return;
         }
         PlayerInventory playerInventory = player.getInventory();
@@ -88,7 +88,7 @@ public class MenuItemListener implements Listener {
     }
 
     public void playersTick() {
-        if (!IS_MENU_ENABLED) {
+        if (!isMenuEnabled()) {
             return;
         }
         for (Player player : Bukkit.getOnlinePlayers()) {

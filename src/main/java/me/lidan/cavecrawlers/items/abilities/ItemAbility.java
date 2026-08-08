@@ -24,12 +24,15 @@ import java.util.UUID;
 @Setter
 @ToString
 public abstract class ItemAbility implements Cloneable {
-    private static boolean EXPERIMENTAL_ENABLE_COOLDOWN_ANIMATION = CaveCrawlers.getInstance().getConfig().getBoolean("experimental.enable-cooldown-animation", false);
     private String name;
     private String description;
     private double cost;
     private long cooldown;
     private final Cooldown<UUID> abilityCooldown;
+
+    private boolean isCooldownAnimationEnabled() {
+        return CaveCrawlers.getInstance().getConfig().getBoolean("experimental.enable-cooldown-animation", false);
+    }
 
     public ItemAbility(String name, String description, double cost, long cooldown) {
         this.name = name;
@@ -58,7 +61,7 @@ public abstract class ItemAbility implements Cloneable {
         boolean success = useAbility(playerEvent);
         if (success) {
             abilityCooldown.startCooldown(player.getUniqueId());
-            if (EXPERIMENTAL_ENABLE_COOLDOWN_ANIMATION) {
+            if (isCooldownAnimationEnabled()) {
                 double cooldownSeconds = cooldown / 1000d * 20;
                 if (cooldownSeconds >= 1) {
                     PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) cooldownSeconds);

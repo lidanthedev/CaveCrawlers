@@ -19,29 +19,6 @@ public class MenuGui {
 
     public static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     public static CustomConfig config = new CustomConfig("menu.yml");
-    // heads
-    public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";
-    public static final String WARRPS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjBiZmMyNTc3ZjZlMjZjNmM2ZjczNjVjMmM0MDc2YmNjZWU2NTMxMjQ5ODkzODJjZTkzYmNhNGZjOWUzOWIifX19";
-    public static final String DAILY_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzY3N2U2NWRmMjk5OWQwMzE5ZmRiY2JhM2MwOTJmMTYwYjk5YjRiNDY3OTgzYWY4MWZjZmExZWI0NWQzOWEzIn19fQ==";
-    public static final String MADDOX_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTMzNmQ3Y2M5NWNiZjY2ODlmNWU4Yzk1NDI5NGVjOGQxZWZjNDk0YTQwMzEzMjViYjQyN2JjODFkNTZhNDg0ZCJ9fX0=";
-    public static final String ACBAG_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYxYTkxOGMwYzQ5YmE4ZDA1M2U1MjJjYjkxYWJjNzQ2ODkzNjdiNGQ4YWEwNmJmYzFiYTkxNTQ3MzA5ODVmZiJ9fX0=";
-    public static final String ISLAND_WARP_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjE1MWNmZmRhZjMwMzY3MzUzMWE3NjUxYjM2NjM3Y2FkOTEyYmE0ODU2NDMxNThlNTQ4ZDU5YjJlYWQ1MDExIn19fQ==";
-    // commands
-    public static final String SKILLS_COMMAND = config.getString("skills-command", "skills");
-    public static final String KITS_COMMAND = config.getString("kits-command", "kits");
-    public static final String SHOP_COMMAND = config.getString("shop-command", "shop");
-    public static final String WARP_COMMAND = config.getString("warp-command", "warp");
-    public static final String DAILY_COMMAND = config.getString("daily-command", "daily");
-    public static final String STORAGE_COMMAND = config.getString("storage-command", "ec");
-    public static final String PETS_COMMAND = config.getString("pets-command", "pets");
-    public static final String CRAFTING_TABLE_COMMAND = config.getString("crafting-table-command", "craftingtable");
-    public static final String MADDOX_COMMNAD = config.getString("maddox-command", "slayer");
-    public static final String SELL_COMMAND = config.getString("sell-command", "sell");
-    public static final String ACBAG_COMMAND = config.getString("acbag-command", "acbag");
-    public static final String ISLAND_COMMAND = config.getString("island-command", "is");
-    public static final String HUB_COMMAND = config.getString("hub-command", "hub");
-    // settings
-    public static final boolean HAS_SKYBLOCK = plugin.getConfig().getBoolean("has-skyblock", false);
 
     public MenuGui(Player player) {
         this.player = player;
@@ -77,7 +54,7 @@ public class MenuGui {
         })));
 
         World world = player.getWorld();
-        if (HAS_SKYBLOCK && !world.getName().equalsIgnoreCase(SKYBLOCK_WORLD)) {
+        if (hasSkyblock() && !world.getName().equalsIgnoreCase(SKYBLOCK_WORLD)) {
             gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP_SKULL_TEXTURE).setName("§bWarp To: §aPrivate Island").setLore("§7Teleports you back to your", "§7private island.", "", "§eClick to Warp").asGuiItem((event -> {
                 Player sender = (Player) event.getWhoClicked();
                 sender.performCommand(ISLAND_COMMAND);
@@ -91,6 +68,32 @@ public class MenuGui {
 
         gui.setItem(49, GuiItems.CLOSE_ITEM);
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
+    }
+    // heads
+    public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";
+    public static final String WARRPS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjBiZmMyNTc3ZjZlMjZjNmM2ZjczNjVjMmM0MDc2YmNjZWU2NTMxMjQ5ODkzODJjZTkzYmNhNGZjOWUzOWIifX19";
+    public static final String DAILY_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzY3N2U2NWRmMjk5OWQwMzE5ZmRiY2JhM2MwOTJmMTYwYjk5YjRiNDY3OTgzYWY4MWZjZmExZWI0NWQzOWEzIn19fQ==";
+    public static final String MADDOX_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTMzNmQ3Y2M5NWNiZjY2ODlmNWU4Yzk1NDI5NGVjOGQxZWZjNDk0YTQwMzEzMjViYjQyN2JjODFkNTZhNDg0ZCJ9fX0=";
+    public static final String ACBAG_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTYxYTkxOGMwYzQ5YmE4ZDA1M2U1MjJjYjkxYWJjNzQ2ODkzNjdiNGQ4YWEwNmJmYzFiYTkxNTQ3MzA5ODVmZiJ9fX0=";
+    public static final String ISLAND_WARP_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjE1MWNmZmRhZjMwMzY3MzUzMWE3NjUxYjM2NjM3Y2FkOTEyYmE0ODU2NDMxNThlNTQ4ZDU5YjJlYWQ1MDExIn19fQ==";
+    // commands
+    public static final String SKILLS_COMMAND = config.getString("skills-command", "skills");
+    public static final String KITS_COMMAND = config.getString("kits-command", "kits");
+    public static final String SHOP_COMMAND = config.getString("shop-command", "shop");
+    public static final String WARP_COMMAND = config.getString("warp-command", "warp");
+    public static final String DAILY_COMMAND = config.getString("daily-command", "daily");
+    public static final String STORAGE_COMMAND = config.getString("storage-command", "ec");
+    public static final String PETS_COMMAND = config.getString("pets-command", "pets");
+    public static final String CRAFTING_TABLE_COMMAND = config.getString("crafting-table-command", "craftingtable");
+    public static final String MADDOX_COMMNAD = config.getString("maddox-command", "slayer");
+    public static final String SELL_COMMAND = config.getString("sell-command", "sell");
+    public static final String ACBAG_COMMAND = config.getString("acbag-command", "acbag");
+    public static final String ISLAND_COMMAND = config.getString("island-command", "is");
+    public static final String HUB_COMMAND = config.getString("hub-command", "hub");
+    // settings
+
+    private static boolean hasSkyblock() {
+        return plugin.getConfig().getBoolean("has-skyblock", false);
     }
 
     public void open(){

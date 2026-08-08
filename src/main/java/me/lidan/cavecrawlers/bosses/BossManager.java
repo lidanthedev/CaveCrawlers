@@ -21,6 +21,10 @@ public class BossManager implements BossAPI {
         return dropsMap.get(mobId);
     }
 
+    public void clear() {
+        dropsMap.clear();
+    }
+
     public static BossManager getInstance() {
         if (instance == null) {
             instance = new BossManager();

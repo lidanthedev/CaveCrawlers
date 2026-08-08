@@ -56,6 +56,10 @@ public class AltarManager {
         }
     }
 
+    public void clear() {
+        altars.clear();
+    }
+
     public static AltarManager getInstance() {
         if (instance == null) {
             instance = new AltarManager();

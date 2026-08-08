@@ -10,6 +10,7 @@ import io.lumine.mythic.core.items.ItemExecutor;
 import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import net.md_5.bungee.api.ChatColor;
@@ -32,6 +33,7 @@ public class MythicMobsHook implements Listener {
     private final MythicBukkit mythicBukkit;
     private final BukkitAPIHelper mythicAPIHelper;
     private final Map<String, MythicMob> reverseMobNameCache = new HashMap<>();
+    private final Map<String, MythicMob> mobIdCache = new HashMap<>();
 
     private MythicMobsHook() {
         this.mythicBukkit = plugin.getMythicBukkit();
@@ -44,7 +46,9 @@ public class MythicMobsHook implements Listener {
     }
 
     public void load() {
+        IndexBaseCategoryMenu.clearItemCache();
         reverseMobNameCache.clear();
+        mobIdCache.clear();
         tryRegisterItemSuppliers();
     }
 
@@ -128,11 +132,32 @@ public class MythicMobsHook implements Listener {
         });
     }
 
+    public @Nullable MythicMob getMobByID(String id) {
+        if (mythicAPIHelper == null || id == null) return null;
+        return mobIdCache.computeIfAbsent(id, mythicAPIHelper::getMythicMob);
+    }
+
+    public @Nullable String getMobID(Entity entity) {
+        if (mythicAPIHelper == null || entity == null) return null;
+        var activeMob = mythicAPIHelper.getMythicMobInstance(entity);
+        return activeMob == null ? null : activeMob.getType().getInternalName();
+    }
+
     public @Nullable String getMobNameByID(String id) {
         if (mythicBukkit == null) return null;
-        MythicMob mob = mythicBukkit.getAPIHelper().getMythicMob(id);
-        if (mob == null || !mob.getDisplayName().isPresent()) {
-            return null;
+        MythicMob mob = getMobByID(id);
+        if (mob == null) {
+            return "Error";
+        }
+        return getMobNameByMythicMob(mob);
+    }
+
+    public String getMobNameByMythicMob(MythicMob mob) {
+        if (mob == null) {
+            return "Error";
+        }
+        if (!mob.getDisplayName().isPresent()) {
+            return mob.getInternalName();
         }
         return mob.getDisplayName().get();
     }

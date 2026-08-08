@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.MiningManager;
 import net.md_5.bungee.api.ChatColor;
@@ -27,7 +26,7 @@ public class IndexBlocksCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<Material, BlockInfo> dropsEntry : sortedDrops) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.blockInfoToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, () -> itemGenerator.blockInfoToItemStack(dropsEntry.getValue()));
         }
     }
 

@@ -24,6 +24,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
@@ -34,6 +35,7 @@ import me.lidan.cavecrawlers.listeners.*;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockLoader;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.objects.ConfigLoader;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.objects.SoundOptions;
 import me.lidan.cavecrawlers.objects.TitleOptions;
@@ -59,6 +61,7 @@ import me.lidan.cavecrawlers.utils.Holograms;
 import net.md_5.bungee.api.ChatColor;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.*;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -75,9 +78,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -260,12 +261,58 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerConfig() {
         try {
-            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning("version")).build(), LoaderSettings.builder().setAutoUpdate(true).build());
+            YamlDocument.create(new File(getDataFolder(), "config.yml"), getResource("config.yml"), GeneralSettings.builder().setSerializer(SpigotSerializer.getInstance()).build(), UpdaterSettings.builder().setVersioning(new BasicDefaultVersioning(ConfigLoader.VERSION_KEY)).build(), LoaderSettings.builder().setAutoUpdate(true).build());
         } catch (IOException | NullPointerException e) {
             log.error("Failed to load config.yml", e);
             throw new RuntimeException(e);
         }
+        reloadConfig();
         Skill.setDefaultXpToLevelList(getConfig().getDoubleList("skill-need-xp"));
+    }
+
+    /**
+     * Reloads gameplay configuration without unloading this plugin or its addons.
+     * Persistent player, database, and pending-world state is intentionally excluded.
+     */
+    public void reloadLite(CommandSender sender) {
+        Map<String, Object> databaseSettingsBefore = getDatabaseSettings();
+
+        registerConfig();
+        ConfigMessage.reload();
+
+        clearGameplayRegistries();
+        IndexBaseCategoryMenu.clearItemCache();
+
+        registerFromConfigs(this);
+        registerSkills();
+
+        if (!databaseSettingsBefore.equals(getDatabaseSettings())) {
+            sender.sendMessage(ChatColor.YELLOW + "Database settings changed. A full reload or server restart is required for them to take effect.");
+        }
+    }
+
+    public void reloadContent(ConfigLoader<?> loader) {
+        loader.clear();
+        IndexBaseCategoryMenu.clearItemCache();
+        loader.load();
+    }
+
+    private void clearGameplayRegistries() {
+        ItemsLoader.getInstance().clear();
+        ShopLoader.getInstance().clear();
+        BlockLoader.getInstance().clear();
+        DropLoader.getInstance().clear();
+        BossLoader.getInstance().clear();
+        PerksLoader.getInstance().clear();
+        AltarLoader.getInstance().clear();
+        SkillsManager.getInstance().clear();
+    }
+
+    private Map<String, Object> getDatabaseSettings() {
+        if (getConfig().getConfigurationSection("database") == null) {
+            return Map.of();
+        }
+        return new HashMap<>(getConfig().getConfigurationSection("database").getValues(true));
     }
 
     private String getOrCreateServerId() {
@@ -415,7 +462,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerCommandCompletions() {
         commandHandlerBuilder.suggestionProviders(builder -> {
-            builder.addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+            builder
+                    .addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+                    .addProvider(Player.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
                     .addProvider(Sound.class, context -> XSound.getValues().stream()
                             .map(XSound::parseSound)
                             .filter(Objects::nonNull)

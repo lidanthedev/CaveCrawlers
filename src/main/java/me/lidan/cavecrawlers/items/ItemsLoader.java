@@ -34,6 +34,7 @@ public class ItemsLoader extends ConfigLoader<ItemInfo> {
     public void clear() {
         super.clear();
         itemsManager.clear();
+        notFullyLoadedItems.clear();
     }
 
     public static ItemsLoader getInstance() {

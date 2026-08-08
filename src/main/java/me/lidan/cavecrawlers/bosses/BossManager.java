@@ -2,7 +2,6 @@ package me.lidan.cavecrawlers.bosses;
 
 import lombok.Getter;
 import me.lidan.cavecrawlers.api.BossAPI;
-import net.md_5.bungee.api.ChatColor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,14 +12,17 @@ public class BossManager implements BossAPI {
     private final Map<String, BossDrops> dropsMap = new HashMap<>();
 
     @Override
-    public void registerEntityDrops(String entityName, BossDrops entityDrops) {
-        entityName = ChatColor.translateAlternateColorCodes('&', entityName);
-        dropsMap.put(entityName, entityDrops);
+    public void registerEntityDrops(String mobId, BossDrops entityDrops) {
+        dropsMap.put(mobId, entityDrops);
     }
 
     @Override
-    public BossDrops getEntityDrops(String name) {
-        return dropsMap.get(name);
+    public BossDrops getEntityDrops(String mobId) {
+        return dropsMap.get(mobId);
+    }
+
+    public void clear() {
+        dropsMap.clear();
     }
 
     public static BossManager getInstance() {

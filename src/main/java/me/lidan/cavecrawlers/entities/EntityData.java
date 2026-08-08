@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.ToString;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -33,8 +34,8 @@ public class EntityData {
 
     public void onDeath(EntityDeathEvent event) {
         Player player = entity.getKiller();
-        String name = entity.getName();
-        EntityDrops drops = DropsManager.getInstance().getEntityDrops(name);
+        String mobId = MythicMobsHook.getInstance().getMobID(entity);
+        EntityDrops drops = DropsManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;
         if (player == null) return;
         drops.roll(player);

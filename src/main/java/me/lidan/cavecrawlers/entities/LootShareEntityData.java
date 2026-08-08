@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.entities;
 import lombok.ToString;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
+import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
@@ -18,10 +19,13 @@ import java.util.function.Consumer;
 
 @ToString(callSuper = true)
 public class LootShareEntityData extends EntityData{
-    public final static ConfigMessage LOOT_SHARE_MESSAGE = ConfigMessage.getMessageOrDefault("loot-share-message", "&9&lLoot Share for helping %summoner%!");
     private static final Logger log = LoggerFactory.getLogger(LootShareEntityData.class);
     private final int damageThresholdPercent;
     private final UUID summoner;
+
+    private static ConfigMessage getLootShareMessage() {
+        return ConfigMessage.getMessageOrDefault("loot-share-message", "&9&lLoot Share for helping %summoner%!");
+    }
 
     public LootShareEntityData(LivingEntity entity, int damageThresholdPercent, UUID summoner) {
         super(entity);
@@ -31,8 +35,8 @@ public class LootShareEntityData extends EntityData{
 
     @Override
     public void onDeath(EntityDeathEvent event) {
-        String name = entity.getName();
-        EntityDrops drops = DropsManager.getInstance().getEntityDrops(name);
+        String mobId = MythicMobsHook.getInstance().getMobID(entity);
+        EntityDrops drops = DropsManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;
         giveDropsToPlayers(drops::roll);
     }
@@ -53,7 +57,7 @@ public class LootShareEntityData extends EntityData{
                 Player player = Bukkit.getPlayer(entry.getKey());
                 if (player == null) continue;
                 if (!entry.getKey().equals(summoner)) {
-                    LOOT_SHARE_MESSAGE.sendMessage(player, placeholders);
+                    getLootShareMessage().sendMessage(player, placeholders);
                 }
                 onGive.accept(player);
             }

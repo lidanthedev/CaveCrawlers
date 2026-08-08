@@ -8,18 +8,18 @@ import me.lidan.cavecrawlers.drops.EntityDrops;
  */
 public interface DropsAPI {
     /**
-     * Registers drops for a specific entity name.
+     * Registers drops for a specific MythicMobs internal mob ID.
      *
-     * @param entityName  the name of the entity
+     * @param mobId  the mythic id of the entity
      * @param entityDrops the EntityDrops to register for the entity
      */
-    void register(String entityName, EntityDrops entityDrops);
+    void register(String mobId, EntityDrops entityDrops);
 
     /**
-     * Retrieves the EntityDrops for a given entity name.
+     * Retrieves the EntityDrops for a given MythicMobs internal mob ID.
      *
-     * @param entityName the name of the entity
+     * @param mobId the mythic id of the entity
      * @return the EntityDrops associated with the entity, or null if not found
      */
-    EntityDrops getEntityDrops(String entityName);
+    EntityDrops getEntityDrops(String mobId);
 }

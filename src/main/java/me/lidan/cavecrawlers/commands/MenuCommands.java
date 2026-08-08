@@ -14,18 +14,24 @@ public class MenuCommands {
     public static final String MENU_TYPE_SIMPLE = "simple";
     public static final String MENU_TYPE_ADVANCED = "advanced";
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private static final String MENU_TYPE = plugin.getConfig().getString("menu.type", MENU_TYPE_SIMPLE);
-    private static final String MENU_COMMAND = plugin.getConfig().getString("menu.command", "openmenu");
+
+    private static String getMenuType() {
+        return plugin.getConfig().getString("menu.type", MENU_TYPE_SIMPLE);
+    }
+
+    private static String getMenuCommand() {
+        return plugin.getConfig().getString("menu.command", "openmenu");
+    }
 
     public static void showMenu(Player sender) {
-        if(MENU_TYPE.equalsIgnoreCase(MENU_TYPE_SIMPLE)) {
+        String menuType = getMenuType();
+        if (menuType.equalsIgnoreCase(MENU_TYPE_SIMPLE)) {
             new SimpleMenuGui(sender).open();
-        }
-        else if (MENU_TYPE.equalsIgnoreCase(MENU_TYPE_ADVANCED)){
+        } else if (menuType.equalsIgnoreCase(MENU_TYPE_ADVANCED)) {
             new MenuGui(sender).open();
         }
         else{
-            sender.performCommand(MENU_COMMAND);
+            sender.performCommand(getMenuCommand());
         }
     }
 

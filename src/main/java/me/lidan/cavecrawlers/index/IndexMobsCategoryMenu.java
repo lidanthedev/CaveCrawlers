@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.drops.DropsManager;
 import me.lidan.cavecrawlers.drops.EntityDrops;
@@ -23,7 +22,7 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
         Map<String, EntityDrops> dropsMap = DropsManager.getInstance().getEntityDropsMap();
         List<Map.Entry<String, EntityDrops>> entries = dropsMap.entrySet().stream()
                 .sorted(Comparator.comparingDouble(entry -> {
-                    MythicMob mob = MythicMobsHook.getInstance().getMobByName(entry.getValue().getEntityName());
+                    MythicMob mob = MythicMobsHook.getInstance().getMobByID(entry.getValue().getMobId());
                     if (mob == null) return 0;
                     return mob.getHealth().get();
                 }))
@@ -31,7 +30,7 @@ public class IndexMobsCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<String, EntityDrops> dropsEntry : entries) {
             String mobName = dropsEntry.getKey();
             if (!ChatColor.stripColor(mobName.toLowerCase()).contains(query)) continue;
-            addItem(mobName, ItemBuilder.from(itemGenerator.entityDropsToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(mobName, () -> itemGenerator.entityDropsToItemStack(dropsEntry.getValue()));
         }
     }
 

@@ -25,6 +25,10 @@ public class ConfigMessage implements ConfigurationSerializable, Cloneable {
     private SoundOptions sound;
     private LevelInfo levelInfo;
 
+    public static void reload() {
+        config.load();
+    }
+
     public ConfigMessage(String message, TitleOptions titleOptions, String actionbar, SoundOptions sound) {
         this.message = ChatColor.translateAlternateColorCodes('&', message);
         this.actionbar = ChatColor.translateAlternateColorCodes('&', actionbar);

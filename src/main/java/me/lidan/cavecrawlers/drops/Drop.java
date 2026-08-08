@@ -23,6 +23,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,6 @@ import java.util.Map;
 
 @Data
 public class Drop implements ConfigurationSerializable {
-    public static final ConfigMessage RARE_DROP_MESSAGE = ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
     private static final Logger log = LoggerFactory.getLogger(Drop.class);
     private static final ItemsManager itemsManager = ItemsManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
@@ -45,6 +45,10 @@ public class Drop implements ConfigurationSerializable {
     protected @Nullable StatType chanceModifier;
     protected @Nullable StatType amountModifier;
     protected Map<String, String> placeholders = new HashMap<>();
+
+    private static ConfigMessage getRareDropMessage() {
+        return ConfigMessage.getMessageOrDefault("rare_drop_message", "%dropRarity% %name%");
+    }
 
     public Drop(DropType type, double chance, String value, @Nullable ConfigMessage announce, @Nullable StatType chanceModifier, @Nullable StatType amountModifier) {
         this.type = type;
@@ -94,21 +98,25 @@ public class Drop implements ConfigurationSerializable {
         double chance = (double) map.get("chance");
         if (map.containsKey("itemID")) {
             // legacy support
-            String itemID = (String) map.get("itemID");
-            String amountStr = map.get("amount").toString();
-            ConfigMessage announce = null;
-            if (map.getOrDefault("announce", false).equals(true)) {
-                announce = RARE_DROP_MESSAGE;
-            }
-            return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
+            return deserializeLegacySupport(map, chance);
         }
 
         DropType dropType = DropType.valueOf(((String) map.get("type")).toUpperCase(Locale.ROOT));
         String value = (String) map.get("value");
         ConfigMessage announce = ConfigMessage.getMessage((String) map.get("announce"));
-        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOf((String) map.get("chanceModifier")) : null;
-        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOf((String) map.get("amountModifier")) : null;
+        StatType chanceModifier = map.get("chanceModifier") != null ? StatType.valueOfOrNull((String) map.get("chanceModifier")) : null;
+        StatType amountModifier = map.get("amountModifier") != null ? StatType.valueOfOrNull((String) map.get("amountModifier")) : null;
         return new Drop(dropType, chance, value, announce, chanceModifier, amountModifier);
+    }
+
+    private static @NonNull Drop deserializeLegacySupport(Map<String, Object> map, double chance) {
+        String itemID = (String) map.get("itemID");
+        String amountStr = map.get("amount").toString();
+        ConfigMessage announce = null;
+        if (map.getOrDefault("announce", false).equals(true)) {
+            announce = getRareDropMessage();
+        }
+        return new Drop(DropType.ITEM, chance, itemID + " " + amountStr, announce, StatType.MAGIC_FIND, null);
     }
 
     public void roll(Player player) {

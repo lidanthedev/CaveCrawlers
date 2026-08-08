@@ -15,7 +15,10 @@ import java.util.List;
 
 public class FirstJoinListener implements Listener {
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    private final List<String> firstJoinCommands = plugin.getConfig().getStringList("first-join-commands");
+
+    private List<String> getFirstJoinCommands() {
+        return plugin.getConfig().getStringList("first-join-commands");
+    }
 
     private final LevelConfigManager levelConfigManager;
 
@@ -39,6 +42,7 @@ public class FirstJoinListener implements Listener {
             levelConfigManager.setPlayerLevel(playerId, defaultLevel);
             levelConfigManager.setLevelColor(defaultLevel, defaultColor);
         }
+        List<String> firstJoinCommands = getFirstJoinCommands();
         if (firstJoinCommands.isEmpty()) {
             return;
         }

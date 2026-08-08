@@ -14,10 +14,16 @@ import java.util.UUID;
 
 public class EntityManager implements EntityAPI {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    public static final int LOOT_SHARE_DAMAGE_THRESHOLD_PERCENT = plugin.getConfig().getInt("loot-share.damage-threshold", 10);
-    private static final boolean LOOT_SHARE_BY_DEFAULT = plugin.getConfig().getBoolean("loot-share.enable-by-default", true);
     private static EntityManager instance;
     private final Map<UUID, EntityData> entityDataMap = new HashMap<>();
+
+    private boolean isLootShareEnabledByDefault() {
+        return plugin.getConfig().getBoolean("loot-share.enable-by-default", true);
+    }
+
+    private int getLootShareDamageThresholdPercent() {
+        return plugin.getConfig().getInt("loot-share.damage-threshold", 10);
+    }
 
     public @Nullable EntityData getEntityData(UUID entityUuid) {
         return entityDataMap.get(entityUuid);
@@ -32,8 +38,8 @@ public class EntityManager implements EntityAPI {
     public void addDamage(UUID playerUuid, Entity entity, double damage) {
         if (entity instanceof LivingEntity livingEntity) {
             EntityData entityData = entityDataMap.computeIfAbsent(entity.getUniqueId(), uuid -> {
-                if (LOOT_SHARE_BY_DEFAULT){
-                    return new LootShareEntityData(livingEntity, LOOT_SHARE_DAMAGE_THRESHOLD_PERCENT, playerUuid);
+                if (isLootShareEnabledByDefault()) {
+                    return new LootShareEntityData(livingEntity, getLootShareDamageThresholdPercent(), playerUuid);
                 } else {
                     return new EntityData(livingEntity);
                 }

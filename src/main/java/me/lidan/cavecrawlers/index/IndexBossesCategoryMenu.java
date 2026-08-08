@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import io.lumine.mythic.api.mobs.MythicMob;
 import me.lidan.cavecrawlers.bosses.BossDrops;
 import me.lidan.cavecrawlers.bosses.BossManager;
@@ -31,7 +30,7 @@ public class IndexBossesCategoryMenu extends IndexBaseCategoryMenu {
         for (Map.Entry<String, BossDrops> dropsEntry : entries) {
             String name = String.valueOf(dropsEntry.getKey());
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.bossDropsToItemStack(dropsEntry.getValue())).asGuiItem());
+            addItem(name, () -> itemGenerator.bossDropsToItemStack(dropsEntry.getValue()));
         }
     }
 

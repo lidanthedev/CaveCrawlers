@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.index;
 
-import dev.triumphteam.gui.builder.item.ItemBuilder;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarManager;
 import net.md_5.bungee.api.ChatColor;
@@ -20,7 +19,7 @@ public class IndexAltarsCategoryMenu extends IndexBaseCategoryMenu {
         for (String name : names) {
             Altar altar = AltarManager.getInstance().getAltar(name);
             if (!ChatColor.stripColor(name.toLowerCase()).contains(query)) continue;
-            addItem(name, ItemBuilder.from(itemGenerator.altarToItemStack(altar)).asGuiItem());
+            addItem(name, () -> itemGenerator.altarToItemStack(altar));
         }
     }
 

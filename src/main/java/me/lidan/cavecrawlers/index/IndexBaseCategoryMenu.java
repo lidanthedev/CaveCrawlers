@@ -10,13 +10,18 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 public abstract class IndexBaseCategoryMenu {
     public static final String CAVECRAWLERS_INDEX_ADMIN_PERMISSION = "cavecrawlers.index.admin";
+    private static final Map<String, ItemStack> ITEM_CACHE = new ConcurrentHashMap<>();
     public static ItemBuilder INDEX_GUIDE = ItemBuilder.from(Material.BOOK).name(MiniMessageUtils.miniMessage("<yellow>Index Guide")).lore(MiniMessageUtils.miniMessageList("<yellow>How to Read the drops</yellow>", "<gold>- [Amount] [Drop] ([chance]) [chance modifier] [amount modifier]</gold>", "<yellow>Example:", "<gray>- <gray>1-2 <white>Gold Ingot<gray> (<green>10.00%<gray>) <aqua>✯ <red>✘", "<yellow>You can get 1-2 drops of Gold Ingot", "<yellow>it has 10% and boosted by <aqua>✯ Magic Find", "<yellow>but no amount modifier</yellow>", "<red>✘ means no stat</red>"));
     public static ItemBuilder SEARCH_ITEM = ItemBuilder.from(Material.COMPASS).name(MiniMessageUtils.miniMessage("<blue>Search Index")).lore(MiniMessageUtils.miniMessageList("<yellow>Click to Search the Index", "<yellow>Right click to clear search"));
     protected final Player player;
@@ -57,6 +62,10 @@ public abstract class IndexBaseCategoryMenu {
         GuiItems.setupNextPreviousItems(gui, 6, 3, 7);
     }
 
+    public static void clearItemCache() {
+        ITEM_CACHE.clear();
+    }
+
     public void addItem(String entry, GuiItem item) {
         String fullEntry = category.name() + ":" + entry;
         if (itemGenerator.isHiddenEntry(fullEntry)) {
@@ -88,6 +97,12 @@ public abstract class IndexBaseCategoryMenu {
             player.sendMessage(MiniMessageUtils.miniMessage("<red>Editing is not supported yet."));
         });
         gui.addItem(guiItem);
+    }
+
+    public void addItem(String entry, Supplier<ItemStack> itemSupplier) {
+        String fullEntry = category.name() + ":" + entry;
+        ItemStack item = ITEM_CACHE.computeIfAbsent(fullEntry, ignored -> itemSupplier.get());
+        addItem(entry, ItemBuilder.from(item.clone()).asGuiItem());
     }
 
     public abstract void setupGui();

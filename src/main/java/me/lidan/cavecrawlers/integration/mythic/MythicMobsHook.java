@@ -10,6 +10,7 @@ import io.lumine.mythic.core.items.ItemExecutor;
 import io.lumine.mythic.core.items.MythicItem;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import net.md_5.bungee.api.ChatColor;
@@ -45,6 +46,7 @@ public class MythicMobsHook implements Listener {
     }
 
     public void load() {
+        IndexBaseCategoryMenu.clearItemCache();
         reverseMobNameCache.clear();
         mobIdCache.clear();
         tryRegisterItemSuppliers();

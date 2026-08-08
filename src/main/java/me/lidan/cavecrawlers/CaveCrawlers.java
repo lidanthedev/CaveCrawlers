@@ -462,7 +462,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     private void registerCommandCompletions() {
         commandHandlerBuilder.suggestionProviders(builder -> {
-            builder.addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+            builder
+                    .addProvider(OfflinePlayer.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+                    .addProvider(Player.class, context -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
                     .addProvider(Sound.class, context -> XSound.getValues().stream()
                             .map(XSound::parseSound)
                             .filter(Objects::nonNull)

@@ -40,8 +40,8 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
                 StatType type = StatType.valueOf(key);
                 Double value = (Double) map.get(key);
                 stats.set(type, value);
-            } catch (IllegalArgumentException exception) {
-                log.warn("Invalid stat type: {}", key);
+            } catch (IllegalArgumentException | ClassCastException exception) {
+                log.warn("Stats Deserialize Error for key: {}", key, exception);
             }
         }
         return stats;

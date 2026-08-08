@@ -43,6 +43,9 @@ public class StatType {
     }
 
     public static StatType valueOf(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Stat type key cannot be null!");
+        }
         StatType statType = stats.get(key.toUpperCase());
         if (statType == null) {
             throw new IllegalArgumentException("Stat type " + key + " does not exist!");

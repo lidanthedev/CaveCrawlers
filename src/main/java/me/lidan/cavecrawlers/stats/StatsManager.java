@@ -47,12 +47,12 @@ public class StatsManager implements StatsAPI {
         setHealthSafe(player, Math.min(health + healthRegen, maxHealth));
     }
 
-    private static double getMaxHealth(Player player) {
+    public static double getMaxHealth(Player player) {
         double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
         return Math.max(maxHealth, 1.0);
     }
 
-    private static void setHealthSafe(Player player, double health) {
+    public static void setHealthSafe(Player player, double health) {
         player.setHealth(Math.clamp(health, 1, getMaxHealth(player)));
     }
 

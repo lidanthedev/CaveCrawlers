@@ -38,6 +38,7 @@ public class Drop implements ConfigurationSerializable {
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
     private static final StatsManager statsManager = StatsManager.getInstance();
     public static final long SAFE_INTEGER_LIMIT = 9007199254740992L; // 2^53
+    public static final ConfigMessage RARE_DROP_MESSAGE = getRareDropMessage();
     protected DropType type;
     protected double chance;
     protected String value;

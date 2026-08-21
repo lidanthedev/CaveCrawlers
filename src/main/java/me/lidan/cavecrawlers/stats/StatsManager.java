@@ -37,14 +37,23 @@ public class StatsManager implements StatsAPI {
     }
 
     public static void healPlayerPercent(Player player, double percent) {
-        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
+        double maxHealth = getMaxHealth(player);
         healPlayer(player, maxHealth / 100 * percent);
     }
 
     public static void healPlayer(Player player, double healthRegen) {
-        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
+        double maxHealth = getMaxHealth(player);
         double health = player.getHealth();
-        player.setHealth(Math.min(health + healthRegen, maxHealth));
+        setHealthSafe(player, Math.min(health + healthRegen, maxHealth));
+    }
+
+    public static double getMaxHealth(Player player) {
+        double maxHealth = player.getAttribute(XAttribute.MAX_HEALTH.get()).getValue();
+        return Math.max(maxHealth, 1.0);
+    }
+
+    public static void setHealthSafe(Player player, double health) {
+        player.setHealth(Math.clamp(health, 1, getMaxHealth(player)));
     }
 
     public static Stats getStatsFromInventory(Player player) {

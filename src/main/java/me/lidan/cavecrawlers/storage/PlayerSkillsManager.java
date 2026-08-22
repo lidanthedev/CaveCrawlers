@@ -145,7 +145,7 @@ public class PlayerSkillsManager {
                 pendingLoads.remove(uuid);
                 clearLoadingTitleState(uuid);
                 loadGenerations.remove(uuid, generation);
-                if (stateLock != null) {
+                if (stateLock != null && !stateLock.hasQueuedThreads()) {
                     playerStateLocks.remove(uuid, stateLock);
                 }
             } finally {
@@ -281,58 +281,60 @@ public class PlayerSkillsManager {
     }
 
     private void loadPlayerFromDatabase(UUID uuid, long generation) {
-        ReentrantLock stateLock = stateLockFor(uuid);
-        stateLock.lock();
+        ReentrantLock stateLock = null;
+        boolean stateLockHeld = false;
         try {
             if (!isPersistenceAvailable()) {
                 pendingLoads.add(uuid);
                 return;
             }
 
-            try {
-                if (!acquireLock(uuid)) {
-                    pendingLoads.add(uuid);
-                    scheduleLoadRetry(uuid, generation);
-                    return;
-                }
-
-                List<SkillRow> rows = loadRowsFromDb(uuid);
-                verbose("[LOAD] {} — loaded {} skill row(s) from DB: {}", uuid, rows.size(), rows);
-
-                if (!isCurrentLoadGeneration(uuid, generation) || Bukkit.getPlayer(uuid) == null) {
-                    verbose("[LOAD] {} — stale or offline load discarded, releasing lock [generation={}]", uuid, generation);
-                    releaseLock(uuid);
-                    return;
-                }
-
-                PendingSaveData pending = pendingSaves.get(uuid);
-                if (pending != null && areRowsEquivalent(rows, pending.rows())) {
-                    pendingSaves.remove(uuid, pending);
-                } else if (pending != null) {
-                    rows = pending.rows();
-                    verbose("[LOAD] {} — using pending quit/save snapshot because it is newer than DB", uuid);
-                }
-
-                Skills skills = buildSkillsFromRows(uuid, rows);
-                activeSkills.put(uuid, skills);
-                loadedPlayers.add(uuid);
-                pendingLoads.remove(uuid);
-                cancelLoadingTitleTask(uuid);
-                loadPlayerData(uuid);
-                showLoadedTitleIfNeeded(uuid);
-
-                if (Bukkit.getPlayer(uuid) == null) {
-                    verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
-                    savePlayerAsync(uuid, true);
-                }
-            } catch (Exception e) {
-                log.warn("[LOAD] {} — failed to load player data: {}", uuid, e.getMessage(), e);
+            if (!acquireLock(uuid)) {
                 pendingLoads.add(uuid);
-            } finally {
-                scheduledLoads.remove(uuid, generation);
+                scheduleLoadRetry(uuid, generation);
+                return;
             }
+
+            stateLock = stateLockFor(uuid);
+            stateLock.lock();
+            stateLockHeld = true;
+            List<SkillRow> rows = loadRowsFromDb(uuid);
+            verbose("[LOAD] {} — loaded {} skill row(s) from DB: {}", uuid, rows.size(), rows);
+
+            if (!isCurrentLoadGeneration(uuid, generation) || Bukkit.getPlayer(uuid) == null) {
+                verbose("[LOAD] {} — stale or offline load discarded, releasing lock [generation={}]", uuid, generation);
+                releaseLock(uuid);
+                return;
+            }
+
+            PendingSaveData pending = pendingSaves.get(uuid);
+            if (pending != null && areRowsEquivalent(rows, pending.rows())) {
+                pendingSaves.remove(uuid, pending);
+            } else if (pending != null) {
+                rows = pending.rows();
+                verbose("[LOAD] {} — using pending quit/save snapshot because it is newer than DB", uuid);
+            }
+
+            Skills skills = buildSkillsFromRows(uuid, rows);
+            activeSkills.put(uuid, skills);
+            loadedPlayers.add(uuid);
+            pendingLoads.remove(uuid);
+            cancelLoadingTitleTask(uuid);
+            loadPlayerData(uuid);
+            showLoadedTitleIfNeeded(uuid);
+
+            if (Bukkit.getPlayer(uuid) == null) {
+                verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
+                savePlayerAsync(uuid, true);
+            }
+        } catch (Exception e) {
+            log.warn("[LOAD] {} — failed to load player data: {}", uuid, e.getMessage(), e);
+            pendingLoads.add(uuid);
         } finally {
-            stateLock.unlock();
+            if (stateLockHeld) {
+                stateLock.unlock();
+            }
+            scheduledLoads.remove(uuid, generation);
             if (Bukkit.getPlayer(uuid) == null) {
                 scheduleStateCleanup(uuid);
             }
@@ -556,7 +558,9 @@ public class PlayerSkillsManager {
         UUID uuid = request.uuid();
         Skills snapshot = request.snapshotSkills();
         if (snapshot != null) {
-            pendingSaves.put(uuid, new PendingSaveData(buildRows(uuid, snapshot), System.currentTimeMillis()));
+            if (isCurrentLoadGeneration(uuid, request.generation())) {
+                pendingSaves.put(uuid, new PendingSaveData(buildRows(uuid, snapshot), System.currentTimeMillis()));
+            }
             if (request.releaseLockAfterSave()
                     && isCurrentLoadGeneration(uuid, request.generation())
                     && !activeSkills.containsKey(uuid)) {

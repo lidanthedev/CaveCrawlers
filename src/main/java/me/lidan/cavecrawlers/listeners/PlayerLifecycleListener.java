@@ -14,8 +14,8 @@ public class PlayerLifecycleListener implements Listener {
         PlayerSkillsManager.getInstance().loadPlayerAsync(event.getPlayer().getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PlayerSkillsManager.getInstance().savePlayerAsync(event.getPlayer().getUniqueId(), true);
+        PlayerSkillsManager.getInstance().savePlayerNowOnQuit(event.getPlayer().getUniqueId());
     }
 }

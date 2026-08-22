@@ -1,5 +1,5 @@
 version: "7" # DO NOT EDIT!
-server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
+server-id: "" # Deprecated. Each server process generates a fresh session ID for player-data locking.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead

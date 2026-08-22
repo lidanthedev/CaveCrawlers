@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.storage;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -25,11 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class PlayerSkillsManager {
-    private static final boolean VERBOSE = false;
+    private static final boolean VERBOSE = true;
     private static final long LOCK_TIMEOUT_MS = 60_000L;
     private static final int LOCK_MAX_ATTEMPTS = 20;
     private static final long LOCK_RETRY_MS = 500L;
     private static final long LOADING_TITLE_DELAY_TICKS = 20L;
+    private static final long LOAD_RETRY_DELAY_TICKS = 20L;
     private static final Component LOADING_TITLE = MiniMessageUtils.miniMessage("<gold><bold>Loading your data...");
     private static final Component LOADING_SUBTITLE = MiniMessageUtils.miniMessage("<gray>Please wait.");
     private static final Title LOADING_TITLE_TEMPLATE = Title.title(
@@ -47,13 +47,14 @@ public class PlayerSkillsManager {
     private static PlayerSkillsManager instance;
     private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
     private final Set<UUID> loadedPlayers = ConcurrentHashMap.newKeySet();
-    private final Set<UUID> scheduledLoads = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<UUID, Long> scheduledLoads = new ConcurrentHashMap<>();
     private final Set<UUID> pendingLoads = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<UUID, Long> loadGenerations = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Object> playerStateLocks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, BukkitTask> loadingTitleTasks = new ConcurrentHashMap<>();
     private final Set<UUID> loadingTitleShown = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<UUID, PendingSaveData> pendingSaves = new ConcurrentHashMap<>();
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    @Setter
     @Getter
     private volatile String serverId;
 
@@ -67,10 +68,34 @@ public class PlayerSkillsManager {
         return instance;
     }
 
+    /**
+     * Uses a fresh process ID even when an older plugin config passes a persistent
+     * server ID. An old process must not be able to share the new process's lock owner.
+     */
+    public void setServerId(String ignoredConfiguredServerId) {
+        this.serverId = UUID.randomUUID().toString();
+    }
+
     private void verbose(String msg, Object... args) {
         if (VERBOSE) {
             log.info(msg, args);
         }
+    }
+
+    private long currentLoadGeneration(UUID uuid) {
+        return loadGenerations.getOrDefault(uuid, 0L);
+    }
+
+    private long invalidateLoadGeneration(UUID uuid) {
+        return loadGenerations.merge(uuid, 1L, Long::sum);
+    }
+
+    private boolean isCurrentLoadGeneration(UUID uuid, long generation) {
+        return currentLoadGeneration(uuid) == generation;
+    }
+
+    private Object stateLockFor(UUID uuid) {
+        return playerStateLocks.computeIfAbsent(uuid, ignored -> new Object());
     }
 
     private void loadPlayerData(UUID uuid) {
@@ -115,12 +140,13 @@ public class PlayerSkillsManager {
         }
 
         pendingLoads.remove(uuid);
-        if (!scheduledLoads.add(uuid)) {
+        long generation = currentLoadGeneration(uuid);
+        if (scheduledLoads.putIfAbsent(uuid, generation) != null) {
             return;
         }
 
         scheduleLoadingTitle(uuid);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadPlayerFromDatabase(uuid));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadPlayerFromDatabase(uuid, generation));
     }
 
     private void scheduleLoadingTitle(UUID uuid) {
@@ -177,44 +203,60 @@ public class PlayerSkillsManager {
         player.showTitle(LOADED_TITLE_TEMPLATE);
     }
 
-    private void loadPlayerFromDatabase(UUID uuid) {
-        if (!isPersistenceAvailable()) {
-            pendingLoads.add(uuid);
-            scheduledLoads.remove(uuid);
-            return;
-        }
-
-        try {
-            if (!acquireLock(uuid)) {
+    private void loadPlayerFromDatabase(UUID uuid, long generation) {
+        synchronized (stateLockFor(uuid)) {
+            if (!isPersistenceAvailable()) {
                 pendingLoads.add(uuid);
                 return;
             }
 
-            List<SkillRow> rows = loadRowsFromDb(uuid);
-            PendingSaveData pending = pendingSaves.get(uuid);
-            if (pending != null && areRowsEquivalent(rows, pending.rows())) {
-                pendingSaves.remove(uuid, pending);
-            }
-            verbose("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
+            try {
+                if (!acquireLock(uuid)) {
+                    pendingLoads.add(uuid);
+                    scheduleLoadRetry(uuid, generation);
+                    return;
+                }
 
-            Skills skills = buildSkillsFromRows(uuid, rows);
-            activeSkills.put(uuid, skills);
-            loadedPlayers.add(uuid);
-            pendingLoads.remove(uuid);
-            cancelLoadingTitleTask(uuid);
-            loadPlayerData(uuid);
-            showLoadedTitleIfNeeded(uuid);
+                List<SkillRow> rows = loadRowsFromDb(uuid);
+                PendingSaveData pending = pendingSaves.get(uuid);
+                if (pending != null && areRowsEquivalent(rows, pending.rows())) {
+                    pendingSaves.remove(uuid, pending);
+                }
+                verbose("[LOAD] {} — loaded {} skill row(s) from DB: {}", uuid, rows.size(), rows);
 
-            if (Bukkit.getPlayer(uuid) == null) {
-                verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
-                savePlayerAsync(uuid, true);
+                if (!isCurrentLoadGeneration(uuid, generation) || Bukkit.getPlayer(uuid) == null) {
+                    verbose("[LOAD] {} — stale or offline load discarded, releasing lock [generation={}]", uuid, generation);
+                    releaseLock(uuid);
+                    return;
+                }
+
+                Skills skills = buildSkillsFromRows(uuid, rows);
+                activeSkills.put(uuid, skills);
+                loadedPlayers.add(uuid);
+                pendingLoads.remove(uuid);
+                cancelLoadingTitleTask(uuid);
+                loadPlayerData(uuid);
+                showLoadedTitleIfNeeded(uuid);
+
+                if (Bukkit.getPlayer(uuid) == null) {
+                    verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
+                    savePlayerAsync(uuid, true);
+                }
+            } catch (Exception e) {
+                log.warn("[LOAD] {} — failed to load player data: {}", uuid, e.getMessage(), e);
+                pendingLoads.add(uuid);
+            } finally {
+                scheduledLoads.remove(uuid, generation);
             }
-        } catch (Exception e) {
-            log.warn("[LOAD] {} — failed to load player data: {}", uuid, e.getMessage(), e);
-            pendingLoads.add(uuid);
-        } finally {
-            scheduledLoads.remove(uuid);
         }
+    }
+
+    private void scheduleLoadRetry(UUID uuid, long generation) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (isCurrentLoadGeneration(uuid, generation) && Bukkit.getPlayer(uuid) != null) {
+                scheduleLoadIfNeeded(uuid);
+            }
+        }, LOAD_RETRY_DELAY_TICKS);
     }
 
     private boolean isPersistenceAvailable() {
@@ -294,43 +336,95 @@ public class PlayerSkillsManager {
         savePlayerNow(request);
     }
 
-    private void savePlayerNow(SaveRequest request) {
-        UUID uuid = request.uuid();
-        Skills skills = request.snapshotSkills();
-        if (skills == null) {
-            verbose("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
-                    uuid, Thread.currentThread().getName());
-            loadedPlayers.remove(uuid);
-            if (request.releaseLockAfterSave()) {
-                releaseLock(uuid);
-            }
+    /**
+     * Saves and evicts a player on the quit event before another login can reuse the UUID.
+     * The generation bump also makes any older asynchronous load or save ineligible to
+     * replace the new session's cache.
+     */
+    public void savePlayerNowOnQuit(UUID uuid) {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, () -> savePlayerNowOnQuit(uuid));
             return;
         }
 
-        List<SkillRow> rows = buildRows(uuid, skills);
-        verbose("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
-                uuid, rows.size(), Thread.currentThread().getName());
-        savePlayerData(uuid);
-
-        String uuidStr = uuid.toString();
-        String currentServerId = serverId;
-        Database.getInstance().getJdbi().useTransaction(h -> {
-            if (!rows.isEmpty()) {
-                h.attach(SkillsDao.class).upsertSkills(rows);
-            }
-            if (request.releaseLockAfterSave() && currentServerId != null) {
-                h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, currentServerId);
-            }
-        });
-
-        if (!request.onlineAtStart() && Bukkit.getPlayer(uuid) != null) {
-            activeSkills.put(uuid, request.liveSkills());
-            verbose("[SAVE-NOW] {} — player reconnected during save, restored cached skills", uuid);
-        } else if (!request.onlineAtStart()) {
-            loadedPlayers.remove(uuid);
+        invalidateLoadGeneration(uuid);
+        if (!isPersistenceAvailable()) {
+            queuePendingSave(uuid);
+            verbose("[SAVE-NOW] {} — persistence unavailable on quit, keeping cache for retry", uuid);
+            return;
         }
 
-        verbose("[SAVE-NOW] {} — done", uuid);
+        Skills cachedSkills = activeSkills.get(uuid);
+        try {
+            savePlayerNow(uuid, true);
+        } catch (Exception e) {
+            if (cachedSkills != null) {
+                cachedSkills.setUuid(uuid);
+                activeSkills.put(uuid, cachedSkills);
+                loadedPlayers.add(uuid);
+                pendingSaves.put(uuid, new PendingSaveData(buildRows(uuid, cachedSkills), System.currentTimeMillis()));
+            } else {
+                loadedPlayers.remove(uuid);
+            }
+            releaseLock(uuid);
+            log.warn("[SAVE-NOW] {} — quit save failed; retaining cache for retry: {}", uuid, e.getMessage(), e);
+            return;
+        }
+        activeSkills.remove(uuid);
+        loadedPlayers.remove(uuid);
+        pendingLoads.remove(uuid);
+        scheduledLoads.remove(uuid);
+        clearLoadingTitleState(uuid);
+        verbose("[SAVE-NOW] {} — quit state evicted", uuid);
+    }
+
+    private void savePlayerNow(SaveRequest request) {
+        UUID uuid = request.uuid();
+        synchronized (stateLockFor(uuid)) {
+            if (!isCurrentLoadGeneration(uuid, request.generation())) {
+                verbose("[SAVE-NOW] {} — stale save discarded [generation={}]", uuid, request.generation());
+                if (request.releaseLockAfterSave()) {
+                    releaseLock(uuid);
+                }
+                return;
+            }
+
+            Skills skills = request.snapshotSkills();
+            if (skills == null) {
+                verbose("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
+                        uuid, Thread.currentThread().getName());
+                loadedPlayers.remove(uuid);
+                if (request.releaseLockAfterSave()) {
+                    releaseLock(uuid);
+                }
+                return;
+            }
+
+            List<SkillRow> rows = buildRows(uuid, skills);
+            verbose("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]: {}",
+                    uuid, rows.size(), Thread.currentThread().getName(), rows);
+            savePlayerData(uuid);
+
+            String uuidStr = uuid.toString();
+            String currentServerId = serverId;
+            Database.getInstance().getJdbi().useTransaction(h -> {
+                if (!rows.isEmpty()) {
+                    h.attach(SkillsDao.class).upsertSkills(rows);
+                }
+                if (request.releaseLockAfterSave() && currentServerId != null) {
+                    h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, currentServerId);
+                }
+            });
+
+            if (!request.onlineAtStart() && Bukkit.getPlayer(uuid) != null) {
+                activeSkills.put(uuid, request.liveSkills());
+                verbose("[SAVE-NOW] {} — player reconnected during save, restored cached skills", uuid);
+            } else if (!request.onlineAtStart()) {
+                loadedPlayers.remove(uuid);
+            }
+
+            verbose("[SAVE-NOW] {} — done", uuid);
+        }
     }
 
     private SaveRequest createSaveRequest(UUID uuid, boolean releaseLockAfterSave) {
@@ -360,7 +454,8 @@ public class PlayerSkillsManager {
         Skills skills = onlineAtStart ? activeSkills.get(uuid) : activeSkills.remove(uuid);
         pendingSaves.remove(uuid);
         Skills snapshotSkills = skills == null ? null : copySkills(skills);
-        return new SaveRequest(uuid, skills, snapshotSkills, onlineAtStart, releaseLockAfterSave);
+        return new SaveRequest(uuid, skills, snapshotSkills, onlineAtStart, releaseLockAfterSave,
+                currentLoadGeneration(uuid));
     }
 
     public void savePlayerAsync(UUID uuid) {
@@ -413,19 +508,26 @@ public class PlayerSkillsManager {
             if (!loadedPlayers.contains(entry.getKey())) {
                 continue;
             }
-            savePlayerData(entry.getKey());
-            List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
-            activeRowUuids.add(entry.getKey());
-            if (!rows.isEmpty()) {
-                verbose("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
-                writeRows(rows);
+            synchronized (stateLockFor(entry.getKey())) {
+                if (!loadedPlayers.contains(entry.getKey())) {
+                    continue;
+                }
+                savePlayerData(entry.getKey());
+                List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
+                activeRowUuids.add(entry.getKey());
+                if (!rows.isEmpty()) {
+                    verbose("[SAVE-ALL] {} — writing {} row(s): {}", entry.getKey(), rows.size(), rows);
+                    writeRows(rows);
+                }
             }
         }
         for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
-            List<SkillRow> filteredRows = filterPendingRows(entry.getValue().rows(), activeRowUuids);
-            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), filteredRows.size());
-            if (!filteredRows.isEmpty()) {
-                writeRows(filteredRows);
+            synchronized (stateLockFor(entry.getKey())) {
+                List<SkillRow> filteredRows = filterPendingRows(entry.getValue().rows(), activeRowUuids);
+                verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), filteredRows.size());
+                if (!filteredRows.isEmpty()) {
+                    writeRows(filteredRows);
+                }
             }
         }
         pendingSaves.clear();
@@ -454,13 +556,15 @@ public class PlayerSkillsManager {
             if (!loadedPlayers.contains(entry.getKey())) {
                 continue;
             }
-            activeSnapshots.add(new SaveAllSnapshot(entry.getKey(), copySkills(entry.getValue())));
+            activeSnapshots.add(new SaveAllSnapshot(entry.getKey(), copySkills(entry.getValue()),
+                    currentLoadGeneration(entry.getKey())));
             activeRowUuids.add(entry.getKey());
         }
 
         List<PendingSaveBatch> pendingSnapshots = new ArrayList<>();
         for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
-            pendingSnapshots.add(new PendingSaveBatch(entry.getKey(), new ArrayList<>(entry.getValue().rows())));
+            pendingSnapshots.add(new PendingSaveBatch(entry.getKey(), new ArrayList<>(entry.getValue().rows()),
+                    currentLoadGeneration(entry.getKey())));
         }
         pendingSaves.keySet().removeAll(pendingSnapshots.stream().map(PendingSaveBatch::uuid).toList());
 
@@ -468,18 +572,32 @@ public class PlayerSkillsManager {
             verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
                     activeSnapshots.size(), pendingSnapshots.size(), Thread.currentThread().getName());
             for (SaveAllSnapshot entry : activeSnapshots) {
-                savePlayerData(entry.uuid());
-                List<SkillRow> rows = buildRows(entry.uuid(), entry.skills());
-                if (!rows.isEmpty()) {
-                    verbose("[SAVE-ALL] {} — writing {} row(s)", entry.uuid(), rows.size());
-                    writeRows(rows);
+                synchronized (stateLockFor(entry.uuid())) {
+                    if (!isCurrentLoadGeneration(entry.uuid(), entry.generation())) {
+                        verbose("[SAVE-ALL] {} — stale snapshot discarded [generation={}]",
+                                entry.uuid(), entry.generation());
+                        continue;
+                    }
+                    savePlayerData(entry.uuid());
+                    List<SkillRow> rows = buildRows(entry.uuid(), entry.skills());
+                    if (!rows.isEmpty()) {
+                        verbose("[SAVE-ALL] {} — writing {} row(s): {}", entry.uuid(), rows.size(), rows);
+                        writeRows(rows);
+                    }
                 }
             }
             for (PendingSaveBatch entry : pendingSnapshots) {
-                List<SkillRow> filteredRows = filterPendingRows(entry.rows(), activeRowUuids);
-                verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.uuid(), filteredRows.size());
-                if (!filteredRows.isEmpty()) {
-                    writeRows(filteredRows);
+                synchronized (stateLockFor(entry.uuid())) {
+                    if (!isCurrentLoadGeneration(entry.uuid(), entry.generation())) {
+                        verbose("[SAVE-ALL] {} — stale pending snapshot discarded [generation={}]",
+                                entry.uuid(), entry.generation());
+                        continue;
+                    }
+                    List<SkillRow> filteredRows = filterPendingRows(entry.rows(), activeRowUuids);
+                    verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.uuid(), filteredRows.size());
+                    if (!filteredRows.isEmpty()) {
+                        writeRows(filteredRows);
+                    }
                 }
             }
 
@@ -516,6 +634,7 @@ public class PlayerSkillsManager {
 
     public void putSkills(UUID uuid, Skills skills) {
         verbose("[PUT] {} — inserting into cache directly [thread={}]", uuid, Thread.currentThread().getName());
+        invalidateLoadGeneration(uuid);
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
         loadedPlayers.add(uuid);
@@ -527,6 +646,7 @@ public class PlayerSkillsManager {
 
     public void resetPlayerData(UUID uuid) {
         verbose("[RESET] {} — clearing cache and deleting DB rows async", uuid);
+        invalidateLoadGeneration(uuid);
         Skills skills = new Skills();
         skills.setUuid(uuid);
         activeSkills.put(uuid, skills);
@@ -546,6 +666,7 @@ public class PlayerSkillsManager {
 
     public void removeFromCache(UUID uuid) {
         verbose("[EVICT] {} — removed from cache", uuid);
+        invalidateLoadGeneration(uuid);
         activeSkills.remove(uuid);
         loadedPlayers.remove(uuid);
         scheduledLoads.remove(uuid);
@@ -681,13 +802,13 @@ public class PlayerSkillsManager {
     }
 
     private record SaveRequest(UUID uuid, Skills liveSkills, Skills snapshotSkills,
-                               boolean onlineAtStart, boolean releaseLockAfterSave) {
+                               boolean onlineAtStart, boolean releaseLockAfterSave, long generation) {
     }
 
-    private record SaveAllSnapshot(UUID uuid, Skills skills) {
+    private record SaveAllSnapshot(UUID uuid, Skills skills, long generation) {
     }
 
-    private record PendingSaveBatch(UUID uuid, List<SkillRow> rows) {
+    private record PendingSaveBatch(UUID uuid, List<SkillRow> rows, long generation) {
     }
 
     private record PendingSaveData(List<SkillRow> rows, long updatedAt) {

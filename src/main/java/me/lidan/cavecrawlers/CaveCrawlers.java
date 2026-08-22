@@ -161,9 +161,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         initializeDatabaseAsync();
 
-        String serverId = createServerSessionId();
-        PlayerSkillsManager.getInstance().setServerId(serverId);
-        log.info("Server session ID: {}", serverId);
+        PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
+        playerSkillsManager.setServerId();
+        log.info("Server session ID: {}", playerSkillsManager.getServerId());
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -313,12 +313,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return Map.of();
         }
         return new HashMap<>(getConfig().getConfigurationSection("database").getValues(true));
-    }
-
-    private String createServerSessionId() {
-        // A fresh process ID prevents an old server during restart from sharing
-        // the new process's lock owner and writing over its player state.
-        return UUID.randomUUID().toString();
     }
 
     /**

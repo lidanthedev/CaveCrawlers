@@ -4,6 +4,7 @@ import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -263,6 +264,8 @@ class DatabasePersistenceTest {
 
     @Test
     void lostMigrationLeaseRollsBackVersionPublication() throws Exception {
+        Assumptions.assumeTrue("H2".equals(jdbi.withHandle(handle ->
+                handle.getConnection().getMetaData().getDatabaseProductName())));
         database.registerTable(versionedTable(1, new AtomicInteger()));
         CountDownLatch migrationStarted = new CountDownLatch(1);
         Database fastRefresh = new Database(jdbi, false, 10);

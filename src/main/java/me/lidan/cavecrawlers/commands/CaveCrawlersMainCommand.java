@@ -951,23 +951,31 @@ public class CaveCrawlersMainCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         PlayerData playerData = dataManager.loadPlayerData(arg.getUniqueId());
         dataManager.savePlayerDataInMap(arg.getUniqueId(), playerData);
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Loaded Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data load requested. <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data save")
     @CommandPermission("cavecrawlers.admin.data")
     public void dataSave(Player sender, @Default("me") Player arg) {
+        if (!requirePlayerData(sender, arg)) return;
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.savePlayerData(arg.getUniqueId());
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Saved Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data save queued. <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data reset")
     @CommandPermission("cavecrawlers.admin.data")
     public void dataReset(Player sender, @Default("me") Player arg) {
+        if (!requirePlayerData(sender, arg)) return;
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.resetPlayerData(arg.getUniqueId());
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Reset Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data reset queued. <gold>Player Name: <name>", Map.of("name", arg.getName())));
+    }
+
+    private boolean requirePlayerData(CommandSender sender, Player target) {
+        if (PlayerSkillsManager.getInstance().canPersistPlayer(target.getUniqueId())) return true;
+        sender.sendMessage(MiniMessageUtils.miniMessage("<red>Player data is unavailable. Please reconnect."));
+        return false;
     }
 
     @Subcommand("data migrate h2-to-mysql")
@@ -997,21 +1005,23 @@ public class CaveCrawlersMainCommand {
                 Map.of("from", fromType.toUpperCase(), "to", toType.toUpperCase())));
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            // Flush all dirty player data to the source DB before copying.
-            PlayerSkillsManager.getInstance().flushAllForMigration();
-            try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
-                    ? Database.openMysqlSource(plugin, 2)
-                    : Database.openH2Source(plugin, 2)) {
-                long startTime = System.currentTimeMillis();
-                int count = DbMigrator.migrateSkills(
-                        Database.getInstance().getJdbi(),
-                        DbMigrator.toJdbi(targetDs));
-                sender.sendMessage(count == 0
-                        ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
-                        : MiniMessageUtils.miniMessage(
-                        "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
-                                "Set <gold>database.type: <to></gold> in config.yml and restart.",
-                        Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
+            try {
+                PlayerSkillsManager.getInstance().withMigrationBarrier(() -> {
+                    try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
+                            ? Database.openMysqlSource(plugin, 2)
+                            : Database.openH2Source(plugin, 2)) {
+                        long startTime = System.currentTimeMillis();
+                        int count = DbMigrator.migrateSkills(
+                                Database.getInstance().getJdbi(),
+                                DbMigrator.toJdbi(targetDs));
+                        sender.sendMessage(count == 0
+                                ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
+                                : MiniMessageUtils.miniMessage(
+                                "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
+                                        "Set <gold>database.type: <to></gold> in config.yml and restart.",
+                                Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
+                    }
+                });
             } catch (Exception e) {
                 sender.sendMessage(MiniMessageUtils.miniMessage(
                         "<red>Migration failed: <msg>",

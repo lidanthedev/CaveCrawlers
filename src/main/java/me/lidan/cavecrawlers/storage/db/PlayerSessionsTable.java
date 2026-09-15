@@ -47,7 +47,7 @@ public class PlayerSessionsTable extends SqlTable {
 
     private void addColumnIfMissing(Handle handle, String column, String definition) {
         try {
-            if (hasColumn(handle, column) || hasColumn(handle, column.toUpperCase())) {
+            if (hasColumn(handle, column) || hasColumn(handle, column.toUpperCase(java.util.Locale.ROOT))) {
                 return;
             }
             handle.execute("ALTER TABLE player_sessions ADD COLUMN " + column + " " + definition);

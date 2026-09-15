@@ -84,6 +84,8 @@ public class Database {
                         .bind("version", table.getVersion())
                         .execute();
                 log.info("Created table '{}' at version {}", table.getTableName(), table.getVersion());
+            } else if (storedVersion.get() > table.getVersion()) {
+                throw new IllegalStateException("Database schema is newer than this plugin: " + table.getTableName());
             } else if (storedVersion.get() < table.getVersion()) {
                 int oldVersion = storedVersion.get();
                 table.onUpgrade(handle, oldVersion, table.getVersion());
@@ -115,10 +117,18 @@ public class Database {
                 try {
                     handle.useTransaction(migration::accept);
                 } finally {
-                    handle.createQuery("SELECT RELEASE_LOCK(:name)")
-                            .bind("name", MIGRATION_LOCK)
-                            .mapTo(Integer.class)
-                            .findOne();
+                    try {
+                        Integer released = handle.createQuery("SELECT RELEASE_LOCK(:name)")
+                                .bind("name", MIGRATION_LOCK).mapTo(Integer.class).one();
+                        if (!Integer.valueOf(1).equals(released)) {
+                            throw new IllegalStateException("Migration advisory lock was not held by this connection");
+                        }
+                    } catch (Exception e) {
+                        // A pooled close does not close the physical connection or release GET_LOCK.
+                        try { handle.getConnection().abort(Runnable::run); }
+                        catch (Exception abortFailure) { e.addSuppressed(abortFailure); }
+                        throw e;
+                    }
                 }
             });
             return;
@@ -227,10 +237,13 @@ public class Database {
     public WriteOutcome persistPlayer(UUID uuid, String serverId, long fenceToken, long revision,
                                       List<SkillRow> rows, boolean deleteBeforeWrite,
                                       boolean releaseAfterWrite) {
+        if (rows.stream().anyMatch(row -> !uuid.toString().equals(row.getPlayerUuid()))) {
+            throw new IllegalArgumentException("Snapshot contains another player's rows");
+        }
         return jdbi.inTransaction(handle -> {
             SessionRow session = lockSessionRow(handle, uuid.toString());
             if (!session.ownedBy(serverId, fenceToken) || revision <= session.dataRevision()) {
-                return new WriteOutcome(false, session.fenceToken(), session.dataRevision());
+                return new WriteOutcome(false, session.fenceToken(), session.dataRevision(), session.ownedBy(serverId, fenceToken));
             }
 
             SkillsDao skills = handle.attach(SkillsDao.class);
@@ -259,7 +272,7 @@ public class Database {
                 handle.attach(PlayerSessionsDao.class)
                         .releaseLock(uuid.toString(), serverId, fenceToken);
             }
-            return new WriteOutcome(true, fenceToken, revision);
+            return new WriteOutcome(true, fenceToken, revision, true);
         });
     }
 
@@ -287,7 +300,13 @@ public class Database {
 
     /** Idempotent and non-destructive legacy import. */
     public boolean importLegacySkills(UUID uuid, List<SkillRow> rows) {
+        if (rows.stream().anyMatch(row -> !uuid.toString().equals(row.getPlayerUuid()))) {
+            throw new IllegalArgumentException("Import contains another player's rows");
+        }
         return jdbi.inTransaction(handle -> {
+            ensureSessionRow(handle, uuid.toString());
+            SessionRow session = lockSessionRow(handle, uuid.toString());
+            if (session.locked() || session.fenceToken() > 0 || session.dataRevision() > 0) return false;
             int claimed = handle.createUpdate("INSERT IGNORE INTO _legacy_player_migrations (player_uuid) VALUES (:uuid)")
                     .bind("uuid", uuid.toString())
                     .execute();
@@ -349,7 +368,8 @@ public class Database {
         String sslMode = config.getString("database.sslMode", "DISABLED");
         boolean allowPublicKeyRetrieval = config.getBoolean("database.allow-public-key-retrieval", false);
         return "jdbc:mysql://" + info.host() + ":" + info.port() + "/" + info.database()
-                + "?sslMode=" + sslMode + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval;
+                + "?sslMode=" + sslMode + "&allowPublicKeyRetrieval=" + allowPublicKeyRetrieval
+                + "&connectTimeout=10000&socketTimeout=10000";
     }
 
     public synchronized boolean initialize(Plugin plugin) {
@@ -419,7 +439,7 @@ public class Database {
     public record PlayerLease(long fenceToken, long dataRevision) {
     }
 
-    public record WriteOutcome(boolean committed, long currentFenceToken, long currentRevision) {
+    public record WriteOutcome(boolean committed, long currentFenceToken, long currentRevision, boolean owned) {
     }
 
     private record SessionRow(boolean locked, String serverId, long lockTimestamp,

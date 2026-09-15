@@ -34,19 +34,20 @@ public class DbMigrator {
                 handle.attach(SkillsDao.class).getAllSkills()
         );
 
-        return target.inTransaction(handle -> {
-            handle.execute("CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)");
-            handle.execute(new SkillsTable().getCreateCommand());
-            SkillsDao skills = handle.attach(SkillsDao.class);
-            int copied = 0;
-            for (List<SkillRow> playerRows : rows.stream()
-                    .collect(Collectors.groupingBy(SkillRow::getPlayerUuid)).values()) {
-                if (!skills.hasSkills(playerRows.getFirst().getPlayerUuid())) {
-                    skills.insertSkillsIfAbsent(playerRows);
-                    copied += playerRows.size();
-                }
-            }
-            return copied;
+        boolean mysql = target.withHandle(handle -> {
+            try { return handle.getConnection().getMetaData().getDatabaseProductName().equalsIgnoreCase("MySQL"); }
+            catch (java.sql.SQLException e) { throw new IllegalStateException("Could not identify migration target", e); }
         });
+        Database targetDatabase = new Database(target, mysql);
+        targetDatabase.registerTable(new SkillsTable());
+        targetDatabase.registerTable(new PlayerSessionsTable());
+        int copied = 0;
+        for (List<SkillRow> playerRows : rows.stream()
+                .collect(Collectors.groupingBy(SkillRow::getPlayerUuid)).values()) {
+            if (targetDatabase.importLegacySkills(java.util.UUID.fromString(playerRows.getFirst().getPlayerUuid()), playerRows)) {
+                copied += playerRows.size();
+            }
+        }
+        return copied;
     }
 }

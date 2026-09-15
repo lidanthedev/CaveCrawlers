@@ -36,54 +36,56 @@ public class YamlMigrationTask extends BukkitRunnable {
         log.info("Starting YAML player data migration for {} file(s)...", files.length);
         int succeeded = 0;
         int failed = 0;
-        try {
-            for (File file : files) {
-                String filename = file.getName();
-                String uuidString = filename.substring(0, filename.length() - ".yml".length());
+        for (File file : files) {
+            String filename = file.getName();
+            String uuidString = filename.substring(0, filename.length() - ".yml".length());
 
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(uuidString);
-                } catch (IllegalArgumentException e) {
-                    log.warn("Skipping file with invalid UUID name: {}", filename);
-                    continue;
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidString);
+            } catch (IllegalArgumentException e) {
+                log.warn("Skipping file with invalid UUID name: {}", filename);
+                continue;
+            }
+
+            try {
+                PlayerData playerData = new PlayerData();
+                playerData.loadPlayer(uuid);
+                Skills skills = playerData.getSkills();
+
+                List<SkillRow> rows = new ArrayList<>();
+                for (Skill skill : skills) {
+                    rows.add(new SkillRow(
+                            uuid.toString(),
+                            skill.getType().getId(),
+                            skill.getXp(),
+                            skill.getLevel(),
+                            skill.getTotalXp()
+                    ));
                 }
 
-                try {
-                    PlayerData playerData = new PlayerData();
-                    playerData.loadPlayer(uuid);
-                    Skills skills = playerData.getSkills();
+                boolean imported = Database.getInstance().importLegacySkills(uuid, rows);
 
-                    List<SkillRow> rows = new ArrayList<>();
-                    for (Skill skill : skills) {
-                        rows.add(new SkillRow(
-                                uuid.toString(),
-                                skill.getType().getId(),
-                                skill.getXp(),
-                                skill.getLevel(),
-                                skill.getTotalXp()
-                        ));
+                File migrated = new File(file.getParent(), uuidString + ".yml.migrated");
+                if (file.renameTo(migrated)) {
+                    succeeded++;
+                    if (!imported) {
+                        log.info("Skipped legacy YAML for {} because authoritative DB data or a migration marker exists", uuid);
                     }
-
-                    boolean imported = Database.getInstance().importLegacySkills(uuid, rows);
-
-                    File migrated = new File(file.getParent(), uuidString + ".yml.migrated");
-                    if (file.renameTo(migrated)) {
-                        succeeded++;
-                        if (!imported) {
-                            log.info("Skipped legacy YAML for {} because authoritative DB data or a migration marker exists", uuid);
-                        }
-                    } else {
-                        log.warn("Migrated data for {} but could not rename file", uuid);
-                        failed++;
-                    }
-                } catch (Exception e) {
-                    log.error("Failed to migrate player data for {}: {}", uuid, e.getMessage(), e);
+                } else {
+                    log.warn("Migrated data for {} but could not rename file", uuid);
                     failed++;
                 }
+            } catch (Exception e) {
+                log.error("Failed to migrate player data for {}: {}", uuid, e.getMessage(), e);
+                failed++;
             }
-        } finally {
+        }
+        if (failed == 0) {
             plugin.markLegacyYamlMigrationComplete();
+        } else if (plugin.isEnabled()) {
+            // Keep the login/load gate closed. Successful files were renamed; only failures retry.
+            new YamlMigrationTask(plugin).runTaskLaterAsynchronously(plugin, 20L * 10L);
         }
 
         log.info("YAML migration complete: {} succeeded, {} failed", succeeded, failed);

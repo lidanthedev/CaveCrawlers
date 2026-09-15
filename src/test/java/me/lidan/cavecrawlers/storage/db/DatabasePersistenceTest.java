@@ -17,9 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DatabasePersistenceTest {
-    private Jdbi jdbi;
-    private Database database;
-    private UUID uuid;
+    protected Jdbi jdbi;
+    protected Database otherDatabase;
+    protected Database database;
+    protected UUID uuid;
 
     @BeforeEach
     void setUp() {
@@ -28,6 +29,7 @@ class DatabasePersistenceTest {
         database = new Database(jdbi, false);
         database.registerTable(new SkillsTable());
         database.registerTable(new PlayerSessionsTable());
+        otherDatabase = new Database(jdbi, false);
         uuid = UUID.randomUUID();
     }
 
@@ -41,7 +43,7 @@ class DatabasePersistenceTest {
         assertTrue(b.fenceToken() > a.fenceToken());
         assertEquals(0, database.releasePlayerSession(uuid, "A", a.fenceToken()));
         assertFalse(database.persistPlayer(uuid, "A", a.fenceToken(), 2, rows(2_000), false, false).committed());
-        assertTrue(database.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(3_000), false, false).committed());
+        assertTrue(otherDatabase.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(3_000), false, false).committed());
 
         assertEquals(3_000, totalXp());
         assertEquals("B", lockingServer());
@@ -74,7 +76,7 @@ class DatabasePersistenceTest {
 
         Database.PlayerLease b = acquire("B");
         assertTrue(b.fenceToken() > a.fenceToken());
-        assertEquals(5_000, database.loadPlayer(uuid, "B", b.fenceToken()).getFirst().getTotalXp());
+        assertEquals(5_000, otherDatabase.loadPlayer(uuid, "B", b.fenceToken()).getFirst().getTotalXp());
     }
 
     @Test
@@ -94,12 +96,12 @@ class DatabasePersistenceTest {
         Database.PlayerLease a1 = acquire("A");
         assertTrue(database.persistPlayer(uuid, "A", a1.fenceToken(), 1, rows(100), false, true).committed());
         Database.PlayerLease b = acquire("B");
-        assertTrue(database.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(200), false, true).committed());
+        assertTrue(otherDatabase.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(200), false, true).committed());
         Database.PlayerLease a2 = acquire("A");
         assertTrue(database.persistPlayer(uuid, "A", a2.fenceToken(), 3, rows(300), false, false).committed());
 
         assertFalse(database.persistPlayer(uuid, "A", a1.fenceToken(), 4, rows(150), false, false).committed());
-        assertFalse(database.persistPlayer(uuid, "B", b.fenceToken(), 4, rows(250), false, false).committed());
+        assertFalse(otherDatabase.persistPlayer(uuid, "B", b.fenceToken(), 4, rows(250), false, false).committed());
         assertEquals(300, totalXp());
     }
 
@@ -118,7 +120,7 @@ class DatabasePersistenceTest {
         addon.fail.set(false);
         expireLease();
         Database.PlayerLease b = acquire("B");
-        assertTrue(database.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(6_000), false, false).committed());
+        assertTrue(otherDatabase.persistPlayer(uuid, "B", b.fenceToken(), 2, rows(6_000), false, false).committed());
         assertFalse(database.persistPlayer(uuid, "A", a.fenceToken(), 2, rows(5_000), false, true).committed());
         assertEquals(6_000, totalXp());
     }
@@ -132,10 +134,11 @@ class DatabasePersistenceTest {
 
         addon.fail.set(true);
         assertThrows(RuntimeException.class,
-                () -> database.persistPlayer(uuid, "A", lease.fenceToken(), 2, rows(200), false, false));
+                () -> database.persistPlayer(uuid, "A", lease.fenceToken(), 2, rows(200), false, true));
         assertEquals(100, totalXp());
         assertEquals(1, dataRevision());
-        assertEquals(1, addonRows());
+        assertEquals(1, addonPayload());
+        assertEquals("A", lockingServer());
     }
 
     @Test
@@ -146,6 +149,19 @@ class DatabasePersistenceTest {
         assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 32, rows(250), false, false).committed());
         assertFalse(database.persistPlayer(uuid, "A", lease.fenceToken(), 31, List.of(), true, false).committed());
         assertEquals(250, totalXp());
+    }
+
+    @Test
+    void coalescedPostResetSnapshotRejectsBothOlderResetAndOlderSave() {
+        var lease = acquire("A");
+        database.persistPlayer(uuid, "A", lease.fenceToken(), 29,
+                List.of(new SkillRow(uuid.toString(), "removed-skill", 900, 0, 900)), false, false);
+        // The writer carries the reset barrier onto the latest snapshot.
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 32, rows(250), true, false).committed());
+        assertFalse(database.persistPlayer(uuid, "A", lease.fenceToken(), 31, List.of(), true, false).committed());
+        assertFalse(database.persistPlayer(uuid, "A", lease.fenceToken(), 30, rows(1000), false, false).committed());
+        assertEquals(250, totalXp());
+        assertEquals(1, database.loadPlayer(uuid, "A", lease.fenceToken()).size());
     }
 
     @Test
@@ -222,7 +238,7 @@ class DatabasePersistenceTest {
     void concurrentSchemaUpgradeRunsOnce() throws Exception {
         AtomicInteger upgrades = new AtomicInteger();
         database.registerTable(versionedTable(1, upgrades));
-        Database otherServer = new Database(jdbi, false);
+        Database otherServer = otherDatabase;
         CountDownLatch start = new CountDownLatch(1);
         try (var executor = Executors.newFixedThreadPool(2)) {
             var first = executor.submit(() -> {
@@ -244,41 +260,69 @@ class DatabasePersistenceTest {
         assertEquals(2, version);
     }
 
-    private Database.PlayerLease acquire(String server) {
-        return database.acquirePlayerSession(uuid, server, 60_000).orElseThrow();
+    @Test
+    void legacyImportCannotResurrectResetOrClaimedEmptyPlayer() {
+        assertTrue(database.resetOfflinePlayer(uuid, 60_000));
+        assertFalse(database.importLegacySkills(uuid, rows(900)));
+        assertEquals(0, totalXp());
+        uuid = UUID.randomUUID();
+        acquire("A");
+        assertFalse(otherDatabase.importLegacySkills(uuid, rows(900)));
+        assertEquals(0, totalXp());
     }
 
-    private void expireLease() {
+    @Test
+    void releasedSameFenceIsReportedAsLostOwnership() {
+        var lease = acquire("A");
+        database.releasePlayerSession(uuid, "A", lease.fenceToken());
+        var outcome = database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(100), false, false);
+        assertFalse(outcome.committed());
+        assertFalse(outcome.owned());
+    }
+
+    @Test
+    void snapshotCannotWriteAnotherPlayersRows() {
+        var lease = acquire("A");
+        assertThrows(IllegalArgumentException.class, () -> database.persistPlayer(uuid, "A", lease.fenceToken(),
+                1, List.of(new SkillRow(UUID.randomUUID().toString(), "mining", 9, 0, 9)), false, false));
+        assertEquals(0, dataRevision());
+    }
+
+    protected Database.PlayerLease acquire(String server) {
+        return (server.equals("B") ? otherDatabase : database).acquirePlayerSession(uuid, server, 60_000).orElseThrow();
+    }
+
+    protected void expireLease() {
         jdbi.useHandle(handle -> handle.createUpdate(
                         "UPDATE player_sessions SET lock_timestamp = 0 WHERE player_uuid = :uuid")
                 .bind("uuid", uuid.toString()).execute());
     }
 
-    private List<SkillRow> rows(double totalXp) {
+    protected List<SkillRow> rows(double totalXp) {
         return List.of(new SkillRow(uuid.toString(), "mining", totalXp, 0, totalXp));
     }
 
-    private double totalXp() {
+    protected double totalXp() {
         return jdbi.withHandle(handle -> handle.createQuery(
                         "SELECT total_xp FROM skills WHERE player_uuid = :uuid AND type = 'mining'")
                 .bind("uuid", uuid.toString()).mapTo(Double.class).findOne().orElse(0D));
     }
 
-    private String lockingServer() {
+    protected String lockingServer() {
         return jdbi.withHandle(handle -> handle.createQuery(
                         "SELECT locking_server FROM player_sessions WHERE player_uuid = :uuid")
                 .bind("uuid", uuid.toString()).mapTo(String.class).one());
     }
 
-    private long dataRevision() {
+    protected long dataRevision() {
         return jdbi.withHandle(handle -> handle.createQuery(
                         "SELECT data_revision FROM player_sessions WHERE player_uuid = :uuid")
                 .bind("uuid", uuid.toString()).mapTo(Long.class).one());
     }
 
-    private int addonRows() {
-        return jdbi.withHandle(handle -> handle.createQuery("SELECT COUNT(*) FROM addon_test")
-                .mapTo(Integer.class).one());
+    private int addonPayload() {
+        return jdbi.withHandle(handle -> handle.createQuery("SELECT payload FROM addon_test WHERE player_uuid=:uuid")
+                .bind("uuid", uuid.toString()).mapTo(Integer.class).one());
     }
 
     private static void await(CountDownLatch latch) {

@@ -89,6 +89,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static Economy economy = null;
     public static boolean usePlaceholderAPI = false;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
+    private volatile boolean stopping;
     private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationComplete = new AtomicBoolean(false);
     private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
@@ -143,6 +144,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     @Override
     public void onEnable() {
+        stopping = false;
         // Plugin startup logic
         long start = System.currentTimeMillis();
         commandHandlerBuilder = BukkitLamp.builder(this);
@@ -475,6 +477,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
     private void initializeDatabaseAsync() {
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            if (stopping) return;
             if (Database.getInstance().initialize(this)) {
                 onDatabaseAvailable();
                 return;
@@ -484,12 +487,14 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     private void scheduleDatabaseRetry(long delaySeconds) {
+        if (stopping) return;
         if (!databaseRetryScheduled.compareAndSet(false, true)) {
             return;
         }
 
         getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
             databaseRetryScheduled.set(false);
+            if (stopping) return;
             if (Database.getInstance().initialize(this)) {
                 onDatabaseAvailable();
             } else {
@@ -503,8 +508,18 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     private void onDatabaseAvailable() {
-        registerDB();
-        getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+        if (stopping) {
+            Database.getInstance().shutdown();
+            return;
+        }
+        try {
+            registerDB();
+            if (!stopping) getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+        } catch (Exception e) {
+            log.warn("Database schema initialization failed; retrying: {}", e.getMessage(), e);
+            Database.getInstance().shutdown();
+            scheduleDatabaseRetry(5);
+        }
     }
 
     private void runDatabaseReadyWorkIfPossible() {
@@ -515,9 +530,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return;
         }
         runLegacyYamlMigrationIfReady();
-        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
-        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
-        PlayerSkillsManager.getInstance().flushPendingSavesAsync();
     }
 
     private void runLegacyYamlMigrationIfReady() {
@@ -593,16 +605,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             PlayerSkillsManager.getInstance().saveAllAsync();
         }, saveIntervalTicks, saveIntervalTicks);
 
-        long leaseSeconds = Math.max(3L, getConfig().getLong("database.lease-timeout", 60L));
-        long configuredHeartbeat = Math.max(1L, getConfig().getLong("database.heartbeat-interval", 10L));
-        long heartbeatSeconds = Math.min(configuredHeartbeat, Math.max(1L, leaseSeconds / 3L));
-        if (heartbeatSeconds != configuredHeartbeat) {
-            log.warn("database.heartbeat-interval must stay below the lease timeout; using {} seconds", heartbeatSeconds);
-        }
-        long heartbeatTicks = heartbeatSeconds * TICKS_TO_SECOND;
+        long heartbeatTicks = PlayerSkillsManager.getInstance().getLeaseConfig().heartbeatInterval().toSeconds() * TICKS_TO_SECOND;
         getServer().getScheduler().runTaskTimerAsynchronously(this,
-                task -> PlayerSkillsManager.getInstance().heartbeat(),
-                heartbeatTicks, heartbeatTicks);
+                task -> PlayerSkillsManager.getInstance().heartbeat(), 0, heartbeatTicks);
+        getServer().getScheduler().runTaskTimer(this,
+                task -> PlayerSkillsManager.getInstance().checkLeaseHealth(), 1, 1);
     }
 
     /**
@@ -622,7 +629,13 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     public void markLegacyYamlMigrationComplete() {
+        if (stopping) return;
         legacyYamlMigrationComplete.set(true);
+        getServer().getScheduler().runTask(this, () -> {
+            PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
+            PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
+            PlayerSkillsManager.getInstance().flushPendingSavesAsync();
+        });
     }
 
     /**
@@ -630,11 +643,15 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     @Override
     public void onDisable() {
+        stopping = true;
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
-        PlayerSkillsManager.getInstance().shutdown();
-        Database.getInstance().shutdown();
+        try {
+            PlayerSkillsManager.getInstance().shutdown();
+        } finally {
+            Database.getInstance().shutdown();
+        }
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();

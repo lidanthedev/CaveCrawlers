@@ -4,6 +4,22 @@ CaveCrawlers is a powerful Minecraft plugin that adds custom items, shops, and m
 features advanced item management, player progression, and seamless integration with MythicMobs, making it ideal for RPG
 adventures or custom survival worlds.
 
+## Important upgrade note: fenced player persistence
+
+Upgrade **every CaveCrawlers backend sharing a database together**. Do not run pre-fencing and
+post-fencing versions concurrently. Older versions write skill rows without validating fencing tokens.
+
+For the first upgrade:
+
+1. Stop all CaveCrawlers backend servers.
+2. Update the plugin on every backend.
+3. Start the network again.
+
+Once every backend uses a compatible fenced version, rolling updates can be considered when schema
+compatibility permits. Keep lease settings consistent across the network.
+See [player persistence and verification](docs/player-persistence.md) for outage behavior, addon requirements,
+and the database test suite.
+
 ## Screenshots
 Creating and editing items
 

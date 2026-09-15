@@ -151,7 +151,8 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
         SkillXpGainEvent event = new SkillXpGainEvent(player, skill, xp);
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
+        if (event.isCancelled() || !canAwardSkillXp(player)
+                || PlayerDataManager.getInstance().getSkills(player) != playerSkills) {
             return;
         }
         skill.addXp(event.getXpGained());
@@ -166,7 +167,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     private boolean canAwardSkillXp(Player player) {
         PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
-        return Database.getInstance().isAvailable() && skillsManager.isLoaded(player.getUniqueId());
+        return Bukkit.isPrimaryThread() && skillsManager.canPersistPlayer(player.getUniqueId());
     }
 
     public BoostedCustomConfig getConfig(SkillInfo type) {

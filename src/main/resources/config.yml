@@ -121,9 +121,16 @@ database:
   # Quit saves still capture immediately and persist asynchronously.
   save-interval: 30
   # Lease heartbeats are independent from autosaves and use database time.
+  # Use the same lease settings on every backend sharing this database.
+  # Startup clamps timeout to 10..86400 seconds and heartbeat to 1..timeout/4.
+  # Progression stops after timeout - max(2 * heartbeat, ceil(timeout/4)) without
+  # a successful heartbeat. Defaults: stop at 40s, before the 60s lease expires.
+  # These settings require a restart.
   heartbeat-interval: 10
   lease-timeout: 60
-  # Clean shutdown flushes until this deadline, then abandons remaining fenced snapshots.
+  # Clean shutdown waits for active work, then flushes until this deadline.
+  # If writes remain unresolved, leases expire without bulk release. In-memory
+  # snapshots cannot survive process termination. An in-flight SQL call may exceed this deadline.
   shutdown-flush-timeout: 10
   verbose-logging: false # Log player UUIDs and database payloads for troubleshooting.
   # MySQL-only connection options:

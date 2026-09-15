@@ -117,11 +117,14 @@ database:
   database: cavecrawlers
   username: root
   password: ""
-  # How often (in seconds) active player data is flushed to the database.
-  # Lower values reduce the staleness window when players switch servers via BungeeCord/Velocity,
-  # at the cost of more frequent DB writes. Quit saves snapshot on the main thread
-  # and persist asynchronously regardless of this setting.
-  save-interval: 300 # recommended: use 300 for h2 and 30 for mysql
+  # Hard process or machine crashes may lose up to this many seconds of progress.
+  # Quit saves still capture immediately and persist asynchronously.
+  save-interval: 30
+  # Lease heartbeats are independent from autosaves and use database time.
+  heartbeat-interval: 10
+  lease-timeout: 60
+  # Clean shutdown flushes until this deadline, then abandons remaining fenced snapshots.
+  shutdown-flush-timeout: 10
   verbose-logging: false # Log player UUIDs and database payloads for troubleshooting.
   # MySQL-only connection options:
   sslMode: DISABLED                 # MySQL Connector/J sslMode (e.g. DISABLED, REQUIRED, VERIFY_CA, VERIFY_IDENTITY)

@@ -5,6 +5,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DbMigrator {
 
@@ -23,7 +24,8 @@ public class DbMigrator {
 
     /**
      * Copies all rows from the {@code skills} table in {@code source} into {@code target}.
-     * Creates the target schema if it does not exist. Safe to re-run (upsert semantics).
+     * Creates the target schema if it does not exist. Existing target rows win,
+     * so a stale source database cannot overwrite shared MySQL data.
      *
      * @return number of skill records copied
      */
@@ -32,14 +34,19 @@ public class DbMigrator {
                 handle.attach(SkillsDao.class).getAllSkills()
         );
 
-        target.useTransaction(handle -> {
+        return target.inTransaction(handle -> {
             handle.execute("CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)");
             handle.execute(new SkillsTable().getCreateCommand());
-            if (!rows.isEmpty()) {
-                handle.attach(SkillsDao.class).upsertSkills(rows);
+            SkillsDao skills = handle.attach(SkillsDao.class);
+            int copied = 0;
+            for (List<SkillRow> playerRows : rows.stream()
+                    .collect(Collectors.groupingBy(SkillRow::getPlayerUuid)).values()) {
+                if (!skills.hasSkills(playerRows.getFirst().getPlayerUuid())) {
+                    skills.insertSkillsIfAbsent(playerRows);
+                    copied += playerRows.size();
+                }
             }
+            return copied;
         });
-
-        return rows.size();
     }
 }

@@ -998,7 +998,7 @@ public class CaveCrawlersMainCommand {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             // Flush all dirty player data to the source DB before copying.
-            PlayerSkillsManager.getInstance().saveAll();
+            PlayerSkillsManager.getInstance().flushAllForMigration();
             try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
                     ? Database.openMysqlSource(plugin, 2)
                     : Database.openH2Source(plugin, 2)) {

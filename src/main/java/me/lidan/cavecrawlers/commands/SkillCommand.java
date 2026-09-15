@@ -150,8 +150,7 @@ public class SkillCommand {
     @Subcommand("reset")
     @CommandPermission("cavecrawlers.skills.admin")
     public void resetSkills(Player sender) {
-        Skills skills = playerDataManager.getSkills(sender);
-        skills.resetAllSkills();
+        playerDataManager.resetPlayerData(sender.getUniqueId());
         sender.sendMessage(MiniMessageUtils.miniMessage("<green>All skills have been reset."));
     }
 }

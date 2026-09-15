@@ -7,7 +7,6 @@ import me.lidan.cavecrawlers.skills.Skill;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.storage.db.SkillRow;
-import me.lidan.cavecrawlers.storage.db.SkillsDao;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -66,15 +65,14 @@ public class YamlMigrationTask extends BukkitRunnable {
                         ));
                     }
 
-                    if (!rows.isEmpty()) {
-                        Database.getInstance().getJdbi().useHandle(handle ->
-                                handle.attach(SkillsDao.class).upsertSkills(rows)
-                        );
-                    }
+                    boolean imported = Database.getInstance().importLegacySkills(uuid, rows);
 
                     File migrated = new File(file.getParent(), uuidString + ".yml.migrated");
                     if (file.renameTo(migrated)) {
                         succeeded++;
+                        if (!imported) {
+                            log.info("Skipped legacy YAML for {} because authoritative DB data or a migration marker exists", uuid);
+                        }
                     } else {
                         log.warn("Migrated data for {} but could not rename file", uuid);
                         failed++;

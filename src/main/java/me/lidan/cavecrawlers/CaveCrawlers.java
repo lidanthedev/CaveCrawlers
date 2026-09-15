@@ -587,11 +587,22 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
-        long saveIntervalTicks = (long) getConfig().getInt("database.save-interval", 30) * TICKS_TO_SECOND;
+        long saveIntervalTicks = Math.max(1L, getConfig().getLong("database.save-interval", 30L)) * TICKS_TO_SECOND;
         getServer().getScheduler().runTaskTimerAsynchronously(this, bukkitTask -> {
             log.info("Auto saving player data...");
             PlayerSkillsManager.getInstance().saveAllAsync();
         }, saveIntervalTicks, saveIntervalTicks);
+
+        long leaseSeconds = Math.max(3L, getConfig().getLong("database.lease-timeout", 60L));
+        long configuredHeartbeat = Math.max(1L, getConfig().getLong("database.heartbeat-interval", 10L));
+        long heartbeatSeconds = Math.min(configuredHeartbeat, Math.max(1L, leaseSeconds / 3L));
+        if (heartbeatSeconds != configuredHeartbeat) {
+            log.warn("database.heartbeat-interval must stay below the lease timeout; using {} seconds", heartbeatSeconds);
+        }
+        long heartbeatTicks = heartbeatSeconds * TICKS_TO_SECOND;
+        getServer().getScheduler().runTaskTimerAsynchronously(this,
+                task -> PlayerSkillsManager.getInstance().heartbeat(),
+                heartbeatTicks, heartbeatTicks);
     }
 
     /**

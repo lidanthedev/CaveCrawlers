@@ -1,16 +1,18 @@
 package me.lidan.cavecrawlers.storage.db;
 
+import org.jdbi.v3.core.Handle;
+
 import java.util.UUID;
 
 /**
  * A database table that also participates in the per-player data lifecycle.
  *
- * <p>Implementations should use {@link Database#getJdbi()} to load data into
- * their own cache and save cached data back to their table. These methods may
- * run asynchronously, so implementations must avoid unsafe Bukkit API calls.
+ * <p>Callbacks run asynchronously and must not use thread-confined Bukkit APIs.
+ * The supplied handle belongs to the same transaction as skills and ownership
+ * validation. Throwing rolls back the complete logical player operation.
  */
 public abstract class PlayerDataSqlTable extends SqlTable {
-    public abstract void loadForPlayer(UUID playerUuid);
+    public abstract void loadForPlayer(Handle handle, UUID playerUuid);
 
-    public abstract void saveForPlayer(UUID playerUuid);
+    public abstract void saveForPlayer(Handle handle, UUID playerUuid);
 }

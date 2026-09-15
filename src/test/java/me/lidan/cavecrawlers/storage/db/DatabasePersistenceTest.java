@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -258,6 +259,45 @@ class DatabasePersistenceTest {
                         "SELECT version FROM _table_versions WHERE table_name = 'concurrent_test'")
                 .mapTo(Integer.class).one());
         assertEquals(2, version);
+    }
+
+    @Test
+    void lostMigrationLeaseRollsBackVersionPublication() throws Exception {
+        database.registerTable(versionedTable(1, new AtomicInteger()));
+        CountDownLatch migrationStarted = new CountDownLatch(1);
+        Database fastRefresh = new Database(jdbi, false, 10);
+        SqlTable delayedUpgrade = new SqlTable() {
+            @Override public String getTableName() { return "concurrent_test"; }
+            @Override public String getCreateCommand() { return "CREATE TABLE concurrent_test (id INT PRIMARY KEY)"; }
+            @Override public int getVersion() { return 2; }
+            @Override public void onCreate(Handle handle) { handle.execute(getCreateCommand()); }
+
+            @Override
+            public void onUpgrade(Handle handle, int oldVersion, int newVersion) {
+                migrationStarted.countDown();
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
+                }
+            }
+        };
+
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            var migration = executor.submit(() -> fastRefresh.registerTable(delayedUpgrade));
+            assertTrue(migrationStarted.await(5, TimeUnit.SECONDS));
+            jdbi.useHandle(handle -> handle.createUpdate(
+                            "UPDATE _migration_lock SET owner = 'stolen' WHERE lock_name = :name")
+                    .bind("name", "cavecrawlers_schema_migration")
+                    .execute());
+            assertThrows(ExecutionException.class, () -> migration.get(5, TimeUnit.SECONDS));
+        }
+
+        int version = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT version FROM _table_versions WHERE table_name = 'concurrent_test'")
+                .mapTo(Integer.class).one());
+        assertEquals(1, version);
     }
 
     @Test

@@ -15,11 +15,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @Slf4j
 public class Database {
     private static final String MIGRATION_LOCK = "cavecrawlers_schema_migration";
+    private static final long MIGRATION_LEASE_MILLIS = 300_000;
+    private static final long MIGRATION_REFRESH_MILLIS = 60_000;
     private static Database instance;
 
     private HikariDataSource dataSource;
@@ -31,13 +39,21 @@ public class Database {
     private volatile boolean available;
     @Getter
     private volatile boolean isInitialized;
+    private final long migrationRefreshMillis;
 
     private Database() {
+        migrationRefreshMillis = MIGRATION_REFRESH_MILLIS;
     }
 
     Database(Jdbi jdbi, boolean mysql) {
+        this(jdbi, mysql, MIGRATION_REFRESH_MILLIS);
+    }
+
+    Database(Jdbi jdbi, boolean mysql, long migrationRefreshMillis) {
+        if (migrationRefreshMillis <= 0) throw new IllegalArgumentException("Migration refresh must be positive");
         this.jdbi = jdbi;
         this.mysql = mysql;
+        this.migrationRefreshMillis = migrationRefreshMillis;
         this.available = true;
         this.isInitialized = true;
         initializeMetadataTables();
@@ -138,11 +154,10 @@ public class Database {
         long deadline = System.nanoTime() + java.time.Duration.ofSeconds(60).toNanos();
         boolean acquired = false;
         while (System.nanoTime() < deadline) {
-            // ponytail: H2 migration lease is five minutes; add a lease heartbeat if migrations ever approach it.
             int updated = jdbi.withHandle(handle -> handle.createUpdate(
                             "UPDATE _migration_lock SET owner = :owner, lock_timestamp = " + databaseNowExpression()
                                     + " WHERE lock_name = :name AND (owner IS NULL OR lock_timestamp < "
-                                    + databaseNowExpression() + " - 300000)")
+                                    + databaseNowExpression() + " - " + MIGRATION_LEASE_MILLIS + ")")
                     .bind("owner", owner)
                     .bind("name", MIGRATION_LOCK)
                     .execute());
@@ -160,9 +175,36 @@ public class Database {
         if (!acquired) {
             throw new IllegalStateException("Timed out acquiring database schema migration lock");
         }
+        AtomicBoolean refreshing = new AtomicBoolean(true);
+        AtomicReference<Handle> migrationHandle = new AtomicReference<>();
+        AtomicReference<RuntimeException> refreshFailure = new AtomicReference<>();
+        ScheduledExecutorService refresher = Executors.newSingleThreadScheduledExecutor(task -> {
+            Thread thread = new Thread(task, "CaveCrawlers-H2-Migration-Lease");
+            thread.setDaemon(true);
+            return thread;
+        });
+        ScheduledFuture<?> refreshTask = refresher.scheduleAtFixedRate(
+                () -> refreshMigrationLease(owner, refreshing, migrationHandle, refreshFailure),
+                migrationRefreshMillis, migrationRefreshMillis, TimeUnit.MILLISECONDS);
         try {
-            jdbi.useTransaction(migration::accept);
+            jdbi.useHandle(handle -> {
+                migrationHandle.set(handle);
+                try {
+                    handle.useTransaction(transaction -> {
+                        migration.accept(transaction);
+                        throwRefreshFailure(refreshFailure);
+                        refreshMigrationLease(owner);
+                        throwRefreshFailure(refreshFailure);
+                    });
+                    refreshing.set(false);
+                } finally {
+                    migrationHandle.compareAndSet(handle, null);
+                }
+            });
         } finally {
+            refreshing.set(false);
+            refreshTask.cancel(true);
+            refresher.shutdownNow();
             jdbi.useHandle(handle -> handle.createUpdate(
                             "UPDATE _migration_lock SET owner = NULL, lock_timestamp = 0 " +
                                     "WHERE lock_name = :name AND owner = :owner")
@@ -170,6 +212,39 @@ public class Database {
                     .bind("owner", owner)
                     .execute());
         }
+    }
+
+    private void refreshMigrationLease(String owner, AtomicBoolean refreshing,
+                                       AtomicReference<Handle> migrationHandle,
+                                       AtomicReference<RuntimeException> refreshFailure) {
+        try {
+            refreshMigrationLease(owner);
+        } catch (RuntimeException e) {
+            if (!refreshing.get()) return;
+            IllegalStateException failure = new IllegalStateException("Lost database schema migration lock", e);
+            if (refreshFailure.compareAndSet(null, failure)) {
+                Handle handle = migrationHandle.get();
+                if (handle != null) {
+                    try { handle.getConnection().abort(Runnable::run); }
+                    catch (Exception abortFailure) { failure.addSuppressed(abortFailure); }
+                }
+            }
+        }
+    }
+
+    private void refreshMigrationLease(String owner) {
+        int refreshed = jdbi.withHandle(handle -> handle.createUpdate(
+                        "UPDATE _migration_lock SET lock_timestamp = " + databaseNowExpression()
+                                + " WHERE lock_name = :name AND owner = :owner")
+                .bind("name", MIGRATION_LOCK)
+                .bind("owner", owner)
+                .execute());
+        if (refreshed != 1) throw new IllegalStateException("Database schema migration lock is no longer owned");
+    }
+
+    private static void throwRefreshFailure(AtomicReference<RuntimeException> refreshFailure) {
+        RuntimeException failure = refreshFailure.get();
+        if (failure != null) throw failure;
     }
 
     /** Acquires or refreshes a lease while holding the session row lock. */

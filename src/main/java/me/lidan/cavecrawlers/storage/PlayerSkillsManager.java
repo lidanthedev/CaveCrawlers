@@ -241,9 +241,10 @@ public class PlayerSkillsManager {
             Skills loaded = buildSkillsFromRows(uuid, rows);
             // Publication and quit both run on the main thread. Never publish from a late SQL callback.
             Bukkit.getScheduler().runTask(plugin, () -> {
+                boolean superseded = !currentGeneration(uuid, generation);
                 try {
                     if (shuttingDown) return;
-                    if (!currentGeneration(uuid, generation) || Bukkit.getPlayer(uuid) == null
+                    if (superseded || Bukkit.getPlayer(uuid) == null
                             || ownerships.get(uuid) != ownership || !leaseHealth.healthy()
                             || ownership.healthEpoch() != leaseHealth.epoch()
                             || invalidatedGenerations.containsKey(uuid)) {
@@ -256,7 +257,12 @@ public class PlayerSkillsManager {
                     pendingLoads.remove(uuid);
                     Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
                     showLoadedTitleIfNeeded(uuid);
-                } finally { scheduledLoads.remove(uuid, generation); }
+                } finally {
+                    scheduledLoads.remove(uuid, generation);
+                    if (superseded && !shuttingDown && Bukkit.getPlayer(uuid) != null) {
+                        scheduleLoadIfNeeded(uuid);
+                    }
+                }
             });
             publicationQueued = true;
         } catch (Database.StaleSessionException e) {

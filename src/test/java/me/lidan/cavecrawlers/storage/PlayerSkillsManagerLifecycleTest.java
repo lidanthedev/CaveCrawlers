@@ -31,6 +31,7 @@ import static org.mockito.Mockito.*;
 class PlayerSkillsManagerLifecycleTest {
     private final Queue<Runnable> async = new ConcurrentLinkedQueue<>();
     private final Queue<Runnable> delayedAsync = new ConcurrentLinkedQueue<>();
+    private final Queue<Runnable> delayedMain = new ConcurrentLinkedQueue<>();
     private final Queue<Runnable> main = new ConcurrentLinkedQueue<>();
     private ExecutorService executor;
     private final AtomicLong clock = new AtomicLong();
@@ -75,7 +76,9 @@ class PlayerSkillsManagerLifecycleTest {
         when(scheduler.runTaskLaterAsynchronously(eq(plugin), any(Runnable.class), anyLong())).thenAnswer(i -> {
             delayedAsync.add(i.getArgument(1)); return mock(BukkitTask.class);
         });
-        when(scheduler.runTaskLater(eq(plugin), any(Runnable.class), anyLong())).thenReturn(mock(BukkitTask.class));
+        when(scheduler.runTaskLater(eq(plugin), any(Runnable.class), anyLong())).thenAnswer(i -> {
+            delayedMain.add(i.getArgument(1)); return mock(BukkitTask.class);
+        });
         setStatic(Bukkit.class, "server", server);
         uuid = UUID.randomUUID();
         player = mock(Player.class);
@@ -288,6 +291,26 @@ class PlayerSkillsManagerLifecycleTest {
     }
 
     @Test
+    void supersededLoadPublicationRetriesForOnlinePlayer() throws Exception {
+        when(server.getPlayer(uuid)).thenReturn(null);
+        manager.savePlayerNowOnQuit(uuid);
+        runAsync(); runMain();
+        when(server.getPlayer(uuid)).thenReturn(player);
+        manager.loadPlayerAsync(uuid);
+        runAsync(); // SQL completed, publication still queued.
+
+        manager.loadPlayerAsync(uuid);
+        assertEquals(1, async.size()); // Ownership release only; the old scheduled marker blocks another load.
+        runMain();  // Rejects the old publication after clearing its scheduled marker.
+        runAsync(); // Releases the old fence; the coordinated retry waits for that release.
+        runDelayedMain();
+        runAsync(); runMain();
+
+        assertTrue(manager.canPersistPlayer(uuid));
+        verify(player, never()).kick(any(net.kyori.adventure.text.Component.class));
+    }
+
+    @Test
     void duplicateLoadCannotPublishOverProgression() throws Exception {
         when(server.getPlayer(uuid)).thenReturn(null);
         manager.savePlayerNowOnQuit(uuid);
@@ -450,6 +473,11 @@ class PlayerSkillsManagerLifecycleTest {
 
     private void runMain() {
         for (Runnable task; (task = main.poll()) != null;) task.run();
+    }
+
+    private void runDelayedMain() {
+        int queued = delayedMain.size();
+        for (int i = 0; i < queued; i++) delayedMain.remove().run();
     }
 
     private double persistedXp() {

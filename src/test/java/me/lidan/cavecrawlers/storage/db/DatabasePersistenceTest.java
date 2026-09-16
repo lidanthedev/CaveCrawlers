@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -260,6 +261,29 @@ class DatabasePersistenceTest {
                         "SELECT version FROM _table_versions WHERE table_name = 'concurrent_test'")
                 .mapTo(Integer.class).one());
         assertEquals(2, version);
+    }
+
+    @Test
+    void h2MigrationLockDoesNotReclaimNonNullOwner() throws Exception {
+        Assumptions.assumeTrue("H2".equals(jdbi.withHandle(handle ->
+                handle.getConnection().getMetaData().getDatabaseProductName())));
+        jdbi.useHandle(handle -> handle.createUpdate(
+                        "UPDATE _migration_lock SET owner = 'abandoned', lock_timestamp = 0 WHERE lock_name = :name")
+                .bind("name", "cavecrawlers_schema_migration")
+                .execute());
+
+        try (var executor = Executors.newSingleThreadExecutor()) {
+            var migration = executor.submit(() -> database.registerTable(versionedTable(1, new AtomicInteger())));
+            assertThrows(TimeoutException.class, () -> migration.get(250, TimeUnit.MILLISECONDS));
+            migration.cancel(true);
+        }
+
+        String owner = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT owner FROM _migration_lock WHERE lock_name = :name")
+                .bind("name", "cavecrawlers_schema_migration")
+                .mapTo(String.class)
+                .one());
+        assertEquals("abandoned", owner);
     }
 
     @Test

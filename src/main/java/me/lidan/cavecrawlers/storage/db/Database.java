@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 @Slf4j
 public class Database {
     private static final String MIGRATION_LOCK = "cavecrawlers_schema_migration";
-    private static final long MIGRATION_LEASE_MILLIS = 300_000;
     private static final long MIGRATION_REFRESH_MILLIS = 60_000;
     private static Database instance;
 
@@ -154,10 +153,10 @@ public class Database {
         long deadline = System.nanoTime() + java.time.Duration.ofSeconds(60).toNanos();
         boolean acquired = false;
         while (System.nanoTime() < deadline) {
+            // A non-null owner is cleared only by its owner or by offline recovery after every DB user stops.
             int updated = jdbi.withHandle(handle -> handle.createUpdate(
                             "UPDATE _migration_lock SET owner = :owner, lock_timestamp = " + databaseNowExpression()
-                                    + " WHERE lock_name = :name AND (owner IS NULL OR lock_timestamp < "
-                                    + databaseNowExpression() + " - " + MIGRATION_LEASE_MILLIS + ")")
+                                    + " WHERE lock_name = :name AND owner IS NULL")
                     .bind("owner", owner)
                     .bind("name", MIGRATION_LOCK)
                     .execute());

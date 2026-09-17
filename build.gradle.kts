@@ -69,6 +69,10 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
     testRuntimeOnly("com.mysql:mysql-connector-j:8.4.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
+    // MockBukkit publishes a JUnit 6 runtime edge; keep the existing JUnit 5 platform aligned.
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.110.0") {
+        exclude(group = "org.junit.jupiter", module = "junit-jupiter-api")
+    }
     testImplementation("com.zaxxer:HikariCP:5.1.0")
     testImplementation("org.jdbi:jdbi3-core:3.45.4")
     testImplementation("org.jdbi:jdbi3-sqlobject:3.45.4")

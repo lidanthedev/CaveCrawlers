@@ -680,14 +680,14 @@ public class PlayerSkillsManager {
 
     /** Called by the independent async heartbeat task. */
     public void heartbeat() {
-        if (serverId == null || shuttingDown || !heartbeatRunning.compareAndSet(false, true)) return;
+        if (serverId == null || shuttingDown || !persistenceAvailable()
+                || !heartbeatRunning.compareAndSet(false, true)) return;
         if (!beginOperation()) {
             heartbeatRunning.set(false);
             return;
         }
         long startedAt = clock.getAsLong();
         try {
-            if (!persistenceAvailable()) throw new IllegalStateException("Database unavailable");
             int refreshed = database.heartbeatAll(serverId);
             leaseHealth.succeeded(startedAt);
             if (heartbeatFailed.getAndSet(false)) log.info("[LOCK] database heartbeat recovered server={}", serverId);

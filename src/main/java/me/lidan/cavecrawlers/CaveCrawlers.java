@@ -161,11 +161,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveDefaultResources();
         registerConfig();
 
-        initializeDatabaseAsync();
-
         PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
         playerSkillsManager.setServerId();
         log.info("Server session ID: {}", playerSkillsManager.getServerId());
+        initializeDatabaseAsync();
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -514,6 +513,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         }
         try {
             registerDB();
+            PlayerSkillsManager.getInstance().heartbeat();
             if (!stopping) getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
         } catch (Exception e) {
             log.warn("Database schema initialization failed; retrying: {}", e.getMessage(), e);

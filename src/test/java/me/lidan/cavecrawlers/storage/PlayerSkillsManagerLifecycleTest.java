@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
@@ -130,6 +131,21 @@ class PlayerSkillsManagerLifecycleTest {
         assertTrue(manager.canPersistPlayer(uuid));
         assertSame(original, manager.getSkills(uuid));
         verify(player, never()).kick(any(net.kyori.adventure.text.Component.class));
+    }
+
+    @Test
+    void startupHeartbeatWaitsForDatabaseInitialization() throws Exception {
+        doReturn(false).when(database).isAvailable();
+        manager.heartbeat();
+
+        Field field = PlayerSkillsManager.class.getDeclaredField("heartbeatFailed");
+        field.setAccessible(true);
+        assertFalse(((AtomicBoolean) field.get(manager)).get());
+        verify(database, times(1)).heartbeatAll(anyString()); // Initial setup heartbeat only.
+
+        doReturn(true).when(database).isAvailable();
+        manager.heartbeat();
+        verify(database, times(2)).heartbeatAll(anyString());
     }
 
     @Test

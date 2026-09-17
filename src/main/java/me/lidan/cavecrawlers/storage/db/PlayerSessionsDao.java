@@ -8,22 +8,10 @@ public interface PlayerSessionsDao {
     /**
      * Creates a session row if none exists; no-op otherwise.
      */
-    @SqlUpdate("INSERT IGNORE INTO player_sessions (player_uuid, is_locked, locking_server, lock_timestamp) " +
-            "VALUES (:uuid, 0, NULL, 0)")
+    @SqlUpdate("INSERT IGNORE INTO player_sessions " +
+            "(player_uuid, is_locked, locking_server, lock_timestamp, fence_token, data_revision) " +
+            "VALUES (:uuid, 0, NULL, 0, 0, 0)")
     void ensureRow(@Bind("uuid") String uuid);
-
-    /**
-     * Atomically acquires the lock for {@code server} if it is currently free
-     * or has not been heartbeated since {@code expiry} (crash-recovery).
-     *
-     * @return number of rows affected — 1 means acquired, 0 means someone else holds it
-     */
-    @SqlUpdate("UPDATE player_sessions " +
-            "SET is_locked = 1, locking_server = :server, lock_timestamp = :ts " +
-            "WHERE player_uuid = :uuid " +
-            "  AND (is_locked = 0 OR lock_timestamp < :expiry OR locking_server = :server)")
-    int tryAcquireLock(@Bind("uuid") String uuid, @Bind("server") String server,
-                       @Bind("ts") long ts, @Bind("expiry") long expiry);
 
     /**
      * Releases the lock, but only if {@code server} currently holds it.
@@ -31,18 +19,10 @@ public interface PlayerSessionsDao {
      */
     @SqlUpdate("UPDATE player_sessions " +
             "SET is_locked = 0, locking_server = NULL, lock_timestamp = 0 " +
-            "WHERE player_uuid = :uuid AND locking_server = :server")
-    void releaseLock(@Bind("uuid") String uuid, @Bind("server") String server);
+            "WHERE player_uuid = :uuid AND locking_server = :server AND fence_token = :fence")
+    int releaseLock(@Bind("uuid") String uuid, @Bind("server") String server, @Bind("fence") long fence);
 
-    /**
-     * Refreshes the lock timestamp for every row held by {@code server}.
-     */
-    @SqlUpdate("UPDATE player_sessions SET lock_timestamp = :ts WHERE locking_server = :server")
-    void heartbeatAll(@Bind("server") String server, @Bind("ts") long ts);
-
-    /**
-     * Releases every lock held by {@code server}. Called on clean shutdown.
-     */
+    /** Releases every lock held by this process-unique server ID. */
     @SqlUpdate("UPDATE player_sessions " +
             "SET is_locked = 0, locking_server = NULL, lock_timestamp = 0 " +
             "WHERE locking_server = :server")

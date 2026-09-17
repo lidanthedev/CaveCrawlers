@@ -61,10 +61,26 @@ dependencies {
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("dev.dejvokep:boosted-yaml-spigot:1.5")
     implementation("com.github.Robotv2:PlaceholderAnnotationLib:v1.1.0")
+
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("com.h2database:h2:2.3.232")
+    testImplementation("org.testcontainers:testcontainers-mysql:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
+    testRuntimeOnly("com.mysql:mysql-connector-j:8.4.0")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("com.zaxxer:HikariCP:5.1.0")
+    testImplementation("org.jdbi:jdbi3-core:3.45.4")
+    testImplementation("org.jdbi:jdbi3-sqlobject:3.45.4")
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 }
 
 tasks.compileJava {
     options.compilerArgs.add("-parameters")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.shadowJar {

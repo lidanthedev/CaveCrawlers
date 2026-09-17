@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.storage;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.skills.Skill;
@@ -9,81 +8,164 @@ import me.lidan.cavecrawlers.skills.SkillInfo;
 import me.lidan.cavecrawlers.skills.Skills;
 import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.storage.db.Database;
-import me.lidan.cavecrawlers.storage.db.PlayerSessionsDao;
 import me.lidan.cavecrawlers.storage.db.SkillRow;
-import me.lidan.cavecrawlers.storage.db.SkillsDao;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.plugin.Plugin;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.LongSupplier;
 
+/**
+ * Owns the player persistence state machine.
+ *
+ * <p>Invariants:
+ * <ol>
+ *   <li>A player is loaded only after a fenced lease is acquired and DB data is loaded.</li>
+ *   <li>Every durable write validates server ID, fence token, and revision in its DB transaction.</li>
+ *   <li>One writer per player drains a latest-only queue; older revisions cannot overwrite newer ones.</li>
+ *   <li>Pending data is eligible only while its original fence remains current.</li>
+ *   <li>Reset is an ordered write, not an independent DELETE.</li>
+ *   <li>Quit releases ownership in the same transaction as its final write.</li>
+ *   <li>Old owners cannot write or unlock, including after a DB outage.</li>
+ *   <li>Required addon tables share the skills transaction and fail it as a unit.</li>
+ *   <li>Normal gameplay only captures snapshots on the primary thread; SQL runs asynchronously.</li>
+ * </ol>
+ */
 @Slf4j
 public class PlayerSkillsManager {
-    private static final boolean VERBOSE = false;
-    private static final long LOCK_TIMEOUT_MS = 60_000L;
     private static final int LOCK_MAX_ATTEMPTS = 20;
     private static final long LOCK_RETRY_MS = 500L;
+    private static final long STATE_CLEANUP_DELAY_TICKS = 20L * 60L;
     private static final long LOADING_TITLE_DELAY_TICKS = 20L;
+    private static final long LOAD_RETRY_DELAY_TICKS = 20L;
     private static final Component LOADING_TITLE = MiniMessageUtils.miniMessage("<gold><bold>Loading your data...");
     private static final Component LOADING_SUBTITLE = MiniMessageUtils.miniMessage("<gray>Please wait.");
-    private static final Title LOADING_TITLE_TEMPLATE = Title.title(
-            LOADING_TITLE,
-            LOADING_SUBTITLE,
-            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofMillis(250))
-    );
+    private static final Title LOADING_TITLE_TEMPLATE = Title.title(LOADING_TITLE, LOADING_SUBTITLE,
+            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofMillis(250)));
     private static final Component LOADED_TITLE = MiniMessageUtils.miniMessage("<green><bold>Data loaded");
     private static final Component LOADED_SUBTITLE = MiniMessageUtils.miniMessage("<gray>You can continue playing.");
-    private static final Title LOADED_TITLE_TEMPLATE = Title.title(
-            LOADED_TITLE,
-            LOADED_SUBTITLE,
-            Title.Times.times(Duration.ZERO, Duration.ofMillis(1200), Duration.ofMillis(200))
-    );
+    private static final Title LOADED_TITLE_TEMPLATE = Title.title(LOADED_TITLE, LOADED_SUBTITLE,
+            Title.Times.times(Duration.ZERO, Duration.ofMillis(1200), Duration.ofMillis(200)));
+    private static final Component DATABASE_LOST_MESSAGE = MiniMessageUtils.miniMessage(
+            "<red>Lost connection to the player data database.<newline><gray>Please reconnect in a moment.");
+    private static final Component LOST_SESSION_MESSAGE = MiniMessageUtils.miniMessage(
+            "<red>Your player-data session moved to another server. Please reconnect.");
+
     private static PlayerSkillsManager instance;
     private final ConcurrentHashMap<UUID, Skills> activeSkills = new ConcurrentHashMap<>();
-    private final Set<UUID> loadedPlayers = ConcurrentHashMap.newKeySet();
-    private final Set<UUID> scheduledLoads = ConcurrentHashMap.newKeySet();
-    private final Set<UUID> pendingLoads = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap.KeySetView<UUID, Boolean> loadedPlayers = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<UUID, Long> scheduledLoads = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap.KeySetView<UUID, Boolean> pendingLoads = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<UUID, Long> loadGenerations = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, ReentrantLock> playerStateLocks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, BukkitTask> stateCleanupTasks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, BukkitTask> loadingTitleTasks = new ConcurrentHashMap<>();
-    private final Set<UUID> loadingTitleShown = ConcurrentHashMap.newKeySet();
-    private final ConcurrentHashMap<UUID, PendingSaveData> pendingSaves = new ConcurrentHashMap<>();
-    private final CaveCrawlers plugin = CaveCrawlers.getInstance();
-    @Setter
+    private final ConcurrentHashMap.KeySetView<UUID, Boolean> loadingTitleShown = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<UUID, Ownership> ownerships = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Ownership> pendingReleases = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, SaveRequest> pendingWrites = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap.KeySetView<UUID, Boolean> runningWriters = ConcurrentHashMap.newKeySet();
+    // Leave one of the five pool connections available for lease heartbeats.
+    private final Semaphore databaseWriterSlots = new Semaphore(4);
+    private final AtomicBoolean migrationInProgress = new AtomicBoolean();
+    private final AtomicBoolean autosaveScanRunning = new AtomicBoolean();
+    private final Plugin plugin;
+    private final Database database;
+    @Getter
+    private final LeaseConfig leaseConfig;
+    private final LongSupplier clock;
+    private final LeaseHealth leaseHealth;
+    private final AtomicBoolean heartbeatRunning = new AtomicBoolean();
+    private final AtomicBoolean heartbeatFailed = new AtomicBoolean();
+    private final ConcurrentHashMap<UUID, Long> invalidatedGenerations = new ConcurrentHashMap<>();
     @Getter
     private volatile String serverId;
+    private volatile boolean shuttingDown;
+    private final Object ioMonitor = new Object();
+    private int activeOperations;
 
     private PlayerSkillsManager() {
+        this(CaveCrawlers.getInstance(), Database.getInstance(), System::nanoTime,
+                LeaseConfig.validated(CaveCrawlers.getInstance().getConfig().getLong("database.lease-timeout", 60),
+                        CaveCrawlers.getInstance().getConfig().getLong("database.heartbeat-interval", 10), log::warn));
     }
 
-    public static PlayerSkillsManager getInstance() {
+    PlayerSkillsManager(Plugin plugin, Database database, LongSupplier clock, LeaseConfig leaseConfig) {
+        this.plugin = plugin;
+        this.database = database;
+        this.clock = clock;
+        this.leaseConfig = leaseConfig;
+        this.leaseHealth = new LeaseHealth(leaseConfig, clock);
+    }
+
+    public static synchronized PlayerSkillsManager getInstance() {
         if (instance == null) {
             instance = new PlayerSkillsManager();
         }
         return instance;
     }
 
-    private void verbose(String msg, Object... args) {
-        if (VERBOSE) {
-            log.info(msg, args);
+    /** A process ID must never survive a restart because it identifies lease ownership. */
+    public void setServerId() {
+        serverId = UUID.randomUUID().toString();
+        shuttingDown = false;
+    }
+
+    private long leaseTimeoutMillis() {
+        return leaseConfig.timeout().toMillis();
+    }
+
+    private void verbose(String message, Object... args) {
+        if (plugin.getConfig().getBoolean("database.verbose-logging", false)) {
+            log.info(message, args);
         }
     }
 
-    private void loadPlayerData(UUID uuid) {
-        Database.getInstance().loadPlayerDataTables(uuid);
-        Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
+    private boolean persistenceAvailable() {
+        return database.isAvailable() && database.getJdbi() != null;
     }
 
-    private void savePlayerData(UUID uuid) {
-        Database.getInstance().savePlayerDataTables(uuid);
-        Bukkit.getPluginManager().callEvent(new PlayerDataSaveEvent(uuid));
+    private long currentGeneration(UUID uuid) {
+        return loadGenerations.getOrDefault(uuid, 0L);
+    }
+
+    private long nextGeneration(UUID uuid) {
+        return loadGenerations.merge(uuid, 1L, Long::sum);
+    }
+
+    private boolean currentGeneration(UUID uuid, long generation) {
+        return currentGeneration(uuid) == generation;
+    }
+
+    private ReentrantLock stateLock(UUID uuid) {
+        return playerStateLocks.computeIfAbsent(uuid, ignored -> new ReentrantLock());
     }
 
     public void loadPlayerAsync(UUID uuid) {
+        requirePrimaryThread();
+        if (ownerships.containsKey(uuid) || scheduledLoads.containsKey(uuid)) {
+            savePlayerNowOnQuit(uuid);
+        }
+        invalidatedGenerations.remove(uuid);
+        cancelStateCleanup(uuid);
+        nextGeneration(uuid);
+        loadedPlayers.remove(uuid);
         scheduleLoadIfNeeded(uuid);
     }
 
@@ -97,409 +179,598 @@ public class PlayerSkillsManager {
     }
 
     public void scheduleLoadsForPendingPlayers() {
-        for (UUID uuid : new ArrayList<>(pendingLoads)) {
-            scheduleLoadIfNeeded(uuid);
-        }
+        new ArrayList<>(pendingLoads).forEach(this::scheduleLoadIfNeeded);
     }
 
     public void scheduleLoadIfNeeded(UUID uuid) {
+        if (!Bukkit.isPrimaryThread()) {
+            if (!shuttingDown) Bukkit.getScheduler().runTask(plugin, () -> scheduleLoadIfNeeded(uuid));
+            return;
+        }
+        cancelStateCleanup(uuid);
         getOrCreateSkills(uuid);
-
-        if (loadedPlayers.contains(uuid)) {
+        if (shuttingDown || loadedPlayers.contains(uuid) || invalidatedGenerations.containsKey(uuid)) {
+            return;
+        }
+        if (migrationInProgress.get() || !persistenceAvailable() || !leaseHealth.healthy()
+                || (plugin instanceof CaveCrawlers caveCrawlers && !caveCrawlers.isLoginAllowed())) {
+            pendingLoads.add(uuid);
+            scheduleLoadRetry(uuid, currentGeneration(uuid));
             return;
         }
 
-        if (!isPersistenceAvailable()) {
+        long generation = currentGeneration(uuid);
+        Ownership previous = ownerships.get(uuid);
+        if (previous != null && previous.generation() != generation) {
             pendingLoads.add(uuid);
+            scheduleLoadRetry(uuid, generation);
+            return;
+        }
+        if (scheduledLoads.putIfAbsent(uuid, generation) != null) {
             return;
         }
 
         pendingLoads.remove(uuid);
-        if (!scheduledLoads.add(uuid)) {
-            return;
-        }
-
         scheduleLoadingTitle(uuid);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadPlayerFromDatabase(uuid));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadFromDatabase(uuid, generation));
     }
 
-    private void scheduleLoadingTitle(UUID uuid) {
-        if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, () -> scheduleLoadingTitle(uuid));
-            return;
-        }
-
-        if (loadedPlayers.contains(uuid)) {
-            return;
-        }
-
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-            return;
-        }
-
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            loadingTitleTasks.remove(uuid);
-            Player onlinePlayer = Bukkit.getPlayer(uuid);
-            if (onlinePlayer == null || loadedPlayers.contains(uuid)) {
-                return;
-            }
-            loadingTitleShown.add(uuid);
-            onlinePlayer.showTitle(LOADING_TITLE_TEMPLATE);
-        }, LOADING_TITLE_DELAY_TICKS);
-
-        BukkitTask previous = loadingTitleTasks.putIfAbsent(uuid, task);
-        if (previous != null) {
-            task.cancel();
-        }
-    }
-
-    private void cancelLoadingTitleTask(UUID uuid) {
-        BukkitTask task = loadingTitleTasks.remove(uuid);
-        if (task != null) {
-            task.cancel();
-        }
-    }
-
-    private void clearLoadingTitleState(UUID uuid) {
-        cancelLoadingTitleTask(uuid);
-        loadingTitleShown.remove(uuid);
-    }
-
-    private void showLoadedTitleIfNeeded(UUID uuid) {
-        if (!loadingTitleShown.remove(uuid)) {
-            return;
-        }
-        Player player = Bukkit.getPlayer(uuid);
-        if (player == null) {
-            return;
-        }
-        player.showTitle(LOADED_TITLE_TEMPLATE);
-    }
-
-    private void loadPlayerFromDatabase(UUID uuid) {
-        if (!isPersistenceAvailable()) {
-            pendingLoads.add(uuid);
-            scheduledLoads.remove(uuid);
-            return;
-        }
-
+    private void loadFromDatabase(UUID uuid, long generation) {
+        if (!beginOperation()) return;
+        boolean publicationQueued = false;
+        ReentrantLock lock = stateLock(uuid);
+        lock.lock();
         try {
-            if (!acquireLock(uuid)) {
+            if (!persistenceAvailable()) {
                 pendingLoads.add(uuid);
                 return;
             }
-
-            List<SkillRow> rows = loadRowsFromDb(uuid);
-            PendingSaveData pending = pendingSaves.get(uuid);
-            if (pending != null && areRowsEquivalent(rows, pending.rows())) {
-                pendingSaves.remove(uuid, pending);
+            Ownership ownership = acquireOwnership(uuid, generation);
+            if (ownership == null) {
+                pendingLoads.add(uuid);
+                scheduleLoadRetry(uuid, generation);
+                return;
             }
-            verbose("[LOAD] {} — loaded {} skill row(s) from DB", uuid, rows.size());
 
-            Skills skills = buildSkillsFromRows(uuid, rows);
-            activeSkills.put(uuid, skills);
-            loadedPlayers.add(uuid);
-            pendingLoads.remove(uuid);
-            cancelLoadingTitleTask(uuid);
-            loadPlayerData(uuid);
-            showLoadedTitleIfNeeded(uuid);
+            List<SkillRow> rows = database
+                    .loadPlayer(uuid, serverId, ownership.fenceToken());
+            verbose("[LOAD] uuid={} server={} fence={} generation={} rows={}",
+                    uuid, serverId, ownership.fenceToken(), generation, rows.size());
 
-            if (Bukkit.getPlayer(uuid) == null) {
-                verbose("[LOAD] {} — player offline by the time load finished, saving and releasing lock", uuid);
-                savePlayerAsync(uuid, true);
-            }
+            if (shuttingDown) return;
+            Skills loaded = buildSkillsFromRows(uuid, rows);
+            // Publication and quit both run on the main thread. Never publish from a late SQL callback.
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                boolean superseded = !currentGeneration(uuid, generation);
+                try {
+                    if (shuttingDown) return;
+                    if (superseded || Bukkit.getPlayer(uuid) == null
+                            || ownerships.get(uuid) != ownership || !leaseHealth.healthy()
+                            || ownership.healthEpoch() != leaseHealth.epoch()
+                            || invalidatedGenerations.containsKey(uuid)) {
+                        queueOwnershipRelease(uuid, ownership);
+                        return;
+                    }
+                    bindSkills(uuid, loaded);
+                    activeSkills.put(uuid, loaded);
+                    loadedPlayers.add(uuid);
+                    pendingLoads.remove(uuid);
+                    Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
+                    showLoadedTitleIfNeeded(uuid);
+                } finally {
+                    scheduledLoads.remove(uuid, generation);
+                    if (superseded && !shuttingDown && Bukkit.getPlayer(uuid) != null) {
+                        scheduleLoadIfNeeded(uuid);
+                    }
+                }
+            });
+            publicationQueued = true;
+        } catch (Database.StaleSessionException e) {
+            invalidateStaleSession(uuid, generation, e.currentFence());
         } catch (Exception e) {
-            log.warn("[LOAD] {} — failed to load player data: {}", uuid, e.getMessage(), e);
             pendingLoads.add(uuid);
+            log.warn("[LOAD] uuid={} generation={} failed: {}", uuid, generation, e.getMessage(), e);
+            scheduleLoadRetry(uuid, generation);
         } finally {
-            scheduledLoads.remove(uuid);
+            lock.unlock();
+            if (!publicationQueued) scheduledLoads.remove(uuid, generation);
+            if (!shuttingDown && Bukkit.getPlayer(uuid) == null) {
+                scheduleStateCleanup(uuid);
+            }
+            endOperation();
         }
     }
 
-    private boolean isPersistenceAvailable() {
-        Database database = Database.getInstance();
-        return database.isAvailable() && database.getJdbi() != null;
-    }
-
-    private boolean acquireLock(UUID uuid) {
-        if (!isPersistenceAvailable()) {
-            return false;
+    private Ownership acquireOwnership(UUID uuid, long generation) {
+        Ownership existing = ownerships.get(uuid);
+        if (existing != null) {
+            return existing.generation() == generation ? existing : null;
         }
 
-        String uuidStr = uuid.toString();
-        Database.getInstance().getJdbi().useHandle(h -> h.attach(PlayerSessionsDao.class).ensureRow(uuidStr));
-
-        if (tryAcquireLockOnce(uuid, uuidStr)) {
-            return true;
-        }
-
-        for (int attempt = 1; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
-            verbose("[LOCK] {} — waiting for lock (attempt {}/{})", uuid, attempt, LOCK_MAX_ATTEMPTS);
+        for (int attempt = 0; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
+            if (shuttingDown || !persistenceAvailable() || !leaseHealth.healthy() || !currentGeneration(uuid, generation)) {
+                return null;
+            }
+            long healthEpoch = leaseHealth.epoch();
+            long startedAt = clock.getAsLong();
+            Optional<Database.PlayerLease> lease = database
+                    .acquirePlayerSession(uuid, serverId, leaseTimeoutMillis());
+            if (lease.isPresent()) {
+                Ownership acquired = new Ownership(generation, lease.get().fenceToken(),
+                        new AtomicLong(lease.get().dataRevision()), healthEpoch, new AtomicReference<>(), new AtomicBoolean());
+                if (shuttingDown || clock.getAsLong() - startedAt >= leaseConfig.unsafeAfter().toNanos()
+                        || healthEpoch != leaseHealth.epoch()) {
+                    database.releasePlayerSession(uuid, serverId, acquired.fenceToken());
+                    return null;
+                }
+                Ownership raced = ownerships.putIfAbsent(uuid, acquired);
+                Ownership result = raced == null ? acquired : raced;
+                verbose("[LOCK] acquired uuid={} server={} fence={} generation={}",
+                        uuid, serverId, result.fenceToken(), generation);
+                return result.generation() == generation ? result : null;
+            }
+            if (attempt == LOCK_MAX_ATTEMPTS) {
+                break;
+            }
             try {
                 Thread.sleep(LOCK_RETRY_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                break;
-            }
-            if (tryAcquireLockOnce(uuid, uuidStr)) {
-                return true;
+                return null;
             }
         }
-        log.warn("[LOCK] {} — could not acquire lock after {} attempts, deferring load", uuid, LOCK_MAX_ATTEMPTS);
-        return false;
+        log.warn("[LOCK] uuid={} could not acquire ownership after {} attempts", uuid, LOCK_MAX_ATTEMPTS);
+        return null;
     }
 
-    private boolean tryAcquireLockOnce(UUID uuid, String uuidStr) {
-        String currentServerId = serverId;
-        if (!isPersistenceAvailable() || currentServerId == null) {
-            return false;
+    private void scheduleLoadRetry(UUID uuid, long generation) {
+        if (shuttingDown) {
+            return;
         }
-
-        long now = System.currentTimeMillis();
-        long expiry = now - LOCK_TIMEOUT_MS;
-        int affected = Database.getInstance().getJdbi().withHandle(h ->
-                h.attach(PlayerSessionsDao.class).tryAcquireLock(uuidStr, currentServerId, now, expiry)
-        );
-        if (affected > 0) {
-            verbose("[LOCK] {} — acquired [thread={}]", uuid, Thread.currentThread().getName());
-            return true;
-        }
-        return false;
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (currentGeneration(uuid, generation) && Bukkit.getPlayer(uuid) != null) {
+                scheduleLoadIfNeeded(uuid);
+            }
+        }, LOAD_RETRY_DELAY_TICKS);
     }
 
-    // -------------------------------------------------------------------------
-    // Save
-    // -------------------------------------------------------------------------
-
-    /**
-     * Saves synchronously on the calling thread AND releases the session lock atomically.
-     * Use on player quit: guarantees the DB row is current and the lock is free before
-     * BungeeCord/Velocity can route the player to another backend and trigger a load there.
-     */
     public void savePlayerNow(UUID uuid) {
         savePlayerNow(uuid, false);
     }
 
-    public void savePlayerNow(UUID uuid, boolean releaseLockAfterSave) {
+    public void savePlayerNow(UUID uuid, boolean releaseAfterSave) {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, () -> savePlayerNow(uuid, releaseLockAfterSave));
+            long generation = currentGeneration(uuid);
+            if (!shuttingDown) Bukkit.getScheduler().runTask(plugin, () -> {
+                if (currentGeneration(uuid, generation)) savePlayerNow(uuid, releaseAfterSave);
+            });
             return;
         }
-
-        SaveRequest request = createSaveRequest(uuid, releaseLockAfterSave);
-        if (request == null) {
-            return;
+        if (!canPersistPlayer(uuid)) return;
+        SaveRequest request = captureSave(uuid, releaseAfterSave, false);
+        if (request != null) {
+            if (releaseAfterSave) loadedPlayers.remove(uuid);
+            enqueue(request);
         }
-        savePlayerNow(request);
     }
 
-    private void savePlayerNow(SaveRequest request) {
-        UUID uuid = request.uuid();
-        Skills skills = request.snapshotSkills();
-        if (skills == null) {
-            verbose("[SAVE-NOW] {} — nothing in cache, releasing lock and skipping [thread={}]",
-                    uuid, Thread.currentThread().getName());
-            loadedPlayers.remove(uuid);
-            if (request.releaseLockAfterSave()) {
-                releaseLock(uuid);
-            }
-            return;
+    public void savePlayerNowOnQuit(UUID uuid) {
+        requirePrimaryThread();
+
+        cancelStateCleanup(uuid);
+        SaveRequest request = captureSave(uuid, true, false);
+        nextGeneration(uuid);
+        loadedPlayers.remove(uuid);
+        pendingLoads.remove(uuid);
+        activeSkills.remove(uuid);
+        clearLoadingTitleState(uuid);
+        if (request != null) {
+            enqueue(request);
+            verbose("[SAVE] quit queued uuid={} fence={} generation={} revision={}",
+                    uuid, request.fenceToken(), request.generation(), request.revision());
+        } else if (!pendingWrites.containsKey(uuid) && !runningWriters.contains(uuid)) {
+            Ownership ownership = ownerships.get(uuid);
+            if (ownership != null) queueOwnershipRelease(uuid, ownership);
         }
-
-        List<SkillRow> rows = buildRows(uuid, skills);
-        verbose("[SAVE-NOW] {} — writing {} row(s) + releasing lock [thread={}]",
-                uuid, rows.size(), Thread.currentThread().getName());
-        savePlayerData(uuid);
-
-        String uuidStr = uuid.toString();
-        String currentServerId = serverId;
-        Database.getInstance().getJdbi().useTransaction(h -> {
-            if (!rows.isEmpty()) {
-                h.attach(SkillsDao.class).upsertSkills(rows);
-            }
-            if (request.releaseLockAfterSave() && currentServerId != null) {
-                h.attach(PlayerSessionsDao.class).releaseLock(uuidStr, currentServerId);
-            }
-        });
-
-        if (!request.onlineAtStart() && Bukkit.getPlayer(uuid) != null) {
-            activeSkills.put(uuid, request.liveSkills());
-            verbose("[SAVE-NOW] {} — player reconnected during save, restored cached skills", uuid);
-        } else if (!request.onlineAtStart()) {
-            loadedPlayers.remove(uuid);
-        }
-
-        verbose("[SAVE-NOW] {} — done", uuid);
-    }
-
-    private SaveRequest createSaveRequest(UUID uuid, boolean releaseLockAfterSave) {
-        if (!loadedPlayers.contains(uuid)) {
-            PendingSaveData pending = pendingSaves.get(uuid);
-            if (pending != null) {
-                pendingLoads.add(uuid);
-                scheduledLoads.remove(uuid);
-                verbose("[SAVE-NOW] {} — not loaded and pending save is newer candidate (ts={}), keeping for retry [thread={}]",
-                        uuid, pending.updatedAt(), Thread.currentThread().getName());
-                return null;
-            }
-            activeSkills.remove(uuid);
-            pendingLoads.remove(uuid);
-            scheduledLoads.remove(uuid);
-            verbose("[SAVE-NOW] {} — not loaded, skipping [thread={}]",
-                    uuid, Thread.currentThread().getName());
-            return null;
-        }
-
-        if (!isPersistenceAvailable()) {
-            queuePendingSave(uuid);
-            return null;
-        }
-
-        boolean onlineAtStart = activeSkills.containsKey(uuid) && !releaseLockAfterSave;
-        Skills skills = onlineAtStart ? activeSkills.get(uuid) : activeSkills.remove(uuid);
-        pendingSaves.remove(uuid);
-        Skills snapshotSkills = skills == null ? null : copySkills(skills);
-        return new SaveRequest(uuid, skills, snapshotSkills, onlineAtStart, releaseLockAfterSave);
+        scheduleStateCleanup(uuid);
     }
 
     public void savePlayerAsync(UUID uuid) {
         savePlayerAsync(uuid, false);
     }
 
-    public void savePlayerAsync(UUID uuid, boolean releaseLockAfterSave) {
-        if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, () -> savePlayerAsync(uuid, releaseLockAfterSave));
-            return;
-        }
+    public void savePlayerAsync(UUID uuid, boolean releaseAfterSave) {
+        savePlayerNow(uuid, releaseAfterSave);
+    }
 
+    private SaveRequest captureSave(UUID uuid, boolean releaseAfterSave, boolean deleteBeforeWrite) {
         if (!loadedPlayers.contains(uuid)) {
+            return null;
+        }
+        Ownership ownership = ownerships.get(uuid);
+        Skills skills = activeSkills.get(uuid);
+        if (ownership == null || skills == null || ownership.generation() != currentGeneration(uuid)) {
+            return null;
+        }
+        long revision = ownership.nextRevision().incrementAndGet();
+        return new SaveRequest(uuid, List.copyOf(buildRows(uuid, copySkills(skills))),
+                ownership.generation(), ownership.fenceToken(), revision,
+                deleteBeforeWrite, releaseAfterSave);
+    }
+
+    void enqueue(SaveRequest request) {
+        pendingWrites.merge(request.uuid(), request, PlayerSkillsManager::mergeRequests);
+        startWriter(request.uuid());
+    }
+
+    static SaveRequest mergeRequests(SaveRequest left, SaveRequest right) {
+        if (left.fenceToken() != right.fenceToken()) {
+            return left.fenceToken() > right.fenceToken() ? left : right;
+        }
+        SaveRequest newest = left.revision() >= right.revision() ? left : right;
+        return new SaveRequest(newest.uuid(), newest.rows(), newest.generation(), newest.fenceToken(),
+                newest.revision(), left.deleteBeforeWrite() || right.deleteBeforeWrite(),
+                left.releaseAfterWrite() || right.releaseAfterWrite());
+    }
+
+    private void startWriter(UUID uuid) {
+        if (shuttingDown || !persistenceAvailable() || !runningWriters.add(uuid)) {
             return;
         }
-        if (!isPersistenceAvailable()) {
-            queuePendingSave(uuid);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> drainWrites(uuid));
+    }
+
+    private void drainWrites(UUID uuid) {
+        if (!beginOperation()) {
+            runningWriters.remove(uuid);
             return;
         }
-        SaveRequest request = createSaveRequest(uuid, releaseLockAfterSave);
-        if (request == null) {
-            return;
+        try {
+            drainWriterQueue(uuid);
+        } finally {
+            endOperation();
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerNow(request));
+    }
+
+    private void drainWriterQueue(UUID uuid) {
+        while (!shuttingDown) {
+            SaveRequest request = pendingWrites.remove(uuid);
+            if (request == null) {
+                runningWriters.remove(uuid);
+                if (!pendingWrites.containsKey(uuid) || !runningWriters.add(uuid)) {
+                    return;
+                }
+                continue;
+            }
+
+            try {
+                verbose("[SAVE] start uuid={} server={} fence={} generation={} revision={} reset={} release={}",
+                        uuid, serverId, request.fenceToken(), request.generation(), request.revision(),
+                        request.deleteBeforeWrite(), request.releaseAfterWrite());
+                Bukkit.getPluginManager().callEvent(new PlayerDataSaveEvent(uuid));
+                databaseWriterSlots.acquire();
+                Database.WriteOutcome outcome;
+                try {
+                    outcome = persist(request);
+                } finally {
+                    databaseWriterSlots.release();
+                }
+                Ownership owner = ownerships.get(uuid);
+                if (owner != null && owner.fenceToken() == request.fenceToken() && outcome.owned()) {
+                    writeHealthy(owner); // Latch an expired failure window before recording recovery.
+                    owner.writeFailureSince().set(null);
+                }
+                if (!outcome.committed()) {
+                    if (!outcome.owned()) {
+                        discardStaleFence(request, outcome);
+                        return;
+                    }
+                    verbose("[SAVE] skipped old revision uuid={} fence={} revision={} currentRevision={}",
+                            uuid, request.fenceToken(), request.revision(), outcome.currentRevision());
+                    continue;
+                }
+                verbose("[SAVE] committed uuid={} server={} fence={} generation={} revision={}",
+                        uuid, serverId, request.fenceToken(), request.generation(), request.revision());
+                if (request.releaseAfterWrite()) {
+                    finishHandoff(request);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                pendingWrites.merge(uuid, request, PlayerSkillsManager::mergeRequests);
+                runningWriters.remove(uuid);
+                return;
+            } catch (Exception e) {
+                Ownership owner = ownerships.get(uuid);
+                if (owner != null && owner.fenceToken() == request.fenceToken()) {
+                    owner.writeFailureSince().compareAndSet(null, clock.getAsLong());
+                }
+                pendingWrites.merge(uuid, request, PlayerSkillsManager::mergeRequests);
+                runningWriters.remove(uuid);
+                log.warn("[SAVE] uuid={} fence={} generation={} revision={} failed; retained for retry: {}",
+                        uuid, request.fenceToken(), request.generation(), request.revision(), e.getMessage(), e);
+                return;
+            }
+        }
+        runningWriters.remove(uuid);
+    }
+
+    private Database.WriteOutcome persist(SaveRequest request) {
+        if (!persistenceAvailable()) {
+            throw new IllegalStateException("Database unavailable");
+        }
+        return database.persistPlayer(request.uuid(), serverId, request.fenceToken(),
+                request.revision(), request.rows(), request.deleteBeforeWrite(), request.releaseAfterWrite());
+    }
+
+    private void discardStaleFence(SaveRequest request, Database.WriteOutcome outcome) {
+        pendingWrites.computeIfPresent(request.uuid(), (uuid, pending) ->
+                pending.fenceToken() == request.fenceToken() ? null : pending);
+        runningWriters.remove(request.uuid());
+        log.warn("[SAVE] rejected stale write uuid={} server={} ours={} current={} generation={} revision={} currentRevision={}",
+                request.uuid(), serverId, request.fenceToken(), outcome.currentFenceToken(),
+                request.generation(), request.revision(), outcome.currentRevision());
+        invalidateStaleSession(request.uuid(), request.generation(), outcome.currentFenceToken());
+    }
+
+    private void finishHandoff(SaveRequest request) {
+        Ownership ownership = ownerships.get(request.uuid());
+        if (ownership != null && ownership.fenceToken() == request.fenceToken()) {
+            ownerships.remove(request.uuid(), ownership);
+            if (currentGeneration(request.uuid(), request.generation())) loadedPlayers.remove(request.uuid());
+        }
+        if (shuttingDown) return;
+        if (Bukkit.getPlayer(request.uuid()) != null) {
+            Bukkit.getScheduler().runTask(plugin, () -> scheduleLoadIfNeeded(request.uuid()));
+        } else {
+            scheduleStateCleanup(request.uuid());
+        }
+    }
+
+    private void invalidateStaleSession(UUID uuid, long generation, long currentFence) {
+        Ownership ownership = ownerships.get(uuid);
+        if (ownership != null && ownership.generation() == generation) {
+            ownerships.remove(uuid, ownership);
+        }
+        Bukkit.getScheduler().runTask(plugin, () -> invalidatePlayer(uuid, generation, LOST_SESSION_MESSAGE, false));
+        verbose("[LOCK] invalidated uuid={} server={} generation={} currentFence={}",
+                uuid, serverId, generation, currentFence);
+    }
+
+    private void invalidatePlayer(UUID uuid, long generation, Component message, boolean retainSnapshot) {
+        if (shuttingDown || !currentGeneration(uuid, generation)
+                || invalidatedGenerations.putIfAbsent(uuid, generation) != null) return;
+        if (retainSnapshot) {
+            log.warn("[LOCK] lease unsafe uuid={} server={} elapsedMs={} timeout={} interval={} owned={}",
+                    uuid, serverId, leaseHealth.elapsedNanos() / 1_000_000,
+                    leaseConfig.timeout(), leaseConfig.heartbeatInterval(), ownerships.size());
+            SaveRequest request = captureSave(uuid, true, false);
+            if (request != null) {
+                enqueue(request);
+            } else if (!pendingWrites.containsKey(uuid) && !runningWriters.contains(uuid)) {
+                Ownership ownership = ownerships.get(uuid);
+                if (ownership != null) queueOwnershipRelease(uuid, ownership);
+            }
+        }
+        loadedPlayers.remove(uuid);
+        pendingLoads.remove(uuid);
+        Player player = Bukkit.getPlayer(uuid);
+        if (player != null) player.kick(message);
+    }
+
+    /** Runs every tick independently of SQL; guards also evaluate time after a stalled main thread. */
+    public void checkLeaseHealth() {
+        if (shuttingDown) return;
+        long epoch = leaseHealth.epoch();
+        for (var entry : ownerships.entrySet()) {
+            Ownership ownership = entry.getValue();
+            if (ownership.healthEpoch() != epoch || !writeHealthy(ownership)) {
+                invalidatePlayer(entry.getKey(), ownership.generation(), DATABASE_LOST_MESSAGE, true);
+            }
+        }
+    }
+
+    public boolean canPersistPlayer(UUID uuid) {
+        Ownership ownership = ownerships.get(uuid);
+        return !shuttingDown && !migrationInProgress.get() && persistenceAvailable() && leaseHealth.healthy()
+                && loadedPlayers.contains(uuid) && !invalidatedGenerations.containsKey(uuid)
+                && ownership != null && ownership.generation() == currentGeneration(uuid)
+                && ownership.healthEpoch() == leaseHealth.epoch() && writeHealthy(ownership);
+    }
+
+    private boolean writeHealthy(Ownership ownership) {
+        Long failedSince = ownership.writeFailureSince().get();
+        if (failedSince != null && clock.getAsLong() - failedSince >= leaseConfig.unsafeAfter().toNanos()) {
+            ownership.writeUnsafe().set(true);
+        }
+        return !ownership.writeUnsafe().get();
+    }
+
+    private void bindSkills(UUID uuid, Skills skills) {
+        skills.bindMutationGuard(() -> Bukkit.isPrimaryThread() && activeSkills.get(uuid) == skills
+                && canPersistPlayer(uuid));
+    }
+
+    private void requirePrimaryThread() {
+        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("Player state must be mutated on the primary thread");
     }
 
     public void flushPendingSavesAsync() {
-        if (!isPersistenceAvailable() || pendingSaves.isEmpty()) {
+        if (!persistenceAvailable()) {
             return;
         }
-        for (UUID uuid : new ArrayList<>(pendingSaves.keySet())) {
-            if (!loadedPlayers.contains(uuid)) {
-                scheduleLoadIfNeeded(uuid);
-                continue;
-            }
-            savePlayerAsync(uuid, false);
-        }
+        new ArrayList<>(pendingWrites.keySet()).forEach(this::startWriter);
     }
 
     public void saveAll() {
-        if (!isPersistenceAvailable()) {
-            verbose("[SAVE-ALL] persistence unavailable, skipping [thread={}]", Thread.currentThread().getName());
-            return;
-        }
+        saveAllAsync();
+    }
 
-        verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
-                activeSkills.size(), pendingSaves.size(), Thread.currentThread().getName());
-        Set<UUID> activeRowUuids = new HashSet<>();
-        for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
-            if (!loadedPlayers.contains(entry.getKey())) {
-                continue;
-            }
-            savePlayerData(entry.getKey());
-            List<SkillRow> rows = buildRows(entry.getKey(), entry.getValue());
-            activeRowUuids.add(entry.getKey());
-            if (!rows.isEmpty()) {
-                verbose("[SAVE-ALL] {} — writing {} row(s)", entry.getKey(), rows.size());
-                writeRows(rows);
-            }
+    /** Freezes this backend's mutations for the complete source-flush/target-copy operation. */
+    public void withMigrationBarrier(Runnable copy) {
+        if (Bukkit.isPrimaryThread()) throw new IllegalStateException("Migration must run asynchronously");
+        if (!migrationInProgress.compareAndSet(false, true)) throw new IllegalStateException("Migration already running");
+        try {
+            flushAllForMigration();
+            copy.run();
+        } finally {
+            migrationInProgress.set(false);
+            if (!shuttingDown) Bukkit.getScheduler().runTask(plugin, this::scheduleLoadsForPendingPlayers);
         }
-        for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
-            List<SkillRow> filteredRows = filterPendingRows(entry.getValue().rows(), activeRowUuids);
-            verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.getKey(), filteredRows.size());
-            if (!filteredRows.isEmpty()) {
-                writeRows(filteredRows);
-            }
-        }
-        pendingSaves.clear();
+    }
 
-        String currentServerId = serverId;
-        if (currentServerId != null) {
-            Database.getInstance().getJdbi().useHandle(h ->
-                    h.attach(PlayerSessionsDao.class).heartbeatAll(currentServerId, System.currentTimeMillis())
-            );
+    /** Flushes a stable source snapshot before the explicit DB migration command copies it. */
+    public void flushAllForMigration() {
+        if (Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Database migration flush must run asynchronously");
+        }
+        CompletableFuture<Void> captured = new CompletableFuture<>();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            try {
+                if (shuttingDown) throw new IllegalStateException("Server is shutting down");
+                captureAutosave();
+                captured.complete(null);
+            } catch (Exception e) {
+                captured.completeExceptionally(e);
+            }
+        });
+        try {
+            captured.get(30, java.util.concurrent.TimeUnit.SECONDS);
+            long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
+            while (!pendingWrites.isEmpty() || !runningWriters.isEmpty() || hasActiveOperations()) {
+                if (shuttingDown || System.nanoTime() >= deadline) {
+                    throw new IllegalStateException("Player writes did not drain before migration");
+                }
+                flushPendingSavesAsync();
+                Thread.sleep(10);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while flushing player data", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not flush player data before migration", e);
         }
     }
 
     public void saveAllAsync() {
+        if (shuttingDown || migrationInProgress.get()) return;
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, this::saveAllAsync);
+            if (autosaveScanRunning.compareAndSet(false, true)) {
+                Bukkit.getScheduler().runTask(plugin, this::captureAutosave);
+            }
             return;
         }
-        if (!isPersistenceAvailable()) {
-            verbose("[SAVE-ALL] persistence unavailable, skipping [thread={}]", Thread.currentThread().getName());
-            return;
+        if (autosaveScanRunning.compareAndSet(false, true)) {
+            captureAutosave();
         }
-
-        List<SaveAllSnapshot> activeSnapshots = new ArrayList<>();
-        Set<UUID> activeRowUuids = new HashSet<>();
-        for (Map.Entry<UUID, Skills> entry : activeSkills.entrySet()) {
-            if (!loadedPlayers.contains(entry.getKey())) {
-                continue;
-            }
-            activeSnapshots.add(new SaveAllSnapshot(entry.getKey(), copySkills(entry.getValue())));
-            activeRowUuids.add(entry.getKey());
-        }
-
-        List<PendingSaveBatch> pendingSnapshots = new ArrayList<>();
-        for (Map.Entry<UUID, PendingSaveData> entry : pendingSaves.entrySet()) {
-            pendingSnapshots.add(new PendingSaveBatch(entry.getKey(), new ArrayList<>(entry.getValue().rows())));
-        }
-        pendingSaves.keySet().removeAll(pendingSnapshots.stream().map(PendingSaveBatch::uuid).toList());
-
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            verbose("[SAVE-ALL] Saving {} active player(s), {} pending [thread={}]",
-                    activeSnapshots.size(), pendingSnapshots.size(), Thread.currentThread().getName());
-            for (SaveAllSnapshot entry : activeSnapshots) {
-                savePlayerData(entry.uuid());
-                List<SkillRow> rows = buildRows(entry.uuid(), entry.skills());
-                if (!rows.isEmpty()) {
-                    verbose("[SAVE-ALL] {} — writing {} row(s)", entry.uuid(), rows.size());
-                    writeRows(rows);
-                }
-            }
-            for (PendingSaveBatch entry : pendingSnapshots) {
-                List<SkillRow> filteredRows = filterPendingRows(entry.rows(), activeRowUuids);
-                verbose("[SAVE-ALL] {} — flushing pending save ({} row(s))", entry.uuid(), filteredRows.size());
-                if (!filteredRows.isEmpty()) {
-                    writeRows(filteredRows);
-                }
-            }
-
-            String currentServerId = serverId;
-            if (currentServerId != null) {
-                Database.getInstance().getJdbi().useHandle(h ->
-                        h.attach(PlayerSessionsDao.class).heartbeatAll(currentServerId, System.currentTimeMillis())
-                );
-            }
-        });
     }
 
-    public void shutdown() {
-        saveAll();
-        String currentServerId = serverId;
-        if (currentServerId != null && isPersistenceAvailable()) {
-            Database.getInstance().getJdbi().useHandle(h ->
-                    h.attach(PlayerSessionsDao.class).releaseAllLocks(currentServerId)
-            );
+    private void captureAutosave() {
+        try {
+            for (UUID uuid : new ArrayList<>(loadedPlayers)) {
+                SaveRequest request = captureSave(uuid, false, false);
+                if (request != null) {
+                    enqueue(request);
+                }
+            }
+            flushPendingSavesAsync();
+        } finally {
+            autosaveScanRunning.set(false);
         }
+    }
+
+    /** Called by the independent async heartbeat task. */
+    public void heartbeat() {
+        if (serverId == null || shuttingDown || !persistenceAvailable()
+                || !heartbeatRunning.compareAndSet(false, true)) return;
+        if (!beginOperation()) {
+            heartbeatRunning.set(false);
+            return;
+        }
+        long startedAt = clock.getAsLong();
+        try {
+            int refreshed = database.heartbeatAll(serverId);
+            leaseHealth.succeeded(startedAt);
+            if (heartbeatFailed.getAndSet(false)) log.info("[LOCK] database heartbeat recovered server={}", serverId);
+            verbose("[LOCK] heartbeat server={} refreshed={} elapsedMs={} timeout={} interval={} owned={}",
+                    serverId, refreshed, leaseHealth.elapsedNanos() / 1_000_000,
+                    leaseConfig.timeout(), leaseConfig.heartbeatInterval(), ownerships.size());
+            flushPendingSavesAsync();
+        } catch (Exception e) {
+            leaseHealth.healthy();
+            if (!heartbeatFailed.getAndSet(true)) {
+                log.warn("[LOCK] heartbeat failed server={}: {}", serverId, e.getMessage());
+            }
+            verbose("[LOCK] heartbeat failure server={} elapsedMs={} timeout={} interval={} owned={}",
+                    serverId, leaseHealth.elapsedNanos() / 1_000_000,
+                    leaseConfig.timeout(), leaseConfig.heartbeatInterval(), ownerships.size());
+        } finally {
+            heartbeatRunning.set(false);
+            endOperation();
+        }
+    }
+
+    /** Shutdown may block briefly; normal gameplay save paths never do SQL on the primary thread. */
+    public void shutdown() {
+        requirePrimaryThread();
+        synchronized (ioMonitor) { shuttingDown = true; }
+        long deadline = System.nanoTime() + Duration.ofSeconds(Math.clamp(
+                plugin.getConfig().getLong("database.shutdown-flush-timeout", 10L), 1L, 120L)).toNanos();
+        for (UUID uuid : new ArrayList<>(loadedPlayers)) {
+            SaveRequest request = captureSave(uuid, true, false);
+            if (request != null) pendingWrites.merge(uuid, request, PlayerSkillsManager::mergeRequests);
+        }
+        synchronized (ioMonitor) {
+            while (activeOperations > 0 && System.nanoTime() < deadline) {
+                try { ioMonitor.wait(10); }
+                catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            }
+            if (activeOperations > 0) {
+                log.warn("[SHUTDOWN] {} operations still active; retaining {} snapshots and leaving leases to expire",
+                        activeOperations, pendingWrites.size());
+                return;
+            }
+        }
+        // Scheduled tasks may have been cancelled before they started. They cannot enter SQL now.
+        runningWriters.clear();
+        for (UUID uuid : new ArrayList<>(pendingWrites.keySet())) {
+            if (!persistenceAvailable() || System.nanoTime() >= deadline) break;
+            SaveRequest request = pendingWrites.get(uuid);
+            if (request == null) continue;
+            try {
+                Bukkit.getPluginManager().callEvent(new PlayerDataSaveEvent(uuid));
+                Database.WriteOutcome outcome = persist(request);
+                pendingWrites.remove(uuid, request);
+                if (!outcome.committed() && !outcome.owned()) {
+                    log.warn("[SHUTDOWN] rejected stale write uuid={} fence={} current={}",
+                            uuid, request.fenceToken(), outcome.currentFenceToken());
+                }
+            } catch (Exception e) {
+                log.warn("[SHUTDOWN] retained failed snapshot uuid={}: {}", uuid, e.getMessage());
+            }
+        }
+        if (pendingWrites.isEmpty() && persistenceAvailable() && serverId != null) {
+            database.releaseAllLocks(serverId);
+            ownerships.clear();
+        } else {
+            log.warn("[SHUTDOWN] {} snapshots unflushed; leases will expire without bulk release", pendingWrites.size());
+        }
+        loadedPlayers.clear();
+    }
+
+    private boolean hasActiveOperations() {
+        synchronized (ioMonitor) { return activeOperations > 0; }
+    }
+
+    private boolean beginOperation() {
+        synchronized (ioMonitor) {
+            if (shuttingDown) return false;
+            activeOperations++;
+            return true;
+        }
+    }
+
+    private void endOperation() {
+        synchronized (ioMonitor) { activeOperations--; ioMonitor.notifyAll(); }
     }
 
     public Skills getSkills(UUID uuid) {
@@ -514,94 +785,132 @@ public class PlayerSkillsManager {
         return getSkills(player.getUniqueId());
     }
 
+    /** Replaces loaded state without replacing its lease metadata, then marks it dirty. */
     public void putSkills(UUID uuid, Skills skills) {
-        verbose("[PUT] {} — inserting into cache directly [thread={}]", uuid, Thread.currentThread().getName());
+        requirePrimaryThread();
+        if (!canPersistPlayer(uuid)) {
+            log.warn("[PUT] rejected cache replacement for unloaded player {}", uuid);
+            return;
+        }
+        if (activeSkills.get(uuid) == skills) {
+            savePlayerAsync(uuid);
+            return;
+        }
+        skills.checkMutationAllowed();
         skills.setUuid(uuid);
+        bindSkills(uuid, skills);
         activeSkills.put(uuid, skills);
-        loadedPlayers.add(uuid);
-        scheduledLoads.remove(uuid);
-        pendingLoads.remove(uuid);
-        pendingSaves.remove(uuid);
-        clearLoadingTitleState(uuid);
+        savePlayerAsync(uuid);
     }
 
     public void resetPlayerData(UUID uuid) {
-        verbose("[RESET] {} — clearing cache and deleting DB rows async", uuid);
-        Skills skills = new Skills();
-        skills.setUuid(uuid);
-        activeSkills.put(uuid, skills);
-        loadedPlayers.add(uuid);
-        scheduledLoads.remove(uuid);
-        pendingLoads.remove(uuid);
-        pendingSaves.remove(uuid);
-        clearLoadingTitleState(uuid);
-
-        if (isPersistenceAvailable()) {
-            String uuidStr = uuid.toString();
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                    Database.getInstance().getJdbi().useHandle(h -> h.attach(SkillsDao.class).deleteSkills(uuidStr))
-            );
+        requirePrimaryThread();
+        if (shuttingDown || migrationInProgress.get()) return;
+        if (canPersistPlayer(uuid)) {
+            Skills reset = new Skills();
+            reset.setUuid(uuid);
+            bindSkills(uuid, reset);
+            activeSkills.put(uuid, reset);
+            SaveRequest request = captureSave(uuid, false, true);
+            if (request != null) {
+                enqueue(request);
+                verbose("[RESET] queued uuid={} fence={} generation={} revision={}",
+                        uuid, request.fenceToken(), request.generation(), request.revision());
+            }
+            return;
         }
+
+        if (Bukkit.getPlayer(uuid) != null || ownerships.containsKey(uuid)) return;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            if (!beginOperation()) return;
+            try {
+                if (migrationInProgress.get()) return;
+                if (!database.resetOfflinePlayer(uuid, leaseTimeoutMillis())) {
+                    log.warn("[RESET] refused offline reset for {} because another server owns a live session", uuid);
+                }
+            } catch (Exception e) {
+                log.warn("[RESET] offline reset failed for {}: {}", uuid, e.getMessage(), e);
+            } finally {
+                endOperation();
+            }
+        });
     }
 
+    /** Loaded state is handed off safely; placeholders can be removed immediately. */
     public void removeFromCache(UUID uuid) {
-        verbose("[EVICT] {} — removed from cache", uuid);
+        requirePrimaryThread();
+        if (loadedPlayers.contains(uuid)) {
+            savePlayerNowOnQuit(uuid);
+            return;
+        }
         activeSkills.remove(uuid);
-        loadedPlayers.remove(uuid);
-        scheduledLoads.remove(uuid);
         pendingLoads.remove(uuid);
-        pendingSaves.remove(uuid);
         clearLoadingTitleState(uuid);
+        scheduleStateCleanup(uuid);
     }
 
     public boolean isLoaded(UUID uuid) {
-        return loadedPlayers.contains(uuid);
+        return canPersistPlayer(uuid);
+    }
+
+    private void queueOwnershipRelease(UUID uuid, Ownership ownership) {
+        if (shuttingDown || pendingReleases.putIfAbsent(uuid, ownership) != null) return;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> retryOwnershipRelease(uuid, ownership));
+    }
+
+    private void retryOwnershipRelease(UUID uuid, Ownership ownership) {
+        if (!beginOperation()) return;
+        boolean retry = false;
+        try {
+            if (ownerships.get(uuid) == ownership) releaseOwnership(uuid, ownership);
+            pendingReleases.remove(uuid, ownership);
+        } catch (Exception e) {
+            retry = true;
+            verbose("[LOCK] release retained uuid={} fence={}: {}", uuid, ownership.fenceToken(), e.getMessage());
+        } finally {
+            endOperation();
+        }
+        if (retry && !shuttingDown) {
+            Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> retryOwnershipRelease(uuid, ownership),
+                    leaseConfig.heartbeatInterval().toSeconds() * 20);
+        }
+    }
+
+    private void releaseOwnership(UUID uuid, Ownership ownership) {
+        if (!persistenceAvailable()) throw new IllegalStateException("Database unavailable during release");
+        database.releasePlayerSession(uuid, serverId, ownership.fenceToken());
+        ownerships.remove(uuid, ownership);
+        verbose("[LOCK] released uuid={} server={} fence={} generation={}",
+                uuid, serverId, ownership.fenceToken(), ownership.generation());
     }
 
     private Skills getOrCreateSkills(UUID uuid) {
-        Skills cached = activeSkills.get(uuid);
-        if (cached != null) {
-            cached.setUuid(uuid);
-            return cached;
+        Skills existing = activeSkills.get(uuid);
+        if (existing != null) {
+            return existing;
         }
-
-        Skills skills = new Skills();
-        skills.setUuid(uuid);
-        Skills existing = activeSkills.putIfAbsent(uuid, skills);
-        return existing != null ? existing : skills;
-    }
-
-    private void releaseLock(UUID uuid) {
-        String currentServerId = serverId;
-        if (!isPersistenceAvailable() || currentServerId == null) {
-            return;
-        }
-        Database.getInstance().getJdbi().useHandle(h ->
-                h.attach(PlayerSessionsDao.class).releaseLock(uuid.toString(), currentServerId)
-        );
-    }
-
-    private List<SkillRow> loadRowsFromDb(UUID uuid) {
-        return Database.getInstance().getJdbi().withHandle(handle ->
-                handle.attach(SkillsDao.class).getSkills(uuid.toString())
-        );
+        Skills created = new Skills();
+        created.setUuid(uuid);
+        bindSkills(uuid, created);
+        Skills raced = activeSkills.putIfAbsent(uuid, created);
+        return raced == null ? created : raced;
     }
 
     private Skills buildSkillsFromRows(UUID uuid, List<SkillRow> rows) {
-        List<Skill> skillList = new ArrayList<>();
+        List<Skill> loaded = new ArrayList<>();
         for (SkillRow row : rows) {
-            SkillInfo skillInfo = SkillsManager.getInstance().getSkillInfo(row.getType());
-            if (skillInfo == null) {
-                log.warn("[LOAD] {} — skipping unknown skill type '{}'", uuid, row.getType());
+            SkillInfo info = SkillsManager.getInstance().getSkillInfo(row.getType());
+            if (info == null) {
+                log.warn("[LOAD] {} has unknown skill type '{}'", uuid, row.getType());
                 continue;
             }
-            Skill skill = new Skill(skillInfo, 0);
+            // totalXp is the source of truth. Level/current XP are derived caches.
+            Skill skill = new Skill(info, 0);
             skill.addXp(row.getTotalXp());
             skill.levelUp(false);
-            skillList.add(skill);
+            loaded.add(skill);
         }
-
-        Skills skills = new Skills(skillList);
+        Skills skills = new Skills(loaded);
         skills.setUuid(uuid);
         return skills;
     }
@@ -609,99 +918,119 @@ public class PlayerSkillsManager {
     private List<SkillRow> buildRows(UUID uuid, Skills skills) {
         List<SkillRow> rows = new ArrayList<>();
         for (Skill skill : skills) {
-            rows.add(new SkillRow(
-                    uuid.toString(),
-                    skill.getType().getId(),
-                    skill.getXp(),
-                    skill.getLevel(),
-                    skill.getTotalXp()
-            ));
+            rows.add(new SkillRow(uuid.toString(), skill.getType().getId(), skill.getXp(),
+                    skill.getLevel(), skill.getTotalXp()));
         }
         return rows;
     }
 
     private Skills copySkills(Skills source) {
-        List<Skill> skillCopies = new ArrayList<>();
+        List<Skill> copies = new ArrayList<>();
         for (Skill skill : source) {
-            Skill copy = new Skill(
-                    skill.getType(),
-                    skill.getLevel(),
-                    skill.getXp(),
-                    skill.getXpToLevel(),
-                    skill.getTotalXp()
-            );
+            Skill copy = new Skill(skill.getType(), skill.getLevel(), skill.getXp(),
+                    skill.getXpToLevel(), skill.getTotalXp());
             copy.setUuid(source.getUuid());
-            skillCopies.add(copy);
+            copies.add(copy);
         }
-
-        Skills snapshot = new Skills(skillCopies);
+        Skills snapshot = new Skills(copies);
         snapshot.setUuid(source.getUuid());
         return snapshot;
     }
 
-    private void queuePendingSave(UUID uuid) {
-        Skills skills = activeSkills.get(uuid);
-        if (skills == null) {
+    private void scheduleLoadingTitle(UUID uuid) {
+        if (!Bukkit.isPrimaryThread()) {
+            Bukkit.getScheduler().runTask(plugin, () -> scheduleLoadingTitle(uuid));
             return;
         }
-        pendingSaves.put(uuid, new PendingSaveData(buildRows(uuid, skills), System.currentTimeMillis()));
-    }
-
-    private boolean areRowsEquivalent(List<SkillRow> left, List<SkillRow> right) {
-        return toRowSignature(left).equals(toRowSignature(right));
-    }
-
-    private Map<String, SkillRowSignature> toRowSignature(List<SkillRow> rows) {
-        Map<String, SkillRowSignature> signature = new HashMap<>();
-        for (SkillRow row : rows) {
-            signature.put(row.getType(), new SkillRowSignature(row.getXp(), row.getLevel(), row.getTotalXp()));
-        }
-        return signature;
-    }
-
-    private List<SkillRow> filterPendingRows(List<SkillRow> rows, Set<UUID> activeRowUuids) {
-        if (rows.isEmpty() || activeRowUuids.isEmpty()) {
-            return rows;
-        }
-
-        List<SkillRow> filtered = new ArrayList<>(rows.size());
-        for (SkillRow row : rows) {
-            UUID rowUuid;
-            try {
-                rowUuid = UUID.fromString(row.getPlayerUuid());
-            } catch (Exception ignored) {
-                filtered.add(row);
-                continue;
-            }
-            if (!activeRowUuids.contains(rowUuid)) {
-                filtered.add(row);
-            }
-        }
-        return filtered;
-    }
-
-    private record SaveRequest(UUID uuid, Skills liveSkills, Skills snapshotSkills,
-                               boolean onlineAtStart, boolean releaseLockAfterSave) {
-    }
-
-    private record SaveAllSnapshot(UUID uuid, Skills skills) {
-    }
-
-    private record PendingSaveBatch(UUID uuid, List<SkillRow> rows) {
-    }
-
-    private record PendingSaveData(List<SkillRow> rows, long updatedAt) {
-    }
-
-    private record SkillRowSignature(double xp, int level, double totalXp) {
-    }
-
-    private void writeRows(List<SkillRow> rows) {
-        if (!isPersistenceAvailable()) {
+        if (loadedPlayers.contains(uuid) || Bukkit.getPlayer(uuid) == null) {
             return;
         }
-        Database.getInstance().getJdbi().useHandle(handle ->
-                handle.attach(SkillsDao.class).upsertSkills(rows)
-        );
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            loadingTitleTasks.remove(uuid);
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && !loadedPlayers.contains(uuid)) {
+                loadingTitleShown.add(uuid);
+                player.showTitle(LOADING_TITLE_TEMPLATE);
+            }
+        }, LOADING_TITLE_DELAY_TICKS);
+        BukkitTask previous = loadingTitleTasks.putIfAbsent(uuid, task);
+        if (previous != null) {
+            task.cancel();
+        }
+    }
+
+    private void showLoadedTitleIfNeeded(UUID uuid) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            cancelLoadingTitleTask(uuid);
+            if (!loadingTitleShown.remove(uuid)) {
+                return;
+            }
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                player.showTitle(LOADED_TITLE_TEMPLATE);
+            }
+        });
+    }
+
+    private void cancelLoadingTitleTask(UUID uuid) {
+        BukkitTask task = loadingTitleTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
+    private void clearLoadingTitleState(UUID uuid) {
+        cancelLoadingTitleTask(uuid);
+        loadingTitleShown.remove(uuid);
+    }
+
+    private boolean hasInFlightState(UUID uuid) {
+        return scheduledLoads.containsKey(uuid) || pendingWrites.containsKey(uuid)
+                || runningWriters.contains(uuid) || ownerships.containsKey(uuid);
+    }
+
+    private void cancelStateCleanup(UUID uuid) {
+        BukkitTask task = stateCleanupTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
+    private void scheduleStateCleanup(UUID uuid) {
+        if (!Bukkit.isPrimaryThread()) {
+            if (!shuttingDown) {
+                Bukkit.getScheduler().runTask(plugin, () -> scheduleStateCleanup(uuid));
+            }
+            return;
+        }
+        cancelStateCleanup(uuid);
+        long generation = currentGeneration(uuid);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            stateCleanupTasks.remove(uuid);
+            if (Bukkit.getPlayer(uuid) != null || hasInFlightState(uuid)
+                    || !currentGeneration(uuid, generation)) {
+                scheduleStateCleanup(uuid);
+                return;
+            }
+            activeSkills.remove(uuid);
+            loadedPlayers.remove(uuid);
+            pendingLoads.remove(uuid);
+            clearLoadingTitleState(uuid);
+            invalidatedGenerations.remove(uuid, generation);
+            // Keep the generation tombstone: late callbacks must never match a future session.
+            ReentrantLock lock = playerStateLocks.get(uuid);
+            if (lock != null && !lock.isLocked() && !lock.hasQueuedThreads()) {
+                playerStateLocks.remove(uuid, lock);
+            }
+        }, STATE_CLEANUP_DELAY_TICKS);
+        stateCleanupTasks.put(uuid, task);
+    }
+
+    record SaveRequest(UUID uuid, List<SkillRow> rows, long generation, long fenceToken,
+                       long revision, boolean deleteBeforeWrite, boolean releaseAfterWrite) {
+    }
+
+    private record Ownership(long generation, long fenceToken, AtomicLong nextRevision, long healthEpoch,
+                             AtomicReference<Long> writeFailureSince, AtomicBoolean writeUnsafe) {
     }
 }

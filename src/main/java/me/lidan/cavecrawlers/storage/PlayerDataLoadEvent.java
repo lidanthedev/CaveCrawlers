@@ -11,7 +11,7 @@ import java.util.UUID;
 /**
  * Fired after a player's CaveCrawlers data is loaded into memory.
  *
- * <p>May fire on an async thread — handlers must be async-safe.
+ * <p>The manager fires this on the primary thread after generation and lease validation.
  */
 @Getter
 public class PlayerDataLoadEvent extends Event {

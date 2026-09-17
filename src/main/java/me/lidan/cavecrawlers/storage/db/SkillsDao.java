@@ -18,6 +18,9 @@ public interface SkillsDao {
     @SqlQuery("SELECT * FROM skills")
     List<SkillRow> getAllSkills();
 
+    @SqlQuery("SELECT COUNT(*) > 0 FROM skills WHERE player_uuid = :uuid")
+    boolean hasSkills(@Bind("uuid") String uuid);
+
     @SqlBatch("""
             INSERT INTO skills (player_uuid, type, xp, level, total_xp)
             VALUES (:playerUuid, :type, :xp, :level, :totalXp)
@@ -27,6 +30,13 @@ public interface SkillsDao {
               total_xp = VALUES(total_xp)
             """)
     void upsertSkills(@BindBean List<SkillRow> rows);
+
+    @SqlBatch("""
+            INSERT INTO skills (player_uuid, type, xp, level, total_xp)
+            VALUES (:playerUuid, :type, :xp, :level, :totalXp)
+            ON DUPLICATE KEY UPDATE player_uuid = player_uuid
+            """)
+    void insertSkillsIfAbsent(@BindBean List<SkillRow> rows);
 
     @SqlUpdate("DELETE FROM skills WHERE player_uuid = :uuid")
     void deleteSkills(@Bind("uuid") String uuid);

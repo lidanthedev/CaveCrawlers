@@ -39,7 +39,7 @@ public class SellMenu {
                 .create();
         gui.setItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell")).asGuiItem(event -> {
             event.setCancelled(true);
-            sell();
+            sell(event.isShiftClick());
         }));
         gui.setDefaultClickAction(event -> {
             Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), bukkitTask -> {
@@ -55,6 +55,7 @@ public class SellMenu {
             }
         });
         prices = config.getConfigurationSection("prices");
+        update();
     }
 
     public void update(){
@@ -67,16 +68,19 @@ public class SellMenu {
                 "formatted-name", item.itemInfo().getFormattedNameWithAmount(item.amount()),
                 "price", StringUtils.getNumberFormat(item.price() * item.amount())
         ))));
+        lore.add(MiniMessageUtils.miniMessage(""));
+        lore.add(MiniMessageUtils.miniMessage("<green>Click to sell items"));
+        lore.add(MiniMessageUtils.miniMessage("<red>Shift-Click to trash unsellable items"));
         return lore;
     }
 
-    private void sell() {
+    private void sell(boolean trashUnsellable) {
         double total = 0;
         ItemStack[] storageContents = gui.getInventory().getStorageContents();
         for (int i = 0; i < storageContents.length; i++) {
             if (storageContents[i] != null && i != SELL_BUTTON_SLOT) {
                 double price = getPrice(storageContents[i]);
-                if (price <= 0) {
+                if (price <= 0 && !trashUnsellable) {
                     itemsManager.giveItemStacks(player, storageContents[i]);
                 }
                 else{

@@ -14,9 +14,7 @@ import me.lidan.cavecrawlers.commands.completions.*;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
-import me.lidan.cavecrawlers.gui.ConfirmGui;
-import me.lidan.cavecrawlers.gui.ItemsGui;
-import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.gui.*;
 import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
@@ -32,6 +30,7 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
+import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -52,6 +51,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -1228,6 +1228,83 @@ public class CaveCrawlersMainCommand {
         ItemStack skull = EntityHeads.fromEntityType(entityHead);
         sender.getInventory().addItem(skull);
         sender.sendMessage("Added skull to inventory!");
+    }
+
+    @Subcommand("sell admin")
+    @CommandPermission("cavecrawlers.sell.admin")
+    public void sellAdmin(Player sender) {
+        SellAdminGui sellAdminGui = new SellAdminGui(sender);
+        sellAdminGui.open();
+    }
+
+    @Subcommand("sell sync-prices-shop")
+    @CommandPermission("cavecrawlers.sell.sync")
+    public void sellSyncPricesShop(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String id) {
+        ShopMenu shop = shopManager.getShop(id);
+        if (shop == null) {
+            sender.sendMessage("Shop not found!");
+            return;
+        }
+        sellSyncPricesForShop(shop, sender);
+
+        SellMenu.config.save();
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Shop prices synchronized!"));
+    }
+
+    private void sellSyncPricesForShop(ShopMenu shop, CommandSender sender) {
+        for (ShopItem shopItem : shop.getShopItemList()) {
+            sellSyncPricesForShopItem(shopItem, sender);
+        }
+    }
+
+    private void sellSyncPricesForShopItem(ShopItem shopItem, CommandSender sender) {
+        double price = 0;
+        String result = shopItem.getResult().getID();
+        for (Map.Entry<ItemInfo, Integer> itemInfoIntegerEntry : shopItem.getIngredientsMap().entrySet()) {
+            String id = itemInfoIntegerEntry.getKey().getID();
+            double basePrice = getSellPrice(id);
+            if (basePrice == -1) {
+                sender.sendMessage(MiniMessageUtils.miniMessage("<red>NOT Set <yellow>%s<red> depends on <gold>%s".formatted(result, id)));
+                return;
+            }
+            price += basePrice * itemInfoIntegerEntry.getValue();
+        }
+        setSellPrice(result, price / shopItem.getResultAmount(), sender);
+    }
+
+    @Subcommand("sell sync-prices-hard")
+    @CommandPermission("cavecrawlers.sell.sync")
+    public void sellSyncPrices(CommandSender sender) {
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Syncing Compress item prices"));
+        ConfigurationSection prices = SellMenu.config.getConfigurationSection("prices");
+        for (String key : prices.getKeys(false)) {
+            if (key.startsWith("ENCHANTED_") || key.startsWith("FLAWED") || key.startsWith("FINE")) {
+                continue;
+            }
+            double price = prices.getDouble(key);
+
+            // set enchanted price to base * 64
+            setSellPrice("ENCHANTED_" + key, price * 64, sender);
+            setSellPrice("COMPRESSED_" + key, price * 64, sender);
+            if (key.startsWith("ROUGH")) {
+                String baseKey = key.replace("ROUGH_", "");
+                setSellPrice("FLAWED_" + baseKey, price * 64, sender);
+                setSellPrice("FINE_" + baseKey, price * 64 * 64, sender);
+            }
+        }
+        SellMenu.config.save();
+    }
+
+    public void setSellPrice(String id, double price, CommandSender sender) {
+        if (itemsManager.getItemByID(id) == null) {
+            return;
+        }
+        SellMenu.config.set("prices." + id, price);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Set <yellow><id><green> price to <gold><price>", Map.of("id", id, "price", StringUtils.getNumberFormat(price))));
+    }
+
+    public double getSellPrice(String id) {
+        return SellMenu.config.getDouble("prices." + id, -1);
     }
 
     @Subcommand("mythic skill")

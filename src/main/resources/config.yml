@@ -1,5 +1,5 @@
 version: "7" # DO NOT EDIT!
-server-id: "" # Unique persistent ID for this server. Leave blank to generate automatically on first startup.
+server-id: "" # Deprecated. Each server process generates a fresh session ID for player-data locking.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
   type: command # simple or advanced or command to execute instead
@@ -117,11 +117,22 @@ database:
   database: cavecrawlers
   username: root
   password: ""
-  # How often (in seconds) active player data is flushed to the database.
-  # Lower values reduce the staleness window when players switch servers via BungeeCord/Velocity,
-  # at the cost of more frequent DB writes. Note: quit saves are always synchronous regardless
-  # of this setting.
-  save-interval: 300 # recommended: use 300 for h2 and 30 for mysql
+  # Hard process or machine crashes may lose up to this many seconds of progress.
+  # Quit saves still capture immediately and persist asynchronously.
+  save-interval: 30
+  # Lease heartbeats are independent from autosaves and use database time.
+  # Use the same lease settings on every backend sharing this database.
+  # Startup clamps timeout to 10..86400 seconds and heartbeat to 1..timeout/4.
+  # Progression stops after timeout - max(2 * heartbeat, ceil(timeout/4)) without
+  # a successful heartbeat. Defaults: stop at 40s, before the 60s lease expires.
+  # These settings require a restart.
+  heartbeat-interval: 10
+  lease-timeout: 60
+  # Clean shutdown waits for active work, then flushes until this deadline.
+  # If writes remain unresolved, leases expire without bulk release. In-memory
+  # snapshots cannot survive process termination. An in-flight SQL call may exceed this deadline.
+  shutdown-flush-timeout: 10
+  verbose-logging: false # Log player UUIDs and database payloads for troubleshooting.
   # MySQL-only connection options:
   sslMode: DISABLED                 # MySQL Connector/J sslMode (e.g. DISABLED, REQUIRED, VERIFY_CA, VERIFY_IDENTITY)
   allow-public-key-retrieval: false # set true only when required for caching_sha2_password without TLS

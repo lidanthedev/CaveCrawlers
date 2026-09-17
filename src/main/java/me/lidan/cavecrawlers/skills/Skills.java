@@ -18,6 +18,19 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     private final Map<SkillInfo, Skill> skills;
     @Getter
     private UUID uuid;
+    private transient java.util.function.BooleanSupplier mutationAllowed = () -> true;
+
+    public void bindMutationGuard(java.util.function.BooleanSupplier guard) {
+        checkMutationAllowed();
+        java.util.function.BooleanSupplier previous = mutationAllowed;
+        mutationAllowed = () -> previous.getAsBoolean() && guard.getAsBoolean();
+        for (Skill skill : skills.values()) skill.bindMutationGuard(mutationAllowed);
+    }
+
+    public void checkMutationAllowed() {
+        if (!mutationAllowed.getAsBoolean()) throw new IllegalStateException("Player persistence session is not healthy/current");
+    }
+
 
     public Skills(List<Skill> skillList) {
         this.skills = new HashMap<>();
@@ -59,10 +72,20 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public Skill get(@NonNull SkillInfo type) {
-        return skills.computeIfAbsent(type, t -> new Skill(t, 0));
+        return skills.computeIfAbsent(type, t -> {
+            checkMutationAllowed();
+            Skill skill = new Skill(t, 0);
+            skill.setUuid(uuid);
+            skill.bindMutationGuard(mutationAllowed);
+            return skill;
+        });
     }
 
     public void set(SkillInfo type, Skill skill) {
+        checkMutationAllowed();
+        if (skills.get(type) == skill) return;
+        skill.setUuid(uuid);
+        skill.bindMutationGuard(mutationAllowed);
         skills.put(type, skill);
     }
 
@@ -75,6 +98,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public void tryLevelUp(SkillInfo type) {
+        checkMutationAllowed();
         Skill skill = get(type);
         int leveled = skill.levelUp(true);
         if (leveled > 0) {
@@ -124,7 +148,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @NotNull
     @Override
     public Iterator<Skill> iterator() {
-        return skills.values().iterator();
+        return Collections.unmodifiableCollection(skills.values()).iterator();
     }
 
     public void resetAllSkills() {

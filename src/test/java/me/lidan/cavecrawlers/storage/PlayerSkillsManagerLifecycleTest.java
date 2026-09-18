@@ -44,6 +44,8 @@ class PlayerSkillsManagerLifecycleTest {
     private Server server;
     private JavaPlugin plugin;
     private SkillsManager skillsManager;
+    private PluginManager pluginManager;
+    private List<Boolean> loadEventPrimary;
     private SkillInfo mining;
     private MockedStatic<JavaPlugin> javaPlugin;
 
@@ -69,7 +71,13 @@ class PlayerSkillsManagerLifecycleTest {
         Thread primary = Thread.currentThread();
         when(server.isPrimaryThread()).thenAnswer(i -> Thread.currentThread() == primary);
         when(server.getLogger()).thenReturn(Logger.getLogger("lifecycle-test"));
-        when(server.getPluginManager()).thenReturn(mock(PluginManager.class));
+        pluginManager = mock(PluginManager.class);
+        loadEventPrimary = new ArrayList<>();
+        doAnswer(invocation -> {
+            loadEventPrimary.add(Bukkit.isPrimaryThread());
+            return null;
+        }).when(pluginManager).callEvent(any(PlayerDataLoadEvent.class));
+        when(server.getPluginManager()).thenReturn(pluginManager);
         BukkitScheduler scheduler = mock(BukkitScheduler.class);
         when(server.getScheduler()).thenReturn(scheduler);
         when(scheduler.runTask(eq(plugin), any(Runnable.class))).thenAnswer(i -> { main.add(i.getArgument(1)); return mock(BukkitTask.class); });
@@ -481,6 +489,72 @@ class PlayerSkillsManagerLifecycleTest {
         doThrow(new IllegalStateException("network down")).when(database).persistPlayer(any(), anyString(), anyLong(), anyLong(), anyList(), anyBoolean(), anyBoolean());
         manager.shutdown();
         verify(database, never()).releaseAllLocks(anyString());
+    }
+
+    @Test
+    void autosaveCoalescesConcurrentSnapshotsAndKeepsLatestState() throws Exception {
+        manager.getSkills(uuid).addXp(mining, 10);
+        manager.saveAllAsync();
+        manager.getSkills(uuid).addXp(mining, 5);
+        manager.saveAllAsync();
+
+        assertEquals(1, async.size(), "one writer should drain the coalesced autosave");
+        runAsync();
+
+        assertEquals(15, persistedXp());
+        verify(database, times(1)).persistPlayer(eq(uuid), anyString(), anyLong(), eq(2L),
+                anyList(), eq(false), eq(false));
+    }
+
+    @Test
+    void saveEventIsAttemptNotificationAndRepeatsAfterRetry() throws Exception {
+        List<Boolean> primaryThread = new ArrayList<>();
+        doAnswer(invocation -> {
+            primaryThread.add(Bukkit.isPrimaryThread());
+            return null;
+        }).when(pluginManager).callEvent(any(PlayerDataSaveEvent.class));
+        manager.getSkills(uuid).addXp(mining, 4);
+        doThrow(new IllegalStateException("temporary outage")).when(database)
+                .persistPlayer(any(), anyString(), anyLong(), anyLong(), anyList(), anyBoolean(), anyBoolean());
+
+        manager.savePlayerNow(uuid);
+        runAsync();
+        assertEquals(List.of(false), primaryThread);
+
+        doCallRealMethod().when(database).persistPlayer(any(), anyString(), anyLong(), anyLong(), anyList(), anyBoolean(), anyBoolean());
+        manager.heartbeat();
+        runAsync();
+        assertEquals(List.of(false, false), primaryThread);
+        assertEquals(4, persistedXp());
+    }
+
+    @Test
+    void loadEventPublishesOnceOnThePrimaryThreadAfterPublication() throws Exception {
+        assertEquals(List.of(true), loadEventPrimary);
+    }
+
+    @Test
+    void autosaveScansEveryLoadedPlayer() throws Exception {
+        UUID secondUuid = UUID.randomUUID();
+        Player second = mock(Player.class);
+        when(second.getUniqueId()).thenReturn(secondUuid);
+        when(server.getPlayer(secondUuid)).thenReturn(second);
+        doReturn(List.of(player, second)).when(server).getOnlinePlayers();
+
+        manager.loadPlayerAsync(secondUuid);
+        runAsync();
+        runMain();
+        manager.getSkills(uuid).addXp(mining, 3);
+        manager.getSkills(secondUuid).addXp(mining, 8);
+
+        manager.saveAllAsync();
+        runAsync();
+
+        assertEquals(3, persistedXp());
+        assertEquals(8D, jdbi.withHandle(h -> h.createQuery(
+                "SELECT total_xp FROM skills WHERE player_uuid=:uuid")
+                .bind("uuid", secondUuid.toString()).mapTo(Double.class).one()));
+
     }
 
     private void runAsync() throws Exception {

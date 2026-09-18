@@ -14,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -72,8 +73,12 @@ public class Altar implements ConfigurationSerializable {
         if (clickedBlock.getType() != altarMaterial) return;
         if (!isAltar(clickedBlock.getLocation())) return;
         if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
-        if (player.getGameMode() != GameMode.CREATIVE)
+        ItemStack refundItem = null;
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            refundItem = player.getInventory().getItemInMainHand().clone();
+            refundItem.setAmount(1);
             itemsManager.removeItems(player, itemToSpawn, 1);
+        }
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         playerPlacedMap.put(player.getUniqueId(), afterPlace);
         clickedBlock.setType(alterUsedMaterial);
@@ -88,7 +93,13 @@ public class Altar implements ConfigurationSerializable {
             sendAnnounce(placeAnnounce, placeholders, player.getWorld());
         }
         if (totalPlaced == altarLocations.size()) {
-            roll();
+            if (!spawns.isEmpty() && !roll()) {
+                if (refundItem != null) {
+                    itemsManager.giveItemStacks(player, refundItem);
+                }
+                playerPlacedMap.clear();
+                resetAltarBlocks();
+            }
         }
     }
 
@@ -99,16 +110,17 @@ public class Altar implements ConfigurationSerializable {
         }
     }
 
-    private void roll() {
+    private boolean roll() {
         for (AltarDrop spawn : spawns) {
             if (spawn.rollChance()){
                 Entity entity = spawn.giveMob(spawnLocation);
-                if (!(entity instanceof LivingEntity livingEntity)) return;
+                if (!(entity instanceof LivingEntity livingEntity)) return false;
                 spawnedEntity = livingEntity;
                 onSpawn(livingEntity);
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     public void onSpawn(LivingEntity livingEntity) {

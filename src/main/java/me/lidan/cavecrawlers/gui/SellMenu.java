@@ -73,17 +73,31 @@ public class SellMenu {
     private void sell() {
         double total = 0;
         ItemStack[] storageContents = gui.getInventory().getStorageContents();
+        List<ItemStack> unsellable = new ArrayList<>();
         for (int i = 0; i < storageContents.length; i++) {
             if (storageContents[i] != null && i != SELL_BUTTON_SLOT) {
                 double price = getPrice(storageContents[i]);
-                if (price <= 0) {
-                    itemsManager.giveItemStacks(player, storageContents[i]);
+                if (!Double.isFinite(price) || price <= 0) {
+                    unsellable.add(storageContents[i]);
                 }
                 else{
                     total += price;
-                    VaultUtils.giveCoins(player, price);
                 }
             }
+        }
+        if (total > 0 && !VaultUtils.giveCoins(player, total)) {
+            for (int i = 0; i < storageContents.length; i++) {
+                ItemStack item = storageContents[i];
+                if (item != null && item.getType() != Material.AIR && i != SELL_BUTTON_SLOT) {
+                    itemsManager.giveItemStacks(player, item);
+                }
+            }
+            gui.getInventory().clear();
+            gui.close(player);
+            return;
+        }
+        for (ItemStack item : unsellable) {
+            itemsManager.giveItemStacks(player, item);
         }
         player.sendMessage(MiniMessageUtils.miniMessage("<green>Sold items for <gold><total><green> coins", Map.of("total", StringUtils.getNumberFormat(total))));
         gui.getInventory().clear();

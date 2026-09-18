@@ -15,4 +15,7 @@ public abstract class PlayerDataSqlTable extends SqlTable {
     public abstract void loadForPlayer(Handle handle, UUID playerUuid);
 
     public abstract void saveForPlayer(Handle handle, UUID playerUuid);
+
+    public void resetForPlayer(Handle handle, UUID playerUuid) {
+    }
 }

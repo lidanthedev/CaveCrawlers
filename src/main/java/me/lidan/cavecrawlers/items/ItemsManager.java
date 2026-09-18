@@ -79,7 +79,7 @@ public class ItemsManager implements ItemsAPI {
         }
 
         if (ID.startsWith("VANILLA-")){
-            Material material = Material.getMaterial(ID.replace("VANILLA-", ""));
+            Material material = Material.getMaterial(ID.substring("VANILLA-".length()));
             if (material == null){
                 return null;
             }
@@ -223,7 +223,9 @@ public class ItemsManager implements ItemsAPI {
         for (String itemId : itemIdMap.keySet()) {
             ItemInfo itemInfo = getItemByID(itemId);
             int amount = itemIdMap.get(itemId);
-            itemsMap.put(itemInfo, amount);
+            if (itemInfo != null) {
+                itemsMap.put(itemInfo, amount);
+            }
         }
         return itemsMap;
     }

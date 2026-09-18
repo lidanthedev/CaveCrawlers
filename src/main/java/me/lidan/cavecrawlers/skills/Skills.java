@@ -62,10 +62,8 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
             if (!(value instanceof Skill savedSkill)) {
                 continue;
             }
-            // Recalculate level and xp based on totalXp to ensure consistency with any changes in xp requirements
-            Skill skill = new Skill(type, 0);
-            skill.addXp(savedSkill.getTotalXp());
-            skill.levelUp(false);
+            Skill skill = new Skill(type, savedSkill.getLevel(), savedSkill.getXp(),
+                    savedSkill.getXpToLevel(), savedSkill.getTotalXp());
             skills.skills.put(type, skill);
         }
         return skills;

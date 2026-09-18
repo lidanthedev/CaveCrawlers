@@ -556,6 +556,12 @@ class DatabasePersistenceTest {
                 throw new IllegalStateException("simulated addon failure");
             }
         }
+
+        @Override
+        public void resetForPlayer(Handle handle, UUID playerUuid) {
+            handle.createUpdate("DELETE FROM addon_test WHERE player_uuid=:uuid")
+                    .bind("uuid", playerUuid.toString()).execute();
+        }
     }
 
     private static final class OrderedAddonTable extends PlayerDataSqlTable {

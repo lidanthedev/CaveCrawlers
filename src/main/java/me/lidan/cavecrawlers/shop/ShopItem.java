@@ -95,7 +95,9 @@ public class ShopItem implements ConfigurationSerializable {
 
     public boolean buy(Player player, boolean silent) {
         if (canBuy(player)){
-            VaultUtils.takeCoins(player, price);
+            if (price > 0 && !VaultUtils.takeCoins(player, price)) {
+                return false;
+            }
             itemsManager.removeItems(player, ingredientsMap);
             itemsManager.giveItem(player, result, resultAmount);
             Map<String, String> placeholders = Map.of(
@@ -113,7 +115,8 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean canBuy(Player player) {
-        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
+        return Double.isFinite(price) && price >= 0
+                && VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
     }
 
     @NonNull

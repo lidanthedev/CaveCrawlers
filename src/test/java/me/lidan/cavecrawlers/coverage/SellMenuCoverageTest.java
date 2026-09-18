@@ -7,10 +7,12 @@ import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.gui.SellMenu;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
@@ -47,6 +49,8 @@ class SellMenuCoverageTest {
         player = context.server().addPlayer("seller");
         economy = mock(Economy.class);
         me.lidan.cavecrawlers.CaveCrawlers.economy = economy;
+        when(economy.depositPlayer(any(OfflinePlayer.class), anyDouble())).thenReturn(
+                new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, null));
 
         YamlConfiguration pricesConfig = new YamlConfiguration();
         pricesConfig.set("prices.DIAMOND", 2.5D);

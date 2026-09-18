@@ -56,6 +56,8 @@ class EconomyShopCoverageTest {
         CaveCrawlers.economy = economy;
         player = context.server().addPlayer("buyer");
         when(economy.getBalance(player)).thenReturn(100D);
+        when(economy.withdrawPlayer(any(OfflinePlayer.class), anyDouble())).thenReturn(
+                new EconomyResponse(0, 100, EconomyResponse.ResponseType.SUCCESS, null));
         result = item("RESULT");
         ingredient = item("INGREDIENT");
         when(itemsMock.hasItems(any(), any())).thenReturn(true);

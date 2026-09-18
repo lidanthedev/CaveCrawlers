@@ -1273,11 +1273,15 @@ public class CaveCrawlersMainCommand {
         for (Map.Entry<ItemInfo, Integer> itemInfoIntegerEntry : shopItem.getIngredientsMap().entrySet()) {
             String id = itemInfoIntegerEntry.getKey().getID();
             double basePrice = getSellPrice(id);
-            if (basePrice == -1) {
+            if (basePrice <= 0) {
                 sender.sendMessage(MiniMessageUtils.miniMessage("<red>NOT Set <yellow>%s<red> depends on <gold>%s".formatted(result, id)));
                 return;
             }
             price += basePrice * itemInfoIntegerEntry.getValue();
+        }
+        if (price <= 0) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>NOT Set <yellow>%s<red> no price".formatted(result)));
+            return;
         }
         setSellPrice(result, price / shopItem.getResultAmount(), sender);
     }

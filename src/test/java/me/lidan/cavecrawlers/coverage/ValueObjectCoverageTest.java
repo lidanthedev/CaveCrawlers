@@ -92,6 +92,14 @@ class ValueObjectCoverageTest {
     }
 
     @Test
+    void statsDeserializeSkipsNonNumericValues() {
+        Stats stats = Stats.deserialize(Map.of("DAMAGE", "not-a-number", "HEALTH", 7));
+
+        assertEquals(0, stats.get(StatType.DAMAGE).getValue());
+        assertEquals(7, stats.get(StatType.HEALTH).getValue());
+    }
+
+    @Test
     void statsSerializationRoundTripsGameplayValues() {
         Stats original = new Stats();
         original.set(StatType.HEALTH, 321.5);

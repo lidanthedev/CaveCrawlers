@@ -106,16 +106,17 @@ class SkillProgressionCoverageTest {
     }
 
     @Test
-    void skillsDeserializeRebuildsLevelFromTotalXpAndSkipsUnknownTypes() {
+    void skillsDeserializeRebuildsFromTotalXpAfterCurveChangeAndSkipsUnknownTypes() {
         Skill saved = new Skill(mining, 2, 1, 20, 21);
+        mining.setXpToLevelList(new ArrayList<>(List.of(5D, 5D, 5D)));
         Skills loaded = Skills.deserialize(Map.of(
                 "mining", saved,
                 "removed", saved,
                 "==", "me.lidan.cavecrawlers.skills.Skills"));
 
         Skill result = loaded.get(mining);
-        assertEquals(2, result.getLevel());
-        assertEquals(1, result.getXp());
+        assertEquals(3, result.getLevel());
+        assertEquals(6, result.getXp());
         assertEquals(21, result.getTotalXp());
     }
 

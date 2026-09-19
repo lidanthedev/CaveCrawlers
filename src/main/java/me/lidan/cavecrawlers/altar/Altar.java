@@ -14,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -38,6 +39,7 @@ public class Altar implements ConfigurationSerializable {
     private int altarRechargeTime;
 
     private Map<UUID, Integer> playerPlacedMap = new HashMap<>();
+    private Map<UUID, List<ItemStack>> refundMap = new HashMap<>();
     private LivingEntity spawnedEntity;
 
     public Altar(List<Location> altarLocations, Location spawnLocation, List<AltarDrop> spawns, ItemInfo itemToSpawn, Material altarMaterial, Material alterUsedMaterial, ConfigMessage placeAnnounce, ConfigMessage spawnAnnounce, int pointsPerItem, int altarRechargeTime) {
@@ -72,20 +74,18 @@ public class Altar implements ConfigurationSerializable {
         if (clickedBlock.getType() != altarMaterial) return;
         if (!isAltar(clickedBlock.getLocation())) return;
         if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
+        ItemStack refundItem = null;
+        boolean finalPlacement = getTotalPlaced() + 1 == altarLocations.size() && !spawns.isEmpty();
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            refundItem = player.getInventory().getItemInMainHand().clone();
+            refundItem.setAmount(1);
+            itemsManager.removeItems(player, itemToSpawn, 1);
+        }
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         int totalPlaced = getTotalPlaced() + 1;
-        boolean spawned = false;
-        if (totalPlaced == altarLocations.size() && !spawns.isEmpty()) {
-            Map<UUID, Integer> pendingPlacements = new HashMap<>(playerPlacedMap);
-            pendingPlacements.put(player.getUniqueId(), afterPlace);
-            if (!roll(pendingPlacements)) return;
-            spawned = true;
-        }
-        if (!spawned) {
-            playerPlacedMap.put(player.getUniqueId(), afterPlace);
-        }
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            itemsManager.removeItems(player, itemToSpawn, 1);
+        playerPlacedMap.put(player.getUniqueId(), afterPlace);
+        if (!finalPlacement && refundItem != null) {
+            refundMap.computeIfAbsent(player.getUniqueId(), ignored -> new ArrayList<>()).add(refundItem);
         }
         clickedBlock.setType(alterUsedMaterial);
         if (placeAnnounce != null) {
@@ -97,6 +97,14 @@ public class Altar implements ConfigurationSerializable {
             placeholders.put("max_amount", String.valueOf(altarLocations.size()));
             sendAnnounce(placeAnnounce, placeholders, player.getWorld());
         }
+        if (totalPlaced == altarLocations.size() && !spawns.isEmpty() && !roll()) {
+            refundStoredItems();
+            if (refundItem != null) {
+                itemsManager.giveItemStacks(player, refundItem);
+            }
+            playerPlacedMap.clear();
+            resetAltarBlocks();
+        }
     }
 
     public void sendAnnounce(ConfigMessage message, Map<String, String> placeholders, World world){
@@ -106,13 +114,13 @@ public class Altar implements ConfigurationSerializable {
         }
     }
 
-    private boolean roll(Map<UUID, Integer> placements) {
+    private boolean roll() {
         for (AltarDrop spawn : spawns) {
             if (spawn.rollChance()){
                 Entity entity = spawn.giveMob(spawnLocation);
                 if (!(entity instanceof LivingEntity livingEntity)) return false;
                 spawnedEntity = livingEntity;
-                onSpawn(livingEntity, placements);
+                onSpawn(livingEntity);
                 return true;
             }
         }
@@ -120,12 +128,8 @@ public class Altar implements ConfigurationSerializable {
     }
 
     public void onSpawn(LivingEntity livingEntity) {
-        onSpawn(livingEntity, playerPlacedMap);
-    }
-
-    private void onSpawn(LivingEntity livingEntity, Map<UUID, Integer> placements) {
         BossEntityData entityData = new BossEntityData(livingEntity);
-        for (Map.Entry<UUID, Integer> uuidIntegerEntry : placements.entrySet()) {
+        for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
             entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem);
             entityData.addDamage(uuidIntegerEntry.getKey(), 1);
         }
@@ -134,6 +138,7 @@ public class Altar implements ConfigurationSerializable {
         });
         entityManager.setEntityData(livingEntity.getUniqueId(), entityData);
         playerPlacedMap.clear();
+        refundMap.clear();
         if (spawnAnnounce != null) {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("entity", livingEntity.getName());
@@ -163,12 +168,17 @@ public class Altar implements ConfigurationSerializable {
     }
 
     public void refundAltar() {
-        for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
-            Player player = Bukkit.getPlayer(uuidIntegerEntry.getKey());
-            if (player == null) continue;
-            itemsManager.giveItem(player, itemToSpawn, uuidIntegerEntry.getValue());
-        }
+        refundStoredItems();
         playerPlacedMap.clear();
+    }
+
+    private void refundStoredItems() {
+        for (Map.Entry<UUID, List<ItemStack>> entry : refundMap.entrySet()) {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null) continue;
+            itemsManager.giveItemStacks(player, entry.getValue().toArray(ItemStack[]::new));
+        }
+        refundMap.clear();
     }
 
     public void disableAltar() {

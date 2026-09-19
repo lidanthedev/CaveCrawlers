@@ -124,6 +124,7 @@ public abstract class ChargedItemAbility extends ClickAbility {
         ChargedItemAbility clone = (ChargedItemAbility) super.clone();
         clone.playerCharges = new HashMap<>(playerCharges);
         clone.chargeCooldown = new Cooldown<>();
+        clone.recharge();
         return clone;
     }
 }

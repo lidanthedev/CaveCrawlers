@@ -278,6 +278,36 @@ class DropsBossAltarCoverageTest {
     }
 
     @Test
+    void altarFailureRefundsOnlyConsumedNonCreativeContributions() {
+        ItemInfo item = item("ALTAR_ITEM");
+        Player contributor = context.server().addPlayer("altar-contributor");
+        Player creative = context.server().addPlayer("altar-creative");
+        creative.setGameMode(org.bukkit.GameMode.CREATIVE);
+        Location first = new Location(context.server().addSimpleWorld("altar-refund-world"), 0, 64, 0);
+        Location second = first.clone().add(1, 0, 0);
+        first.getBlock().setType(Material.END_PORTAL_FRAME);
+        second.getBlock().setType(Material.END_PORTAL_FRAME);
+        ItemStack contributorStack = tagged(item, 1);
+        ItemStack creativeStack = tagged(item, 1);
+        contributor.getInventory().setItemInMainHand(contributorStack);
+        creative.getInventory().setItemInMainHand(creativeStack);
+        Altar altar = new Altar(List.of(first, second), first,
+                List.of(new NoSpawnDrop()), item, Material.END_PORTAL_FRAME, Material.BEDROCK,
+                null, null, 100, 200);
+
+        altar.onPlayerInteract(new PlayerInteractEvent(contributor, Action.RIGHT_CLICK_BLOCK,
+                contributorStack, first.getBlock(), BlockFace.UP));
+        altar.onPlayerInteract(new PlayerInteractEvent(creative, Action.RIGHT_CLICK_BLOCK,
+                creativeStack, second.getBlock(), BlockFace.UP));
+
+        assertEquals(1, itemsManager.getAllItems(contributor).getOrDefault(item, 0));
+        assertEquals(1, creative.getInventory().getItemInMainHand().getAmount());
+        assertEquals(Material.END_PORTAL_FRAME, first.getBlock().getType());
+        assertEquals(Material.END_PORTAL_FRAME, second.getBlock().getType());
+        assertEquals(0, altar.getTotalPlaced());
+    }
+
+    @Test
     void altarManagerMatchesLocationAndCanonicalItemIdentity() {
         ItemInfo item = item("ALTAR_ITEM");
         Location location = new Location(context.server().addSimpleWorld("altar-manager"), 1, 64, 1);

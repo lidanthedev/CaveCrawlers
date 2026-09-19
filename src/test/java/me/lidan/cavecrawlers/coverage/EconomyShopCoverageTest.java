@@ -114,6 +114,28 @@ class EconomyShopCoverageTest {
         verify(itemsMock, never()).giveItem(any(Player.class), any(ItemInfo.class), anyInt());
     }
 
+    @Test
+    void subTenthPriceCannotNormalizeIntoAFreePurchase() {
+        ShopItem shopItem = new ShopItem(result, 1, 0.09, Map.of());
+
+        assertFalse(shopItem.canBuy(player));
+        assertFalse(shopItem.buy(player, true));
+
+        verify(economy, never()).withdrawPlayer(any(OfflinePlayer.class), anyDouble());
+        verify(itemsMock, never()).giveItem(any(Player.class), any(ItemInfo.class), anyInt());
+    }
+
+    @Test
+    void extraDecimalPriceUsesNormalizedValueEverywhere() {
+        ShopItem shopItem = new ShopItem(result, 1, 2.99, Map.of());
+
+        assertTrue(shopItem.canBuy(player));
+        assertTrue(shopItem.buy(player, true));
+
+        verify(economy).withdrawPlayer(player, 2.9D);
+        assertTrue(shopItem.toList().stream().anyMatch(line -> line.contains("2.9 Coins")));
+    }
+
     @ParameterizedTest
     @MethodSource("invalidPrices")
     void nonFiniteOrNegativePricesCannotBePurchased(double price) {

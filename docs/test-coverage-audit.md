@@ -26,7 +26,7 @@ The goal should not be to blanket every listener or getter. Start with tests tha
 - Test Java: about 1,330 lines in five test classes.
 - Test stack already present: JUnit 5, Mockito, H2, Testcontainers MySQL, Jdbi, and HikariCP.
 - Verification snapshot (local run on 2026-09-19 with
-  `GRADLE_USER_HOME=/tmp/gradle-home ./gradlew build --no-daemon`): 191 tests passed,
+  `GRADLE_USER_HOME=/tmp/gradle-home ./gradlew build --no-daemon`): 195 tests passed,
   32 skipped, and 0 failed.
 - `MySqlPersistenceTest` contributes the 32 skipped Testcontainers cases when no
   Docker-compatible runtime is available. Test totals vary by environment and Gradle

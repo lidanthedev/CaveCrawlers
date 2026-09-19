@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.coverage;
 
 import com.google.gson.JsonParser;
 import me.lidan.cavecrawlers.items.abilities.AbilityManager;
+import me.lidan.cavecrawlers.items.abilities.ChargedItemAbility;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import net.kyori.adventure.text.Component;
@@ -74,6 +75,21 @@ class AbilityCoverageTest {
         assertNotSame(base.getAbilityCooldown(), configured.getAbilityCooldown());
     }
 
+    @Test
+    void chargedAbilityCloneSchedulesIndependentRecharge() {
+        TestChargedAbility base = new TestChargedAbility();
+        TestChargedAbility clone = (TestChargedAbility) base.clone();
+        Player basePlayer = context.server().addPlayer("base-charged");
+        Player clonePlayer = context.server().addPlayer("clone-charged");
+        base.setPlayerCharges(basePlayer, 0);
+        clone.setPlayerCharges(clonePlayer, 0);
+
+        context.server().getScheduler().performTicks(1);
+
+        assertEquals(1, base.getPlayerCharges(basePlayer));
+        assertEquals(1, clone.getPlayerCharges(clonePlayer));
+    }
+
     private static void setStatic(Class<?> type, String name, Object value) throws Exception {
         Field field = type.getDeclaredField(name);
         field.setAccessible(true);
@@ -83,6 +99,17 @@ class AbilityCoverageTest {
     private static final class TestAbility extends ItemAbility {
         private TestAbility(String name, String description, double cost, long cooldown) {
             super(name, description, cost, cooldown);
+        }
+
+        @Override
+        protected boolean useAbility(PlayerEvent playerEvent) {
+            return true;
+        }
+    }
+
+    private static final class TestChargedAbility extends ChargedItemAbility {
+        private TestChargedAbility() {
+            super("Charged", "description", 10, 2, 1);
         }
 
         @Override

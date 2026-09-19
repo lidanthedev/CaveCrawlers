@@ -8,6 +8,7 @@ import me.lidan.cavecrawlers.listeners.WorldChangeListener;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
+import net.kyori.adventure.text.Component;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -16,6 +17,8 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerQuitEvent.QuitReason;
+import org.bukkit.event.player.PlayerRespawnEvent.RespawnReason;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,8 +61,8 @@ class LifecycleListenerCoverageTest {
     @Test
     void joinAndQuitDelegateExactlyOnceToPersistenceManager() {
         PlayerLifecycleListener listener = new PlayerLifecycleListener();
-        listener.onPlayerJoin(new PlayerJoinEvent(player, "join"));
-        listener.onPlayerQuit(new PlayerQuitEvent(player, (String) null));
+        listener.onPlayerJoin(new PlayerJoinEvent(player, Component.text("join")));
+        listener.onPlayerQuit(new PlayerQuitEvent(player, (Component) null, QuitReason.DISCONNECTED));
 
         verify(skillsManager).loadPlayerAsync(player.getUniqueId());
         verify(skillsManager).savePlayerNowOnQuit(player.getUniqueId());
@@ -70,7 +73,7 @@ class LifecycleListenerCoverageTest {
     void joinUpdatesInventoryAndLoadsStats() {
         UpdateItemsListener listener = new UpdateItemsListener();
 
-        listener.onPlayerJoin(new PlayerJoinEvent(player, "join"));
+        listener.onPlayerJoin(new PlayerJoinEvent(player, Component.text("join")));
 
         verify(itemsManager).updatePlayerInventory(player);
         verify(statsManager).loadPlayer(player);
@@ -87,7 +90,8 @@ class LifecycleListenerCoverageTest {
         verify(statsManager).loadPlayer(player);
 
         reset(itemsManager, statsManager);
-        new UpdateItemsListener().onPlayerRespawn(new PlayerRespawnEvent(player, player.getLocation(), false));
+        new UpdateItemsListener().onPlayerRespawn(new PlayerRespawnEvent(
+                player, player.getLocation(), false, false, false, RespawnReason.PLUGIN));
         context.server().getScheduler().performTicks(2);
         verify(itemsManager).updatePlayerInventory(player);
         verify(statsManager).loadPlayer(player);

@@ -14,7 +14,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -73,16 +72,22 @@ public class Altar implements ConfigurationSerializable {
         if (clickedBlock.getType() != altarMaterial) return;
         if (!isAltar(clickedBlock.getLocation())) return;
         if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
-        ItemStack refundItem = null;
+        int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
+        int totalPlaced = getTotalPlaced() + 1;
+        boolean spawned = false;
+        if (totalPlaced == altarLocations.size() && !spawns.isEmpty()) {
+            Map<UUID, Integer> pendingPlacements = new HashMap<>(playerPlacedMap);
+            pendingPlacements.put(player.getUniqueId(), afterPlace);
+            if (!roll(pendingPlacements)) return;
+            spawned = true;
+        }
+        if (!spawned) {
+            playerPlacedMap.put(player.getUniqueId(), afterPlace);
+        }
         if (player.getGameMode() != GameMode.CREATIVE) {
-            refundItem = player.getInventory().getItemInMainHand().clone();
-            refundItem.setAmount(1);
             itemsManager.removeItems(player, itemToSpawn, 1);
         }
-        int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
-        playerPlacedMap.put(player.getUniqueId(), afterPlace);
         clickedBlock.setType(alterUsedMaterial);
-        int totalPlaced = getTotalPlaced();
         if (placeAnnounce != null) {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("player", player.getDisplayName());
@@ -91,15 +96,6 @@ public class Altar implements ConfigurationSerializable {
             placeholders.put("player_amount", String.valueOf(afterPlace));
             placeholders.put("max_amount", String.valueOf(altarLocations.size()));
             sendAnnounce(placeAnnounce, placeholders, player.getWorld());
-        }
-        if (totalPlaced == altarLocations.size()) {
-            if (!spawns.isEmpty() && !roll()) {
-                if (refundItem != null) {
-                    itemsManager.giveItemStacks(player, refundItem);
-                }
-                playerPlacedMap.clear();
-                resetAltarBlocks();
-            }
         }
     }
 
@@ -110,13 +106,13 @@ public class Altar implements ConfigurationSerializable {
         }
     }
 
-    private boolean roll() {
+    private boolean roll(Map<UUID, Integer> placements) {
         for (AltarDrop spawn : spawns) {
             if (spawn.rollChance()){
                 Entity entity = spawn.giveMob(spawnLocation);
                 if (!(entity instanceof LivingEntity livingEntity)) return false;
                 spawnedEntity = livingEntity;
-                onSpawn(livingEntity);
+                onSpawn(livingEntity, placements);
                 return true;
             }
         }
@@ -124,8 +120,12 @@ public class Altar implements ConfigurationSerializable {
     }
 
     public void onSpawn(LivingEntity livingEntity) {
+        onSpawn(livingEntity, playerPlacedMap);
+    }
+
+    private void onSpawn(LivingEntity livingEntity, Map<UUID, Integer> placements) {
         BossEntityData entityData = new BossEntityData(livingEntity);
-        for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
+        for (Map.Entry<UUID, Integer> uuidIntegerEntry : placements.entrySet()) {
             entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem);
             entityData.addDamage(uuidIntegerEntry.getKey(), 1);
         }

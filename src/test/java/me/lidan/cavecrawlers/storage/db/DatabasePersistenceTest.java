@@ -68,10 +68,23 @@ class DatabasePersistenceTest {
     @Test
     void sameLiveOwnerRefreshesLeaseWithoutAdvancingFence() {
         Database.PlayerLease first = acquire("A");
+        long before = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT lock_timestamp FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Long.class).one());
+        long backdated = before - 1_000;
+        jdbi.useHandle(handle -> handle.createUpdate(
+                        "UPDATE player_sessions SET lock_timestamp = :timestamp WHERE player_uuid = :uuid")
+                .bind("timestamp", backdated)
+                .bind("uuid", uuid.toString()).execute());
+
         Database.PlayerLease refreshed = database.acquirePlayerSession(uuid, "A", 60_000).orElseThrow();
+        long after = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT lock_timestamp FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Long.class).one());
 
         assertEquals(first.fenceToken(), refreshed.fenceToken());
         assertEquals(first.dataRevision(), refreshed.dataRevision());
+        assertTrue(after > backdated);
         assertEquals("A", lockingServer());
     }
 

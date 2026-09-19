@@ -25,10 +25,14 @@ The goal should not be to blanket every listener or getter. Start with tests tha
 - Production Java: about 22,204 lines across the plugin lifecycle, persistence, items, skills, stats, economy, mining, drops, bosses, altars, GUIs, commands, and integrations.
 - Test Java: about 1,330 lines in five test classes.
 - Test stack already present: JUnit 5, Mockito, H2, Testcontainers MySQL, Jdbi, and HikariCP.
-- Current `./gradlew test` result: successful.
-- Current executed tests: 48 passed.
-- Current skipped tests: 27 MySQL/Testcontainers cases, because no Docker-compatible runtime was detected.
-- The verification counts in `docs/player-persistence.md` are stale: the current suite declares 75 cases, not 69.
+- Verification snapshot (local run on 2026-09-19 with
+  `GRADLE_USER_HOME=/tmp/gradle-home ./gradlew build --no-daemon`): 191 tests passed,
+  32 skipped, and 0 failed.
+- `MySqlPersistenceTest` contributes the 32 skipped Testcontainers cases when no
+  Docker-compatible runtime is available. Test totals vary by environment and Gradle
+  filters; this snapshot is not a universal current count.
+- The verification totals in `docs/player-persistence.md` are historical and should not
+  be used as the current suite count.
 
 The repository has no production implementation of compressed items, enchanted-item conversion, gem tiers, or `ROUGH_X -> FLAWED_X -> FINE_X` conversion. Names such as `ENCHANTED_DIAMOND` are ordinary configured item IDs. Tests for nonexistent conversion systems would be speculative and should not be added. The relevant real string-derived identities are `VANILLA-<MATERIAL>`, display-name fallback IDs, ability IDs with JSON settings, armor-set IDs, drop value/range strings, skill objectives, and reward strings.
 

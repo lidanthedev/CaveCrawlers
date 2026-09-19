@@ -906,6 +906,9 @@ public class PlayerSkillsManager {
             }
             // totalXp is the source of truth. Level/current XP are derived caches.
             Skill skill = new Skill(info, 0);
+            if (!info.getXpToLevelList().isEmpty()) {
+                skill.setXpToLevel(info.getXpToLevelList().getFirst());
+            }
             skill.addXp(row.getTotalXp());
             skill.levelUp(false);
             loaded.add(skill);

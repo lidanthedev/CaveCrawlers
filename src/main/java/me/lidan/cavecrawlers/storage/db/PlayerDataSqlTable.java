@@ -15,4 +15,11 @@ public abstract class PlayerDataSqlTable extends SqlTable {
     public abstract void loadForPlayer(Handle handle, UUID playerUuid);
 
     public abstract void saveForPlayer(Handle handle, UUID playerUuid);
+
+    /**
+     * Clears persisted state for a player. The no-op default is valid only for
+     * tables that do not store per-player state; stateful tables must override it.
+     */
+    public void resetForPlayer(Handle handle, UUID playerUuid) {
+    }
 }

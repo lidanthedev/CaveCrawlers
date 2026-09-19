@@ -323,6 +323,9 @@ public class Database {
             SkillsDao skills = handle.attach(SkillsDao.class);
             if (deleteBeforeWrite) {
                 skills.deleteSkills(uuid.toString());
+                for (PlayerDataSqlTable table : playerDataTables) {
+                    table.resetForPlayer(handle, uuid);
+                }
             }
             if (!rows.isEmpty()) {
                 skills.upsertSkills(rows);
@@ -361,6 +364,9 @@ public class Database {
                 return false;
             }
             handle.attach(SkillsDao.class).deleteSkills(uuidString);
+            for (PlayerDataSqlTable table : playerDataTables) {
+                table.resetForPlayer(handle, uuid);
+            }
             handle.createUpdate("UPDATE player_sessions SET is_locked = 0, locking_server = NULL, " +
                             "lock_timestamp = 0, fence_token = :fence, data_revision = :revision " +
                             "WHERE player_uuid = :uuid")

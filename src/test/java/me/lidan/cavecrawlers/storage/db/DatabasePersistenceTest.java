@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,6 +63,77 @@ class DatabasePersistenceTest {
                 .bind("uuid", uuid.toString()).mapTo(Long.class).one());
         assertTrue(timestamp > 0);
         assertEquals(lease.fenceToken(), database.acquirePlayerSession(uuid, "A", 60_000).orElseThrow().fenceToken());
+    }
+
+    @Test
+    void sameLiveOwnerRefreshesLeaseWithoutAdvancingFence() {
+        Database.PlayerLease first = acquire("A");
+        long before = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT lock_timestamp FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Long.class).one());
+        long backdated = before - 1_000;
+        jdbi.useHandle(handle -> handle.createUpdate(
+                        "UPDATE player_sessions SET lock_timestamp = :timestamp WHERE player_uuid = :uuid")
+                .bind("timestamp", backdated)
+                .bind("uuid", uuid.toString()).execute());
+
+        Database.PlayerLease refreshed = database.acquirePlayerSession(uuid, "A", 60_000).orElseThrow();
+        long after = jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT lock_timestamp FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Long.class).one());
+
+        assertEquals(first.fenceToken(), refreshed.fenceToken());
+        assertEquals(first.dataRevision(), refreshed.dataRevision());
+        assertTrue(after > backdated);
+        assertEquals("A", lockingServer());
+    }
+
+    @Test
+    void fenceOverflowRollsBackSessionAcquisition() {
+        Database.PlayerLease initial = acquire("A");
+        database.releasePlayerSession(uuid, "A", initial.fenceToken());
+        jdbi.useHandle(handle -> handle.createUpdate(
+                        "UPDATE player_sessions SET fence_token = :fence, data_revision = 7, " +
+                                "is_locked = 0, locking_server = NULL, lock_timestamp = 0 WHERE player_uuid = :uuid")
+                .bind("fence", Long.MAX_VALUE)
+                .bind("uuid", uuid.toString())
+                .execute());
+
+        assertThrows(ArithmeticException.class,
+                () -> database.acquirePlayerSession(uuid, "A", 60_000));
+        assertEquals(Long.MAX_VALUE, fenceToken());
+        assertEquals(0, isLocked());
+        assertEquals(7, dataRevision());
+    }
+
+    @Test
+    void resetOverflowRollsBackWithoutDeletingSkills() {
+        Database.PlayerLease initial = acquire("A");
+        database.releasePlayerSession(uuid, "A", initial.fenceToken());
+        jdbi.useHandle(handle -> handle.attach(SkillsDao.class).upsertSkills(rows(42)));
+        jdbi.useHandle(handle -> handle.createUpdate(
+                        "UPDATE player_sessions SET fence_token = :fence, data_revision = :revision, " +
+                                "is_locked = 0, locking_server = NULL, lock_timestamp = 0 WHERE player_uuid = :uuid")
+                .bind("fence", Long.MAX_VALUE)
+                .bind("revision", Long.MAX_VALUE)
+                .bind("uuid", uuid.toString())
+                .execute());
+
+        assertThrows(ArithmeticException.class, () -> database.resetOfflinePlayer(uuid, 60_000));
+        assertEquals(42, totalXp());
+        assertEquals(Long.MAX_VALUE, fenceToken());
+        assertEquals(Long.MAX_VALUE, dataRevision());
+    }
+
+    @Test
+    void registeredAddonTablesSaveInRegistrationOrder() {
+        List<String> order = new CopyOnWriteArrayList<>();
+        database.registerTable(new OrderedAddonTable("first", order));
+        database.registerTable(new OrderedAddonTable("second", order));
+        Database.PlayerLease lease = acquire("A");
+
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(3), false, false).committed());
+        assertEquals(List.of("first", "second"), order);
     }
 
     @Test
@@ -175,6 +247,20 @@ class DatabasePersistenceTest {
         assertTrue(database.resetOfflinePlayer(uuid, 60_000));
         Database.PlayerLease next = acquire("B");
         assertTrue(next.fenceToken() > old.fenceToken());
+    }
+
+    @Test
+    void offlineResetClearsRegisteredAddonRowsWithSkills() {
+        ToggleAddonTable addon = new ToggleAddonTable();
+        database.registerTable(addon);
+        Database.PlayerLease lease = acquire("A");
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(11), false, true).committed());
+
+        assertTrue(database.resetOfflinePlayer(uuid, 60_000));
+
+        assertEquals(0, jdbi.withHandle(handle -> handle.createQuery(
+                "SELECT COUNT(*) FROM addon_test WHERE player_uuid=:uuid")
+                .bind("uuid", uuid.toString()).mapTo(Integer.class).one()).intValue());
     }
 
     @Test
@@ -387,6 +473,18 @@ class DatabasePersistenceTest {
                 .bind("uuid", uuid.toString()).mapTo(Long.class).one());
     }
 
+    protected long fenceToken() {
+        return jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT fence_token FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Long.class).one());
+    }
+
+    protected int isLocked() {
+        return jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT is_locked FROM player_sessions WHERE player_uuid = :uuid")
+                .bind("uuid", uuid.toString()).mapTo(Integer.class).one());
+    }
+
     private int addonPayload() {
         return jdbi.withHandle(handle -> handle.createQuery("SELECT payload FROM addon_test WHERE player_uuid=:uuid")
                 .bind("uuid", uuid.toString()).mapTo(Integer.class).one());
@@ -471,5 +569,31 @@ class DatabasePersistenceTest {
                 throw new IllegalStateException("simulated addon failure");
             }
         }
+
+        @Override
+        public void resetForPlayer(Handle handle, UUID playerUuid) {
+            handle.createUpdate("DELETE FROM addon_test WHERE player_uuid=:uuid")
+                    .bind("uuid", playerUuid.toString()).execute();
+        }
+    }
+
+    private static final class OrderedAddonTable extends PlayerDataSqlTable {
+        private final String name;
+        private final List<String> order;
+
+        private OrderedAddonTable(String name, List<String> order) {
+            this.name = name;
+            this.order = order;
+        }
+
+        @Override public String getTableName() { return "ordered_" + name; }
+        @Override public String getCreateCommand() {
+            return "CREATE TABLE ordered_" + name + " (player_uuid VARCHAR(36) PRIMARY KEY)";
+        }
+        @Override public int getVersion() { return 1; }
+        @Override public void onCreate(Handle handle) { handle.execute(getCreateCommand()); }
+        @Override public void onUpgrade(Handle handle, int oldVersion, int newVersion) { }
+        @Override public void loadForPlayer(Handle handle, UUID playerUuid) { }
+        @Override public void saveForPlayer(Handle handle, UUID playerUuid) { order.add(name); }
     }
 }

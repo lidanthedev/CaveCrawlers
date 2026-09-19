@@ -79,7 +79,7 @@ public class ItemsManager implements ItemsAPI {
         }
 
         if (ID.startsWith("VANILLA-")){
-            Material material = Material.getMaterial(ID.replace("VANILLA-", ""));
+            Material material = Material.getMaterial(ID.substring("VANILLA-".length()));
             if (material == null){
                 return null;
             }
@@ -101,20 +101,12 @@ public class ItemsManager implements ItemsAPI {
         return itemsMap.get(ID);
     }
 
+    /**
+     * Resolves an item stack by its canonical metadata ID or configured vanilla conversion.
+     * The method name is retained for API compatibility; display names are not item identity.
+     */
     public @Nullable ItemInfo getItemFromItemStackSafe(ItemStack itemStack){
-        String ID = getIDofItemStack(itemStack);
-        if (ID == null && itemStack != null){
-            ItemMeta meta = itemStack.getItemMeta();
-            if (meta == null){
-                return null;
-            }
-            String displayName = meta.getDisplayName();
-            displayName = ChatColor.stripColor(displayName);
-            displayName = displayName.toUpperCase(Locale.ROOT);
-            displayName = displayName.replace(" ", "_");
-            ID = displayName;
-        }
-        return getItemByID(ID);
+        return getItemFromItemStack(itemStack);
     }
 
     public @Nullable ItemInfo getItemFromItemStack(ItemStack itemStack){
@@ -231,7 +223,9 @@ public class ItemsManager implements ItemsAPI {
         for (String itemId : itemIdMap.keySet()) {
             ItemInfo itemInfo = getItemByID(itemId);
             int amount = itemIdMap.get(itemId);
-            itemsMap.put(itemInfo, amount);
+            if (itemInfo != null) {
+                itemsMap.put(itemInfo, amount);
+            }
         }
         return itemsMap;
     }

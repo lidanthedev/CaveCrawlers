@@ -20,6 +20,10 @@ public class SellCommand {
     @Command({"setprice","setsell"})
     @CommandPermission("cavecrawlers.sell.setprice")
     public void setPrice(Player sender, double price, @Optional @SuggestWith(ItemIDCompletions.class) String itemId) {
+        if (!Double.isFinite(price) || price < 0) {
+            sender.sendMessage("ERROR! PRICE MUST BE A FINITE, NON-NEGATIVE NUMBER!");
+            return;
+        }
         if (itemId == null) {
             itemId = ItemsManager.getInstance().getIDofItemStack(sender.getEquipment().getItemInMainHand());
             if (itemId == null) {

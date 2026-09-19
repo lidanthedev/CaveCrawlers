@@ -30,18 +30,22 @@ public class Perk implements ConfigurationSerializable {
                 "name", name,
                 "track", track,
                 "permission", permission,
-                "stats", stats
+                "priority", priority,
+                "stats", stats.serialize()
         );
     }
 
     public static Perk deserialize(Map<String, Object> map) {
-        Map<String, Object> statsMap = (Map<String, Object>) map.get("stats");
-        Stats stats = Stats.deserialize(statsMap);
+        Object rawStats = map.get("stats");
+        Stats stats = rawStats instanceof Stats value
+                ? value
+                : Stats.deserialize((Map<String, Object>) rawStats);
+        Object rawPriority = map.getOrDefault("priority", 0);
         return new Perk(
                 (String) map.get("name"),
                 (String) map.get("track"),
                 (String) map.get("permission"),
-                (int) map.get("priority"),
+                ((Number) rawPriority).intValue(),
                 stats
         );
     }

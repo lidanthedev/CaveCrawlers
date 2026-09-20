@@ -218,7 +218,7 @@ public class ItemsManager implements ItemsAPI {
     }
 
     public Map<ItemInfo, Integer> stringMapToItemMap(Map<String, Integer> itemIdMap){
-        Map<ItemInfo, Integer> itemsMap = new HashMap<>();
+        Map<ItemInfo, Integer> itemsMap = new LinkedHashMap<>();
 
         for (String itemId : itemIdMap.keySet()) {
             ItemInfo itemInfo = getItemByID(itemId);

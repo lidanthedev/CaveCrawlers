@@ -1,39 +1,34 @@
 package me.lidan.cavecrawlers.coverage;
 
+import me.lidan.cavecrawlers.gui.SellMenu;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
-import me.lidan.cavecrawlers.gui.SellMenu;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockito.Answers;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class SellMenuCoverageTest {
     private MockCaveCrawlers context;
@@ -161,9 +156,9 @@ class SellMenuCoverageTest {
     }
 
     private void invokeSell() throws Exception {
-        Method sell = SellMenu.class.getDeclaredMethod("sell");
+        Method sell = SellMenu.class.getDeclaredMethod("sell", Boolean.TYPE);
         sell.setAccessible(true);
-        sell.invoke(menu);
+        sell.invoke(menu, false);
     }
 
     private Object mockGui(Inventory inventory) {

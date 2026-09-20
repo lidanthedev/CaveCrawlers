@@ -27,6 +27,7 @@ public class SellMenu {
     private final ConfigurationSection prices;
     private Player player;
     private Gui gui;
+
     public SellMenu(Player player) {
         this.player = player;
         this.gui = Gui.gui()
@@ -91,17 +92,11 @@ public class SellMenu {
             for (ItemStack item : sellable) {
                 itemsManager.giveItemStacks(player, item);
             }
-            if (!trashUnsellable) {
-                for (ItemStack item : unsellable) {
-                    itemsManager.giveItemStacks(player, item);
-                }
-            }
-            gui.getInventory().clear();
-            gui.close(player);
-            return;
         }
-        for (ItemStack item : unsellable) {
-            itemsManager.giveItemStacks(player, item);
+        if (!trashUnsellable) {
+            for (ItemStack item : unsellable) {
+                itemsManager.giveItemStacks(player, item);
+            }
         }
         player.sendMessage(MiniMessageUtils.miniMessage("<green>Sold items for <gold><total><green> coins", Map.of("total", StringUtils.getNumberFormat(total))));
         gui.getInventory().clear();

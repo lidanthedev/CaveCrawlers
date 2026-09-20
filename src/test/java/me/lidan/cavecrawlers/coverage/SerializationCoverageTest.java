@@ -45,17 +45,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SerializationCoverageTest {
     private MockCaveCrawlers context;
+    private boolean usePlaceholderAPI;
 
     @BeforeEach
     void setUp() throws Exception {
         context = MockCaveCrawlers.start();
         setStatic(ItemsManager.class, "instance", null);
         setStatic(SkillsManager.class, "instance", null);
+        usePlaceholderAPI = CaveCrawlers.usePlaceholderAPI;
         CaveCrawlers.usePlaceholderAPI = false;
     }
 
     @AfterEach
     void tearDown() throws Exception {
+        CaveCrawlers.usePlaceholderAPI = usePlaceholderAPI;
         setStatic(ItemsManager.class, "instance", null);
         setStatic(SkillsManager.class, "instance", null);
         context.close();

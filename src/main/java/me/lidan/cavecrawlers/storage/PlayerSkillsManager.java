@@ -137,8 +137,12 @@ public class PlayerSkillsManager {
         return leaseConfig.timeout().toMillis();
     }
 
+    private boolean verboseLoggingEnabled() {
+        return plugin.getConfig().getBoolean("database.verbose-logging", false);
+    }
+
     private void verbose(String message, Object... args) {
-        if (plugin.getConfig().getBoolean("database.verbose-logging", false)) {
+        if (verboseLoggingEnabled()) {
             log.info(message, args);
         }
     }
@@ -245,8 +249,15 @@ public class PlayerSkillsManager {
             List<SkillRow> rows = database
                     .loadPlayer(uuid, serverId, ownership.fenceToken());
             Ownership loadedOwnership = ownership;
-            verbose("[LOAD] uuid={} server={} fence={} generation={} rows={}",
-                    uuid, serverId, ownership.fenceToken(), generation, rows.size());
+            verbose("[LOAD] uuid={} server={} fence={} generation={} dataRevision={} rows={}",
+                    uuid, serverId, ownership.fenceToken(), generation,
+                    ownership.nextRevision().get(), rows.size());
+            if (verboseLoggingEnabled()) {
+                for (SkillRow row : rows) {
+                    verbose("[LOAD] db-row uuid={} type={} storedLevel={} storedXp={} totalXp={}",
+                            uuid, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
+                }
+            }
 
             if (shuttingDown) return;
             Skills loaded = buildSkillsFromRows(uuid, rows);
@@ -414,7 +425,17 @@ public class PlayerSkillsManager {
             return null;
         }
         long revision = ownership.nextRevision().incrementAndGet();
-        return new SaveRequest(uuid, List.copyOf(buildRows(uuid, copySkills(skills))),
+        List<SkillRow> rows = List.copyOf(buildRows(uuid, copySkills(skills)));
+        verbose("[SAVE] snapshot uuid={} server={} fence={} generation={} revision={} reset={} release={} rows={}",
+                uuid, serverId, ownership.fenceToken(), ownership.generation(), revision,
+                deleteBeforeWrite, releaseAfterSave, rows.size());
+        if (verboseLoggingEnabled()) {
+            for (SkillRow row : rows) {
+                verbose("[SAVE] snapshot-row uuid={} revision={} type={} level={} xp={} totalXp={}",
+                        uuid, revision, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
+            }
+        }
+        return new SaveRequest(uuid, rows,
                 ownership.generation(), ownership.fenceToken(), revision,
                 deleteBeforeWrite, releaseAfterSave);
     }
@@ -936,6 +957,8 @@ public class PlayerSkillsManager {
             SkillInfo info = SkillsManager.getInstance().getSkillInfo(row.getType());
             if (info == null) {
                 log.warn("[LOAD] {} has unknown skill type '{}'", uuid, row.getType());
+                verbose("[LOAD] skipped-row uuid={} type={} reason=skill-type-not-registered storedLevel={} storedXp={} totalXp={}",
+                        uuid, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
                 continue;
             }
             // totalXp is the source of truth. Level/current XP are derived caches.
@@ -946,9 +969,20 @@ public class PlayerSkillsManager {
             skill.addXp(row.getTotalXp());
             skill.levelUp(false);
             loaded.add(skill);
+            verbose("[LOAD] applied-row uuid={} type={} configuredLevels={} derivedLevel={} derivedXp={} derivedXpToLevel={} totalXp={}",
+                    uuid, row.getType(), info.getXpToLevelList().size(), skill.getLevel(),
+                    skill.getXp(), skill.getXpToLevel(), skill.getTotalXp());
         }
         Skills skills = new Skills(loaded);
         skills.setUuid(uuid);
+        if (verboseLoggingEnabled()) {
+            for (Skill skill : skills) {
+                if (loaded.stream().noneMatch(restored -> restored == skill)) {
+                    verbose("[LOAD] defaulted-skill uuid={} type={} reason=no-database-row level={} xp={} totalXp={}",
+                            uuid, skill.getType().getId(), skill.getLevel(), skill.getXp(), skill.getTotalXp());
+                }
+            }
+        }
         return skills;
     }
 

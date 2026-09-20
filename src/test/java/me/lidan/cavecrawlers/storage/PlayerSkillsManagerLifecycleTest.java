@@ -431,17 +431,17 @@ class PlayerSkillsManagerLifecycleTest {
     }
 
     @Test
-    void failedLoadQuitRetriesReleaseBeforeReconnect() throws Exception {
+    void failedLoadRetriesReleaseBeforeReconnect() throws Exception {
         when(server.getPlayer(uuid)).thenReturn(null);
         manager.savePlayerNowOnQuit(uuid);
         runAsync(); runMain();
         when(server.getPlayer(uuid)).thenReturn(player);
         doThrow(new IllegalStateException("load failed")).when(database).loadPlayer(any(), anyString(), anyLong());
+        doThrow(new IllegalStateException("release failed")).when(database)
+                .releasePlayerSession(any(), anyString(), anyLong());
         manager.loadPlayerAsync(uuid);
         runAsync();
-        doThrow(new IllegalStateException("release failed")).when(database).releasePlayerSession(any(), anyString(), anyLong());
-        manager.savePlayerNowOnQuit(uuid);
-        runAsync();
+        runMain();
         assertFalse(delayedAsync.isEmpty());
         doCallRealMethod().when(database).loadPlayer(any(), anyString(), anyLong());
         doCallRealMethod().when(database).releasePlayerSession(any(), anyString(), anyLong());
@@ -449,6 +449,35 @@ class PlayerSkillsManagerLifecycleTest {
         manager.loadPlayerAsync(uuid);
         runAsync(); runMain();
         assertTrue(manager.canPersistPlayer(uuid));
+    }
+
+    @Test
+    void failedReloadLoadCannotPersistPlaceholderFromStaleLoadedMarker() throws Exception {
+        manager.getSkills(uuid).addXp(mining, 22);
+        when(server.getPlayer(uuid)).thenReturn(null);
+        manager.savePlayerNowOnQuit(uuid);
+        runAsync();
+        runMain();
+        assertEquals(22, persistedXp());
+
+        when(server.getPlayer(uuid)).thenReturn(player);
+        clearInvocations(database, player);
+        doThrow(new IllegalStateException("load failed")).when(database)
+                .loadPlayer(any(), anyString(), anyLong());
+        manager.loadPlayerAsync(uuid);
+        executor.submit(async.remove()).get(5, TimeUnit.SECONDS);
+
+        markLoaded(uuid); // Reproduces a stale in-memory marker surviving a plugin reload.
+        manager.savePlayerNow(uuid);
+        manager.saveAllAsync();
+        runMain();
+        runAsync();
+
+        assertFalse(manager.canPersistPlayer(uuid));
+        assertEquals(22, persistedXp());
+        verify(database, never()).persistPlayer(eq(uuid), anyString(), anyLong(), anyLong(),
+                anyList(), anyBoolean(), anyBoolean());
+        verify(player).kick(any(net.kyori.adventure.text.Component.class));
     }
 
     @Test
@@ -573,6 +602,13 @@ class PlayerSkillsManagerLifecycleTest {
     private double persistedXp() {
         return jdbi.withHandle(h -> h.createQuery("SELECT total_xp FROM skills WHERE player_uuid=:uuid")
                 .bind("uuid", uuid.toString()).mapTo(Double.class).findOne().orElse(0D));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void markLoaded(UUID playerUuid) throws Exception {
+        Field field = PlayerSkillsManager.class.getDeclaredField("loadedPlayers");
+        field.setAccessible(true);
+        ((Set<UUID>) field.get(manager)).add(playerUuid);
     }
 
     private static void setStatic(Class<?> type, String name, Object value) throws Exception {

@@ -21,16 +21,12 @@ import java.util.List;
 import java.util.Map;
 
 public class SellMenu {
-    public record SellItem(ItemInfo itemInfo, int amount, double price) {
-    }
-
     public static final int SELL_BUTTON_SLOT = 31;
     public static final CustomConfig config = new CustomConfig("sell.yml");
     private final ItemsManager itemsManager = ItemsManager.getInstance();
     private final ConfigurationSection prices;
     private Player player;
     private Gui gui;
-
     public SellMenu(Player player) {
         this.player = player;
         this.gui = Gui.gui()
@@ -58,7 +54,7 @@ public class SellMenu {
         update();
     }
 
-    public void update(){
+    public void update() {
         gui.updateItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell <gold><total>", Map.of("total", StringUtils.getNumberFormat(getTotalPrice())))).lore(toLore()).build());
     }
 
@@ -77,17 +73,35 @@ public class SellMenu {
     private void sell(boolean trashUnsellable) {
         double total = 0;
         ItemStack[] storageContents = gui.getInventory().getStorageContents();
+        List<ItemStack> sellable = new ArrayList<>();
+        List<ItemStack> unsellable = new ArrayList<>();
         for (int i = 0; i < storageContents.length; i++) {
             if (storageContents[i] != null && i != SELL_BUTTON_SLOT) {
                 double price = getPrice(storageContents[i]);
-                if (price <= 0 && !trashUnsellable) {
-                    itemsManager.giveItemStacks(player, storageContents[i]);
-                }
-                else{
+                if (!Double.isFinite(price) || price <= 0) {
+                    unsellable.add(storageContents[i]);
+                } else {
                     total += price;
-                    VaultUtils.giveCoins(player, price);
+                    sellable.add(storageContents[i]);
                 }
             }
+        }
+        total = Math.floor(total * 10d) / 10d;
+        if (total <= 0 || !VaultUtils.giveCoins(player, total)) {
+            for (ItemStack item : sellable) {
+                itemsManager.giveItemStacks(player, item);
+            }
+            if (!trashUnsellable) {
+                for (ItemStack item : unsellable) {
+                    itemsManager.giveItemStacks(player, item);
+                }
+            }
+            gui.getInventory().clear();
+            gui.close(player);
+            return;
+        }
+        for (ItemStack item : unsellable) {
+            itemsManager.giveItemStacks(player, item);
         }
         player.sendMessage(MiniMessageUtils.miniMessage("<green>Sold items for <gold><total><green> coins", Map.of("total", StringUtils.getNumberFormat(total))));
         gui.getInventory().clear();
@@ -119,15 +133,18 @@ public class SellMenu {
         return sellItems;
     }
 
-    public double getPrice(ItemStack itemStack){
+    public double getPrice(ItemStack itemStack) {
         String Id = itemsManager.getIDofItemStackSafe(itemStack);
         return getPrice(Id) * itemStack.getAmount();
     }
 
-    public double getPrice(String Id){
+    public double getPrice(String Id) {
         if (prices == null || !prices.contains(Id)) {
             return 0;
         }
         return prices.getDouble(Id, 0);
+    }
+
+    public record SellItem(ItemInfo itemInfo, int amount, double price) {
     }
 }

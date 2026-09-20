@@ -28,7 +28,7 @@ public abstract class ItemAbility implements Cloneable {
     private String description;
     private double cost;
     private long cooldown;
-    private final Cooldown<UUID> abilityCooldown;
+    private Cooldown<UUID> abilityCooldown;
 
     private boolean isCooldownAnimationEnabled() {
         return CaveCrawlers.getInstance().getConfig().getBoolean("experimental.enable-cooldown-animation", false);
@@ -127,7 +127,9 @@ public abstract class ItemAbility implements Cloneable {
     @Override
     public ItemAbility clone() {
         try {
-            return (ItemAbility) super.clone();
+            ItemAbility clone = (ItemAbility) super.clone();
+            clone.abilityCooldown = new Cooldown<>();
+            return clone;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }

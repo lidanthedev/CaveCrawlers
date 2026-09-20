@@ -35,6 +35,7 @@ public class LootShareEntityData extends EntityData{
 
     @Override
     public void onDeath(EntityDeathEvent event) {
+        if (!claimDeath()) return;
         String mobId = MythicMobsHook.getInstance().getMobID(entity);
         EntityDrops drops = DropsManager.getInstance().getEntityDrops(mobId);
         if (drops == null) return;

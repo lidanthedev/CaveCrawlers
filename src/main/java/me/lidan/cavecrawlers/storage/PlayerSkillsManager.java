@@ -20,6 +20,7 @@ import org.bukkit.plugin.Plugin;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -64,6 +65,8 @@ public class PlayerSkillsManager {
             Title.Times.times(Duration.ZERO, Duration.ofMillis(1200), Duration.ofMillis(200)));
     private static final Component DATABASE_LOST_MESSAGE = MiniMessageUtils.miniMessage(
             "<red>Lost connection to the player data database.<newline><gray>Please reconnect in a moment.");
+    private static final Component DATABASE_LOAD_FAILED_MESSAGE = MiniMessageUtils.miniMessage(
+            "<red>Could not load your player data safely.<newline><gray>Please reconnect in a moment.");
     private static final Component LOST_SESSION_MESSAGE = MiniMessageUtils.miniMessage(
             "<red>Your player-data session moved to another server. Please reconnect.");
 
@@ -121,18 +124,25 @@ public class PlayerSkillsManager {
         return instance;
     }
 
-    /** A process ID must never survive a restart because it identifies lease ownership. */
+    /** Rotate the process ID only after every lease owned by the current ID is released. */
     public void setServerId() {
-        serverId = UUID.randomUUID().toString();
+        if (ownerships.isEmpty()) serverId = UUID.randomUUID().toString();
         shuttingDown = false;
+        loadedPlayers.clear();
+        scheduledLoads.clear();
+        invalidatedGenerations.clear();
     }
 
     private long leaseTimeoutMillis() {
         return leaseConfig.timeout().toMillis();
     }
 
+    private boolean verboseLoggingEnabled() {
+        return plugin.getConfig().getBoolean("database.verbose-logging", false);
+    }
+
     private void verbose(String message, Object... args) {
-        if (plugin.getConfig().getBoolean("database.verbose-logging", false)) {
+        if (verboseLoggingEnabled()) {
             log.info(message, args);
         }
     }
@@ -192,10 +202,14 @@ public class PlayerSkillsManager {
         if (shuttingDown || loadedPlayers.contains(uuid) || invalidatedGenerations.containsKey(uuid)) {
             return;
         }
-        if (migrationInProgress.get() || !persistenceAvailable() || !leaseHealth.healthy()
+        if (migrationInProgress.get()
                 || (plugin instanceof CaveCrawlers caveCrawlers && !caveCrawlers.isLoginAllowed())) {
             pendingLoads.add(uuid);
             scheduleLoadRetry(uuid, currentGeneration(uuid));
+            return;
+        }
+        if (!persistenceAvailable() || !leaseHealth.healthy()) {
+            invalidatePlayer(uuid, currentGeneration(uuid), DATABASE_LOAD_FAILED_MESSAGE, false);
             return;
         }
 
@@ -218,24 +232,32 @@ public class PlayerSkillsManager {
     private void loadFromDatabase(UUID uuid, long generation) {
         if (!beginOperation()) return;
         boolean publicationQueued = false;
+        Ownership ownership = null;
         ReentrantLock lock = stateLock(uuid);
         lock.lock();
         try {
             if (!persistenceAvailable()) {
-                pendingLoads.add(uuid);
+                failLoad(uuid, generation, null);
                 return;
             }
-            Ownership ownership = acquireOwnership(uuid, generation);
+            ownership = acquireOwnership(uuid, generation);
             if (ownership == null) {
-                pendingLoads.add(uuid);
-                scheduleLoadRetry(uuid, generation);
+                failLoad(uuid, generation, null);
                 return;
             }
 
             List<SkillRow> rows = database
                     .loadPlayer(uuid, serverId, ownership.fenceToken());
-            verbose("[LOAD] uuid={} server={} fence={} generation={} rows={}",
-                    uuid, serverId, ownership.fenceToken(), generation, rows.size());
+            Ownership loadedOwnership = ownership;
+            verbose("[LOAD] uuid={} server={} fence={} generation={} dataRevision={} rows={}",
+                    uuid, serverId, ownership.fenceToken(), generation,
+                    ownership.nextRevision().get(), rows.size());
+            if (verboseLoggingEnabled()) {
+                for (SkillRow row : rows) {
+                    verbose("[LOAD] db-row uuid={} type={} storedLevel={} storedXp={} totalXp={}",
+                            uuid, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
+                }
+            }
 
             if (shuttingDown) return;
             Skills loaded = buildSkillsFromRows(uuid, rows);
@@ -245,14 +267,17 @@ public class PlayerSkillsManager {
                 try {
                     if (shuttingDown) return;
                     if (superseded || Bukkit.getPlayer(uuid) == null
-                            || ownerships.get(uuid) != ownership || !leaseHealth.healthy()
-                            || ownership.healthEpoch() != leaseHealth.epoch()
+                            || ownerships.get(uuid) != loadedOwnership
+                            || !Objects.equals(loadedOwnership.serverId(), serverId)
+                            || !leaseHealth.healthy()
+                            || loadedOwnership.healthEpoch() != leaseHealth.epoch()
                             || invalidatedGenerations.containsKey(uuid)) {
-                        queueOwnershipRelease(uuid, ownership);
+                        queueOwnershipRelease(uuid, loadedOwnership);
                         return;
                     }
                     bindSkills(uuid, loaded);
                     activeSkills.put(uuid, loaded);
+                    loadedOwnership.dataLoaded().set(true);
                     loadedPlayers.add(uuid);
                     pendingLoads.remove(uuid);
                     Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
@@ -268,9 +293,8 @@ public class PlayerSkillsManager {
         } catch (Database.StaleSessionException e) {
             invalidateStaleSession(uuid, generation, e.currentFence());
         } catch (Exception e) {
-            pendingLoads.add(uuid);
             log.warn("[LOAD] uuid={} generation={} failed: {}", uuid, generation, e.getMessage(), e);
-            scheduleLoadRetry(uuid, generation);
+            failLoad(uuid, generation, ownership);
         } finally {
             lock.unlock();
             if (!publicationQueued) scheduledLoads.remove(uuid, generation);
@@ -284,7 +308,8 @@ public class PlayerSkillsManager {
     private Ownership acquireOwnership(UUID uuid, long generation) {
         Ownership existing = ownerships.get(uuid);
         if (existing != null) {
-            return existing.generation() == generation ? existing : null;
+            return existing.generation() == generation && Objects.equals(existing.serverId(), serverId)
+                    ? existing : null;
         }
 
         for (int attempt = 0; attempt <= LOCK_MAX_ATTEMPTS; attempt++) {
@@ -296,8 +321,9 @@ public class PlayerSkillsManager {
             Optional<Database.PlayerLease> lease = database
                     .acquirePlayerSession(uuid, serverId, leaseTimeoutMillis());
             if (lease.isPresent()) {
-                Ownership acquired = new Ownership(generation, lease.get().fenceToken(),
-                        new AtomicLong(lease.get().dataRevision()), healthEpoch, new AtomicReference<>(), new AtomicBoolean());
+                Ownership acquired = new Ownership(serverId, generation, lease.get().fenceToken(),
+                        new AtomicLong(lease.get().dataRevision()), healthEpoch, new AtomicReference<>(),
+                        new AtomicBoolean(), new AtomicBoolean());
                 if (shuttingDown || clock.getAsLong() - startedAt >= leaseConfig.unsafeAfter().toNanos()
                         || healthEpoch != leaseHealth.epoch()) {
                     database.releasePlayerSession(uuid, serverId, acquired.fenceToken());
@@ -321,6 +347,12 @@ public class PlayerSkillsManager {
         }
         log.warn("[LOCK] uuid={} could not acquire ownership after {} attempts", uuid, LOCK_MAX_ATTEMPTS);
         return null;
+    }
+
+    private void failLoad(UUID uuid, long generation, Ownership ownership) {
+        if (ownership != null) queueOwnershipRelease(uuid, ownership);
+        Bukkit.getScheduler().runTask(plugin,
+                () -> invalidatePlayer(uuid, generation, DATABASE_LOAD_FAILED_MESSAGE, false));
     }
 
     private void scheduleLoadRetry(UUID uuid, long generation) {
@@ -389,11 +421,21 @@ public class PlayerSkillsManager {
         }
         Ownership ownership = ownerships.get(uuid);
         Skills skills = activeSkills.get(uuid);
-        if (ownership == null || skills == null || ownership.generation() != currentGeneration(uuid)) {
+        if (!hasCurrentLoadProof(uuid, ownership) || skills == null) {
             return null;
         }
         long revision = ownership.nextRevision().incrementAndGet();
-        return new SaveRequest(uuid, List.copyOf(buildRows(uuid, copySkills(skills))),
+        List<SkillRow> rows = List.copyOf(buildRows(uuid, copySkills(skills)));
+        verbose("[SAVE] snapshot uuid={} server={} fence={} generation={} revision={} reset={} release={} rows={}",
+                uuid, serverId, ownership.fenceToken(), ownership.generation(), revision,
+                deleteBeforeWrite, releaseAfterSave, rows.size());
+        if (verboseLoggingEnabled()) {
+            for (SkillRow row : rows) {
+                verbose("[SAVE] snapshot-row uuid={} revision={} type={} level={} xp={} totalXp={}",
+                        uuid, revision, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
+            }
+        }
+        return new SaveRequest(uuid, rows,
                 ownership.generation(), ownership.fenceToken(), revision,
                 deleteBeforeWrite, releaseAfterSave);
     }
@@ -498,6 +540,13 @@ public class PlayerSkillsManager {
         if (!persistenceAvailable()) {
             throw new IllegalStateException("Database unavailable");
         }
+        Ownership ownership = ownerships.get(request.uuid());
+        if (ownership == null || !ownership.dataLoaded().get()
+                || ownership.generation() != request.generation()
+                || ownership.fenceToken() != request.fenceToken()
+                || !Objects.equals(ownership.serverId(), serverId)) {
+            throw new IllegalStateException("Refusing to write player data before its database load completed");
+        }
         return database.persistPlayer(request.uuid(), serverId, request.fenceToken(),
                 request.revision(), request.rows(), request.deleteBeforeWrite(), request.releaseAfterWrite());
     }
@@ -573,8 +622,14 @@ public class PlayerSkillsManager {
         Ownership ownership = ownerships.get(uuid);
         return !shuttingDown && !migrationInProgress.get() && persistenceAvailable() && leaseHealth.healthy()
                 && loadedPlayers.contains(uuid) && !invalidatedGenerations.containsKey(uuid)
-                && ownership != null && ownership.generation() == currentGeneration(uuid)
+                && hasCurrentLoadProof(uuid, ownership)
                 && ownership.healthEpoch() == leaseHealth.epoch() && writeHealthy(ownership);
+    }
+
+    private boolean hasCurrentLoadProof(UUID uuid, Ownership ownership) {
+        return ownership != null && ownership.dataLoaded().get()
+                && ownership.generation() == currentGeneration(uuid)
+                && Objects.equals(ownership.serverId(), serverId);
     }
 
     private boolean writeHealthy(Ownership ownership) {
@@ -878,7 +933,7 @@ public class PlayerSkillsManager {
 
     private void releaseOwnership(UUID uuid, Ownership ownership) {
         if (!persistenceAvailable()) throw new IllegalStateException("Database unavailable during release");
-        database.releasePlayerSession(uuid, serverId, ownership.fenceToken());
+        database.releasePlayerSession(uuid, ownership.serverId(), ownership.fenceToken());
         ownerships.remove(uuid, ownership);
         verbose("[LOCK] released uuid={} server={} fence={} generation={}",
                 uuid, serverId, ownership.fenceToken(), ownership.generation());
@@ -902,16 +957,32 @@ public class PlayerSkillsManager {
             SkillInfo info = SkillsManager.getInstance().getSkillInfo(row.getType());
             if (info == null) {
                 log.warn("[LOAD] {} has unknown skill type '{}'", uuid, row.getType());
+                verbose("[LOAD] skipped-row uuid={} type={} reason=skill-type-not-registered storedLevel={} storedXp={} totalXp={}",
+                        uuid, row.getType(), row.getLevel(), row.getXp(), row.getTotalXp());
                 continue;
             }
             // totalXp is the source of truth. Level/current XP are derived caches.
             Skill skill = new Skill(info, 0);
+            if (!info.getXpToLevelList().isEmpty()) {
+                skill.setXpToLevel(info.getXpToLevelList().getFirst());
+            }
             skill.addXp(row.getTotalXp());
             skill.levelUp(false);
             loaded.add(skill);
+            verbose("[LOAD] applied-row uuid={} type={} configuredLevels={} derivedLevel={} derivedXp={} derivedXpToLevel={} totalXp={}",
+                    uuid, row.getType(), info.getXpToLevelList().size(), skill.getLevel(),
+                    skill.getXp(), skill.getXpToLevel(), skill.getTotalXp());
         }
         Skills skills = new Skills(loaded);
         skills.setUuid(uuid);
+        if (verboseLoggingEnabled()) {
+            for (Skill skill : skills) {
+                if (loaded.stream().noneMatch(restored -> restored == skill)) {
+                    verbose("[LOAD] defaulted-skill uuid={} type={} reason=no-database-row level={} xp={} totalXp={}",
+                            uuid, skill.getType().getId(), skill.getLevel(), skill.getXp(), skill.getTotalXp());
+                }
+            }
+        }
         return skills;
     }
 
@@ -1030,7 +1101,8 @@ public class PlayerSkillsManager {
                        long revision, boolean deleteBeforeWrite, boolean releaseAfterWrite) {
     }
 
-    private record Ownership(long generation, long fenceToken, AtomicLong nextRevision, long healthEpoch,
-                             AtomicReference<Long> writeFailureSince, AtomicBoolean writeUnsafe) {
+    private record Ownership(String serverId, long generation, long fenceToken, AtomicLong nextRevision,
+                             long healthEpoch, AtomicReference<Long> writeFailureSince,
+                             AtomicBoolean writeUnsafe, AtomicBoolean dataLoaded) {
     }
 }

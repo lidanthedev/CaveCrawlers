@@ -494,6 +494,23 @@ class PlayerSkillsManagerLifecycleTest {
     }
 
     @Test
+    void serverIdRotatesOnlyAfterOwnershipHandoff() throws Exception {
+        String ownedServerId = manager.getServerId();
+        manager.getSkills(uuid).addXp(mining, 17);
+        manager.savePlayerNowOnQuit(uuid);
+
+        manager.setServerId();
+        assertEquals(ownedServerId, manager.getServerId());
+        runAsync();
+        assertEquals(17, persistedXp());
+        verify(database).persistPlayer(eq(uuid), eq(ownedServerId), anyLong(), anyLong(),
+                anyList(), anyBoolean(), eq(true));
+
+        manager.setServerId();
+        assertNotEquals(ownedServerId, manager.getServerId());
+    }
+
+    @Test
     void shutdownDoesNotReleaseWhileWriterStillRuns() throws Exception {
         CountDownLatch writing = new CountDownLatch(1);
         CountDownLatch finish = new CountDownLatch(1);

@@ -124,9 +124,9 @@ public class PlayerSkillsManager {
         return instance;
     }
 
-    /** A process ID must never survive a restart because it identifies lease ownership. */
+    /** Rotate the process ID only after every lease owned by the current ID is released. */
     public void setServerId() {
-        serverId = UUID.randomUUID().toString();
+        if (ownerships.isEmpty()) serverId = UUID.randomUUID().toString();
         shuttingDown = false;
         loadedPlayers.clear();
         scheduledLoads.clear();

@@ -20,8 +20,8 @@ import java.util.UUID;
 public abstract class ChargedItemAbility extends ClickAbility {
     private int maxCharges;
     private long chargeTime;
-    private final Map<UUID, Integer> playerCharges = new HashMap<>();
-    private final Cooldown<UUID> chargeCooldown = new Cooldown<>();
+    private Map<UUID, Integer> playerCharges = new HashMap<>();
+    private Cooldown<UUID> chargeCooldown = new Cooldown<>();
 
     public ChargedItemAbility(String name, String description, double cost, int maxCharges, long chargeTime) {
         super(name, description, cost, 100);
@@ -117,5 +117,14 @@ public abstract class ChargedItemAbility extends ClickAbility {
     public void abilityFailedCannotUseNow(Player player) {
         String msg = ChatColor.RED + "Cannot Use Ability Now!";
         ActionBarManager.getInstance().showActionBar(player, msg);
+    }
+
+    @Override
+    public ChargedItemAbility clone() {
+        ChargedItemAbility clone = (ChargedItemAbility) super.clone();
+        clone.playerCharges = new HashMap<>(playerCharges);
+        clone.chargeCooldown = new Cooldown<>();
+        clone.recharge();
+        return clone;
     }
 }

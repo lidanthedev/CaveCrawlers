@@ -68,11 +68,12 @@ public class ShopItem implements ConfigurationSerializable {
 
         list.add("");
         list.add(ChatColor.GRAY + "Cost");
-        if (price <= 0 && ingredientsMap.isEmpty()) {
+        double normalizedPrice = normalizedPrice();
+        if (price == 0 && ingredientsMap.isEmpty()) {
             list.add(ChatColor.GOLD + "Free");
         } else {
-            if (price > 0) {
-                list.add(ChatColor.GOLD + StringUtils.getNumberFormat(price) + " Coins");
+            if (normalizedPrice > 0 && isChargeable(normalizedPrice)) {
+                list.add(ChatColor.GOLD + StringUtils.getNumberFormat(normalizedPrice) + " Coins");
             }
             for (ItemInfo itemInfo : ingredientsMap.keySet()) {
                 if (itemInfo == null) {
@@ -94,14 +95,17 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean buy(Player player, boolean silent) {
+        double normalizedPrice = normalizedPrice();
         if (canBuy(player)){
-            VaultUtils.takeCoins(player, price);
+            if (normalizedPrice > 0 && !VaultUtils.takeCoins(player, normalizedPrice)) {
+                return false;
+            }
             itemsManager.removeItems(player, ingredientsMap);
             itemsManager.giveItem(player, result, resultAmount);
             Map<String, String> placeholders = Map.of(
                     "item", result.getFormattedName(),
                     "amount", String.valueOf(resultAmount),
-                    "price", StringUtils.getNumberFormat(price),
+                    "price", StringUtils.getNumberFormat(normalizedPrice),
                     "formatted_name", formatName(result.getFormattedName(), resultAmount)
             );
             if (!silent) {
@@ -113,7 +117,18 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean canBuy(Player player) {
-        return VaultUtils.getCoins(player) >= price && itemsManager.hasItems(player, ingredientsMap);
+        double normalizedPrice = normalizedPrice();
+        return isChargeable(normalizedPrice)
+                && VaultUtils.getCoins(player) >= normalizedPrice && itemsManager.hasItems(player, ingredientsMap);
+    }
+
+    private double normalizedPrice() {
+        return Math.floor(price * 10d) / 10d;
+    }
+
+    private boolean isChargeable(double normalizedPrice) {
+        return Double.isFinite(price) && price >= 0 && Double.isFinite(normalizedPrice)
+                && (price == 0 || normalizedPrice > 0);
     }
 
     @NonNull

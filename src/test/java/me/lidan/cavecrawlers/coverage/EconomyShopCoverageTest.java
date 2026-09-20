@@ -153,6 +153,13 @@ class EconomyShopCoverageTest {
         verify(itemsMock).giveItem(player, result, 1);
     }
 
+    @Test
+    void ingredientOnlyPriceDoesNotDisplayZeroCoins() {
+        ShopItem shopItem = new ShopItem(result, ingredient, 3);
+
+        assertFalse(shopItem.toList().stream().anyMatch(line -> line.contains("Coins")));
+    }
+
     private static Stream<Double> invalidPrices() {
         return Stream.of(-1D, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
     }

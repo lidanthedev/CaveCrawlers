@@ -72,7 +72,7 @@ public class ShopItem implements ConfigurationSerializable {
         if (price == 0 && ingredientsMap.isEmpty()) {
             list.add(ChatColor.GOLD + "Free");
         } else {
-            if (isChargeable(normalizedPrice)) {
+            if (normalizedPrice > 0 && isChargeable(normalizedPrice)) {
                 list.add(ChatColor.GOLD + StringUtils.getNumberFormat(normalizedPrice) + " Coins");
             }
             for (ItemInfo itemInfo : ingredientsMap.keySet()) {

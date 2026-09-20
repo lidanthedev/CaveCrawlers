@@ -6,12 +6,13 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.gui.SellMenu;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 class SellMenuCoverageTest {
     private MockCaveCrawlers context;
     private ItemsManager itemsManager;
-    private Player player;
+    private PlayerMock player;
     private Economy economy;
     private SellMenu menu;
     private Inventory inventory;
@@ -55,6 +56,8 @@ class SellMenuCoverageTest {
         YamlConfiguration pricesConfig = new YamlConfiguration();
         pricesConfig.set("prices.DIAMOND", 2.5D);
         pricesConfig.set("prices.GOLD", 0D);
+        pricesConfig.set("prices.FRACTIONAL", 2.59D);
+        pricesConfig.set("prices.SUB_TENTH", 0.09D);
         ConfigurationSection prices = pricesConfig.getConfigurationSection("prices");
         inventory = mock(Inventory.class);
         menu = allocateMenu();
@@ -129,6 +132,31 @@ class SellMenuCoverageTest {
 
         invokeSell();
 
+        verify(itemsManager).giveItemStacks(player, sellable);
+    }
+
+    @Test
+    void saleUsesNormalizedTotalForDepositAndMessage() throws Exception {
+        ItemStack sellable = new ItemStack(Material.DIAMOND);
+        when(itemsManager.getIDofItemStackSafe(sellable)).thenReturn("FRACTIONAL");
+        when(inventory.getStorageContents()).thenReturn(new ItemStack[]{sellable});
+
+        invokeSell();
+
+        verify(economy).depositPlayer(player, 2.5D);
+        assertEquals("Sold items for 2.5 coins", PlainTextComponentSerializer.plainText()
+                .serialize(player.nextComponentMessage()));
+    }
+
+    @Test
+    void subTenthSaleIsRefundedWithoutDepositingZero() throws Exception {
+        ItemStack sellable = new ItemStack(Material.DIAMOND);
+        when(itemsManager.getIDofItemStackSafe(sellable)).thenReturn("SUB_TENTH");
+        when(inventory.getStorageContents()).thenReturn(new ItemStack[]{sellable});
+
+        invokeSell();
+
+        verify(economy, never()).depositPlayer(any(OfflinePlayer.class), anyDouble());
         verify(itemsManager).giveItemStacks(player, sellable);
     }
 

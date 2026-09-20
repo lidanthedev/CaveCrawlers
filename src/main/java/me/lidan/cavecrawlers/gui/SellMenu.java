@@ -87,7 +87,8 @@ public class SellMenu {
                 }
             }
         }
-        if (total > 0 && !VaultUtils.giveCoins(player, total)) {
+        total = Math.floor(total * 10d) / 10d;
+        if (total <= 0 || !VaultUtils.giveCoins(player, total)) {
             for (ItemStack item : sellable) {
                 itemsManager.giveItemStacks(player, item);
             }

@@ -330,8 +330,10 @@ public class Database {
             if (!rows.isEmpty()) {
                 skills.upsertSkills(rows);
             }
-            for (PlayerDataSqlTable table : playerDataTables) {
-                table.saveForPlayer(handle, uuid);
+            if (!deleteBeforeWrite) {
+                for (PlayerDataSqlTable table : playerDataTables) {
+                    table.saveForPlayer(handle, uuid);
+                }
             }
 
             int updated = handle.createUpdate("UPDATE player_sessions SET data_revision = :revision " +

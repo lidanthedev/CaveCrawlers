@@ -264,6 +264,20 @@ class DatabasePersistenceTest {
     }
 
     @Test
+    void onlineResetDoesNotRecreateAddonRowsFromStaleState() {
+        ToggleAddonTable addon = new ToggleAddonTable();
+        database.registerTable(addon);
+        Database.PlayerLease lease = acquire("A");
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(11), false, false).committed());
+
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 2, List.of(), true, false).committed());
+
+        assertEquals(0, jdbi.withHandle(handle -> handle.createQuery(
+                        "SELECT COUNT(*) FROM addon_test WHERE player_uuid=:uuid")
+                .bind("uuid", uuid.toString()).mapTo(Integer.class).one()).intValue());
+    }
+
+    @Test
     void legacyMigrationNeverOverwritesDatabase() {
         jdbi.useHandle(handle -> handle.attach(SkillsDao.class).upsertSkills(rows(5_000)));
         assertFalse(database.importLegacySkills(uuid, rows(1_000)));

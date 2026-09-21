@@ -342,4 +342,15 @@ public class ItemsManager implements ItemsAPI {
             loader.getNotFullyLoadedItems().remove(key);
         }
     }
+
+    public static List<String> itemStackToList(ItemStack itemStack) {
+        List<String> list = new ArrayList<>();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) {
+            return List.of();
+        }
+        list.add(itemMeta.getDisplayName());
+        list.addAll(itemMeta.getLore());
+        return list;
+    }
 }

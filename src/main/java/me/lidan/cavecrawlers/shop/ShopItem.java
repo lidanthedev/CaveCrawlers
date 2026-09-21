@@ -56,14 +56,14 @@ public class ShopItem implements ConfigurationSerializable {
 
     public ItemStack toItem(){
         ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-        List<String> list = toList();
+        List<String> list = toList(itemStack);
         String name = list.get(0);
         list.remove(0);
         return ItemBuilder.from(itemStack).setName(name).setLore(list).build();
     }
 
-    public List<String> toList(){
-        List<String> list = new ArrayList<>(result.toList());
+    public List<String> toList(ItemStack itemStack) {
+        List<String> list = new ArrayList<>(ItemsManager.itemStackToList(itemStack));
 
         list.set(0, formatName(list.get(0), resultAmount));
 

@@ -82,6 +82,7 @@ public class PlayerSkillsManager {
     private final ConcurrentHashMap.KeySetView<UUID, Boolean> loadingTitleShown = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<UUID, Ownership> ownerships = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, Ownership> pendingReleases = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, CompletableFuture<Skills>> loadWaiters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<UUID, SaveRequest> pendingWrites = new ConcurrentHashMap<>();
     private final ConcurrentHashMap.KeySetView<UUID, Boolean> runningWriters = ConcurrentHashMap.newKeySet();
     // Leave one of the five pool connections available for lease heartbeats.
@@ -131,6 +132,9 @@ public class PlayerSkillsManager {
         loadedPlayers.clear();
         scheduledLoads.clear();
         invalidatedGenerations.clear();
+        loadWaiters.forEach((uuid, waiter) -> waiter.completeExceptionally(
+                new IllegalStateException("Player data load superseded by a new server session")));
+        loadWaiters.clear();
     }
 
     private long leaseTimeoutMillis() {
@@ -179,33 +183,22 @@ public class PlayerSkillsManager {
         scheduleLoadIfNeeded(uuid);
     }
 
-    public Skills loadPlayerSync(UUID uuid) {
+    /** Starts a fenced async load and completes after its primary-thread publication. */
+    public CompletableFuture<Skills> loadPlayerSync(UUID uuid) {
         requirePrimaryThread();
         if (loadedPlayers.contains(uuid)) {
-            return getOrCreateSkills(uuid);
+            return CompletableFuture.completedFuture(getOrCreateSkills(uuid));
         }
 
         cancelStateCleanup(uuid);
-        Skills cached = getOrCreateSkills(uuid);
+        getOrCreateSkills(uuid);
         if (shuttingDown || invalidatedGenerations.containsKey(uuid)) {
-            return cached;
-        }
-        if (migrationInProgress.get()
-                || (plugin instanceof CaveCrawlers caveCrawlers && !caveCrawlers.isLoginAllowed())) {
-            pendingLoads.add(uuid);
-            return cached;
-        }
-        if (!persistenceAvailable() || !leaseHealth.healthy()) {
-            invalidatePlayer(uuid, currentGeneration(uuid), DATABASE_LOAD_FAILED_MESSAGE, false);
-            return cached;
+            return CompletableFuture.failedFuture(new IllegalStateException("Player data load is unavailable"));
         }
 
-        long generation = currentGeneration(uuid);
-        if (scheduledLoads.putIfAbsent(uuid, generation) == null) {
-            // ponytail: one blocking DB load per online player during plugin reload; move this off-thread only if reload latency matters.
-            loadFromDatabase(uuid, generation, true);
-        }
-        return getOrCreateSkills(uuid);
+        CompletableFuture<Skills> waiter = loadWaiters.computeIfAbsent(uuid, ignored -> new CompletableFuture<>());
+        scheduleLoadIfNeeded(uuid);
+        return waiter;
     }
 
     public void scheduleLoadsForOnlinePlayers() {
@@ -254,11 +247,10 @@ public class PlayerSkillsManager {
     }
 
     private void loadFromDatabase(UUID uuid, long generation) {
-        loadFromDatabase(uuid, generation, false);
-    }
-
-    private void loadFromDatabase(UUID uuid, long generation, boolean publishSynchronously) {
-        if (!beginOperation()) return;
+        if (!beginOperation()) {
+            completeLoadFailure(uuid, new IllegalStateException("Player data load was not admitted"));
+            return;
+        }
         boolean publicationQueued = false;
         Ownership ownership = null;
         ReentrantLock lock = stateLock(uuid);
@@ -287,13 +279,20 @@ public class PlayerSkillsManager {
                 }
             }
 
-            if (shuttingDown) return;
+            if (shuttingDown) {
+                completeLoadFailure(uuid, new IllegalStateException("Player data load interrupted by shutdown"));
+                return;
+            }
             Skills loaded = buildSkillsFromRows(uuid, rows);
             // Publication and quit both run on the main thread. Never publish from a late SQL callback.
             Runnable publish = () -> {
                 boolean superseded = !currentGeneration(uuid, generation);
+                boolean retry = superseded && !shuttingDown && Bukkit.getPlayer(uuid) != null;
                 try {
-                    if (shuttingDown) return;
+                    if (shuttingDown) {
+                        completeLoadFailure(uuid, new IllegalStateException("Player data load interrupted by shutdown"));
+                        return;
+                    }
                     if (superseded || Bukkit.getPlayer(uuid) == null
                             || ownerships.get(uuid) != loadedOwnership
                             || !Objects.equals(loadedOwnership.serverId(), serverId)
@@ -301,6 +300,9 @@ public class PlayerSkillsManager {
                             || loadedOwnership.healthEpoch() != leaseHealth.epoch()
                             || invalidatedGenerations.containsKey(uuid)) {
                         queueOwnershipRelease(uuid, loadedOwnership);
+                        if (!retry) {
+                            completeLoadFailure(uuid, new IllegalStateException("Player data load was superseded"));
+                        }
                         return;
                     }
                     bindSkills(uuid, loaded);
@@ -310,21 +312,20 @@ public class PlayerSkillsManager {
                     pendingLoads.remove(uuid);
                     Bukkit.getPluginManager().callEvent(new PlayerDataLoadEvent(uuid));
                     showLoadedTitleIfNeeded(uuid);
+                    CompletableFuture<Skills> waiter = loadWaiters.remove(uuid);
+                    if (waiter != null) waiter.complete(loaded);
                 } finally {
                     scheduledLoads.remove(uuid, generation);
-                    if (superseded && !shuttingDown && Bukkit.getPlayer(uuid) != null) {
+                    if (retry) {
                         scheduleLoadIfNeeded(uuid);
                     }
                 }
             };
-            if (publishSynchronously) {
-                publish.run();
-            } else {
-                Bukkit.getScheduler().runTask(plugin, publish);
-                publicationQueued = true;
-            }
+            Bukkit.getScheduler().runTask(plugin, publish);
+            publicationQueued = true;
         } catch (Database.StaleSessionException e) {
             invalidateStaleSession(uuid, generation, e.currentFence());
+            completeLoadFailure(uuid, e);
         } catch (Exception e) {
             log.warn("[LOAD] uuid={} generation={} failed: {}", uuid, generation, e.getMessage(), e);
             failLoad(uuid, generation, ownership);
@@ -387,6 +388,12 @@ public class PlayerSkillsManager {
         Runnable invalidate = () -> invalidatePlayer(uuid, generation, DATABASE_LOAD_FAILED_MESSAGE, false);
         if (Bukkit.isPrimaryThread()) invalidate.run();
         else Bukkit.getScheduler().runTask(plugin, invalidate);
+        completeLoadFailure(uuid, new IllegalStateException("Player data load failed"));
+    }
+
+    private void completeLoadFailure(UUID uuid, Throwable failure) {
+        CompletableFuture<Skills> waiter = loadWaiters.remove(uuid);
+        if (waiter != null) waiter.completeExceptionally(failure);
     }
 
     private void scheduleLoadRetry(UUID uuid, long generation) {
@@ -636,6 +643,7 @@ public class PlayerSkillsManager {
         }
         loadedPlayers.remove(uuid);
         pendingLoads.remove(uuid);
+        completeLoadFailure(uuid, new IllegalStateException("Player data load invalidated"));
         Player player = Bukkit.getPlayer(uuid);
         if (player != null) player.kick(message);
     }

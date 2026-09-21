@@ -490,7 +490,11 @@ class PlayerSkillsManagerLifecycleTest {
 
         when(server.getPlayer(uuid)).thenReturn(player);
         manager.setServerId();
-        Skills loaded = manager.loadPlayerSync(uuid);
+        CompletableFuture<Skills> load = manager.loadPlayerSync(uuid);
+        assertFalse(load.isDone());
+        runAsync();
+        runMain();
+        Skills loaded = load.get(5, TimeUnit.SECONDS);
 
         assertEquals(22, loaded.get(mining).getTotalXp());
         assertTrue(manager.canPersistPlayer(uuid));

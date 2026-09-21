@@ -80,7 +80,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Getter
@@ -634,19 +633,11 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             if (stopping) return;
             legacyYamlMigrationComplete.set(true);
             PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
-            CompletableFuture<?>[] loads = Bukkit.getOnlinePlayers().stream()
-                    .map(player -> playerSkillsManager.loadPlayerSync(player.getUniqueId()))
-                    .toArray(CompletableFuture[]::new);
-            CompletableFuture.allOf(loads).whenComplete((ignored, failure) -> getServer().getScheduler().runTask(this, () -> {
-                if (stopping) return;
-                if (failure != null) {
-                    log.warn("Some online player data did not load during startup: {}", failure.getMessage());
-                }
-                StatsManager.getInstance().loadAllPlayers();
-                playerSkillsManager.scheduleLoadsForOnlinePlayers();
-                playerSkillsManager.scheduleLoadsForPendingPlayers();
-                playerSkillsManager.flushPendingSavesAsync();
-            }));
+            Bukkit.getOnlinePlayers().forEach(player -> playerSkillsManager.loadPlayerSync(player.getUniqueId()));
+            StatsManager.getInstance().loadAllPlayers();
+            playerSkillsManager.scheduleLoadsForOnlinePlayers();
+            playerSkillsManager.scheduleLoadsForPendingPlayers();
+            playerSkillsManager.flushPendingSavesAsync();
         });
     }
 

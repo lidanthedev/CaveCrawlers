@@ -51,7 +51,14 @@ public class ItemsManager implements ItemsAPI {
         return buildItem(getItemByID(ID), amount);
     }
 
-    private static @NonNull ItemStack buildItem(ItemInfo info, int amount, List<String> infoList, ItemStack clonedBaseItem) {
+    private static @NonNull ItemStack buildItemRaw(ItemInfo info, int amount) {
+        return buildItemRaw(info, amount, info.toList(), info.getBaseItem().clone());
+    }
+
+    private static @NonNull ItemStack buildItemRaw(ItemInfo info, int amount, List<String> infoList, ItemStack clonedBaseItem) {
+        if (infoList == null) {
+            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
+        }
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
         if (clonedBaseItem.getType() == Material.AIR || clonedBaseItem.getItemMeta() == null) {
@@ -68,19 +75,15 @@ public class ItemsManager implements ItemsAPI {
                 .setNbt(ITEM_ID, info.getID())
                 .amount(amount)
                 .build();
-        ItemBuildEvent event = new ItemBuildEvent(clonedBaseItem, builtItem, info);
-        Bukkit.getPluginManager().callEvent(event);
-
-        return event.getBuiltItem();
+        return builtItem;
     }
 
     public ItemStack buildItem(ItemInfo info, int amount){
-        List<String> infoList = info.toList();
-        ItemStack clonedBaseItem = info.getBaseItem().clone();
-        if (infoList == null){
-            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
-        }
-        return buildItem(info, amount, infoList, clonedBaseItem);
+        ItemStack originalItem = info.getBaseItem().clone();
+        ItemStack builtItem = buildItemRaw(info, amount);
+        ItemBuildEvent event = new ItemBuildEvent(originalItem, builtItem, info);
+        Bukkit.getPluginManager().callEvent(event);
+        return event.getBuiltItem();
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
@@ -158,35 +161,33 @@ public class ItemsManager implements ItemsAPI {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            ItemStack builtItem = buildItem(itemInfo, itemStack.getAmount());
+            ItemStack builtItem = buildItemRaw(itemInfo, itemStack.getAmount());
             ItemMeta itemMeta = itemStack.getItemMeta();
-            if (itemMeta == null){
-                return builtItem;
-            }
-            if (itemMeta.hasEnchants()){
-                builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
-            }
-            try {
-                ItemMeta builtItemMeta = builtItem.getItemMeta();
-                if (builtItemMeta == null) {
-                    return builtItem;
+            if (itemMeta != null) {
+                if (itemMeta.hasEnchants()){
+                    builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
                 }
-                itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
-                builtItem.setItemMeta(builtItemMeta);
-            } catch (Exception ignored) {
-                // kept for 1.19 compatibility
-                // WARNING: only copies string nbt values
-                // preserve the custom nbt
-                for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
-                    if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
-                        continue;
+                try {
+                    ItemMeta builtItemMeta = builtItem.getItemMeta();
+                    if (builtItemMeta != null) {
+                        itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
+                        builtItem.setItemMeta(builtItemMeta);
                     }
-                    if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
-                        continue;
-                    }
-                    String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-                    if (value != null) {
-                        builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                } catch (Exception ignored) {
+                    // kept for 1.19 compatibility
+                    // WARNING: only copies string nbt values
+                    // preserve the custom nbt
+                    for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                        if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
+                            continue;
+                        }
+                        if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                            continue;
+                        }
+                        String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                        if (value != null) {
+                            builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                        }
                     }
                 }
             }

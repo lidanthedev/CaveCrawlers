@@ -35,7 +35,7 @@ public class ShortBowAbility extends ClickAbility {
         }
 
         if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < event.getCooldown()){
-            abilityFailedCooldown(player);
+            abilityFailedCooldown(player, event.getCooldown());
             return;
         }
         Stat manaStat = stats.get(StatType.MANA);
@@ -67,7 +67,7 @@ public class ShortBowAbility extends ClickAbility {
     }
 
     @Override
-    public void abilityFailedCooldown(Player player) {
+    public void abilityFailedCooldown(Player player, long cooldown) {
 
     }
 

@@ -93,7 +93,7 @@ public class MultiShotAbility extends ItemAbility implements Listener {
     }
 
     @Override
-    public void abilityFailedCooldown(Player player) {
+    public void abilityFailedCooldown(Player player, long cooldown) {
 
     }
 }

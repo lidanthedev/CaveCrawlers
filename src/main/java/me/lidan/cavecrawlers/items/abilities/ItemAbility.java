@@ -55,7 +55,7 @@ public abstract class ItemAbility implements Cloneable {
         }
 
         if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < event.getCooldown()) {
-            abilityFailedCooldown(player);
+            abilityFailedCooldown(player, event.getCooldown());
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
@@ -98,6 +98,10 @@ public abstract class ItemAbility implements Cloneable {
     }
 
     public void abilityFailedCooldown(Player player){
+        abilityFailedCooldown(player, cooldown);
+    }
+
+    public void abilityFailedCooldown(Player player, long cooldown){
         double diff = (cooldown - abilityCooldown.getCurrentCooldown(player.getUniqueId()))/1000.0;
         String msg = ChatColor.RED + "Still on cooldown! (%ss Left)".formatted(diff);
         ActionBarManager.getInstance().showActionBar(player, msg);

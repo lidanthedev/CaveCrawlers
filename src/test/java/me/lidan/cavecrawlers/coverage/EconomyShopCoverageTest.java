@@ -1,24 +1,35 @@
 package me.lidan.cavecrawlers.coverage;
 
+import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.items.abilities.AutoFullShopAbility;
+import me.lidan.cavecrawlers.items.abilities.AutoPortableShopAbility;
+import me.lidan.cavecrawlers.items.abilities.PortableShopAbility;
 import me.lidan.cavecrawlers.shop.ShopItem;
+import me.lidan.cavecrawlers.shop.ShopManager;
+import me.lidan.cavecrawlers.shop.ShopMenu;
+import me.lidan.cavecrawlers.shop.ShopPurchaseEvent;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Answers;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -30,9 +41,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +64,7 @@ class EconomyShopCoverageTest {
     void setUp() throws Exception {
         context = MockCaveCrawlers.start();
         setStatic(ItemsManager.class, "instance", null);
+        setStatic(ShopManager.class, "instance", null);
         itemsManager = ItemsManager.getInstance();
         itemsMock = mock(ItemsManager.class, Answers.RETURNS_DEFAULTS);
         setStatic(ItemsManager.class, "instance", itemsMock);
@@ -67,6 +83,7 @@ class EconomyShopCoverageTest {
     void tearDown() throws Exception {
         CaveCrawlers.economy = null;
         setStatic(ItemsManager.class, "instance", null);
+        setStatic(ShopManager.class, "instance", null);
         context.close();
     }
 
@@ -160,6 +177,75 @@ class EconomyShopCoverageTest {
         assertFalse(shopItem.toList().stream().anyMatch(line -> line.contains("Coins")));
     }
 
+    @Test
+    void automaticPortablePurchaseUsesEventAdjustedPrice() throws Exception {
+        when(economy.getBalance(player)).thenReturn(50D);
+        ShopItem shopItem = new ShopItem(result, 1, 100, Map.of());
+        registerShop(shopItem);
+
+        PluginManager pluginManager = mock(PluginManager.class);
+        doAnswer(invocation -> {
+            ShopPurchaseEvent event = invocation.getArgument(0);
+            event.setPrice(5);
+            return null;
+        }).when(pluginManager).callEvent(any(ShopPurchaseEvent.class));
+
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+            new TestAutoPortableShopAbility().buy(player, autoShopItem());
+        }
+
+        verify(economy).withdrawPlayer(player, 5D);
+        verify(itemsMock).giveItem(player, result, 1);
+        verify(pluginManager, times(1)).callEvent(any(ShopPurchaseEvent.class));
+    }
+
+    @Test
+    void automaticFullPurchaseUsesEventAdjustedIngredients() throws Exception {
+        ItemInfo replacementIngredient = item("REPLACEMENT_INGREDIENT");
+        ShopItem shopItem = new ShopItem(result, 1, 0, Map.of(ingredient, 2));
+        registerShop(shopItem);
+
+        PluginManager pluginManager = mock(PluginManager.class);
+        doAnswer(invocation -> {
+            ShopPurchaseEvent event = invocation.getArgument(0);
+            event.setIngredients(Map.of(replacementIngredient, 1));
+            return null;
+        }).when(pluginManager).callEvent(any(ShopPurchaseEvent.class));
+
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+            new TestAutoFullShopAbility().buy(player, autoShopItem());
+        }
+
+        verify(itemsMock).removeItems(player, Map.of(replacementIngredient, 1));
+        verify(itemsMock).giveItem(player, result, 1);
+        verify(pluginManager, times(1)).callEvent(any(ShopPurchaseEvent.class));
+    }
+
+    @Test
+    void automaticPurchaseCancellationPreventsSideEffects() throws Exception {
+        ShopItem shopItem = new ShopItem(result, 1, 0, Map.of());
+        registerShop(shopItem);
+
+        PluginManager pluginManager = mock(PluginManager.class);
+        doAnswer(invocation -> {
+            ShopPurchaseEvent event = invocation.getArgument(0);
+            event.setCancelled(true);
+            return null;
+        }).when(pluginManager).callEvent(any(ShopPurchaseEvent.class));
+
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+            new TestAutoFullShopAbility().buy(player, autoShopItem());
+        }
+
+        verify(economy, never()).withdrawPlayer(any(OfflinePlayer.class), anyDouble());
+        verify(itemsMock, never()).removeItems(any(Player.class), any(Map.class));
+        verify(itemsMock, never()).giveItem(any(Player.class), any(ItemInfo.class), anyInt());
+        verify(pluginManager, times(1)).callEvent(any(ShopPurchaseEvent.class));
+    }
+
     private static Stream<Double> invalidPrices() {
         return Stream.of(-1D, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
     }
@@ -170,6 +256,30 @@ class EconomyShopCoverageTest {
         when(itemsMock.getItemByID(id)).thenReturn(item);
         item.setID(id);
         return item;
+    }
+
+    private void registerShop(ShopItem... shopItems) {
+        ShopMenu shopMenu = new ShopMenu("test", java.util.Arrays.asList(shopItems));
+        ShopManager.getInstance().registerMenu("test", shopMenu);
+    }
+
+    private ItemStack autoShopItem() {
+        ItemStack item = new ItemStack(Material.STICK);
+        ItemNbt.setString(item, PortableShopAbility.PORTABLE_SHOP_ID, "test");
+        ItemNbt.setString(item, AutoPortableShopAbility.PORTABLE_SHOP_ITEM, "0");
+        return item;
+    }
+
+    private static final class TestAutoPortableShopAbility extends AutoPortableShopAbility {
+        private void buy(Player player, ItemStack item) {
+            buyAutomatically(player, item);
+        }
+    }
+
+    private static final class TestAutoFullShopAbility extends AutoFullShopAbility {
+        private void buy(Player player, ItemStack item) {
+            buyAutomatically(player, item);
+        }
     }
 
     private static void setStatic(Class<?> type, String name, Object value) throws Exception {

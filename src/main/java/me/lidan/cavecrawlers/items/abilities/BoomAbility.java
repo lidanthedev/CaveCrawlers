@@ -35,7 +35,7 @@ public class BoomAbility extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    public void abilityFailedCooldown(Player player) {
+    public void abilityFailedCooldown(Player player, long cooldown) {
         // silent cooldown
     }
 }

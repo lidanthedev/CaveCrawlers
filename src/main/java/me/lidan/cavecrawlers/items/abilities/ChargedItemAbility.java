@@ -114,7 +114,7 @@ public abstract class ChargedItemAbility extends ClickAbility {
         return ability;
     }
 
-    public void abilityFailedCooldown(Player player){
+    public void abilityFailedCooldown(Player player, long cooldown){
         String msg = ChatColor.RED + "No More Charges!";
         ActionBarManager.getInstance().showActionBar(player, msg);
     }

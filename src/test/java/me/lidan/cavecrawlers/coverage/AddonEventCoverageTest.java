@@ -129,6 +129,7 @@ class AddonEventCoverageTest {
 
         assertEquals(1, ability.uses);
         assertEquals(7, StatsManager.getInstance().getStats(player).get(StatType.MANA).getValue());
+        assertEquals(5000, ability.failedCooldown);
         assertEquals(Material.STICK, received.get().getItemStack().getType());
         assertEquals(1, received.get().getItemStack().getAmount());
         verify(pluginManager, org.mockito.Mockito.times(2)).callEvent(any(PlayerItemAbilityUseEvent.class));
@@ -260,6 +261,7 @@ class AddonEventCoverageTest {
 
     private static final class TestAbility extends ItemAbility {
         private int uses;
+        private long failedCooldown;
 
         private TestAbility(String name, String description, double cost, long cooldown) {
             super(name, description, cost, cooldown);
@@ -269,6 +271,11 @@ class AddonEventCoverageTest {
         protected boolean useAbility(org.bukkit.event.player.PlayerEvent playerEvent) {
             uses++;
             return true;
+        }
+
+        @Override
+        public void abilityFailedCooldown(Player player, long cooldown) {
+            failedCooldown = cooldown;
         }
     }
 }

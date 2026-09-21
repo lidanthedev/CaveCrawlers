@@ -41,6 +41,8 @@ Shop editor
 - Coin and player data management
 - Integration with MythicMobs
 
+Addon developers can hook gameplay transactions through the [addon event API](docs/addon-events.md).
+
 ## Commands
 
 ### Main Commands

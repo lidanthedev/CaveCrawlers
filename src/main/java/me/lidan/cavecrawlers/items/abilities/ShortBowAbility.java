@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
+import me.lidan.cavecrawlers.items.PlayerItemAbilityUseEvent;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
@@ -28,20 +29,24 @@ public class ShortBowAbility extends ClickAbility {
         Stat attackSpeedStat = stats.get(StatType.ATTACK_SPEED);
 
         long attackCooldown = DamageManager.calculateAttackSpeed((long) attackSpeedStat.getValue());
+        PlayerItemAbilityUseEvent event = fireAbilityUseEvent(player, attackCooldown);
+        if (event.isCancelled()) {
+            return;
+        }
 
-        if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < attackCooldown){
+        if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < event.getCooldown()){
             abilityFailedCooldown(player);
             return;
         }
         Stat manaStat = stats.get(StatType.MANA);
-        if (manaStat.getValue() < getCost()){
-            abilityFailedNoMana(player);
+        if (manaStat.getValue() < event.getCost()){
+            abilityFailedNoMana(player, event.getCost());
             return;
         }
 
         getAbilityCooldown().startCooldown(player.getUniqueId());
-        manaStat.setValue(manaStat.getValue() - getCost());
-        String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int)getCost());
+        manaStat.setValue(manaStat.getValue() - event.getCost());
+        String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) event.getCost());
         ActionBarManager.getInstance().showActionBar(player, msg);
         useAbility(playerEvent);
     }

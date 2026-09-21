@@ -6,18 +6,24 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @Getter
 public class ItemUpdateEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
     private final ItemStack originalItem;
-    private final ItemStack builtItem;
+    private ItemStack builtItem;
     private final ItemInfo itemInfo;
 
     public ItemUpdateEvent(ItemStack originalItem, ItemStack builtItem, ItemInfo itemInfo) {
         this.originalItem = originalItem;
-        this.builtItem = builtItem;
+        this.builtItem = Objects.requireNonNull(builtItem, "builtItem");
         this.itemInfo = itemInfo;
+    }
+
+    public void setBuiltItem(@NotNull ItemStack builtItem) {
+        this.builtItem = Objects.requireNonNull(builtItem, "builtItem");
     }
 
     public static HandlerList getHandlerList() {

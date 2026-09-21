@@ -49,20 +49,19 @@ public abstract class ItemAbility implements Cloneable {
 
     public void activateAbility(PlayerEvent playerEvent){
         Player player = playerEvent.getPlayer();
-        PlayerItemAbilityUseEvent event = new PlayerItemAbilityUseEvent(player, this, abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown, getCost(), false);
-        Bukkit.getPluginManager().callEvent(event);
+        PlayerItemAbilityUseEvent event = fireAbilityUseEvent(player, cooldown);
         if (event.isCancelled()) {
             return;
         }
 
-        if (event.isCooldown()) {
+        if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < event.getCooldown()) {
             abilityFailedCooldown(player);
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat manaStat = stats.get(StatType.MANA);
         if (manaStat.getValue() < event.getCost()) {
-            abilityFailedNoMana(player);
+            abilityFailedNoMana(player, event.getCost());
             return;
         }
 
@@ -70,7 +69,7 @@ public abstract class ItemAbility implements Cloneable {
         if (success) {
             abilityCooldown.startCooldown(player.getUniqueId());
             if (isCooldownAnimationEnabled()) {
-                double cooldownSeconds = cooldown / 1000d * 20;
+                double cooldownSeconds = event.getCooldown() / 1000d * 20;
                 if (cooldownSeconds >= 1) {
                     PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) cooldownSeconds);
                 }
@@ -81,8 +80,20 @@ public abstract class ItemAbility implements Cloneable {
         }
     }
 
+    protected PlayerItemAbilityUseEvent fireAbilityUseEvent(Player player, long cooldown) {
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
+        PlayerItemAbilityUseEvent event = new PlayerItemAbilityUseEvent(player, this, itemStack, itemInfo, cooldown, getCost());
+        Bukkit.getPluginManager().callEvent(event);
+        return event;
+    }
+
     public void abilityFailedNoMana(Player player){
-        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
+        abilityFailedNoMana(player, getCost());
+    }
+
+    public void abilityFailedNoMana(Player player, double cost){
+        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) cost);
         ActionBarManager.getInstance().showActionBar(player, msg);
     }
 

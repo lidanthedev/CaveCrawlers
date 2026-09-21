@@ -192,7 +192,7 @@ public class ItemsManager implements ItemsAPI {
             }
             ItemUpdateEvent event = new ItemUpdateEvent(itemStack, builtItem, itemInfo);
             Bukkit.getPluginManager().callEvent(event);
-            return builtItem;
+            return event.getBuiltItem();
         }
         return itemStack;
     }

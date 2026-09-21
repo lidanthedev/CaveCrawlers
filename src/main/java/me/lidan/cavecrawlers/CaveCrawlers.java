@@ -202,6 +202,8 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 MiningManager.getInstance().loadBrokenBlocks();
                 delayedDataReady.set(true);
                 runDatabaseReadyWorkIfPossible();
+                PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
+                Bukkit.getOnlinePlayers().forEach(player -> playerSkillsManager.loadPlayerSync(player.getUniqueId()));
                 StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
@@ -632,9 +634,12 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         if (stopping) return;
         legacyYamlMigrationComplete.set(true);
         getServer().getScheduler().runTask(this, () -> {
-            PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
-            PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
-            PlayerSkillsManager.getInstance().flushPendingSavesAsync();
+            PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
+            Bukkit.getOnlinePlayers().forEach(player -> playerSkillsManager.loadPlayerSync(player.getUniqueId()));
+            StatsManager.getInstance().loadAllPlayers();
+            playerSkillsManager.scheduleLoadsForOnlinePlayers();
+            playerSkillsManager.scheduleLoadsForPendingPlayers();
+            playerSkillsManager.flushPendingSavesAsync();
         });
     }
 

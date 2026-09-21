@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.ItemsAPI;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -49,12 +51,7 @@ public class ItemsManager implements ItemsAPI {
         return buildItem(getItemByID(ID), amount);
     }
 
-    public ItemStack buildItem(ItemInfo info, int amount){
-        List<String> infoList = info.toList();
-        ItemStack clonedBaseItem = info.getBaseItem().clone();
-        if (infoList == null){
-            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
-        }
+    private static @NonNull ItemStack buildItem(ItemInfo info, int amount, List<String> infoList, ItemStack clonedBaseItem) {
         String name = infoList.get(0);
         List<String> lore = infoList.subList(1, infoList.size());
         if (clonedBaseItem.getType() == Material.AIR || clonedBaseItem.getItemMeta() == null) {
@@ -62,7 +59,7 @@ public class ItemsManager implements ItemsAPI {
             lore.add(0, ChatColor.RED + "base item is missing");
         }
 
-        return ItemBuilder
+        ItemStack builtItem = ItemBuilder
                 .from(clonedBaseItem)
                 .setName(name)
                 .setLore(lore)
@@ -71,6 +68,19 @@ public class ItemsManager implements ItemsAPI {
                 .setNbt(ITEM_ID, info.getID())
                 .amount(amount)
                 .build();
+        ItemBuildEvent event = new ItemBuildEvent(clonedBaseItem, builtItem, info);
+        Bukkit.getPluginManager().callEvent(event);
+
+        return event.getBuiltItem();
+    }
+
+    public ItemStack buildItem(ItemInfo info, int amount){
+        List<String> infoList = info.toList();
+        ItemStack clonedBaseItem = info.getBaseItem().clone();
+        if (infoList == null){
+            return ItemBuilder.from(clonedBaseItem).amount(amount).build();
+        }
+        return buildItem(info, amount, infoList, clonedBaseItem);
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
@@ -180,6 +190,8 @@ public class ItemsManager implements ItemsAPI {
                     }
                 }
             }
+            ItemUpdateEvent event = new ItemUpdateEvent(itemStack, builtItem, itemInfo);
+            Bukkit.getPluginManager().callEvent(event);
             return builtItem;
         }
         return itemStack;

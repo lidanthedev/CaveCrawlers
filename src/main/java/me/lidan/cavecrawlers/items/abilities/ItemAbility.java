@@ -7,11 +7,13 @@ import lombok.ToString;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.PlayerItemAbilityUseEvent;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
@@ -47,13 +49,19 @@ public abstract class ItemAbility implements Cloneable {
 
     public void activateAbility(PlayerEvent playerEvent){
         Player player = playerEvent.getPlayer();
-        if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
+        PlayerItemAbilityUseEvent event = new PlayerItemAbilityUseEvent(player, this, abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown, getCost(), false);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        if (event.isCooldown()) {
             abilityFailedCooldown(player);
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat manaStat = stats.get(StatType.MANA);
-        if (manaStat.getValue() < cost){
+        if (manaStat.getValue() < event.getCost()) {
             abilityFailedNoMana(player);
             return;
         }
@@ -67,8 +75,8 @@ public abstract class ItemAbility implements Cloneable {
                     PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) cooldownSeconds);
                 }
             }
-            manaStat.setValue(manaStat.getValue() - getCost());
-            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
+            manaStat.setValue(manaStat.getValue() - event.getCost());
+            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) event.getCost());
             ActionBarManager.getInstance().showActionBar(player, msg);
         }
     }

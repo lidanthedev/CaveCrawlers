@@ -22,6 +22,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,24 +33,14 @@ import org.mockito.Answers;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class EconomyShopCoverageTest {
     private MockCaveCrawlers context;
@@ -150,7 +141,7 @@ class EconomyShopCoverageTest {
         assertTrue(shopItem.buy(player, true));
 
         verify(economy).withdrawPlayer(player, 2.9D);
-        assertTrue(shopItem.toList().stream().anyMatch(line -> line.contains("2.9 Coins")));
+        assertTrue(shopItem.toList(displayItem()).stream().anyMatch(line -> line.contains("2.9 Coins")));
     }
 
     @ParameterizedTest
@@ -174,7 +165,7 @@ class EconomyShopCoverageTest {
     void ingredientOnlyPriceDoesNotDisplayZeroCoins() {
         ShopItem shopItem = new ShopItem(result, ingredient, 3);
 
-        assertFalse(shopItem.toList().stream().anyMatch(line -> line.contains("Coins")));
+        assertFalse(shopItem.toList(displayItem()).stream().anyMatch(line -> line.contains("Coins")));
     }
 
     @Test
@@ -255,6 +246,15 @@ class EconomyShopCoverageTest {
                 Material.DIAMOND, Rarity.COMMON);
         when(itemsMock.getItemByID(id)).thenReturn(item);
         item.setID(id);
+        return item;
+    }
+
+    private ItemStack displayItem() {
+        ItemStack item = new ItemStack(Material.DIAMOND);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(result.getFormattedName());
+        meta.setLore(List.of("item"));
+        item.setItemMeta(meta);
         return item;
     }
 

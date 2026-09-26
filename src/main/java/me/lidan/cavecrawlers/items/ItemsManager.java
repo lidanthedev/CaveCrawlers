@@ -347,10 +347,14 @@ public class ItemsManager implements ItemsAPI {
         List<String> list = new ArrayList<>();
         ItemMeta itemMeta = itemStack.getItemMeta();
         if (itemMeta == null) {
-            return List.of();
+            return List.of(itemStack.getType().name());
         }
-        list.add(itemMeta.getDisplayName());
-        list.addAll(itemMeta.getLore());
+        String displayName = itemMeta.getDisplayName();
+        list.add(displayName == null || displayName.isEmpty() ? itemStack.getType().name() : displayName);
+        List<String> lore = itemMeta.getLore();
+        if (lore != null) {
+            list.addAll(lore);
+        }
         return list;
     }
 }

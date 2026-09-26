@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerEvent;
@@ -47,7 +48,7 @@ public class MultiShotAbility extends ItemAbility implements Listener {
                 Entity entity = event.getProjectile();
                 if (entity instanceof Projectile projectile){
                     projectile.remove();
-                    shoot(player, event.getForce());
+                    activateAbility(new MultiShotEvent(player, event.getForce()));
                 }
             }
         }
@@ -89,11 +90,32 @@ public class MultiShotAbility extends ItemAbility implements Listener {
 
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
+        double force = playerEvent instanceof MultiShotEvent event ? event.force : 1;
+        shoot(playerEvent.getPlayer(), force);
         return true;
     }
 
     @Override
     public void abilityFailedCooldown(Player player, long cooldown) {
 
+    }
+
+    private static final class MultiShotEvent extends PlayerEvent {
+        private static final HandlerList HANDLERS = new HandlerList();
+        private final float force;
+
+        private MultiShotEvent(Player player, float force) {
+            super(player);
+            this.force = force;
+        }
+
+        public static HandlerList getHandlerList() {
+            return HANDLERS;
+        }
+
+        @Override
+        public HandlerList getHandlers() {
+            return HANDLERS;
+        }
     }
 }

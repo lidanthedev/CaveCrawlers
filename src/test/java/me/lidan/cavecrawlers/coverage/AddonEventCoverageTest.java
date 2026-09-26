@@ -1,5 +1,6 @@
 package me.lidan.cavecrawlers.coverage;
 
+import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.altar.Altar;
 import me.lidan.cavecrawlers.altar.AltarUseEvent;
@@ -17,6 +18,7 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.PlayerItemAbilityUseEvent;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.items.abilities.ItemAbility;
+import me.lidan.cavecrawlers.items.abilities.MultiShotAbility;
 import me.lidan.cavecrawlers.listeners.DamageEntityListener;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.BlockMineStartEvent;
@@ -34,11 +36,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
@@ -55,6 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
@@ -132,6 +138,74 @@ class AddonEventCoverageTest {
         assertEquals(5000, ability.failedCooldown);
         assertEquals(Material.STICK, received.get().getItemStack().getType());
         assertEquals(1, received.get().getItemStack().getAmount());
+        verify(pluginManager, org.mockito.Mockito.times(2)).callEvent(any(PlayerItemAbilityUseEvent.class));
+    }
+
+    @Test
+    void abilityActivationKeepsLegacyCooldownHookDispatch() throws Exception {
+        LegacyTestAbility ability = new LegacyTestAbility("Test", "description", 0, 1000);
+        ItemStack stack = new ItemStack(Material.STICK);
+        player.getInventory().setItemInMainHand(stack);
+        ability.getAbilityCooldown().startCooldown(player.getUniqueId());
+
+        PluginManager pluginManager = mock(PluginManager.class);
+        PlayerInteractEvent input = new PlayerInteractEvent(player, Action.RIGHT_CLICK_AIR, stack, null, null);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+            ability.activateAbility(input);
+        }
+
+        assertTrue(ability.legacyCooldownCalled);
+    }
+
+    @Test
+    void abilitySettingsRejectNegativeResourceValues() {
+        TestAbility ability = new TestAbility("Test", "description", 0, 1000);
+        JsonObject negativeCost = new JsonObject();
+        negativeCost.addProperty("cost", -1);
+        JsonObject negativeCooldown = new JsonObject();
+        negativeCooldown.addProperty("cooldown", -1);
+
+        assertThrows(IllegalArgumentException.class, () -> ability.buildAbilityWithSettings(negativeCost));
+        assertThrows(IllegalArgumentException.class, () -> ability.buildAbilityWithSettings(negativeCooldown));
+    }
+
+    @Test
+    void multiShotUsesAbilityActivationForBowShots() throws Exception {
+        setStatic(StatsManager.class, "instance", null);
+        StatsManager.getInstance().getStats(player).get(StatType.MANA).setValue(10);
+        TestMultiShotAbility ability = new TestMultiShotAbility(3);
+        ItemStack bow = new ItemStack(Material.BOW);
+        player.getInventory().setItemInMainHand(bow);
+
+        PluginManager pluginManager = mock(PluginManager.class);
+        AtomicReference<PlayerItemAbilityUseEvent> received = new AtomicReference<>();
+        int[] calls = {0};
+        doAnswer(invocation -> {
+            PlayerItemAbilityUseEvent event = invocation.getArgument(0);
+            received.set(event);
+            event.setCost(4);
+            event.setCooldown(calls[0]++ == 0 ? 0 : 5000);
+            return null;
+        }).when(pluginManager).callEvent(any(PlayerItemAbilityUseEvent.class));
+
+        Arrow projectile = mock(Arrow.class);
+        EntityShootBowEvent first = new EntityShootBowEvent(
+                player, bow, new ItemStack(Material.ARROW), projectile, EquipmentSlot.HAND, 0.75f, false);
+        EntityShootBowEvent second = new EntityShootBowEvent(
+                player, bow, new ItemStack(Material.ARROW), projectile, EquipmentSlot.HAND, 1, false);
+
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(pluginManager);
+            ability.onEntityShootBow(first);
+            ability.onEntityShootBow(second);
+        }
+
+        assertTrue(first.isCancelled());
+        assertEquals(1, ability.shoots);
+        assertEquals(0.75, ability.force);
+        assertEquals(6, StatsManager.getInstance().getStats(player).get(StatType.MANA).getValue());
+        assertEquals(5000, received.get().getCooldown());
         verify(pluginManager, org.mockito.Mockito.times(2)).callEvent(any(PlayerItemAbilityUseEvent.class));
     }
 
@@ -259,7 +333,7 @@ class AddonEventCoverageTest {
         field.set(null, value);
     }
 
-    private static final class TestAbility extends ItemAbility {
+    private static class TestAbility extends ItemAbility {
         private int uses;
         private long failedCooldown;
 
@@ -276,6 +350,39 @@ class AddonEventCoverageTest {
         @Override
         public void abilityFailedCooldown(Player player, long cooldown) {
             failedCooldown = cooldown;
+        }
+    }
+
+    private static final class LegacyTestAbility extends TestAbility {
+        private boolean legacyCooldownCalled;
+
+        private LegacyTestAbility(String name, String description, double cost, long cooldown) {
+            super(name, description, cost, cooldown);
+        }
+
+        @Override
+        public void abilityFailedCooldown(Player player) {
+            legacyCooldownCalled = true;
+        }
+    }
+
+    private static final class TestMultiShotAbility extends MultiShotAbility {
+        private int shoots;
+        private double force;
+
+        private TestMultiShotAbility(int amount) {
+            super(amount);
+        }
+
+        @Override
+        public boolean hasAbility(ItemStack itemStack) {
+            return true;
+        }
+
+        @Override
+        public void shoot(Player player, double force) {
+            shoots++;
+            this.force = force;
         }
     }
 }

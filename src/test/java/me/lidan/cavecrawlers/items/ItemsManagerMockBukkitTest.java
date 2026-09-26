@@ -85,6 +85,16 @@ class ItemsManagerMockBukkitTest {
     }
 
     @Test
+    void itemStackToListFallsBackWithoutDisplayNameOrLore() {
+        assertEquals(List.of("DIAMOND"), ItemsManager.itemStackToList(new ItemStack(Material.DIAMOND)));
+
+        ItemStack noMeta = mock(ItemStack.class);
+        when(noMeta.getType()).thenReturn(Material.DIAMOND);
+        when(noMeta.getItemMeta()).thenReturn(null);
+        assertEquals(List.of("DIAMOND"), ItemsManager.itemStackToList(noMeta));
+    }
+
+    @Test
     void canonicalPdcIdIsRecognizedRegardlessOfDisplayName() {
         ItemInfo item = registerItem("CUSTOM_SWORD", "Custom Sword", ItemType.SWORD);
         ItemStack stack = namedItem(Material.DIAMOND, "A misleading name");

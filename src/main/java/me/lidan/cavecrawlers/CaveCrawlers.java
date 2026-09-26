@@ -288,6 +288,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         IndexBaseCategoryMenu.clearItemCache();
 
         registerFromConfigs(this);
+        reloadContent(SkillsManager.getInstance());
 
         if (!databaseSettingsBefore.equals(getDatabaseSettings())) {
             sender.sendMessage(ChatColor.YELLOW + "Database settings changed. A full reload or server restart is required for them to take effect.");

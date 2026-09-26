@@ -55,7 +55,11 @@ public abstract class ItemAbility implements Cloneable {
         }
 
         if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < event.getCooldown()) {
-            abilityFailedCooldown(player, event.getCooldown());
+            if (event.getCooldown() == cooldown) {
+                abilityFailedCooldown(player);
+            } else {
+                abilityFailedCooldown(player, event.getCooldown());
+            }
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
@@ -134,10 +138,18 @@ public abstract class ItemAbility implements Cloneable {
             ability.description = map.get("description").getAsString();
         }
         if (map.has("cost")){
-            ability.cost = map.get("cost").getAsDouble();
+            double cost = map.get("cost").getAsDouble();
+            if (!Double.isFinite(cost) || cost < 0) {
+                throw new IllegalArgumentException("cost must be finite and non-negative");
+            }
+            ability.cost = cost;
         }
         if (map.has("cooldown")){
-            ability.cooldown = map.get("cooldown").getAsLong();
+            long cooldown = map.get("cooldown").getAsLong();
+            if (cooldown < 0) {
+                throw new IllegalArgumentException("cooldown cannot be negative");
+            }
+            ability.cooldown = cooldown;
         }
 
         return ability;

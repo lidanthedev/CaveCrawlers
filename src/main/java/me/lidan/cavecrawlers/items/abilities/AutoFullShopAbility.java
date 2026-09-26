@@ -22,9 +22,7 @@ public class AutoFullShopAbility extends AutoPortableShopAbility {
             return;
         }
         for (ShopItem shopItem : shopMenu.getShopItemList()) {
-            if (shopItem.canBuy(player)) {
-                shopItem.buy(player, silent);
-            }
+            shopItem.buy(player, silent);
         }
     }
 

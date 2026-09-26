@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -55,14 +56,14 @@ public class ShopItem implements ConfigurationSerializable {
 
     public ItemStack toItem(){
         ItemStack itemStack = itemsManager.buildItem(result, resultAmount);
-        List<String> list = toList();
+        List<String> list = toList(itemStack);
         String name = list.get(0);
         list.remove(0);
         return ItemBuilder.from(itemStack).setName(name).setLore(list).build();
     }
 
-    public List<String> toList(){
-        List<String> list = new ArrayList<>(result.toList());
+    public List<String> toList(ItemStack itemStack) {
+        List<String> list = new ArrayList<>(ItemsManager.itemStackToList(itemStack));
 
         list.set(0, formatName(list.get(0), resultAmount));
 
@@ -72,7 +73,7 @@ public class ShopItem implements ConfigurationSerializable {
         if (price == 0 && ingredientsMap.isEmpty()) {
             list.add(ChatColor.GOLD + "Free");
         } else {
-            if (normalizedPrice > 0 && isChargeable(normalizedPrice)) {
+            if (normalizedPrice > 0 && isChargeable(price, normalizedPrice)) {
                 list.add(ChatColor.GOLD + StringUtils.getNumberFormat(normalizedPrice) + " Coins");
             }
             for (ItemInfo itemInfo : ingredientsMap.keySet()) {
@@ -95,12 +96,21 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean buy(Player player, boolean silent) {
-        double normalizedPrice = normalizedPrice();
-        if (canBuy(player)){
+        ShopPurchaseEvent event = new ShopPurchaseEvent(player, this, price, ingredientsMap, resultAmount);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        double price = event.getPrice();
+        double normalizedPrice = normalizedPrice(price);
+        Map<ItemInfo, Integer> ingredients = event.getIngredients();
+        int resultAmount = event.getResultAmount();
+        if (canBuy(player, price, ingredients, resultAmount)){
             if (normalizedPrice > 0 && !VaultUtils.takeCoins(player, normalizedPrice)) {
                 return false;
             }
-            itemsManager.removeItems(player, ingredientsMap);
+            itemsManager.removeItems(player, ingredients);
             itemsManager.giveItem(player, result, resultAmount);
             Map<String, String> placeholders = Map.of(
                     "item", result.getFormattedName(),
@@ -117,18 +127,36 @@ public class ShopItem implements ConfigurationSerializable {
     }
 
     public boolean canBuy(Player player) {
-        double normalizedPrice = normalizedPrice();
-        return isChargeable(normalizedPrice)
-                && VaultUtils.getCoins(player) >= normalizedPrice && itemsManager.hasItems(player, ingredientsMap);
+        return canBuy(player, price, ingredientsMap, resultAmount);
     }
 
     private double normalizedPrice() {
+        return normalizedPrice(price);
+    }
+
+    private double normalizedPrice(double price) {
         return Math.floor(price * 10d) / 10d;
     }
 
-    private boolean isChargeable(double normalizedPrice) {
+    private boolean canBuy(Player player, double price, Map<ItemInfo, Integer> ingredients, int resultAmount) {
+        double normalizedPrice = normalizedPrice(price);
+        return resultAmount > 0 && isChargeable(price, normalizedPrice)
+                && hasValidIngredients(ingredients)
+                && VaultUtils.getCoins(player) >= normalizedPrice && itemsManager.hasItems(player, ingredients);
+    }
+
+    private boolean isChargeable(double price, double normalizedPrice) {
         return Double.isFinite(price) && price >= 0 && Double.isFinite(normalizedPrice)
                 && (price == 0 || normalizedPrice > 0);
+    }
+
+    private boolean hasValidIngredients(Map<ItemInfo, Integer> ingredients) {
+        for (Map.Entry<ItemInfo, Integer> entry : ingredients.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null || entry.getValue() < 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @NonNull

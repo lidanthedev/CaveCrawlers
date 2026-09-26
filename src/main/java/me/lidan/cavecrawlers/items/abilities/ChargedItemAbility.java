@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.items.abilities;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.items.PlayerItemAbilityUseEvent;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -55,8 +56,12 @@ public abstract class ChargedItemAbility extends ClickAbility {
 
     public void activateAbility(PlayerEvent playerEvent){
         Player player = playerEvent.getPlayer();
+        PlayerItemAbilityUseEvent event = fireAbilityUseEvent(player, getCooldown());
+        if (event.isCancelled()) {
+            return;
+        }
 
-        if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < getCooldown()){
+        if (getAbilityCooldown().getCurrentCooldown(player.getUniqueId()) < event.getCooldown()){
             return;
         }
         getAbilityCooldown().startCooldown(player.getUniqueId());
@@ -69,8 +74,8 @@ public abstract class ChargedItemAbility extends ClickAbility {
 
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat manaStat = stats.get(StatType.MANA);
-        if (manaStat.getValue() < getCost()){
-            abilityFailedNoMana(player);
+        if (manaStat.getValue() < event.getCost()){
+            abilityFailedNoMana(player, event.getCost());
             return;
         }
         if (charges == maxCharges){
@@ -85,8 +90,8 @@ public abstract class ChargedItemAbility extends ClickAbility {
 
         charges--;
         setPlayerCharges(player, charges);
-        manaStat.setValue(manaStat.getValue() - getCost());
-        String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int)getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
+        manaStat.setValue(manaStat.getValue() - event.getCost());
+        String msg = ChatColor.GOLD + getName() + "!" + ChatColor.AQUA + " (%s Mana) %s".formatted((int) event.getCost(), StringUtils.progressBar(charges, maxCharges, maxCharges, "O "));
         ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
@@ -109,7 +114,7 @@ public abstract class ChargedItemAbility extends ClickAbility {
         return ability;
     }
 
-    public void abilityFailedCooldown(Player player){
+    public void abilityFailedCooldown(Player player, long cooldown){
         String msg = ChatColor.RED + "No More Charges!";
         ActionBarManager.getInstance().showActionBar(player, msg);
     }

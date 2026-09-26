@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.listeners;
 import com.cryptomorin.xseries.XAttribute;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
+import me.lidan.cavecrawlers.damage.DamageCalculationEvent;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
@@ -86,7 +87,7 @@ public class DamageEntityListener implements Listener {
             return;
         }
         calculated *= getServerDamageMultiplier();
-        damageMobAfterCalculation(event, player, mob, calculated, crit);
+        damageMobAfterCalculation(event, player, mob, calculated, crit, null);
     }
 
     private void onPlayerDamageMob(EntityDamageByEntityEvent event, Player player, Mob mob) {
@@ -108,14 +109,22 @@ public class DamageEntityListener implements Listener {
         double damage = calculation.calculate();
         boolean crit = calculation.isCrit();
         damage *= getServerDamageMultiplier();
-        damageMobAfterCalculation(event, player, mob, damage, crit);
+        damageMobAfterCalculation(event, player, mob, damage, crit, calculation);
     }
 
-    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Player player, Mob mob, double damage, boolean crit) {
-        event.setDamage(damage);
+    private static void damageMobAfterCalculation(EntityDamageByEntityEvent event, Player player, Mob mob, double damage,
+                                                  boolean crit, DamageCalculation calculation) {
+        DamageCalculationEvent calculationEvent = new DamageCalculationEvent(player, mob, calculation, damage, crit);
+        Bukkit.getPluginManager().callEvent(calculationEvent);
+        if (calculationEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        event.setDamage(calculationEvent.getDamage());
         double finalDamage = event.getFinalDamage();
         entityManager.addDamage(player.getUniqueId(), mob, finalDamage);
-        Holograms.showDamageHologram(mob, finalDamage, crit);
+        Holograms.showDamageHologram(mob, finalDamage, calculationEvent.isCritical());
     }
 
     private void onPlayerDamaged(EntityDamageByEntityEvent event, Player player) {

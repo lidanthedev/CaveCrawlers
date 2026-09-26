@@ -7,11 +7,13 @@ import lombok.ToString;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.PlayerItemAbilityUseEvent;
 import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
@@ -47,14 +49,23 @@ public abstract class ItemAbility implements Cloneable {
 
     public void activateAbility(PlayerEvent playerEvent){
         Player player = playerEvent.getPlayer();
-        if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < cooldown){
-            abilityFailedCooldown(player);
+        PlayerItemAbilityUseEvent event = fireAbilityUseEvent(player, cooldown);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        if (abilityCooldown.getCurrentCooldown(player.getUniqueId()) < event.getCooldown()) {
+            if (event.getCooldown() == cooldown) {
+                abilityFailedCooldown(player);
+            } else {
+                abilityFailedCooldown(player, event.getCooldown());
+            }
             return;
         }
         Stats stats = StatsManager.getInstance().getStats(player);
         Stat manaStat = stats.get(StatType.MANA);
-        if (manaStat.getValue() < cost){
-            abilityFailedNoMana(player);
+        if (manaStat.getValue() < event.getCost()) {
+            abilityFailedNoMana(player, event.getCost());
             return;
         }
 
@@ -62,23 +73,39 @@ public abstract class ItemAbility implements Cloneable {
         if (success) {
             abilityCooldown.startCooldown(player.getUniqueId());
             if (isCooldownAnimationEnabled()) {
-                double cooldownSeconds = cooldown / 1000d * 20;
+                double cooldownSeconds = event.getCooldown() / 1000d * 20;
                 if (cooldownSeconds >= 1) {
                     PacketManager.getInstance().setCooldown(player, player.getEquipment().getItemInMainHand().getType(), (int) cooldownSeconds);
                 }
             }
-            manaStat.setValue(manaStat.getValue() - getCost());
-            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) getCost());
+            manaStat.setValue(manaStat.getValue() - event.getCost());
+            String msg = ChatColor.GOLD + name + "!" + ChatColor.AQUA + " (%s Mana)".formatted((int) event.getCost());
             ActionBarManager.getInstance().showActionBar(player, msg);
         }
     }
 
+    protected PlayerItemAbilityUseEvent fireAbilityUseEvent(Player player, long cooldown) {
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(itemStack);
+        PlayerItemAbilityUseEvent event = new PlayerItemAbilityUseEvent(player, this, itemStack, itemInfo, cooldown, getCost());
+        Bukkit.getPluginManager().callEvent(event);
+        return event;
+    }
+
     public void abilityFailedNoMana(Player player){
-        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) getCost());
+        abilityFailedNoMana(player, getCost());
+    }
+
+    public void abilityFailedNoMana(Player player, double cost){
+        String msg = ChatColor.RED + "Not Enough Mana! (%s required!)".formatted((int) cost);
         ActionBarManager.getInstance().showActionBar(player, msg);
     }
 
     public void abilityFailedCooldown(Player player){
+        abilityFailedCooldown(player, cooldown);
+    }
+
+    public void abilityFailedCooldown(Player player, long cooldown){
         double diff = (cooldown - abilityCooldown.getCurrentCooldown(player.getUniqueId()))/1000.0;
         String msg = ChatColor.RED + "Still on cooldown! (%ss Left)".formatted(diff);
         ActionBarManager.getInstance().showActionBar(player, msg);
@@ -111,10 +138,18 @@ public abstract class ItemAbility implements Cloneable {
             ability.description = map.get("description").getAsString();
         }
         if (map.has("cost")){
-            ability.cost = map.get("cost").getAsDouble();
+            double cost = map.get("cost").getAsDouble();
+            if (!Double.isFinite(cost) || cost < 0) {
+                throw new IllegalArgumentException("cost must be finite and non-negative");
+            }
+            ability.cost = cost;
         }
         if (map.has("cooldown")){
-            ability.cooldown = map.get("cooldown").getAsLong();
+            long cooldown = map.get("cooldown").getAsLong();
+            if (cooldown < 0) {
+                throw new IllegalArgumentException("cooldown cannot be negative");
+            }
+            ability.cooldown = cooldown;
         }
 
         return ability;

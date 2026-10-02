@@ -473,6 +473,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private void registerDB() {
         Database db = Database.getInstance();
         db.registerTable(new SkillsTable());
+        db.registerTable(me.lidan.cavecrawlers.storage.db.SkillAwardReceipts.INSTANCE);
         db.registerTable(new PlayerSessionsTable());
     }
 

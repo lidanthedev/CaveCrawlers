@@ -165,6 +165,23 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
     }
 
+    /** Returns true only after XP and the receipt have committed together. Call on the main thread. */
+    public java.util.concurrent.CompletableFuture<Boolean> giveXpOnce(Player player, SkillInfo type, double xp, java.util.UUID awardId) {
+        if (type == null || awardId == null || !Double.isFinite(xp) || xp <= 0 || !canAwardSkillXp(player))
+            return java.util.concurrent.CompletableFuture.completedFuture(false);
+        var receipts = me.lidan.cavecrawlers.storage.db.SkillAwardReceipts.INSTANCE;
+        var existing = receipts.existing(player.getUniqueId(), awardId);
+        if (existing != null) return existing;
+        Skill previous = PlayerDataManager.getInstance().getSkills(player).get(type);
+        double before = previous == null ? 0 : previous.getTotalXp();
+        giveXp(player, type, xp, true);
+        Skill skill = PlayerDataManager.getInstance().getSkills(player).get(type);
+        if (skill == null || skill.getTotalXp() <= before) return java.util.concurrent.CompletableFuture.completedFuture(false);
+        var result = receipts.reserve(player.getUniqueId(), awardId, type.getId(), skill.getTotalXp());
+        PlayerSkillsManager.getInstance().savePlayerNow(player.getUniqueId());
+        return result;
+    }
+
     private boolean canAwardSkillXp(Player player) {
         PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
         return Bukkit.isPrimaryThread() && skillsManager.canPersistPlayer(player.getUniqueId());

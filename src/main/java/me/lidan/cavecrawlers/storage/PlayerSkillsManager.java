@@ -547,8 +547,10 @@ public class PlayerSkillsManager {
                 || !Objects.equals(ownership.serverId(), serverId)) {
             throw new IllegalStateException("Refusing to write player data before its database load completed");
         }
-        return database.persistPlayer(request.uuid(), serverId, request.fenceToken(),
+        Database.WriteOutcome result = database.persistPlayer(request.uuid(), serverId, request.fenceToken(),
                 request.revision(), request.rows(), request.deleteBeforeWrite(), request.releaseAfterWrite());
+        if (result.committed()) me.lidan.cavecrawlers.storage.db.SkillAwardReceipts.INSTANCE.confirmCommitted(request.uuid(), database);
+        return result;
     }
 
     private void discardStaleFence(SaveRequest request, Database.WriteOutcome outcome) {

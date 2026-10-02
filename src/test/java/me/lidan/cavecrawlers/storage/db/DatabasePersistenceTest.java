@@ -455,6 +455,36 @@ class DatabasePersistenceTest {
         assertEquals(0, dataRevision());
     }
 
+
+    @Test void skillAwardReceiptWaitsForXpSnapshotAndSurvivesReconnect() {
+        var receipts = new SkillAwardReceipts(); database.registerTable(receipts);
+        var lease = acquire("A"); UUID award = UUID.randomUUID();
+        var result = receipts.reserve(uuid, award, "mining", 100);
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(50), false, false).committed());
+        receipts.confirmCommitted(uuid, database); assertFalse(result.isDone());
+        assertTrue(database.persistPlayer(uuid, "A", lease.fenceToken(), 2, rows(100), false, false).committed());
+        assertFalse(result.isDone()); // Save callbacks must not acknowledge before transaction commit.
+        receipts.confirmCommitted(uuid, database); assertTrue(result.join());
+        var restored = new SkillAwardReceipts(); jdbi.useHandle(handle -> restored.loadForPlayer(handle, uuid));
+        assertTrue(restored.existing(uuid, award).join());
+    }
+
+    @Test void rolledBackXpCannotPublishAwardReceipt() {
+        var receipts = new SkillAwardReceipts(); database.registerTable(receipts);
+        database.registerTable(new PlayerDataSqlTable() {
+            public String getTableName() { return "receipt_failure"; }
+            public int getVersion() { return 1; }
+            public String getCreateCommand() { return "CREATE TABLE receipt_failure (id INT)"; }
+            public void onCreate(org.jdbi.v3.core.Handle handle) { handle.execute(getCreateCommand()); }
+            public void onUpgrade(org.jdbi.v3.core.Handle handle, int oldVersion, int newVersion) { }
+            public void loadForPlayer(org.jdbi.v3.core.Handle handle, UUID player) { }
+            public void saveForPlayer(org.jdbi.v3.core.Handle handle, UUID player) { throw new IllegalStateException("rollback"); }
+        });
+        var lease = acquire("A"); var result = receipts.reserve(uuid, UUID.randomUUID(), "mining", 100);
+        assertThrows(IllegalStateException.class, () -> database.persistPlayer(uuid, "A", lease.fenceToken(), 1, rows(100), false, false));
+        receipts.confirmCommitted(uuid, database); assertFalse(result.isDone()); assertEquals(0, totalXp());
+    }
+
     protected Database.PlayerLease acquire(String server) {
         return (server.equals("B") ? otherDatabase : database).acquirePlayerSession(uuid, server, 60_000).orElseThrow();
     }

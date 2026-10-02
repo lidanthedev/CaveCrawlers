@@ -64,6 +64,22 @@ class SkillProgressionCoverageTest {
     }
 
     @Test
+    void mutableAndReloadedDefinitionsKeepOneSkillAndItsProgress() {
+        var skill = new Skill(mining, 2, 5, 30, 35);
+        var skills = new Skills(List.of(skill));
+        mining.setName("Changed Mining");
+        assertSame(skill, skills.get(mining));
+        var replacement = new SkillInfo("Reloaded Mining", new HashMap<>(), false, 3,
+                new ArrayList<>(), new ArrayList<>(List.of(10D, 20D, 30D)), Material.PAPER);
+        skillsManager.register("mining", replacement);
+        assertSame(skill, skills.get(replacement));
+        assertSame(replacement, skill.getType());
+        assertEquals(35, skills.get(replacement).getTotalXp());
+        assertEquals(1, skills.serialize().size());
+        assertEquals(1, java.util.stream.StreamSupport.stream(skills.spliterator(), false).count());
+    }
+
+    @Test
     void levelUpConsumesMultipleThresholdsInOrderAndStopsAtMax() {
         SkillReward first = mock(SkillReward.class);
         SkillReward second = mock(SkillReward.class);

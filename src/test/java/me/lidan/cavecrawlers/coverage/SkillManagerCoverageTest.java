@@ -69,6 +69,20 @@ class SkillManagerCoverageTest {
     }
 
     @Test
+    void adminRestorationRecalculatesProgressAndRejectsInvalidTotals() {
+        var command = new me.lidan.cavecrawlers.commands.SkillCommand();
+        command.setTotalXp(player, player, mining, 25);
+        assertEquals(25, skills.get(mining).getTotalXp());
+        assertEquals(1, skills.get(mining).getLevel());
+        assertEquals(15, skills.get(mining).getXp());
+        command.setTotalXp(player, player, mining, Double.NaN);
+        command.setTotalXp(player, player, mining, Double.POSITIVE_INFINITY);
+        command.setTotalXp(player, player, mining, -1);
+        assertEquals(25, skills.get(mining).getTotalXp());
+        Mockito.verify(persistence, Mockito.times(1)).savePlayerNow(player.getUniqueId());
+    }
+
+    @Test
     void objectiveSelectionPrefersMostSpecificWorldMatch() {
         manager.tryGiveXp(mining, SkillAction.MINE, Material.DIAMOND, player);
 

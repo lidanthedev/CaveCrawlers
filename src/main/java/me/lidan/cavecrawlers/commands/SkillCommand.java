@@ -64,6 +64,24 @@ public class SkillCommand {
         sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
+    @Subcommand("setTotalXp")
+    @CommandPermission("cavecrawlers.skills.admin")
+    public void setTotalXp(CommandSender sender, Player target, SkillInfo type, double totalXp) {
+        if (!Double.isFinite(totalXp) || totalXp < 0) {
+            sender.sendMessage(ChatColor.RED + "Total XP must be finite and non-negative.");
+            return;
+        }
+        if (!requirePlayerData(sender, target)) return;
+        Skill skill = new Skill(type, 0);
+        if (!type.getXpToLevelList().isEmpty()) skill.setXpToLevel(type.getXpToLevelList().getFirst());
+        skill.setUuid(target.getUniqueId());
+        skill.addXp(totalXp);
+        skill.levelUp(false);
+        playerDataManager.getSkills(target).set(type, skill);
+        me.lidan.cavecrawlers.storage.PlayerSkillsManager.getInstance().savePlayerNow(target.getUniqueId());
+        sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + " " + type.getId() + " total XP to " + totalXp);
+    }
+
     @Subcommand("addxp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void addXp(Player sender, SkillInfo type, double amount) {

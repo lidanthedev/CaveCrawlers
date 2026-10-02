@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.storage.db;
 
 import org.jdbi.v3.core.Handle;
 
+/** total_xp is authoritative; xp and level remain compatible derived caches. */
 public class SkillsTable extends SqlTable {
 
     @Override

@@ -58,14 +58,34 @@ public class SkillCommand {
     @Subcommand("giveXp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void giveXp(CommandSender sender, Player target, SkillInfo type, double amount) {
+        if (!requirePlayerData(sender, target)) return;
         SkillsManager skillsManager = SkillsManager.getInstance();
         skillsManager.giveXp(target, type, amount, true);
         sender.sendMessage("add xp to %s".formatted(type.getName()));
     }
 
+    @Subcommand("setTotalXp")
+    @CommandPermission("cavecrawlers.skills.admin")
+    public void setTotalXp(CommandSender sender, Player target, SkillInfo type, double totalXp) {
+        if (!Double.isFinite(totalXp) || totalXp < 0) {
+            sender.sendMessage(ChatColor.RED + "Total XP must be finite and non-negative.");
+            return;
+        }
+        if (!requirePlayerData(sender, target)) return;
+        Skill skill = new Skill(type, 0);
+        if (!type.getXpToLevelList().isEmpty()) skill.setXpToLevel(type.getXpToLevelList().getFirst());
+        skill.setUuid(target.getUniqueId());
+        skill.addXp(totalXp);
+        skill.levelUp(false);
+        playerDataManager.getSkills(target).set(type, skill);
+        me.lidan.cavecrawlers.storage.PlayerSkillsManager.getInstance().savePlayerNow(target.getUniqueId());
+        sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + " " + type.getId() + " total XP to " + totalXp);
+    }
+
     @Subcommand("addxp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void addXp(Player sender, SkillInfo type, double amount) {
+        if (!requirePlayerData(sender, sender)) return;
         SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
         skillsManager.giveXp(sender, type, amount, true);
@@ -75,6 +95,7 @@ public class SkillCommand {
     @Subcommand("setXp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void setXp(Player sender, SkillInfo type, int amount) {
+        if (!requirePlayerData(sender, sender)) return;
         Skills stats = playerDataManager.getSkills(sender);
         stats.get(type).setXpOfCurrentLevel(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type.getName(), amount));
@@ -150,8 +171,14 @@ public class SkillCommand {
     @Subcommand("reset")
     @CommandPermission("cavecrawlers.skills.admin")
     public void resetSkills(Player sender) {
-        Skills skills = playerDataManager.getSkills(sender);
-        skills.resetAllSkills();
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>All skills have been reset."));
+        if (!requirePlayerData(sender, sender)) return;
+        playerDataManager.resetPlayerData(sender.getUniqueId());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Skill reset queued."));
     }
+    private boolean requirePlayerData(CommandSender sender, Player target) {
+        if (me.lidan.cavecrawlers.storage.PlayerSkillsManager.getInstance().canPersistPlayer(target.getUniqueId())) return true;
+        sender.sendMessage(ChatColor.RED + "Player data is unavailable. Please reconnect.");
+        return false;
+    }
+
 }

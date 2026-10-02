@@ -14,9 +14,11 @@ public class VaultUtils {
      * @param player the player to give coins to
      * @param amount the amount of coins to give
      */
-    public static void giveCoins(OfflinePlayer player, double amount) {
+    public static boolean giveCoins(OfflinePlayer player, double amount) {
+        if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
-        CaveCrawlers.economy.depositPlayer(player, amount);
+        var response = CaveCrawlers.economy.depositPlayer(player, amount);
+        return response != null && response.transactionSuccess();
     }
 
     /**
@@ -24,9 +26,11 @@ public class VaultUtils {
      * @param player the player to take coins from
      * @param amount the amount of coins to take
      */
-    public static void takeCoins(OfflinePlayer player, double amount) {
+    public static boolean takeCoins(OfflinePlayer player, double amount) {
+        if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
-        CaveCrawlers.economy.withdrawPlayer(player, amount);
+        var response = CaveCrawlers.economy.withdrawPlayer(player, amount);
+        return response != null && response.transactionSuccess();
     }
 
     /**

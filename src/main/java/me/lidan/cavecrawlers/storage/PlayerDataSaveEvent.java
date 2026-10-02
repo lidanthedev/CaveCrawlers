@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * Fired before a player's CaveCrawlers data is written to the database.
+ * Fired before a player's complete CaveCrawlers transaction starts.
  *
  * <p>May fire on an async thread — handlers must be async-safe.
  */

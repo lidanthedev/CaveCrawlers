@@ -38,9 +38,13 @@ public class Stats implements Iterable<Stat>, ConfigurationSerializable, Cloneab
         for (String key : map.keySet()) {
             try {
                 StatType type = StatType.valueOf(key);
-                Double value = (Double) map.get(key);
-                stats.set(type, value);
-            } catch (IllegalArgumentException | ClassCastException exception) {
+                Object rawValue = map.get(key);
+                if (!(rawValue instanceof Number number)) {
+                    log.warn("Stats Deserialize Error for key {}: expected a number", key);
+                    continue;
+                }
+                stats.set(type, number.doubleValue());
+            } catch (IllegalArgumentException exception) {
                 log.warn("Stats Deserialize Error for key: {}", key, exception);
             }
         }

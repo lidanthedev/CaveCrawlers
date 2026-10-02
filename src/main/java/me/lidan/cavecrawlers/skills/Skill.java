@@ -32,6 +32,26 @@ public class Skill implements ConfigurationSerializable {
     private double totalXp;
 
     private UUID uuid;
+    @Getter(lombok.AccessLevel.NONE) @Setter(lombok.AccessLevel.NONE)
+    @lombok.EqualsAndHashCode.Exclude @lombok.ToString.Exclude
+    private transient java.util.function.BooleanSupplier mutationAllowed = () -> true;
+
+    public void bindMutationGuard(java.util.function.BooleanSupplier guard) {
+        checkMutationAllowed();
+        java.util.function.BooleanSupplier previous = mutationAllowed;
+        mutationAllowed = () -> previous.getAsBoolean() && guard.getAsBoolean();
+    }
+
+    private void checkMutationAllowed() {
+        if (!mutationAllowed.getAsBoolean()) throw new IllegalStateException("Player persistence session is not healthy/current");
+    }
+
+    public void setType(SkillInfo type) { checkMutationAllowed(); this.type = type; }
+    public void setLevel(int level) { checkMutationAllowed(); this.level = level; }
+    public void setXp(double xp) { checkMutationAllowed(); this.xp = xp; }
+    public void setXpToLevel(double xpToLevel) { checkMutationAllowed(); this.xpToLevel = xpToLevel; }
+    public void setTotalXp(double totalXp) { checkMutationAllowed(); this.totalXp = totalXp; }
+
 
     public Skill(@NonNull SkillInfo type, int level) {
         this.type = type;
@@ -47,6 +67,7 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public void addXp(double amount){
+        checkMutationAllowed();
         xp += amount;
         totalXp += amount;
     }
@@ -68,11 +89,13 @@ public class Skill implements ConfigurationSerializable {
     }
 
     public void setXpOfCurrentLevel(double xp) {
+        checkMutationAllowed();
         this.totalXp = xp - this.xp + totalXp;
         this.xp = xp;
     }
 
     public int levelUp(boolean withRewards) {
+        checkMutationAllowed();
         Player player = getPlayer();
         int leveled = 0;
         int maxLevel = type.getMaxLevel();
@@ -159,15 +182,12 @@ public class Skill implements ConfigurationSerializable {
                 skillInfo.getXpToLevelList().get(0),
                 (double) map.get("totalXp")
         );
-        int leveled = skill.levelUp(false);
-        if (leveled > 0) {
-            skill.level = (int) map.get("level");
-            skill.levelUp(true);
-        }
+        skill.levelUp(false);
         return skill;
     }
 
     public void resetSkill() {
+        checkMutationAllowed();
         this.level = 0;
         this.xp = 0;
         List<Double> xpList = type.getXpToLevelList();

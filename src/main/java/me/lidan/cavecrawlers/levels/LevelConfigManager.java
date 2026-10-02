@@ -4,6 +4,9 @@ import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
+import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
+import java.util.UUID;
 
 
 public class LevelConfigManager {
@@ -38,6 +41,7 @@ public class LevelConfigManager {
     }
 
     public void setPlayerXP(String playerId, int xp) {
+        if (!canMutate(playerId)) return;
         config.set("players." + playerId + ".xp", xp);
         config.save();
     }
@@ -47,6 +51,7 @@ public class LevelConfigManager {
     }
 
     public void setPlayerLevel(String playerId, int level) {
+        if (!canMutate(playerId)) return;
         config.set("players." + playerId + ".level", level);
         config.save();
     }
@@ -70,10 +75,15 @@ public class LevelConfigManager {
     }
 
     public void givePlayerXP(Player player, int xpAmount) {
+        if (player == null || !canMutate(player.getUniqueId().toString())) return;
         int currentXP = getPlayerXP(player);
         int newXP = currentXP + xpAmount;
         setPlayerXP(player.getUniqueId().toString(), newXP);
         checkLevelUp(player, newXP);
+    }
+
+    private boolean canMutate(String playerId) {
+        return Bukkit.isPrimaryThread() && PlayerSkillsManager.getInstance().canPersistPlayer(UUID.fromString(playerId));
     }
 
     private void checkLevelUp(Player player, int xp) {

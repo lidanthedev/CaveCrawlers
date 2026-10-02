@@ -71,7 +71,7 @@ public class SkillInfo implements ConfigurationSerializable {
             autoReward = false;
         }
         int maxLevel = (int) map.getOrDefault("maxLevel", DEFAULT_MAX_LEVEL);
-        List<Double> xpToLevelList = (List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList());
+        List<Double> xpToLevelList = new ArrayList<>((List<Double>) map.getOrDefault("xpToLevelList", Skill.getDefaultXpToLevelList()));
         int xpToLevelSize = xpToLevelList.size();
         if (xpToLevelSize < maxLevel) {
             log.warn("Skill {} does not have enough xpToLevel values (has {}), filling with unreachable xp", name, xpToLevelSize);

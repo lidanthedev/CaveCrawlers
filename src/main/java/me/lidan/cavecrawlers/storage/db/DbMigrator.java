@@ -5,6 +5,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DbMigrator {
 
@@ -23,7 +24,8 @@ public class DbMigrator {
 
     /**
      * Copies all rows from the {@code skills} table in {@code source} into {@code target}.
-     * Creates the target schema if it does not exist. Safe to re-run (upsert semantics).
+     * Creates the target schema if it does not exist. Existing target rows win,
+     * so a stale source database cannot overwrite shared MySQL data.
      *
      * @return number of skill records copied
      */
@@ -32,14 +34,20 @@ public class DbMigrator {
                 handle.attach(SkillsDao.class).getAllSkills()
         );
 
-        target.useTransaction(handle -> {
-            handle.execute("CREATE TABLE IF NOT EXISTS _table_versions (table_name VARCHAR(64) PRIMARY KEY, version INT NOT NULL)");
-            handle.execute(new SkillsTable().getCreateCommand());
-            if (!rows.isEmpty()) {
-                handle.attach(SkillsDao.class).upsertSkills(rows);
-            }
+        boolean mysql = target.withHandle(handle -> {
+            try { return handle.getConnection().getMetaData().getDatabaseProductName().equalsIgnoreCase("MySQL"); }
+            catch (java.sql.SQLException e) { throw new IllegalStateException("Could not identify migration target", e); }
         });
-
-        return rows.size();
+        Database targetDatabase = new Database(target, mysql);
+        targetDatabase.registerTable(new SkillsTable());
+        targetDatabase.registerTable(new PlayerSessionsTable());
+        int copied = 0;
+        for (List<SkillRow> playerRows : rows.stream()
+                .collect(Collectors.groupingBy(SkillRow::getPlayerUuid)).values()) {
+            if (targetDatabase.importLegacySkills(java.util.UUID.fromString(playerRows.getFirst().getPlayerUuid()), playerRows)) {
+                copied += playerRows.size();
+            }
+        }
+        return copied;
     }
 }

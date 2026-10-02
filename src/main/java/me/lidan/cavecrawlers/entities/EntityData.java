@@ -18,6 +18,7 @@ public class EntityData {
     protected final LivingEntity entity;
     @Getter
     protected final Map<UUID, Double> damageMap = new HashMap<>();
+    private boolean deathHandled;
 
     public EntityData(LivingEntity entity) {
         this.entity = entity;
@@ -32,7 +33,14 @@ public class EntityData {
         return damageMap.getOrDefault(uuid, 0.0);
     }
 
+    protected synchronized boolean claimDeath() {
+        if (deathHandled) return false;
+        deathHandled = true;
+        return true;
+    }
+
     public void onDeath(EntityDeathEvent event) {
+        if (!claimDeath()) return;
         Player player = entity.getKiller();
         String mobId = MythicMobsHook.getInstance().getMobID(entity);
         EntityDrops drops = DropsManager.getInstance().getEntityDrops(mobId);

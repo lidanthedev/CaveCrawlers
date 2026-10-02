@@ -38,7 +38,7 @@ public class TransmissionAbility extends ClickAbility{
     }
 
     @Override
-    public void abilityFailedCooldown(Player player) {
+    public void abilityFailedCooldown(Player player, long cooldown) {
         // silent cooldown
     }
 }

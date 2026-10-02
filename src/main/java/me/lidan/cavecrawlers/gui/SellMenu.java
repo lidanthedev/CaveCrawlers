@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.shop.ShopSellEvent;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -21,9 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 public class SellMenu {
-    public record SellItem(ItemInfo itemInfo, int amount, double price) {
-    }
-
     public static final int SELL_BUTTON_SLOT = 31;
     public static final CustomConfig config = new CustomConfig("sell.yml");
     private final ItemsManager itemsManager = ItemsManager.getInstance();
@@ -39,7 +37,7 @@ public class SellMenu {
                 .create();
         gui.setItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell")).asGuiItem(event -> {
             event.setCancelled(true);
-            sell();
+            sell(event.isShiftClick());
         }));
         gui.setDefaultClickAction(event -> {
             Bukkit.getScheduler().runTaskLater(CaveCrawlers.getInstance(), bukkitTask -> {
@@ -55,9 +53,10 @@ public class SellMenu {
             }
         });
         prices = config.getConfigurationSection("prices");
+        update();
     }
 
-    public void update(){
+    public void update() {
         gui.updateItem(SELL_BUTTON_SLOT, ItemBuilder.from(Material.EMERALD).name(MiniMessageUtils.miniMessage("<green>Sell <gold><total>", Map.of("total", StringUtils.getNumberFormat(getTotalPrice())))).lore(toLore()).build());
     }
 
@@ -67,22 +66,44 @@ public class SellMenu {
                 "formatted-name", item.itemInfo().getFormattedNameWithAmount(item.amount()),
                 "price", StringUtils.getNumberFormat(item.price() * item.amount())
         ))));
+        lore.add(MiniMessageUtils.miniMessage(""));
+        lore.add(MiniMessageUtils.miniMessage("<green>Click to sell items"));
+        lore.add(MiniMessageUtils.miniMessage("<red>Shift-Click to trash unsellable items"));
         return lore;
     }
 
-    private void sell() {
+    private void sell(boolean trashUnsellable) {
         double total = 0;
         ItemStack[] storageContents = gui.getInventory().getStorageContents();
+        List<ItemStack> sellable = new ArrayList<>();
+        List<ItemStack> unsellable = new ArrayList<>();
         for (int i = 0; i < storageContents.length; i++) {
             if (storageContents[i] != null && i != SELL_BUTTON_SLOT) {
                 double price = getPrice(storageContents[i]);
-                if (price <= 0) {
-                    itemsManager.giveItemStacks(player, storageContents[i]);
-                }
-                else{
+                if (!Double.isFinite(price) || price <= 0) {
+                    unsellable.add(storageContents[i]);
+                } else {
                     total += price;
-                    VaultUtils.giveCoins(player, price);
+                    sellable.add(storageContents[i]);
                 }
+            }
+        }
+        total = Math.floor(total * 10d) / 10d;
+        ShopSellEvent event = new ShopSellEvent(player, sellable, unsellable, total, trashUnsellable);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        total = event.getPrice();
+        if (total <= 0 || !VaultUtils.giveCoins(player, total)) {
+            for (ItemStack item : event.getSellableItems()) {
+                itemsManager.giveItemStacks(player, item);
+            }
+        }
+        if (!event.isTrashUnsellable()) {
+            for (ItemStack item : event.getUnsellableItems()) {
+                itemsManager.giveItemStacks(player, item);
             }
         }
         player.sendMessage(MiniMessageUtils.miniMessage("<green>Sold items for <gold><total><green> coins", Map.of("total", StringUtils.getNumberFormat(total))));
@@ -115,15 +136,18 @@ public class SellMenu {
         return sellItems;
     }
 
-    public double getPrice(ItemStack itemStack){
+    public double getPrice(ItemStack itemStack) {
         String Id = itemsManager.getIDofItemStackSafe(itemStack);
         return getPrice(Id) * itemStack.getAmount();
     }
 
-    public double getPrice(String Id){
+    public double getPrice(String Id) {
         if (prices == null || !prices.contains(Id)) {
             return 0;
         }
         return prices.getDouble(Id, 0);
+    }
+
+    public record SellItem(ItemInfo itemInfo, int amount, double price) {
     }
 }

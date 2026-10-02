@@ -15,18 +15,31 @@ import java.util.*;
 
 @ToString
 public class Skills implements Iterable<Skill>, ConfigurationSerializable {
-    private final Map<SkillInfo, Skill> skills;
+    private final Map<String, Skill> skills;
     @Getter
     private UUID uuid;
+    private transient java.util.function.BooleanSupplier mutationAllowed = () -> true;
+
+    public void bindMutationGuard(java.util.function.BooleanSupplier guard) {
+        checkMutationAllowed();
+        java.util.function.BooleanSupplier previous = mutationAllowed;
+        mutationAllowed = () -> previous.getAsBoolean() && guard.getAsBoolean();
+        for (Skill skill : skills.values()) skill.bindMutationGuard(mutationAllowed);
+    }
+
+    public void checkMutationAllowed() {
+        if (!mutationAllowed.getAsBoolean()) throw new IllegalStateException("Player persistence session is not healthy/current");
+    }
+
 
     public Skills(List<Skill> skillList) {
         this.skills = new HashMap<>();
         for (Skill skill : skillList) {
-            this.skills.put(skill.getType(), skill);
+            this.skills.put(skill.getType().getId(), skill);
         }
         for (SkillInfo type : SkillsManager.getInstance().getSkillInfoMap().values()) {
-            if (!skills.containsKey(type)) {
-                skills.put(type, new Skill(type, 0));
+            if (!skills.containsKey(type.getId())) {
+                skills.put(type.getId(), new Skill(type, 0));
             }
         }
     }
@@ -51,19 +64,37 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
             }
             // Recalculate level and xp based on totalXp to ensure consistency with any changes in xp requirements
             Skill skill = new Skill(type, 0);
+            if (!type.getXpToLevelList().isEmpty()) {
+                skill.setXpToLevel(type.getXpToLevelList().getFirst());
+            }
             skill.addXp(savedSkill.getTotalXp());
             skill.levelUp(false);
-            skills.skills.put(type, skill);
+            skills.skills.put(type.getId(), skill);
         }
         return skills;
     }
 
     public Skill get(@NonNull SkillInfo type) {
-        return skills.computeIfAbsent(type, t -> new Skill(t, 0));
+        Skill current = skills.get(type.getId());
+        if (current != null) {
+            if (current.getType() != type) current.setType(type);
+            return current;
+        }
+        return skills.computeIfAbsent(type.getId(), ignored -> {
+            checkMutationAllowed();
+            Skill skill = new Skill(type, 0);
+            skill.setUuid(uuid);
+            skill.bindMutationGuard(mutationAllowed);
+            return skill;
+        });
     }
 
     public void set(SkillInfo type, Skill skill) {
-        skills.put(type, skill);
+        checkMutationAllowed();
+        if (skills.get(type.getId()) == skill) return;
+        skill.setUuid(uuid);
+        skill.bindMutationGuard(mutationAllowed);
+        skills.put(type.getId(), skill);
     }
 
     public void addXp(SkillInfo type, double amount) {
@@ -75,6 +106,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     }
 
     public void tryLevelUp(SkillInfo type) {
+        checkMutationAllowed();
         Skill skill = get(type);
         int leveled = skill.levelUp(true);
         if (leveled > 0) {
@@ -95,7 +127,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
-        for (Map.Entry<SkillInfo, Skill> entry : skills.entrySet()) {
+        for (Map.Entry<String, Skill> entry : skills.entrySet()) {
             Skill skill = entry.getValue();
             if (skill != null) {
                 skill.setUuid(uuid);
@@ -107,9 +139,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
-        for (SkillInfo skillInfo : skills.keySet()) {
-            map.put(skillInfo.getId(), get(skillInfo));
-        }
+        map.putAll(skills);
         return map;
     }
 
@@ -124,7 +154,7 @@ public class Skills implements Iterable<Skill>, ConfigurationSerializable {
     @NotNull
     @Override
     public Iterator<Skill> iterator() {
-        return skills.values().iterator();
+        return Collections.unmodifiableCollection(skills.values()).iterator();
     }
 
     public void resetAllSkills() {

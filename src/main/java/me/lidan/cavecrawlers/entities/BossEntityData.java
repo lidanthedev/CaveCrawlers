@@ -44,6 +44,7 @@ public class BossEntityData extends EntityData {
 
     @Override
     public void onDeath(EntityDeathEvent event) {
+        if (!claimDeath()) return;
         for (Runnable runnable : onDeathRunnable) {
             runnable.run();
         }
@@ -52,7 +53,7 @@ public class BossEntityData extends EntityData {
         if (drops == null) return;
         List<Integer> bonusPoints = drops.getBonusPoints();
         List<Map.Entry<UUID, Double>> sortedDamage = new ArrayList<>(damageMap.entrySet().stream()
-                .sorted((o1, o2) -> (int) (o2.getValue() - o1.getValue()))
+                .sorted((o1, o2) -> Double.compare(o2.getValue(), o1.getValue()))
                 .toList());
         for (int i = 0; i < Math.min(bonusPoints.size(), sortedDamage.size()); i++) {
             addPoints(sortedDamage.get(i).getKey(), bonusPoints.get(i));

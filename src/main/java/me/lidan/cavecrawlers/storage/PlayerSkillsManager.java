@@ -180,7 +180,31 @@ public class PlayerSkillsManager {
     }
 
     public Skills loadPlayerSync(UUID uuid) {
-        scheduleLoadIfNeeded(uuid);
+        requirePrimaryThread();
+        if (loadedPlayers.contains(uuid)) {
+            return getOrCreateSkills(uuid);
+        }
+
+        cancelStateCleanup(uuid);
+        Skills cached = getOrCreateSkills(uuid);
+        if (shuttingDown || invalidatedGenerations.containsKey(uuid)) {
+            return cached;
+        }
+        if (migrationInProgress.get()
+                || (plugin instanceof CaveCrawlers caveCrawlers && !caveCrawlers.isLoginAllowed())) {
+            pendingLoads.add(uuid);
+            return cached;
+        }
+        if (!persistenceAvailable() || !leaseHealth.healthy()) {
+            invalidatePlayer(uuid, currentGeneration(uuid), DATABASE_LOAD_FAILED_MESSAGE, false);
+            return cached;
+        }
+
+        long generation = currentGeneration(uuid);
+        if (scheduledLoads.putIfAbsent(uuid, generation) == null) {
+            // ponytail: one blocking DB load per online player during plugin reload; move this off-thread only if reload latency matters.
+            loadFromDatabase(uuid, generation, true);
+        }
         return getOrCreateSkills(uuid);
     }
 
@@ -230,6 +254,10 @@ public class PlayerSkillsManager {
     }
 
     private void loadFromDatabase(UUID uuid, long generation) {
+        loadFromDatabase(uuid, generation, false);
+    }
+
+    private void loadFromDatabase(UUID uuid, long generation, boolean publishSynchronously) {
         if (!beginOperation()) return;
         boolean publicationQueued = false;
         Ownership ownership = null;
@@ -262,7 +290,7 @@ public class PlayerSkillsManager {
             if (shuttingDown) return;
             Skills loaded = buildSkillsFromRows(uuid, rows);
             // Publication and quit both run on the main thread. Never publish from a late SQL callback.
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            Runnable publish = () -> {
                 boolean superseded = !currentGeneration(uuid, generation);
                 try {
                     if (shuttingDown) return;
@@ -288,8 +316,13 @@ public class PlayerSkillsManager {
                         scheduleLoadIfNeeded(uuid);
                     }
                 }
-            });
-            publicationQueued = true;
+            };
+            if (publishSynchronously) {
+                publish.run();
+            } else {
+                Bukkit.getScheduler().runTask(plugin, publish);
+                publicationQueued = true;
+            }
         } catch (Database.StaleSessionException e) {
             invalidateStaleSession(uuid, generation, e.currentFence());
         } catch (Exception e) {
@@ -351,8 +384,9 @@ public class PlayerSkillsManager {
 
     private void failLoad(UUID uuid, long generation, Ownership ownership) {
         if (ownership != null) queueOwnershipRelease(uuid, ownership);
-        Bukkit.getScheduler().runTask(plugin,
-                () -> invalidatePlayer(uuid, generation, DATABASE_LOAD_FAILED_MESSAGE, false));
+        Runnable invalidate = () -> invalidatePlayer(uuid, generation, DATABASE_LOAD_FAILED_MESSAGE, false);
+        if (Bukkit.isPrimaryThread()) invalidate.run();
+        else Bukkit.getScheduler().runTask(plugin, invalidate);
     }
 
     private void scheduleLoadRetry(UUID uuid, long generation) {

@@ -39,6 +39,7 @@ public class Altar implements ConfigurationSerializable {
     private int altarRechargeTime;
 
     private Map<UUID, Integer> playerPlacedMap = new HashMap<>();
+    private Map<UUID, Integer> playerPointsMap = new HashMap<>();
     private Map<UUID, List<ItemStack>> refundMap = new HashMap<>();
     private LivingEntity spawnedEntity;
 
@@ -76,6 +77,13 @@ public class Altar implements ConfigurationSerializable {
         if (itemsManager.getItemFromItemStackSafe(player.getInventory().getItemInMainHand()) != itemToSpawn) return;
         ItemStack refundItem = null;
         boolean finalPlacement = getTotalPlaced() + 1 == altarLocations.size() && !spawns.isEmpty();
+        AltarUseEvent useEvent = new AltarUseEvent(player, this, clickedBlock, itemToSpawn,
+                player.getInventory().getItemInMainHand().clone(), pointsPerItem, finalPlacement);
+        Bukkit.getPluginManager().callEvent(useEvent);
+        if (useEvent.isCancelled()) {
+            return;
+        }
+        int points = useEvent.getPoints();
         if (player.getGameMode() != GameMode.CREATIVE) {
             refundItem = player.getInventory().getItemInMainHand().clone();
             refundItem.setAmount(1);
@@ -84,6 +92,7 @@ public class Altar implements ConfigurationSerializable {
         int afterPlace = playerPlacedMap.getOrDefault(player.getUniqueId(), 0) + 1;
         int totalPlaced = getTotalPlaced() + 1;
         playerPlacedMap.put(player.getUniqueId(), afterPlace);
+        playerPointsMap.merge(player.getUniqueId(), points, Integer::sum);
         if (!finalPlacement && refundItem != null) {
             refundMap.computeIfAbsent(player.getUniqueId(), ignored -> new ArrayList<>()).add(refundItem);
         }
@@ -103,6 +112,7 @@ public class Altar implements ConfigurationSerializable {
                 itemsManager.giveItemStacks(player, refundItem);
             }
             playerPlacedMap.clear();
+            playerPointsMap.clear();
             resetAltarBlocks();
         }
     }
@@ -130,7 +140,7 @@ public class Altar implements ConfigurationSerializable {
     public void onSpawn(LivingEntity livingEntity) {
         BossEntityData entityData = new BossEntityData(livingEntity);
         for (Map.Entry<UUID, Integer> uuidIntegerEntry : playerPlacedMap.entrySet()) {
-            entityData.addPoints(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem);
+            entityData.addPoints(uuidIntegerEntry.getKey(), playerPointsMap.getOrDefault(uuidIntegerEntry.getKey(), uuidIntegerEntry.getValue() * pointsPerItem));
             entityData.addDamage(uuidIntegerEntry.getKey(), 1);
         }
         entityData.addOnDeathRunnable(() -> {
@@ -138,6 +148,7 @@ public class Altar implements ConfigurationSerializable {
         });
         entityManager.setEntityData(livingEntity.getUniqueId(), entityData);
         playerPlacedMap.clear();
+        playerPointsMap.clear();
         refundMap.clear();
         if (spawnAnnounce != null) {
             Map<String, String> placeholders = new HashMap<>();
@@ -170,6 +181,7 @@ public class Altar implements ConfigurationSerializable {
     public void refundAltar() {
         refundStoredItems();
         playerPlacedMap.clear();
+        playerPointsMap.clear();
     }
 
     private void refundStoredItems() {

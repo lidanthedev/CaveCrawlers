@@ -5,6 +5,7 @@ import dev.triumphteam.gui.guis.Gui;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.shop.ShopSellEvent;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -88,13 +89,20 @@ public class SellMenu {
             }
         }
         total = Math.floor(total * 10d) / 10d;
+        ShopSellEvent event = new ShopSellEvent(player, sellable, unsellable, total, trashUnsellable);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        total = event.getPrice();
         if (total <= 0 || !VaultUtils.giveCoins(player, total)) {
-            for (ItemStack item : sellable) {
+            for (ItemStack item : event.getSellableItems()) {
                 itemsManager.giveItemStacks(player, item);
             }
         }
-        if (!trashUnsellable) {
-            for (ItemStack item : unsellable) {
+        if (!event.isTrashUnsellable()) {
+            for (ItemStack item : event.getUnsellableItems()) {
                 itemsManager.giveItemStacks(player, item);
             }
         }

@@ -17,6 +17,7 @@ import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import org.bukkit.Location;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -180,6 +181,11 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public void drop(Player player, Location location) {
+        DropGiveEvent event = new DropGiveEvent(this, player, location);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
         if (announce != null) {
             placeholders.clear();
             placeholders.put("player", player.getName());

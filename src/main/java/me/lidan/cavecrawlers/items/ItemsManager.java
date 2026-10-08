@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.api.ItemsAPI;
 import me.lidan.cavecrawlers.utils.BoostedCustomConfig;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -49,10 +51,12 @@ public class ItemsManager implements ItemsAPI {
         return buildItem(getItemByID(ID), amount);
     }
 
-    public ItemStack buildItem(ItemInfo info, int amount){
-        List<String> infoList = info.toList();
-        ItemStack clonedBaseItem = info.getBaseItem().clone();
-        if (infoList == null){
+    private static @NonNull ItemStack buildItemRaw(ItemInfo info, int amount) {
+        return buildItemRaw(info, amount, info.toList(), info.getBaseItem().clone());
+    }
+
+    private static @NonNull ItemStack buildItemRaw(ItemInfo info, int amount, List<String> infoList, ItemStack clonedBaseItem) {
+        if (infoList == null) {
             return ItemBuilder.from(clonedBaseItem).amount(amount).build();
         }
         String name = infoList.get(0);
@@ -62,7 +66,7 @@ public class ItemsManager implements ItemsAPI {
             lore.add(0, ChatColor.RED + "base item is missing");
         }
 
-        return ItemBuilder
+        ItemStack builtItem = ItemBuilder
                 .from(clonedBaseItem)
                 .setName(name)
                 .setLore(lore)
@@ -71,6 +75,15 @@ public class ItemsManager implements ItemsAPI {
                 .setNbt(ITEM_ID, info.getID())
                 .amount(amount)
                 .build();
+        return builtItem;
+    }
+
+    public ItemStack buildItem(ItemInfo info, int amount){
+        ItemStack originalItem = info.getBaseItem().clone();
+        ItemStack builtItem = buildItemRaw(info, amount);
+        ItemBuildEvent event = new ItemBuildEvent(originalItem, builtItem, info);
+        Bukkit.getPluginManager().callEvent(event);
+        return event.getBuiltItem();
     }
 
     public @Nullable ItemInfo getItemByID(String ID){
@@ -148,39 +161,39 @@ public class ItemsManager implements ItemsAPI {
         }
         ItemInfo itemInfo = getItemFromItemStack(itemStack);
         if (itemInfo != null){
-            ItemStack builtItem = buildItem(itemInfo, itemStack.getAmount());
+            ItemStack builtItem = buildItemRaw(itemInfo, itemStack.getAmount());
             ItemMeta itemMeta = itemStack.getItemMeta();
-            if (itemMeta == null){
-                return builtItem;
-            }
-            if (itemMeta.hasEnchants()){
-                builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
-            }
-            try {
-                ItemMeta builtItemMeta = builtItem.getItemMeta();
-                if (builtItemMeta == null) {
-                    return builtItem;
+            if (itemMeta != null) {
+                if (itemMeta.hasEnchants()){
+                    builtItem.addUnsafeEnchantments(itemMeta.getEnchants());
                 }
-                itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
-                builtItem.setItemMeta(builtItemMeta);
-            } catch (Exception ignored) {
-                // kept for 1.19 compatibility
-                // WARNING: only copies string nbt values
-                // preserve the custom nbt
-                for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
-                    if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
-                        continue;
+                try {
+                    ItemMeta builtItemMeta = builtItem.getItemMeta();
+                    if (builtItemMeta != null) {
+                        itemMeta.getPersistentDataContainer().copyTo(builtItemMeta.getPersistentDataContainer(), true);
+                        builtItem.setItemMeta(builtItemMeta);
                     }
-                    if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
-                        continue;
-                    }
-                    String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
-                    if (value != null) {
-                        builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                } catch (Exception ignored) {
+                    // kept for 1.19 compatibility
+                    // WARNING: only copies string nbt values
+                    // preserve the custom nbt
+                    for (NamespacedKey key : itemMeta.getPersistentDataContainer().getKeys()) {
+                        if (key.getNamespace().equalsIgnoreCase(plugin.getName()) && key.getKey().equals(ITEM_ID)) {
+                            continue;
+                        }
+                        if (!itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                            continue;
+                        }
+                        String value = itemMeta.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                        if (value != null) {
+                            builtItem = ItemNbt.setString(builtItem, key.getKey(), value);
+                        }
                     }
                 }
             }
-            return builtItem;
+            ItemUpdateEvent event = new ItemUpdateEvent(itemStack, builtItem, itemInfo);
+            Bukkit.getPluginManager().callEvent(event);
+            return event.getBuiltItem();
         }
         return itemStack;
     }
@@ -328,5 +341,20 @@ public class ItemsManager implements ItemsAPI {
         for (String key : toRemove) {
             loader.getNotFullyLoadedItems().remove(key);
         }
+    }
+
+    public static List<String> itemStackToList(ItemStack itemStack) {
+        List<String> list = new ArrayList<>();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) {
+            return List.of(itemStack.getType().name());
+        }
+        String displayName = itemMeta.getDisplayName();
+        list.add(displayName == null || displayName.isEmpty() ? itemStack.getType().name() : displayName);
+        List<String> lore = itemMeta.getLore();
+        if (lore != null) {
+            list.addAll(lore);
+        }
+        return list;
     }
 }

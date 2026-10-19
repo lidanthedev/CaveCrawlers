@@ -46,9 +46,9 @@ dependencies {
     implementation("com.github.lidanthedev:triumph-gui:3.1.14") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
-    implementation("io.github.revxrsal:lamp.common:4.0.0-rc.17")
-    implementation("io.github.revxrsal:lamp.bukkit:4.0.0-rc.17")
-    implementation("io.github.revxrsal:lamp.brigadier:4.0.0-rc.17")
+    implementation("io.github.revxrsal:lamp.common:4.0.0")
+    implementation("io.github.revxrsal:lamp.bukkit:4.0.0")
+    implementation("io.github.revxrsal:lamp.brigadier:4.0.0")
     compileOnly("net.dmulloy2:ProtocolLib:5.1.0")
     compileOnly("com.googlecode.json-simple:json-simple:1.1.1")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {

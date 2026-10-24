@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SandStorm extends ScalingClickAbility implements Listener {
     public static final String SANDSTORM_TAG = "SandStorm";
+    public static final String DAMAGE_METADATA_KEY = "damage";
     private Material material;
     private Material fillerMaterial;
     private Particle particle;
@@ -123,7 +124,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         fallingBlock.setVelocity(new Vector(0, randomY, 0));
         fallingBlock.setDropItem(false);
         fallingBlock.addScoreboardTag(SANDSTORM_TAG);
-        fallingBlock.setMetadata("damage", new FixedMetadataValue(CaveCrawlers.getInstance(), calculation));
+        fallingBlock.setMetadata(DAMAGE_METADATA_KEY, new FixedMetadataValue(CaveCrawlers.getInstance(), calculation));
 
         // Track this block for landing damage
         fallingBlockOwners.put(fallingBlock.getUniqueId(), owner.getUniqueId());
@@ -159,9 +160,9 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         world.spawnParticle(Particle.FLAME, landLoc, 3, 0.2, 0.1, 0.2, 0.02);
 
         // Deal damage on impact
-        AbilityDamage calculation = (AbilityDamage) fallingBlock.getMetadata("damage").getFirst().value();
+        AbilityDamage calculation = (AbilityDamage) fallingBlock.getMetadata(DAMAGE_METADATA_KEY).getFirst().value();
         if (calculation == null) return;
-        fallingBlock.removeMetadata("damage", CaveCrawlers.getInstance());
+        fallingBlock.removeMetadata(DAMAGE_METADATA_KEY, CaveCrawlers.getInstance());
         for (Entity entity : world.getNearbyEntities(landLoc, 1.5, 1.5, 1.5)) {
             if (entity instanceof Mob mob) {
                 calculation.damage(owner, mob);

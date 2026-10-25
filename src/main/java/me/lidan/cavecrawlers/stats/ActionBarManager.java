@@ -5,6 +5,7 @@ import me.lidan.cavecrawlers.api.ActionBarAPI;
 import me.lidan.cavecrawlers.utils.Cooldown;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 
@@ -27,7 +28,7 @@ public class ActionBarManager implements ActionBarAPI {
     }
 
     private String getFormat() {
-        return plugin.getConfig().getString("actionbar.format", "<red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎");
+        return plugin.getConfig().getString("actionbar.format", "<red><health>/<max-health>❤<absorption-display> [<green><defense>❈] <aqua><mana>/<max-mana>✎");
     }
 
     public ActionBarManager() {
@@ -62,6 +63,8 @@ public class ActionBarManager implements ActionBarAPI {
         Map<String, Object> placeholders = new HashMap<>(Map.of(
                 "health", String.valueOf((int) player.getHealth()),
                 "max-health", String.valueOf((int) player.getMaxHealth()),
+                "absorption", String.valueOf((long) Math.ceil(player.getAbsorptionAmount())),
+                "absorption-display", absorptionReadout(player.getAbsorptionAmount()),
                 "max-mana", String.valueOf((int) StatsManager.getInstance().getStats(player).get(StatType.INTELLIGENCE).getValue()),
                 "alert", alert
         ));
@@ -70,6 +73,13 @@ public class ActionBarManager implements ActionBarAPI {
             placeholders.putIfAbsent(statType.name().toLowerCase() + "-icon", statType.getIcon());
         }
         return MiniMessageUtils.miniMessage(formatCopy, placeholders);
+    }
+
+    static Component absorptionReadout(double amount) {
+        if (!Double.isFinite(amount) || amount <= 0) {
+            return Component.empty();
+        }
+        return Component.text(" +" + (long) Math.ceil(amount) + "❤", NamedTextColor.GOLD);
     }
 
     @Override

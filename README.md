@@ -43,6 +43,8 @@ Shop editor
 
 Addon developers can hook gameplay transactions through the [addon event API](docs/addon-events.md).
 
+Native absorption can display as [one golden-heart row](docs/absorption-display.md), with the actual amount in the action bar.
+
 ## Commands
 
 ### Main Commands

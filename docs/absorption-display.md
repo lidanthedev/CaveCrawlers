@@ -66,7 +66,7 @@ Use the fixture's version, loopback port, and index reported by `ABS_PROBE_READY
 
 ### Gameplay checks
 
-The original deployed build's rendered HUD was confirmed on the live server. The compatibility hardening was checked in isolation and has not been deployed. Remaining manual checks with a graphical client include:
+The original deployed build's rendered HUD was confirmed on the live server. The compatibility hardening also passed the isolated checks above and was subsequently deployed with a successful core/addon reload. Remaining manual checks with a graphical client include:
 
 1. Raise the absorption limit, grant a 3,200-point native pool, and confirm at most one golden row beside the existing two normal rows.
 2. Consume half the absorption through ordinary damage. Confirm the native value is 1,600, health has not lost that absorbed damage, and five golden hearts remain.
@@ -75,4 +75,4 @@ The original deployed build's rendered HUD was confirmed on the live server. The
 5. Disable display scaling with `/cc reload lite`. Verify native absorption remains and the client receives its unscaled amount. Re-enable and confirm the scaled row returns.
 6. Check two players simultaneously and confirm observing another player's metadata does not change their own absorption pool.
 
-The API and state tests do not replace this client HUD check. This change does not deploy to or alter the live server.
+The API and state tests do not replace these client gameplay checks.

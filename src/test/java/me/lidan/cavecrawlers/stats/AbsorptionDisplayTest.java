@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +30,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +43,7 @@ class AbsorptionDisplayTest {
     private FakePackets packets;
     private AbsorptionDisplay display;
     private List<Runnable> nextTick;
+    private Logger logger;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +55,8 @@ class AbsorptionDisplayTest {
         nextTick = new ArrayList<>();
         when(plugin.getServer()).thenReturn(server);
         when(plugin.getConfig()).thenReturn(config);
-        when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+        logger = mock(Logger.class);
+        when(plugin.getLogger()).thenReturn(logger);
         when(server.getScheduler()).thenReturn(scheduler);
         doReturn(List.of(player)).when(server).getOnlinePlayers();
         doAnswer(invocation -> {
@@ -158,24 +165,101 @@ class AbsorptionDisplayTest {
         assertEquals(20, packets.update(player, 400));
     }
 
+    @Test
+    void missingRuntimeMethodsDisableOnlyScalingAtStartup() {
+        packets.startFailure = new NoSuchMethodError("Unsupported ProtocolLib runtime");
+        display.reload();
+        assertFalse(packets.active);
+        assertTrue(packets.sent.isEmpty());
+        verify(player, never()).setAbsorptionAmount(anyDouble());
+        verify(logger).log(eq(Level.SEVERE), contains("Could not enable"), same(packets.startFailure));
+    }
+
+    @Test
+    void packetFailurePassesThroughImmediatelyAndRestoresNativeMetadataOnServerThread() {
+        display.reload();
+        assertEquals(10, packets.update(player, 1600));
+        RuntimeException failure = new IllegalStateException("Changed packet layout");
+        packets.onFailure.accept(failure);
+        packets.onFailure.accept(failure);
+        assertEquals(1600, packets.update(player, 1600));
+        assertEquals(1, nextTick.size());
+        nextTick.removeFirst().run();
+        assertFalse(packets.active);
+        assertEquals(List.of(20F, 3200F), packets.sent);
+        verify(logger, times(1)).log(eq(Level.WARNING), contains("compatibility error"), same(failure));
+        verify(player, never()).setAbsorptionAmount(anyDouble());
+    }
+
+    @Test
+    void queuedFailureFromAnOldSessionCannotDisableANewReload() {
+        display.reload();
+        Consumer<Throwable> oldFailureHandler = packets.onFailure;
+        oldFailureHandler.accept(new IllegalStateException("Old packet failure"));
+        display.reload();
+        nextTick.removeFirst().run();
+        oldFailureHandler.accept(new IllegalStateException("Stale packet callback"));
+        assertTrue(packets.active);
+        assertEquals(10, packets.update(player, 1600));
+    }
+
+    @Test
+    void outgoingRefreshFailureAlsoDisablesScaling() {
+        display.reload();
+        packets.sendFailure = new NoSuchMethodError("Changed native metadata method");
+        PlayerRespawnEvent respawn = mock(PlayerRespawnEvent.class);
+        when(respawn.getPlayer()).thenReturn(player);
+        display.onRespawn(respawn);
+        nextTick.removeFirst().run();
+        assertEquals(3200, packets.update(player, 3200));
+        packets.sendFailure = null;
+        nextTick.removeFirst().run();
+        assertFalse(packets.active);
+        assertEquals(List.of(20F, 3200F), packets.sent);
+    }
+
+    @Test
+    void cleanupFailureStillRestoresNativeMetadataAndDoesNotBlockShutdown() {
+        display.reload();
+        packets.stopFailure = new IllegalStateException("Listener already removed");
+        display.close();
+        assertFalse(packets.active);
+        assertEquals(List.of(20F, 3200F), packets.sent);
+        assertEquals(1600, packets.update(player, 1600));
+    }
+
     private static final class FakePackets implements AbsorptionDisplay.Packets {
         private final List<Float> sent = new ArrayList<>();
         private AbsorptionDisplay.Scaler scaler;
+        private Consumer<Throwable> onFailure;
         private boolean active;
+        private Error startFailure;
+        private Error sendFailure;
+        private RuntimeException stopFailure;
 
         @Override
-        public void start(AbsorptionDisplay.Scaler scaler) {
+        public void start(AbsorptionDisplay.Scaler scaler, Consumer<Throwable> onFailure) {
             this.scaler = scaler;
+            this.onFailure = onFailure;
             active = true;
+            if (startFailure != null) {
+                throw startFailure;
+            }
         }
 
         @Override
         public void stop() {
             active = false;
+            if (stopFailure != null) {
+                throw stopFailure;
+            }
         }
 
         @Override
         public void send(Player player, float amount) {
+            if (sendFailure != null) {
+                throw sendFailure;
+            }
             sent.add(amount);
         }
 

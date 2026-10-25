@@ -14,6 +14,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /** Owns display state only. Native absorption, expiry, and damage remain owned by Minecraft. */
@@ -21,7 +23,8 @@ public final class AbsorptionDisplay implements Listener {
     private final JavaPlugin plugin;
     private final Packets packets;
     private final ConcurrentMap<UUID, TrackedPlayer> players = new ConcurrentHashMap<>();
-    private volatile boolean enabled;
+    private volatile Session session = new Session();
+    private boolean restoreRequired;
 
     public AbsorptionDisplay(JavaPlugin plugin) {
         this(plugin, new AbsorptionPackets(plugin));
@@ -38,11 +41,13 @@ public final class AbsorptionDisplay implements Listener {
         if (!plugin.getConfig().getBoolean("absorption-display.enabled", true)) {
             return;
         }
+        Session starting = session;
         try {
-            packets.start(this::scale);
-            enabled = true;
+            packets.start(this::scale, failure -> fail(starting, failure));
+            starting.enabled.set(true);
+            restoreRequired = true;
             plugin.getServer().getOnlinePlayers().forEach(this::refresh);
-        } catch (RuntimeException exception) {
+        } catch (RuntimeException | LinkageError exception) {
             close();
             plugin.getLogger().log(Level.SEVERE, "Could not enable absorption display scaling; native absorption is unchanged", exception);
         }
@@ -50,19 +55,56 @@ public final class AbsorptionDisplay implements Listener {
 
     /** Remove interception before restoring the client's real native absorption value. */
     public void close() {
-        boolean wasEnabled = enabled;
-        enabled = false;
-        packets.stop();
-        if (wasEnabled) {
+        session.enabled.set(false);
+        session = new Session();
+        Throwable cleanupFailure = null;
+        try {
+            packets.stop();
+        } catch (RuntimeException | LinkageError failure) {
+            cleanupFailure = failure;
+        }
+        if (restoreRequired) {
+            restoreRequired = false;
             for (Player player : plugin.getServer().getOnlinePlayers()) {
-                send(player, (float) player.getAbsorptionAmount());
+                try {
+                    packets.send(player, (float) player.getAbsorptionAmount());
+                } catch (RuntimeException | LinkageError failure) {
+                    if (cleanupFailure == null) {
+                        cleanupFailure = failure;
+                    }
+                }
             }
         }
         players.clear();
+        if (cleanupFailure != null) {
+            plugin.getLogger().log(Level.WARNING, "Absorption scaling is disabled, but client restoration failed; subsequent native metadata updates will pass through", cleanupFailure);
+        }
+    }
+
+    private void fail(Session failedSession, Throwable failure) {
+        if (failedSession != session || !failedSession.enabled.compareAndSet(true, false)) {
+            return;
+        }
+        plugin.getLogger().log(Level.WARNING, "Absorption display scaling disabled after a compatibility error; native absorption is unchanged", failure);
+        Runnable cleanup = () -> {
+            if (failedSession == session) {
+                close();
+            }
+        };
+        if (plugin.getServer().isPrimaryThread()) {
+            cleanup.run();
+        } else {
+            try {
+                plugin.getServer().getScheduler().runTask(plugin, cleanup);
+            } catch (RuntimeException | LinkageError schedulingFailure) {
+                // Interception already passes through; shutdown can finish the cleanup.
+                plugin.getLogger().log(Level.WARNING, "Could not schedule absorption display cleanup", schedulingFailure);
+            }
+        }
     }
 
     private float scale(UUID playerId, int entityId, float absorption) {
-        if (!enabled) {
+        if (!session.enabled.get()) {
             return absorption;
         }
         TrackedPlayer tracked = players.compute(playerId, (id, previous) ->
@@ -72,7 +114,7 @@ public final class AbsorptionDisplay implements Listener {
     }
 
     private void refresh(Player player) {
-        if (enabled && player.isOnline()) {
+        if (session.enabled.get() && player.isOnline()) {
             send(player, scale(player.getUniqueId(), player.getEntityId(), (float) player.getAbsorptionAmount()));
         }
     }
@@ -80,12 +122,15 @@ public final class AbsorptionDisplay implements Listener {
     private void send(Player player, float absorption) {
         try {
             packets.send(player, absorption);
-        } catch (RuntimeException exception) {
-            plugin.getLogger().log(Level.WARNING, "Could not refresh absorption display for " + player.getUniqueId(), exception);
+        } catch (RuntimeException | LinkageError exception) {
+            fail(session, exception);
         }
     }
 
     private void resetAndRefresh(Player player) {
+        if (!session.enabled.get()) {
+            return;
+        }
         players.remove(player.getUniqueId());
         // Respawn/world packets must finish before the replacement entity's metadata is sent.
         plugin.getServer().getScheduler().runTask(plugin, () -> refresh(player));
@@ -119,8 +164,12 @@ public final class AbsorptionDisplay implements Listener {
     private record TrackedPlayer(int entityId, AbsorptionScale scale) {
     }
 
+    private static final class Session {
+        private final AtomicBoolean enabled = new AtomicBoolean();
+    }
+
     interface Packets {
-        void start(Scaler scaler);
+        void start(Scaler scaler, Consumer<Throwable> onFailure);
 
         void stop();
 

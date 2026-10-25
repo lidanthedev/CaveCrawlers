@@ -16,22 +16,28 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /** Owns display state only. Native absorption, expiry, and damage remain owned by Minecraft. */
 public final class AbsorptionDisplay implements Listener {
     private final JavaPlugin plugin;
-    private final Packets packets;
+    private final Supplier<Packets> packetFactory;
+    private Packets packets;
     private volatile Session session = new Session();
     private boolean restoreRequired;
 
     public AbsorptionDisplay(JavaPlugin plugin) {
-        this(plugin, new AbsorptionPackets(plugin));
+        this(plugin, () -> new AbsorptionPackets(plugin));
     }
 
     AbsorptionDisplay(JavaPlugin plugin, Packets packets) {
+        this(plugin, () -> packets);
+    }
+
+    AbsorptionDisplay(JavaPlugin plugin, Supplier<Packets> packetFactory) {
         this.plugin = plugin;
-        this.packets = packets;
+        this.packetFactory = packetFactory;
     }
 
     /** Called on the server thread at startup and after gameplay configuration reloads. */
@@ -42,6 +48,10 @@ public final class AbsorptionDisplay implements Listener {
         }
         Session starting = session;
         try {
+            // Resolve/link ProtocolLib classes inside the compatibility guard, not the constructor.
+            if (packets == null) {
+                packets = packetFactory.get();
+            }
             packets.start((id, entity, amount) -> scale(starting, id, entity, amount),
                     failure -> fail(starting, failure));
             starting.enabled.set(true);
@@ -49,7 +59,7 @@ public final class AbsorptionDisplay implements Listener {
             plugin.getServer().getOnlinePlayers().forEach(this::refresh);
         } catch (RuntimeException | LinkageError exception) {
             close();
-            plugin.getLogger().log(Level.SEVERE, "Could not enable absorption display scaling; native absorption is unchanged", exception);
+            plugin.getLogger().log(Level.SEVERE, "Could not enable absorption display scaling; the server or ProtocolLib version may be unsupported. Native absorption is unchanged", exception);
         }
     }
 
@@ -60,7 +70,9 @@ public final class AbsorptionDisplay implements Listener {
         session = new Session();
         Throwable cleanupFailure = null;
         try {
-            packets.stop();
+            if (packets != null) {
+                packets.stop();
+            }
         } catch (RuntimeException | LinkageError failure) {
             cleanupFailure = failure;
         }
@@ -117,26 +129,27 @@ public final class AbsorptionDisplay implements Listener {
 
     private void refresh(Player player) {
         Session refreshing = session;
-        if (refreshing.enabled.get() && player.isOnline()) {
-            send(player, scale(refreshing, player.getUniqueId(), player.getEntityId(), (float) player.getAbsorptionAmount()));
-        }
-    }
-
-    private void send(Player player, float absorption) {
         try {
-            packets.send(player, absorption);
+            if (refreshing.enabled.get() && player.isOnline()) {
+                packets.send(player, scale(refreshing, player.getUniqueId(), player.getEntityId(), (float) player.getAbsorptionAmount()));
+            }
         } catch (RuntimeException | LinkageError exception) {
-            fail(session, exception);
+            fail(refreshing, exception);
         }
     }
 
     private void resetAndRefresh(Player player) {
-        if (!session.enabled.get()) {
+        Session resetting = session;
+        if (!resetting.enabled.get()) {
             return;
         }
-        session.players.remove(player.getUniqueId());
-        // Respawn/world packets must finish before the replacement entity's metadata is sent.
-        plugin.getServer().getScheduler().runTask(plugin, () -> refresh(player));
+        try {
+            resetting.players.remove(player.getUniqueId());
+            // Respawn/world packets must finish before the replacement entity's metadata is sent.
+            plugin.getServer().getScheduler().runTask(plugin, () -> refresh(player));
+        } catch (RuntimeException | LinkageError exception) {
+            fail(resetting, exception);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

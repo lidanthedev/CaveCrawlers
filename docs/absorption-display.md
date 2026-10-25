@@ -38,6 +38,8 @@ The packet adapter resolves the player absorption metadata accessor at startup i
 
 Before installing interception, the adapter verifies the resolved serializer and index, packet fields, and copy/write/read behavior. Startup incompatibility leaves native metadata untouched. A later packet or refresh error disables scaling once, lets subsequent native metadata pass through immediately, and schedules listener removal and native-value restoration on the server thread. Reload uses separate session state so delayed callbacks cannot change a new pool's peak or disable a new session. Cleanup errors are logged without changing real absorption or stopping plugin shutdown.
 
+Adapter construction, startup, packet-event access, and player refreshes run inside `try/catch` guards for `RuntimeException` and `LinkageError`, including missing classes or methods on unsupported server/ProtocolLib versions. A disabled display does not construct the adapter. Fatal JVM errors such as exhausted memory are not treated as version incompatibilities.
+
 Packets for other entities are untouched. Rewritten packet lists and absorption entries are copied so other viewers cannot inherit the owner's display value. This is a compatibility fallback, not a guarantee that an unsupported ProtocolLib or future Minecraft release can load the entire plugin.
 
 Automated tests cover mapped and obfuscated accessor resolution, ambiguous or missing accessors, health exclusion, proportional scaling, replenishment, fractional and extreme values, independent players, replacement entity IDs, configuration changes, join/respawn/world refreshes, death/quit cleanup, stale reload callbacks, runtime/linkage errors, shutdown restoration, and the numeric action-bar readout.

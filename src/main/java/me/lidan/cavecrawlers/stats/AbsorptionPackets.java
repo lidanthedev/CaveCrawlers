@@ -40,11 +40,14 @@ final class AbsorptionPackets implements AbsorptionDisplay.Packets {
         listener = new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Server.ENTITY_METADATA) {
             @Override
             public void onPacketSending(PacketEvent event) {
-                if (inactive.get() || event.isCancelled()) {
+                if (inactive.get()) {
                     return;
                 }
-                PacketContainer original = event.getPacket();
                 try {
+                    if (event.isCancelled()) {
+                        return;
+                    }
+                    PacketContainer original = event.getPacket();
                     Player recipient = event.getPlayer();
                     int entityId = original.getIntegers().read(0);
                     if (entityId != recipient.getEntityId()) {

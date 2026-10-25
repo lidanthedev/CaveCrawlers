@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -173,6 +174,41 @@ class AbsorptionDisplayTest {
         assertTrue(packets.sent.isEmpty());
         verify(player, never()).setAbsorptionAmount(anyDouble());
         verify(logger).log(eq(Level.SEVERE), contains("Could not enable"), same(packets.startFailure));
+    }
+
+    @Test
+    void missingProtocolLibClassesAreCaughtDuringLazyAdapterConstruction() {
+        NoClassDefFoundError failure = new NoClassDefFoundError("Unsupported ProtocolLib class");
+        display = new AbsorptionDisplay(plugin, () -> { throw failure; });
+        display.reload();
+        display.close();
+        verify(logger).log(eq(Level.SEVERE), contains("may be unsupported"), same(failure));
+        verify(player, never()).setAbsorptionAmount(anyDouble());
+    }
+
+    @Test
+    void disabledDisplayDoesNotLinkProtocolLibClasses() {
+        config.set("absorption-display.enabled", false);
+        display = new AbsorptionDisplay(plugin, () -> { throw new AssertionError("Adapter must not be constructed"); });
+        display.reload();
+        display.close();
+    }
+
+    @Test
+    void missingNativeAbsorptionApiDuringRefreshDisablesOnlyScaling() {
+        display.reload();
+        PlayerRespawnEvent respawn = mock(PlayerRespawnEvent.class);
+        when(respawn.getPlayer()).thenReturn(player);
+        display.onRespawn(respawn);
+        NoSuchMethodError failure = new NoSuchMethodError("Changed native absorption API");
+        doThrow(failure).when(player).getAbsorptionAmount();
+        nextTick.removeFirst().run();
+        assertEquals(3200, packets.update(player, 3200));
+        doReturn(3200D).when(player).getAbsorptionAmount();
+        nextTick.removeFirst().run();
+        assertFalse(packets.active);
+        assertEquals(List.of(20F, 3200F), packets.sent);
+        verify(logger).log(eq(Level.WARNING), contains("compatibility error"), same(failure));
     }
 
     @Test

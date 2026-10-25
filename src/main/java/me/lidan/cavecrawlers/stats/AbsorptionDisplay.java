@@ -22,7 +22,6 @@ import java.util.logging.Level;
 public final class AbsorptionDisplay implements Listener {
     private final JavaPlugin plugin;
     private final Packets packets;
-    private final ConcurrentMap<UUID, TrackedPlayer> players = new ConcurrentHashMap<>();
     private volatile Session session = new Session();
     private boolean restoreRequired;
 
@@ -43,7 +42,8 @@ public final class AbsorptionDisplay implements Listener {
         }
         Session starting = session;
         try {
-            packets.start(this::scale, failure -> fail(starting, failure));
+            packets.start((id, entity, amount) -> scale(starting, id, entity, amount),
+                    failure -> fail(starting, failure));
             starting.enabled.set(true);
             restoreRequired = true;
             plugin.getServer().getOnlinePlayers().forEach(this::refresh);
@@ -55,7 +55,8 @@ public final class AbsorptionDisplay implements Listener {
 
     /** Remove interception before restoring the client's real native absorption value. */
     public void close() {
-        session.enabled.set(false);
+        Session closing = session;
+        closing.enabled.set(false);
         session = new Session();
         Throwable cleanupFailure = null;
         try {
@@ -75,7 +76,7 @@ public final class AbsorptionDisplay implements Listener {
                 }
             }
         }
-        players.clear();
+        closing.players.clear();
         if (cleanupFailure != null) {
             plugin.getLogger().log(Level.WARNING, "Absorption scaling is disabled, but client restoration failed; subsequent native metadata updates will pass through", cleanupFailure);
         }
@@ -103,19 +104,21 @@ public final class AbsorptionDisplay implements Listener {
         }
     }
 
-    private float scale(UUID playerId, int entityId, float absorption) {
-        if (!session.enabled.get()) {
+    private float scale(Session scalingSession, UUID playerId, int entityId, float absorption) {
+        if (scalingSession != session || !scalingSession.enabled.get()) {
             return absorption;
         }
-        TrackedPlayer tracked = players.compute(playerId, (id, previous) ->
+        TrackedPlayer tracked = scalingSession.players.compute(playerId, (id, previous) ->
                 previous == null || previous.entityId() != entityId
                         ? new TrackedPlayer(entityId, new AbsorptionScale()) : previous);
-        return tracked.scale().update(absorption);
+        float scaled = tracked.scale().update(absorption);
+        return scalingSession == session && scalingSession.enabled.get() ? scaled : absorption;
     }
 
     private void refresh(Player player) {
-        if (session.enabled.get() && player.isOnline()) {
-            send(player, scale(player.getUniqueId(), player.getEntityId(), (float) player.getAbsorptionAmount()));
+        Session refreshing = session;
+        if (refreshing.enabled.get() && player.isOnline()) {
+            send(player, scale(refreshing, player.getUniqueId(), player.getEntityId(), (float) player.getAbsorptionAmount()));
         }
     }
 
@@ -131,7 +134,7 @@ public final class AbsorptionDisplay implements Listener {
         if (!session.enabled.get()) {
             return;
         }
-        players.remove(player.getUniqueId());
+        session.players.remove(player.getUniqueId());
         // Respawn/world packets must finish before the replacement entity's metadata is sent.
         plugin.getServer().getScheduler().runTask(plugin, () -> refresh(player));
     }
@@ -153,12 +156,12 @@ public final class AbsorptionDisplay implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent event) {
-        players.remove(event.getEntity().getUniqueId());
+        session.players.remove(event.getEntity().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        players.remove(event.getPlayer().getUniqueId());
+        session.players.remove(event.getPlayer().getUniqueId());
     }
 
     private record TrackedPlayer(int entityId, AbsorptionScale scale) {
@@ -166,6 +169,7 @@ public final class AbsorptionDisplay implements Listener {
 
     private static final class Session {
         private final AtomicBoolean enabled = new AtomicBoolean();
+        private final ConcurrentMap<UUID, TrackedPlayer> players = new ConcurrentHashMap<>();
     }
 
     interface Packets {

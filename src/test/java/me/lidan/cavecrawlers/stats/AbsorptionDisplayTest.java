@@ -204,6 +204,16 @@ class AbsorptionDisplayTest {
     }
 
     @Test
+    void delayedScalerFromAnOldSessionCannotChangeANewPoolsPeak() {
+        display.reload();
+        AbsorptionDisplay.Scaler oldScaler = packets.scaler;
+        display.reload();
+        assertEquals(6400, oldScaler.scale(player.getUniqueId(), player.getEntityId(), 6400));
+        assertEquals(20, packets.update(player, 3200));
+        assertEquals(10, packets.update(player, 1600));
+    }
+
+    @Test
     void outgoingRefreshFailureAlsoDisablesScaling() {
         display.reload();
         packets.sendFailure = new NoSuchMethodError("Changed native metadata method");

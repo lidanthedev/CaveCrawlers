@@ -1,0 +1,5 @@
+name: CaveCrawlersAbsorptionProbe
+version: '1.0'
+main: me.lidan.cavecrawlers.stats.AbsorptionCompatibilityProbe
+api-version: '1.20'
+depend: [ProtocolLib]

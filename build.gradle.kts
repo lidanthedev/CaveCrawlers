@@ -91,6 +91,19 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// An isolated probe plugin for real Paper/ProtocolLib checks, never included in the main jar.
+val compatibility by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+}
+
+tasks.register<Jar>("absorptionCompatibilityJar") {
+    from(compatibility.output)
+    from(sourceSets.main.get().output) {
+        include("me/lidan/cavecrawlers/stats/Absorption*.class")
+    }
+    archiveClassifier.set("absorption-probe")
+}
+
 tasks.shadowJar {
     archiveClassifier.set(null as String?)
     relocate("revxrsal.commands", "me.lidan.cavecrawlers.lamp")

@@ -50,6 +50,7 @@ import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.stats.AbsorptionDisplay;
 import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.storage.YamlMigrationTask;
 import me.lidan.cavecrawlers.storage.db.Database;
@@ -100,6 +101,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private Lamp.Builder<BukkitCommandActor> commandHandlerBuilder;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
+    private AbsorptionDisplay absorptionDisplay;
 
     /**
      * Get the plugin instance
@@ -283,6 +285,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         registerConfig();
         ConfigMessage.reload();
+        if (absorptionDisplay != null) {
+            absorptionDisplay.reload();
+        }
 
         clearGameplayRegistries();
         IndexBaseCategoryMenu.clearItemCache();
@@ -571,6 +576,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
         PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();
+        absorptionDisplay = new AbsorptionDisplay(this);
+        registerEvent(absorptionDisplay);
+        absorptionDisplay.reload();
     }
 
     /**
@@ -646,6 +654,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     @Override
     public void onDisable() {
         stopping = true;
+        if (absorptionDisplay != null) {
+            absorptionDisplay.close();
+        }
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();

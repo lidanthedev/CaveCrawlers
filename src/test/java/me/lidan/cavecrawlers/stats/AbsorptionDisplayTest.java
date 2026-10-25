@@ -1,0 +1,186 @@
+package me.lidan.cavecrawlers.stats;
+
+import org.bukkit.Server;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class AbsorptionDisplayTest {
+    private JavaPlugin plugin;
+    private Player player;
+    private YamlConfiguration config;
+    private FakePackets packets;
+    private AbsorptionDisplay display;
+    private List<Runnable> nextTick;
+
+    @BeforeEach
+    void setUp() {
+        plugin = mock(JavaPlugin.class);
+        Server server = mock(Server.class);
+        BukkitScheduler scheduler = mock(BukkitScheduler.class);
+        player = mock(Player.class);
+        config = new YamlConfiguration();
+        nextTick = new ArrayList<>();
+        when(plugin.getServer()).thenReturn(server);
+        when(plugin.getConfig()).thenReturn(config);
+        when(plugin.getLogger()).thenReturn(Logger.getAnonymousLogger());
+        when(server.getScheduler()).thenReturn(scheduler);
+        doReturn(List.of(player)).when(server).getOnlinePlayers();
+        doAnswer(invocation -> {
+            nextTick.add(invocation.getArgument(1));
+            return null;
+        }).when(scheduler).runTask(eq(plugin), any(Runnable.class));
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(player.getEntityId()).thenReturn(42);
+        when(player.isOnline()).thenReturn(true);
+        when(player.getAbsorptionAmount()).thenReturn(3200D);
+        packets = new FakePackets();
+        display = new AbsorptionDisplay(plugin, packets);
+    }
+
+    @Test
+    void initializesOnlinePlayersAndPreservesNativeAbsorptionAndHealth() {
+        display.reload();
+        assertEquals(List.of(20F), packets.sent);
+        assertEquals(10, packets.update(player, 1600));
+        verify(player, never()).setAbsorptionAmount(anyDouble());
+        verify(player, never()).setHealth(anyDouble());
+        verify(player, never()).setHealthScale(anyDouble());
+    }
+
+    @Test
+    void playerPoolsAreIndependentAndReplacementEntitiesStartFresh() {
+        display.reload();
+        assertEquals(10, packets.update(player, 1600));
+        assertEquals(20, packets.scaler.scale(UUID.randomUUID(), 43, 800));
+        assertEquals(5, packets.update(player, 800));
+        assertEquals(20, packets.scaler.scale(player.getUniqueId(), 100, 800));
+    }
+
+    @Test
+    void disabledConfigurationRemovesInterceptionAndRestoresTheRealAmount() {
+        display.reload();
+        config.set("absorption-display.enabled", false);
+        display.reload();
+        assertEquals(List.of(20F, 3200F), packets.sent);
+        assertFalse(packets.active);
+        assertEquals(3200, packets.update(player, 3200));
+    }
+
+    @Test
+    void disabledAtStartupInstallsNothingAndSendsNothing() {
+        config.set("absorption-display.enabled", false);
+        display.reload();
+        assertFalse(packets.active);
+        assertTrue(packets.sent.isEmpty());
+    }
+
+    @Test
+    void closingTwiceRestoresNativeMetadataOnce() {
+        display.reload();
+        display.close();
+        display.close();
+        assertEquals(List.of(20F, 3200F), packets.sent);
+        verify(player, never()).setAbsorptionAmount(anyDouble());
+    }
+
+    @Test
+    void joinsRespawnsAndWorldChangesRefreshAfterTheirPacketsFinish() {
+        display.reload();
+        PlayerJoinEvent join = mock(PlayerJoinEvent.class);
+        when(join.getPlayer()).thenReturn(player);
+        PlayerRespawnEvent respawn = mock(PlayerRespawnEvent.class);
+        when(respawn.getPlayer()).thenReturn(player);
+        PlayerChangedWorldEvent world = mock(PlayerChangedWorldEvent.class);
+        when(world.getPlayer()).thenReturn(player);
+
+        display.onJoin(join);
+        display.onRespawn(respawn);
+        display.onWorldChange(world);
+        assertEquals(1, packets.sent.size());
+        assertEquals(3, nextTick.size());
+        nextTick.forEach(Runnable::run);
+        assertEquals(List.of(20F, 20F, 20F, 20F), packets.sent);
+    }
+
+    @Test
+    void queuedRefreshDoesNotSendAfterShutdownOrDisconnect() {
+        display.reload();
+        PlayerRespawnEvent respawn = mock(PlayerRespawnEvent.class);
+        when(respawn.getPlayer()).thenReturn(player);
+        display.onRespawn(respawn);
+        when(player.isOnline()).thenReturn(false);
+        nextTick.forEach(Runnable::run);
+        assertEquals(1, packets.sent.size());
+        display.close();
+        nextTick.forEach(Runnable::run);
+        assertEquals(2, packets.sent.size());
+    }
+
+    @Test
+    void deathAndQuitDiscardThePreviousPoolsPeak() {
+        display.reload();
+        PlayerDeathEvent death = mock(PlayerDeathEvent.class);
+        when(death.getEntity()).thenReturn(player);
+        display.onDeath(death);
+        assertEquals(20, packets.update(player, 800));
+
+        packets.update(player, 3200);
+        PlayerQuitEvent quit = mock(PlayerQuitEvent.class);
+        when(quit.getPlayer()).thenReturn(player);
+        display.onQuit(quit);
+        assertEquals(20, packets.update(player, 400));
+    }
+
+    private static final class FakePackets implements AbsorptionDisplay.Packets {
+        private final List<Float> sent = new ArrayList<>();
+        private AbsorptionDisplay.Scaler scaler;
+        private boolean active;
+
+        @Override
+        public void start(AbsorptionDisplay.Scaler scaler) {
+            this.scaler = scaler;
+            active = true;
+        }
+
+        @Override
+        public void stop() {
+            active = false;
+        }
+
+        @Override
+        public void send(Player player, float amount) {
+            sent.add(amount);
+        }
+
+        float update(Player player, float amount) {
+            return scaler.scale(player.getUniqueId(), player.getEntityId(), amount);
+        }
+    }
+}

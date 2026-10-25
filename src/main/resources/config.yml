@@ -1,4 +1,4 @@
-version: "7" # DO NOT EDIT!
+version: "8" # DO NOT EDIT!
 server-id: "" # Deprecated. Each server process generates a fresh session ID for player-data locking.
 server-damage-multiplier: 1.0 # Global damage multiplier for all players
 menu:
@@ -15,6 +15,11 @@ first-join-commands: [ ]
 loot-share:
   enable-by-default: true # Should mob drops be loot shared by default?
   damage-threshold: 10 # Minimum damage percent to be eligible for loot share
+
+absorption-display:
+  # Display native absorption as at most ten golden hearts, without changing damage or health.
+  # A pool's largest observed amount fills the row; consuming it shrinks the row.
+  enabled: true
 
 mining-blacklisted-worlds: []
 mining:

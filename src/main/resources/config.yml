@@ -30,6 +30,8 @@ actionbar:
   # You can use the following placeholders:
   # <health> - Current health of the player
   # <max-health> - Maximum health of the player
+  # <absorption> - Actual native absorption, independent of the golden-heart display scale
+  # <absorption-display> - Gold " +amount❤" when absorption is present, otherwise empty
   # <defense> - Current defense of the player
   # <mana> - Current mana of the player
   # <max-mana> - Maximum mana of the player
@@ -37,7 +39,7 @@ actionbar:
   # Make sure to put [] if you want alerts to be shown in the actionbar.
   # Text in [] will be replaced with the alert for a few seconds.
   enabled: true
-  format: <red><health>/<max-health>❤ [<green><defense>❈] <aqua><mana>/<max-mana>✎
+  format: <red><health>/<max-health>❤<absorption-display> [<green><defense>❈] <aqua><mana>/<max-mana>✎
 
 night-vision: true # Enable night vision for players
 hunger-disabled: true # Disable hunger for players

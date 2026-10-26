@@ -104,6 +104,7 @@ class AbilityCoverageTest {
         assertEquals(1, base.getPlayerCharges(player));
         assertEquals(0, clone.getPlayerCharges(player));
 
+        base.getChargeCooldown().resetCooldown(player.getUniqueId());
         base.close();
         base.close();
         context.server().getScheduler().performTicks(20);

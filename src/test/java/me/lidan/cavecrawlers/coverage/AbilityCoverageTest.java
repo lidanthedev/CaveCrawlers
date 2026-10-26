@@ -90,6 +90,27 @@ class AbilityCoverageTest {
         assertEquals(1, clone.getPlayerCharges(clonePlayer));
     }
 
+    @Test
+    void closingChargedAbilitiesStopsOnlyTheirOwnRechargeAndIsIdempotent() {
+        TestChargedAbility base = new TestChargedAbility();
+        TestChargedAbility clone = (TestChargedAbility) base.clone();
+        Player player = context.server().addPlayer("charged-cleanup");
+        base.setPlayerCharges(player, 0);
+        clone.setPlayerCharges(player, 0);
+
+        clone.close();
+        clone.close();
+        context.server().getScheduler().performTicks(1);
+        assertEquals(1, base.getPlayerCharges(player));
+        assertEquals(0, clone.getPlayerCharges(player));
+
+        base.close();
+        base.close();
+        context.server().getScheduler().performTicks(20);
+        assertEquals(1, base.getPlayerCharges(player));
+        assertEquals(0, clone.getPlayerCharges(player));
+    }
+
     private static void setStatic(Class<?> type, String name, Object value) throws Exception {
         Field field = type.getDeclaredField(name);
         field.setAccessible(true);

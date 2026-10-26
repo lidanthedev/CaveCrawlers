@@ -11,6 +11,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,11 +19,12 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public abstract class ChargedItemAbility extends ClickAbility {
+public abstract class ChargedItemAbility extends ClickAbility implements AutoCloseable {
     private int maxCharges;
     private long chargeTime;
     private Map<UUID, Integer> playerCharges = new HashMap<>();
     private Cooldown<UUID> chargeCooldown = new Cooldown<>();
+    private BukkitTask rechargeTask;
 
     public ChargedItemAbility(String name, String description, double cost, int maxCharges, long chargeTime) {
         super(name, description, cost, 100);
@@ -32,7 +34,7 @@ public abstract class ChargedItemAbility extends ClickAbility {
     }
 
     private void recharge(){
-        Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), bukkitTask -> {
+        rechargeTask = Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), () -> {
             for (UUID uuid : playerCharges.keySet()) {
                 int charges = playerCharges.get(uuid);
                 if (charges < maxCharges && chargeCooldown.getCurrentCooldown(uuid) >= chargeTime){
@@ -41,6 +43,15 @@ public abstract class ChargedItemAbility extends ClickAbility {
                 }
             }
         }, 0, 20L);
+    }
+
+    /** Addons must release native-owned recharge tasks when removing their abilities. */
+    @Override
+    public void close() {
+        if (rechargeTask != null) {
+            rechargeTask.cancel();
+            rechargeTask = null;
+        }
     }
 
     public int getPlayerCharges(Player player){

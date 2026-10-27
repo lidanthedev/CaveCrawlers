@@ -40,6 +40,18 @@ public class DamageEntityListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
     private static final EntityManager entityManager = EntityManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final java.util.Map<EntityDamageByEntityEvent, DamageCalculationEvent> resolvedContext =
+            new java.util.IdentityHashMap<>();
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDamageResolved(EntityDamageByEntityEvent event) {
+        DamageCalculationEvent context = resolvedContext.remove(event);
+        if (context == null || event.isCancelled() || event.getFinalDamage() <= 0) return;
+        Bukkit.getPluginManager().callEvent(new me.lidan.cavecrawlers.damage.DamageResolvedEvent(
+                context.getPlayer(), context.getTarget(), event.getFinalDamage(), context.isCritical(),
+                context.getCalculation() instanceof me.lidan.cavecrawlers.damage.AbilityDamage));
+    }
+
     private static final double VOID_DAMAGE = 1000000000;
 
     private double getServerDamageMultiplier() {
@@ -121,6 +133,7 @@ public class DamageEntityListener implements Listener {
             return;
         }
 
+        resolvedContext.put(event, calculationEvent);
         event.setDamage(calculationEvent.getDamage());
         double finalDamage = event.getFinalDamage();
         entityManager.addDamage(player.getUniqueId(), mob, finalDamage);

@@ -96,10 +96,19 @@ public class SellMenu {
         }
 
         total = event.getPrice();
-        if (total <= 0 || !VaultUtils.giveCoins(player, total)) {
+        if (total <= 0 || !VaultUtils.giveCoins(player, total, "shop_sell", "sell_menu")) {
             for (ItemStack item : event.getSellableItems()) {
                 itemsManager.giveItemStacks(player, item);
             }
+        }
+        else {
+            Map<String, Integer> sold = new java.util.HashMap<>();
+            for (ItemStack item : event.getSellableItems()) {
+                String id = itemsManager.getIDofItemStackSafe(item);
+                if (id != null) sold.merge(id, item.getAmount(), Integer::sum);
+            }
+            Bukkit.getPluginManager().callEvent(new me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent(
+                    player.getUniqueId(), java.util.UUID.randomUUID(), false, total, sold, Map.of()));
         }
         if (!event.isTrashUnsellable()) {
             for (ItemStack item : event.getUnsellableItems()) {

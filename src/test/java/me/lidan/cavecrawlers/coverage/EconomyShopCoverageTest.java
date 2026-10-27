@@ -79,6 +79,33 @@ class EconomyShopCoverageTest {
     }
 
     @Test
+    void completedObservationsRequireSuccessfulPaymentAndKeepActualAmounts() {
+        PluginManager manager = mock(PluginManager.class);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
+            ShopItem shop = new ShopItem(result, 2, 2.99, Map.of(ingredient, 3));
+            assertTrue(shop.buy(player, true));
+            var transaction = org.mockito.ArgumentCaptor.forClass(
+                    me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class);
+            verify(manager).callEvent(transaction.capture());
+            org.junit.jupiter.api.Assertions.assertEquals(2.9, transaction.getValue().getPrice());
+            org.junit.jupiter.api.Assertions.assertEquals(Map.of("RESULT", 2), transaction.getValue().getItems());
+            org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
+                    () -> transaction.getValue().getIngredients().clear());
+            var currency = org.mockito.ArgumentCaptor.forClass(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class);
+            verify(manager).callEvent(currency.capture());
+            org.junit.jupiter.api.Assertions.assertEquals("shop_purchase", currency.getValue().getReason());
+            assertFalse(currency.getValue().isCreated());
+            clearInvocations(manager);
+            when(economy.withdrawPlayer(player, 2.9)).thenReturn(
+                    new EconomyResponse(0, 100, EconomyResponse.ResponseType.FAILURE, "declined"));
+            assertFalse(shop.buy(player, true));
+            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class));
+            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class));
+        }
+    }
+
+    @Test
     void vaultHelpersRoundToOneDecimalBeforeCallingProvider() {
         VaultUtils.giveCoins(player, 1.29);
         VaultUtils.takeCoins(player, 2.99);

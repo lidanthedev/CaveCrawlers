@@ -801,13 +801,13 @@ public class CaveCrawlersMainCommand {
     @Subcommand("coins give")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsGive(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.giveCoins(player, amount);
+        VaultUtils.giveCoins(player, amount, "admin_grant", "command");
     }
 
     @Subcommand("coins take")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsTake(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.takeCoins(player, amount);
+        VaultUtils.takeCoins(player, amount, "admin_remove", "command");
     }
 
     @Subcommand("coins get")

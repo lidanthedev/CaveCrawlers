@@ -279,7 +279,8 @@ public class CaveCrawlersMainCommand {
     private void reloadAddonsInternal(CommandSender sender) {
         @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
         for (Plugin plugin : plugins) {
-            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
+            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")
+                    || plugin.getPluginMeta().getPluginSoftDependencies().contains("CaveCrawlers")) {
                 Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + plugin.getName());
                 sender.sendMessage(ChatColor.GREEN + plugin.getName() + " reloaded!");
             }

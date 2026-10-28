@@ -37,3 +37,10 @@ MythicMobs public spawn/death/despawn events and internal IDs are available in 5
 FishingAddon owns Kuudra's custom multi-stage encounter, rewards and party lifecycle. A Mythic mob spawn/death alone cannot describe that logical encounter. Recommended public EncounterStarted/EncounterCompleted/RewardGranted events must fire after authoritative encounter state transitions/reward grants, carry encounter ID, boss/dungeon ref, participant UUIDs, result, reward refs/quantities and failure reason, and distinguish victory from an internal stage mob death. Non-cancellable completed observations, additive API; no reflection into FishingAddon. Area transitions can use a dedicated post-region-change event if an authoritative progression area is introduced; v1 does not infer dungeon identity from coordinates.
 
 Economy and item totals therefore describe the explicitly supported native flows, not the complete server economy. New source APIs are required before drawing server-wide inflation or item-supply conclusions.
+
+
+## Addon APIs supplied in separate repositories
+
+The coordinated Cardinal addon integration now adds public completed-operation observations in DungeonCrawlers, CaveCrawlAddon, FishingAddon and GriffinAddon. Dungeon run/reward transitions and Fishing logical encounters/claims no longer require private-field reflection. Fishing direct grants/forge/bait consumption and Griffin direct sand grants have explicit observations; native Drop paths remain counted by Core once. Those contracts and remaining coverage limits are documented in each addon's docs/TELEMETRY_EVENTS.md and Cardinal's docs/cardinal/SCHEMA.md. General transfers and unrelated external mutations remain uncovered.
+
+Core's addon reload order now follows hard and soft provider dependencies before consumers. Shared providers and optional cycles are covered by PluginReloadOrderTest. The existing Core completed-event API and public method descriptors remain unchanged by this lifecycle fix.

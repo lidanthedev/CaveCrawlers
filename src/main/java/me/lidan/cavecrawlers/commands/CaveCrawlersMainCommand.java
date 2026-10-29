@@ -45,6 +45,7 @@ import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.storage.db.DbMigrator;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -72,7 +73,9 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -277,7 +280,7 @@ public class CaveCrawlersMainCommand {
     }
 
     private void reloadAddonsInternal(CommandSender sender) {
-        Map<String, List<String>> dependencies = new java.util.LinkedHashMap<>();
+        Map<String, List<String>> dependencies = new LinkedHashMap<>();
         for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             var meta = plugin.getPluginMeta();
             if (meta.getPluginDependencies().contains("CaveCrawlers")
@@ -299,10 +302,10 @@ public class CaveCrawlersMainCommand {
         if (!requirePlugMan(sender)) {
             return;
         }
-        var title = net.kyori.adventure.title.Title.title(
+        var title = Title.title(
                 MiniMessageUtils.miniMessage("<gold><bold>Game Updating</bold></gold>"), Component.empty(),
-                net.kyori.adventure.title.Title.Times.times(java.time.Duration.ZERO,
-                        java.time.Duration.ofSeconds(20), java.time.Duration.ofSeconds(1)));
+                Title.Times.times(Duration.ZERO,
+                        Duration.ofSeconds(20), Duration.ofSeconds(1)));
         Bukkit.getOnlinePlayers().forEach(player -> player.showTitle(title));
         Bukkit.getScheduler().runTask(plugin, () -> {
             reloadPluginInternal();

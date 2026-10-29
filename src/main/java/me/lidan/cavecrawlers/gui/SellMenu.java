@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.shop.ShopSellEvent;
+import me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.StringUtils;
@@ -18,8 +19,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class SellMenu {
     public static final int SELL_BUTTON_SLOT = 31;
@@ -102,13 +105,13 @@ public class SellMenu {
             }
         }
         else {
-            Map<String, Integer> sold = new java.util.HashMap<>();
+            Map<String, Integer> sold = new HashMap<>();
             for (ItemStack item : event.getSellableItems()) {
                 String id = itemsManager.getIDofItemStackSafe(item);
                 if (id != null) sold.merge(id, item.getAmount(), Integer::sum);
             }
-            Bukkit.getPluginManager().callEvent(new me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent(
-                    player.getUniqueId(), java.util.UUID.randomUUID(), false, total, sold, Map.of()));
+            Bukkit.getPluginManager().callEvent(new ShopTransactionCompletedEvent(
+                    player.getUniqueId(), UUID.randomUUID(), false, total, sold, Map.of()));
         }
         if (!event.isTrashUnsellable()) {
             for (ItemStack item : event.getUnsellableItems()) {

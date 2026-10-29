@@ -1,6 +1,7 @@
 package me.lidan.cavecrawlers.utils;
 
 import me.lidan.cavecrawlers.CaveCrawlers;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 /**
@@ -24,7 +25,7 @@ public class VaultUtils {
         if (!prepare(player, amount, true, reason, source)) return false;
         var response = CaveCrawlers.economy.depositPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();
-        if (success && amount > 0) org.bukkit.Bukkit.getPluginManager().callEvent(
+        if (success && amount > 0) Bukkit.getPluginManager().callEvent(
                 new CurrencyTransactionEvent(player.getUniqueId(), amount, true, reason, source));
         return success;
     }
@@ -44,7 +45,7 @@ public class VaultUtils {
         if (!prepare(player, amount, false, reason, source)) return false;
         var response = CaveCrawlers.economy.withdrawPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();
-        if (success && amount > 0) org.bukkit.Bukkit.getPluginManager().callEvent(
+        if (success && amount > 0) Bukkit.getPluginManager().callEvent(
                 new CurrencyTransactionEvent(player.getUniqueId(), amount, false, reason, source));
         return success;
     }

@@ -1,11 +1,13 @@
 package me.lidan.cavecrawlers.skills;
 
-import java.util.UUID;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /** Non-cancellable observation of a completed domain operation. */
 @Getter
@@ -19,8 +21,8 @@ public final class SkillProgressionChangedEvent extends Event {
 
     public SkillProgressionChangedEvent(UUID owner, String skillId, int previousLevel, int level, double xpGained) {
         super(!Bukkit.isPrimaryThread());
-        this.owner = java.util.Objects.requireNonNull(owner, "owner");
-        this.skillId = java.util.Objects.requireNonNull(skillId, "skillId");
+        this.owner = Objects.requireNonNull(owner, "owner");
+        this.skillId = Objects.requireNonNull(skillId, "skillId");
         this.previousLevel = previousLevel;
         this.level = level;
         this.xpGained = xpGained;

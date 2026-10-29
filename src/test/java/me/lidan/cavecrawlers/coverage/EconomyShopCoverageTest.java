@@ -13,7 +13,11 @@ import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.shop.ShopPurchaseEvent;
+import me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent;
+import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
+import me.lidan.cavecrawlers.utils.CurrencyTransactionEvent;
+import me.lidan.cavecrawlers.utils.CurrencyTransactionPrepareEvent;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -25,14 +29,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -85,23 +92,23 @@ class EconomyShopCoverageTest {
             bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
             ShopItem shop = new ShopItem(result, 2, 2.99, Map.of(ingredient, 3));
             assertTrue(shop.buy(player, true));
-            var transaction = org.mockito.ArgumentCaptor.forClass(
-                    me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class);
+            var transaction = ArgumentCaptor.forClass(
+                    ShopTransactionCompletedEvent.class);
             verify(manager).callEvent(transaction.capture());
-            org.junit.jupiter.api.Assertions.assertEquals(2.9, transaction.getValue().getPrice());
-            org.junit.jupiter.api.Assertions.assertEquals(Map.of("RESULT", 2), transaction.getValue().getItems());
-            org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
+            Assertions.assertEquals(2.9, transaction.getValue().getPrice());
+            Assertions.assertEquals(Map.of("RESULT", 2), transaction.getValue().getItems());
+            Assertions.assertThrows(UnsupportedOperationException.class,
                     () -> transaction.getValue().getIngredients().clear());
-            var currency = org.mockito.ArgumentCaptor.forClass(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class);
+            var currency = ArgumentCaptor.forClass(CurrencyTransactionEvent.class);
             verify(manager).callEvent(currency.capture());
-            org.junit.jupiter.api.Assertions.assertEquals("shop_purchase", currency.getValue().getReason());
+            Assertions.assertEquals("shop_purchase", currency.getValue().getReason());
             assertFalse(currency.getValue().isCreated());
             clearInvocations(manager);
             when(economy.withdrawPlayer(player, 2.9)).thenReturn(
                     new EconomyResponse(0, 100, EconomyResponse.ResponseType.FAILURE, "declined"));
             assertFalse(shop.buy(player, true));
-            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class));
-            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class));
+            verify(manager, never()).callEvent(any(CurrencyTransactionEvent.class));
+            verify(manager, never()).callEvent(any(ShopTransactionCompletedEvent.class));
         }
     }
 
@@ -109,17 +116,17 @@ class EconomyShopCoverageTest {
     void cancelledCurrencyRequestPreventsPaymentAndShopGrant() {
         PluginManager manager = mock(PluginManager.class);
         doAnswer(invocation -> {
-            ((me.lidan.cavecrawlers.utils.CurrencyTransactionPrepareEvent) invocation.getArgument(0)).setCancelled(true);
+            ((CurrencyTransactionPrepareEvent) invocation.getArgument(0)).setCancelled(true);
             return null;
-        }).when(manager).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionPrepareEvent.class));
+        }).when(manager).callEvent(any(CurrencyTransactionPrepareEvent.class));
         try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
             bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
             assertFalse(new ShopItem(result, 2, 2.99, Map.of(ingredient, 3)).buy(player, true));
             assertFalse(VaultUtils.giveCoins(player, 10));
             verify(economy, never()).withdrawPlayer(any(OfflinePlayer.class), anyDouble());
             verify(economy, never()).depositPlayer(any(OfflinePlayer.class), anyDouble());
-            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class));
-            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class));
+            verify(manager, never()).callEvent(any(CurrencyTransactionEvent.class));
+            verify(manager, never()).callEvent(any(ShopTransactionCompletedEvent.class));
             verify(itemsMock, never()).giveItem(any(), any(), anyInt());
         }
     }
@@ -288,7 +295,7 @@ class EconomyShopCoverageTest {
     }
 
     private ItemInfo item(String id) {
-        ItemInfo item = new ItemInfo(id, new me.lidan.cavecrawlers.stats.Stats(), ItemType.MATERIAL,
+        ItemInfo item = new ItemInfo(id, new Stats(), ItemType.MATERIAL,
                 Material.DIAMOND, Rarity.COMMON);
         when(itemsMock.getItemByID(id)).thenReturn(item);
         item.setID(id);
@@ -305,7 +312,7 @@ class EconomyShopCoverageTest {
     }
 
     private void registerShop(ShopItem... shopItems) {
-        ShopMenu shopMenu = new ShopMenu("test", java.util.Arrays.asList(shopItems));
+        ShopMenu shopMenu = new ShopMenu("test", Arrays.asList(shopItems));
         ShopManager.getInstance().registerMenu("test", shopMenu);
     }
 

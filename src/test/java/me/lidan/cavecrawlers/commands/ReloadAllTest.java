@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.commands;
 
-import java.util.List;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
@@ -12,6 +11,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -32,12 +35,12 @@ class ReloadAllTest {
             when(plugins.getPlugins()).thenReturn(new Plugin[0]);
             var command = mock(CaveCrawlersMainCommand.class, CALLS_REAL_METHODS);
             command.reloadAll(mock(CommandSender.class));
-            var title = org.mockito.ArgumentCaptor.forClass(Title.class);
+            var title = ArgumentCaptor.forClass(Title.class);
             verify(first).showTitle(title.capture());
             verify(second).showTitle(title.getValue());
             assertEquals("Game Updating", PlainTextComponentSerializer.plainText().serialize(title.getValue().title()));
             bukkit.verify(() -> Bukkit.dispatchCommand(console, "plugman reload CaveCrawlers"), never());
-            var work = org.mockito.ArgumentCaptor.forClass(Runnable.class);
+            var work = ArgumentCaptor.forClass(Runnable.class);
             verify(scheduler).runTask(eq(plugin), work.capture());
             work.getValue().run();
             bukkit.verify(() -> Bukkit.dispatchCommand(console, "plugman reload CaveCrawlers"));

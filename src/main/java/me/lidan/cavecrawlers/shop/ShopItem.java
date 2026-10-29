@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 public class ShopItem implements ConfigurationSerializable {
@@ -115,7 +116,7 @@ public class ShopItem implements ConfigurationSerializable {
             Map<String, Integer> consumed = new HashMap<>();
             ingredients.forEach((item, quantity) -> consumed.put(item.getID(), quantity));
             Bukkit.getPluginManager().callEvent(new ShopTransactionCompletedEvent(player.getUniqueId(),
-                    java.util.UUID.randomUUID(), true, normalizedPrice, Map.of(result.getID(), resultAmount), consumed));
+                    UUID.randomUUID(), true, normalizedPrice, Map.of(result.getID(), resultAmount), consumed));
             Map<String, String> placeholders = Map.of(
                     "item", result.getFormattedName(),
                     "amount", String.valueOf(resultAmount),

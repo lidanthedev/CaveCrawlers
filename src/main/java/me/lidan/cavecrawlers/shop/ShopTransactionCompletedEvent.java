@@ -1,12 +1,14 @@
 package me.lidan.cavecrawlers.shop;
 
-import java.util.UUID;
-import java.util.Map;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /** Non-cancellable observation of a completed domain operation. */
 @Getter
@@ -21,8 +23,8 @@ public final class ShopTransactionCompletedEvent extends Event {
 
     public ShopTransactionCompletedEvent(UUID owner, UUID transactionId, boolean purchase, double price, Map<String, Integer> items, Map<String, Integer> ingredients) {
         super(!Bukkit.isPrimaryThread());
-        this.owner = java.util.Objects.requireNonNull(owner, "owner");
-        this.transactionId = java.util.Objects.requireNonNull(transactionId, "transactionId");
+        this.owner = Objects.requireNonNull(owner, "owner");
+        this.transactionId = Objects.requireNonNull(transactionId, "transactionId");
         this.purchase = purchase;
         this.price = price;
         this.items = Map.copyOf(items);

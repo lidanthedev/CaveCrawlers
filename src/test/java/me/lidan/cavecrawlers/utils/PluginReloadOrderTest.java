@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class PluginReloadOrderTest {
     @Test void reloadsSharedProvidersBeforeConsumers() {
         Map<String, List<String>> dependencies = new LinkedHashMap<>();
-        dependencies.put("Cardinal", List.of("Cave", "Fishing", "Griffin"));
+        dependencies.put("EventLogger", List.of("Cave", "Fishing", "Griffin"));
         dependencies.put("Fishing", List.of("Cave", "absent"));
         dependencies.put("Griffin", List.of("Cave"));
         dependencies.put("Cave", List.of());
-        assertEquals(List.of("Cave", "Fishing", "Griffin", "Cardinal"), PluginReloadOrder.ordered(dependencies));
+        assertEquals(List.of("Cave", "Fishing", "Griffin", "EventLogger"), PluginReloadOrder.ordered(dependencies));
     }
     @Test void optionalCyclesReloadEachPluginOnce() {
         var result = PluginReloadOrder.ordered(Map.of("A", List.of("B"), "B", List.of("A")));

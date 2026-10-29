@@ -106,6 +106,25 @@ class EconomyShopCoverageTest {
     }
 
     @Test
+    void cancelledCurrencyRequestPreventsPaymentAndShopGrant() {
+        PluginManager manager = mock(PluginManager.class);
+        doAnswer(invocation -> {
+            ((me.lidan.cavecrawlers.utils.CurrencyTransactionPrepareEvent) invocation.getArgument(0)).setCancelled(true);
+            return null;
+        }).when(manager).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionPrepareEvent.class));
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
+            assertFalse(new ShopItem(result, 2, 2.99, Map.of(ingredient, 3)).buy(player, true));
+            assertFalse(VaultUtils.giveCoins(player, 10));
+            verify(economy, never()).withdrawPlayer(any(OfflinePlayer.class), anyDouble());
+            verify(economy, never()).depositPlayer(any(OfflinePlayer.class), anyDouble());
+            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.utils.CurrencyTransactionEvent.class));
+            verify(manager, never()).callEvent(any(me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent.class));
+            verify(itemsMock, never()).giveItem(any(), any(), anyInt());
+        }
+    }
+
+    @Test
     void vaultHelpersRoundToOneDecimalBeforeCallingProvider() {
         VaultUtils.giveCoins(player, 1.29);
         VaultUtils.takeCoins(player, 2.99);

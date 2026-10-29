@@ -21,6 +21,7 @@ public class VaultUtils {
     public static boolean giveCoins(OfflinePlayer player, double amount, String reason, String source) {
         if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
+        if (!prepare(player, amount, true, reason, source)) return false;
         var response = CaveCrawlers.economy.depositPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();
         if (success && amount > 0) org.bukkit.Bukkit.getPluginManager().callEvent(
@@ -40,11 +41,16 @@ public class VaultUtils {
     public static boolean takeCoins(OfflinePlayer player, double amount, String reason, String source) {
         if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
+        if (!prepare(player, amount, false, reason, source)) return false;
         var response = CaveCrawlers.economy.withdrawPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();
         if (success && amount > 0) org.bukkit.Bukkit.getPluginManager().callEvent(
                 new CurrencyTransactionEvent(player.getUniqueId(), amount, false, reason, source));
         return success;
+    }
+
+    private static boolean prepare(OfflinePlayer player, double amount, boolean created, String reason, String source) {
+        return amount <= 0 || new CurrencyTransactionPrepareEvent(player.getUniqueId(), amount, created, reason, source).callEvent();
     }
 
     /**

@@ -299,9 +299,16 @@ public class CaveCrawlersMainCommand {
         if (!requirePlugMan(sender)) {
             return;
         }
-        reloadPluginInternal();
-        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
-        reloadAddonsInternal(sender);
+        var title = net.kyori.adventure.title.Title.title(
+                MiniMessageUtils.miniMessage("<gold><bold>Game Updating</bold></gold>"), Component.empty(),
+                net.kyori.adventure.title.Title.Times.times(java.time.Duration.ZERO,
+                        java.time.Duration.ofSeconds(20), java.time.Duration.ofSeconds(1)));
+        Bukkit.getOnlinePlayers().forEach(player -> player.showTitle(title));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            reloadPluginInternal();
+            sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+            reloadAddonsInternal(sender);
+        });
     }
 
     @Subcommand("config saveStats")

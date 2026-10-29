@@ -25,6 +25,7 @@ public final class MyAddon extends JavaPlugin {
 | `ShopPurchaseEvent` | Purchase validation and side effects | `price`, ingredients, result amount, cancellation |
 | `ShopSellEvent` | Sale payout and menu close | sale price, unsellable-item handling, cancellation |
 | `BlockMineStartEvent` | Mining progress starts | required ticks, cancellation |
+| `CurrencyTransactionPrepareEvent` | Positive normalized VaultUtils deposit or withdrawal | inspection, cancellation |
 | `DropGiveEvent` | A rolled drop is delivered | inspection, cancellation |
 | `AltarUseEvent` | Altar item consumption and block update | contribution points, cancellation |
 | `ItemBuildEvent` | A built item is returned | replacement `ItemStack` |
@@ -101,3 +102,7 @@ the placement fills the final altar location; it is read-only.
 existing item while preserving its metadata. Both events expose `setBuiltItem(ItemStack)`, and the replacement stack is
 the one returned to the caller. They are not cancellable; use the original stack as the replacement when an update
 should be effectively skipped.
+
+`CurrencyTransactionPrepareEvent` includes the account UUID, normalized amount, direction, reason and source. Cancelling it returns a failed result without calling the economy provider or publishing a completed transaction. Zero-value operations retain their existing behavior. It does not intercept direct third-party Vault calls or administrative `setCoins` resets. Completed event-logging observations remain non-cancellable.
+
+`/cc reload all` sends every online player a MiniMessage title, "Game Updating", before scheduling the reload for the following server tick. PlugMan must be available before the title or reload runs.

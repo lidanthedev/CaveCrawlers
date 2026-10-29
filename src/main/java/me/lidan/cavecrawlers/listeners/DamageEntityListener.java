@@ -52,9 +52,13 @@ public class DamageEntityListener implements Listener {
     public void onDamageResolved(EntityDamageByEntityEvent event) {
         DamageCalculationEvent context = resolvedContext.remove(event);
         if (context == null || event.isCancelled() || event.getFinalDamage() <= 0) return;
+        boolean ability = context.getCalculation() instanceof AbilityDamage
+                || event.getDamager() instanceof Projectile projectile
+                && Boolean.TRUE.equals(projectile.getPersistentDataContainer().get(
+                        new NamespacedKey(plugin, "ability_damage"), PersistentDataType.BOOLEAN));
         Bukkit.getPluginManager().callEvent(new DamageResolvedEvent(
                 context.getPlayer(), context.getTarget(), event.getFinalDamage(), context.isCritical(),
-                context.getCalculation() instanceof AbilityDamage));
+                ability));
     }
 
     private static final double VOID_DAMAGE = 1000000000;

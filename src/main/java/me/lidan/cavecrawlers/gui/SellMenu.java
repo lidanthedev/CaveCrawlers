@@ -98,8 +98,9 @@ public class SellMenu {
             return;
         }
 
-        total = event.getPrice();
-        if (total <= 0 || !VaultUtils.giveCoins(player, total, "shop_sell", "sell_menu")) {
+        double acceptedPrice = event.getPrice();
+        total = Math.floor(acceptedPrice * 10d) / 10d;
+        if (acceptedPrice <= 0 || !VaultUtils.giveCoins(player, total, "shop_sell", "sell_menu")) {
             for (ItemStack item : event.getSellableItems()) {
                 itemsManager.giveItemStacks(player, item);
             }

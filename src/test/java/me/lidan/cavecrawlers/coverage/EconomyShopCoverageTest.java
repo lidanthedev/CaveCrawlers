@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
@@ -128,6 +129,18 @@ class EconomyShopCoverageTest {
             verify(manager, never()).callEvent(any(CurrencyTransactionEvent.class));
             verify(manager, never()).callEvent(any(ShopTransactionCompletedEvent.class));
             verify(itemsMock, never()).giveItem(any(), any(), anyInt());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {Double.MAX_VALUE, 1e308})
+    void normalizationOverflowIsRejectedBeforeEventsOrProviderCalls(double amount) {
+        PluginManager manager = mock(PluginManager.class);
+        try (var bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
+            assertFalse(VaultUtils.giveCoins(player, amount));
+            assertFalse(VaultUtils.takeCoins(player, amount));
+            verifyNoInteractions(manager, economy);
         }
     }
 

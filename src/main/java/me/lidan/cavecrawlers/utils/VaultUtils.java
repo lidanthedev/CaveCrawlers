@@ -22,6 +22,7 @@ public class VaultUtils {
     public static boolean giveCoins(OfflinePlayer player, double amount, String reason, String source) {
         if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
+        if (!Double.isFinite(amount)) return false;
         if (!prepare(player, amount, true, reason, source)) return false;
         var response = CaveCrawlers.economy.depositPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();
@@ -42,6 +43,7 @@ public class VaultUtils {
     public static boolean takeCoins(OfflinePlayer player, double amount, String reason, String source) {
         if (!Double.isFinite(amount) || amount < 0) return false;
         amount = Math.floor(amount * 10d)/ 10d;
+        if (!Double.isFinite(amount)) return false;
         if (!prepare(player, amount, false, reason, source)) return false;
         var response = CaveCrawlers.economy.withdrawPlayer(player, amount);
         boolean success = response != null && response.transactionSuccess();

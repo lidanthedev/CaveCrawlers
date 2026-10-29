@@ -1,25 +1,34 @@
 package me.lidan.cavecrawlers.coverage;
 
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.gui.SellMenu;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemType;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.shop.ShopSellEvent;
+import me.lidan.cavecrawlers.shop.ShopTransactionCompletedEvent;
+import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -44,7 +53,7 @@ class SellMenuCoverageTest {
         itemsManager = mock(ItemsManager.class, Answers.RETURNS_DEFAULTS);
         player = context.server().addPlayer("seller");
         economy = mock(Economy.class);
-        me.lidan.cavecrawlers.CaveCrawlers.economy = economy;
+        CaveCrawlers.economy = economy;
         when(economy.depositPlayer(any(OfflinePlayer.class), anyDouble())).thenReturn(
                 new EconomyResponse(0, 0, EconomyResponse.ResponseType.SUCCESS, null));
 
@@ -64,7 +73,7 @@ class SellMenuCoverageTest {
 
     @AfterEach
     void tearDown() throws Exception {
-        me.lidan.cavecrawlers.CaveCrawlers.economy = null;
+        CaveCrawlers.economy = null;
         context.close();
     }
 
@@ -113,7 +122,7 @@ class SellMenuCoverageTest {
         invokeSell();
         invokeSell();
 
-        verify(economy, org.mockito.Mockito.times(1)).depositPlayer(player, 2.5D);
+        verify(economy, times(1)).depositPlayer(player, 2.5D);
     }
 
     @Test
@@ -122,8 +131,8 @@ class SellMenuCoverageTest {
         when(itemsManager.getIDofItemStackSafe(sellable)).thenReturn("DIAMOND");
         when(inventory.getStorageContents()).thenReturn(new ItemStack[]{sellable});
         when(economy.depositPlayer(player, 7.5D)).thenReturn(
-                new net.milkbowl.vault.economy.EconomyResponse(0, 0,
-                        net.milkbowl.vault.economy.EconomyResponse.ResponseType.FAILURE, "declined"));
+                new EconomyResponse(0, 0,
+                        EconomyResponse.ResponseType.FAILURE, "declined"));
 
         invokeSell();
 
@@ -141,6 +150,33 @@ class SellMenuCoverageTest {
         verify(economy).depositPlayer(player, 2.5D);
         assertEquals("Sold items for 2.5 coins", PlainTextComponentSerializer.plainText()
                 .serialize(player.nextComponentMessage()));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"2.59, 2.5", "0.09, 0"})
+    void listenerAdjustedSaleReportsTheNormalizedPayout(double acceptedPrice, double payout) throws Exception {
+        ItemStack sellable = new ItemStack(Material.DIAMOND);
+        when(itemsManager.getIDofItemStackSafe(sellable)).thenReturn("DIAMOND");
+        when(inventory.getStorageContents()).thenReturn(new ItemStack[]{sellable});
+        PluginManager manager = mock(PluginManager.class);
+        doAnswer(invocation -> {
+            ((ShopSellEvent) invocation.getArgument(0)).setPrice(acceptedPrice);
+            return null;
+        }).when(manager).callEvent(any(ShopSellEvent.class));
+
+        try (var bukkit = mockStatic(Bukkit.class, CALLS_REAL_METHODS)) {
+            bukkit.when(Bukkit::getPluginManager).thenReturn(manager);
+            invokeSell();
+        }
+
+        verify(economy).depositPlayer(player, payout);
+        var completed = ArgumentCaptor.forClass(ShopTransactionCompletedEvent.class);
+        verify(manager).callEvent(completed.capture());
+        assertEquals(payout, completed.getValue().getPrice());
+        assertEquals(Map.of("DIAMOND", 1), completed.getValue().getItems());
+        verify(itemsManager, never()).giveItemStacks(player, sellable);
+        assertEquals("Sold items for " + (payout == 0 ? "0" : "2.5") + " coins",
+                PlainTextComponentSerializer.plainText().serialize(player.nextComponentMessage()));
     }
 
     @Test
@@ -168,7 +204,7 @@ class SellMenuCoverageTest {
     }
 
     private ItemInfo item(String id) {
-        ItemInfo info = new ItemInfo(id, new me.lidan.cavecrawlers.stats.Stats(), ItemType.MATERIAL,
+        ItemInfo info = new ItemInfo(id, new Stats(), ItemType.MATERIAL,
                 Material.DIAMOND, Rarity.COMMON);
         info.setID(id);
         return info;

@@ -68,6 +68,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-mysql:2.0.5")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
     testRuntimeOnly("com.mysql:mysql-connector-j:8.4.0")
+    testRuntimeOnly("com.googlecode.json-simple:json-simple:1.1.1")
     testImplementation("org.mockito:mockito-core:5.14.2")
     testImplementation("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")

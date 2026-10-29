@@ -45,6 +45,7 @@ import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.storage.db.DbMigrator;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -72,7 +73,9 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -277,12 +280,19 @@ public class CaveCrawlersMainCommand {
     }
 
     private void reloadAddonsInternal(CommandSender sender) {
-        @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
-        for (Plugin plugin : plugins) {
-            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
-                Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + plugin.getName());
-                sender.sendMessage(ChatColor.GREEN + plugin.getName() + " reloaded!");
+        Map<String, List<String>> dependencies = new LinkedHashMap<>();
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            var meta = plugin.getPluginMeta();
+            if (meta.getPluginDependencies().contains("CaveCrawlers")
+                    || meta.getPluginSoftDependencies().contains("CaveCrawlers")) {
+                List<String> required = new ArrayList<>(meta.getPluginDependencies());
+                required.addAll(meta.getPluginSoftDependencies());
+                dependencies.put(plugin.getName(), required);
             }
+        }
+        for (String name : PluginReloadOrder.ordered(dependencies)) {
+            Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + name);
+            sender.sendMessage(ChatColor.GREEN + name + " reloaded!");
         }
     }
 
@@ -292,9 +302,16 @@ public class CaveCrawlersMainCommand {
         if (!requirePlugMan(sender)) {
             return;
         }
-        reloadPluginInternal();
-        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
-        reloadAddonsInternal(sender);
+        var title = Title.title(
+                MiniMessageUtils.miniMessage("<gold><bold>Game Updating</bold></gold>"), Component.empty(),
+                Title.Times.times(Duration.ZERO,
+                        Duration.ofSeconds(20), Duration.ofSeconds(1)));
+        Bukkit.getOnlinePlayers().forEach(player -> player.showTitle(title));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            reloadPluginInternal();
+            sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+            reloadAddonsInternal(sender);
+        });
     }
 
     @Subcommand("config saveStats")
@@ -801,13 +818,13 @@ public class CaveCrawlersMainCommand {
     @Subcommand("coins give")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsGive(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.giveCoins(player, amount);
+        VaultUtils.giveCoins(player, amount, "admin_grant", "command");
     }
 
     @Subcommand("coins take")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsTake(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.takeCoins(player, amount);
+        VaultUtils.takeCoins(player, amount, "admin_remove", "command");
     }
 
     @Subcommand("coins get")

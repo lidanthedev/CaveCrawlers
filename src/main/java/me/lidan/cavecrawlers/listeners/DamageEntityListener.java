@@ -2,9 +2,11 @@ package me.lidan.cavecrawlers.listeners;
 
 import com.cryptomorin.xseries.XAttribute;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageCalculationEvent;
 import me.lidan.cavecrawlers.damage.DamageManager;
+import me.lidan.cavecrawlers.damage.DamageResolvedEvent;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -34,12 +36,31 @@ import org.bukkit.persistence.PersistentDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 public class DamageEntityListener implements Listener {
 
     private static final boolean PROJECTILE_DAMAGE_FIX = true;
     private static final Logger log = LoggerFactory.getLogger(DamageEntityListener.class);
     private static final EntityManager entityManager = EntityManager.getInstance();
     private static final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    private static final Map<EntityDamageByEntityEvent, DamageCalculationEvent> resolvedContext =
+            new IdentityHashMap<>();
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDamageResolved(EntityDamageByEntityEvent event) {
+        DamageCalculationEvent context = resolvedContext.remove(event);
+        if (context == null || event.isCancelled() || event.getFinalDamage() <= 0) return;
+        boolean ability = context.getCalculation() instanceof AbilityDamage
+                || event.getDamager() instanceof Projectile projectile
+                && Boolean.TRUE.equals(projectile.getPersistentDataContainer().get(
+                        new NamespacedKey(plugin, "ability_damage"), PersistentDataType.BOOLEAN));
+        Bukkit.getPluginManager().callEvent(new DamageResolvedEvent(
+                context.getPlayer(), context.getTarget(), event.getFinalDamage(), context.isCritical(),
+                ability));
+    }
+
     private static final double VOID_DAMAGE = 1000000000;
 
     private double getServerDamageMultiplier() {
@@ -121,6 +142,7 @@ public class DamageEntityListener implements Listener {
             return;
         }
 
+        resolvedContext.put(event, calculationEvent);
         event.setDamage(calculationEvent.getDamage());
         double finalDamage = event.getFinalDamage();
         entityManager.addDamage(player.getUniqueId(), mob, finalDamage);

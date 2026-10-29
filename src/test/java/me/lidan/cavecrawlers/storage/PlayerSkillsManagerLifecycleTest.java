@@ -481,6 +481,22 @@ class PlayerSkillsManagerLifecycleTest {
     }
 
     @Test
+    void synchronousReloadLoadPublishesDatabaseStateBeforeReturning() throws Exception {
+        manager.getSkills(uuid).addXp(mining, 22);
+        when(server.getPlayer(uuid)).thenReturn(null);
+        manager.savePlayerNowOnQuit(uuid);
+        runAsync();
+        assertEquals(22, persistedXp());
+
+        when(server.getPlayer(uuid)).thenReturn(player);
+        manager.setServerId();
+        Skills loaded = manager.loadPlayerSync(uuid);
+
+        assertEquals(22, loaded.get(mining).getTotalXp());
+        assertTrue(manager.canPersistPlayer(uuid));
+    }
+
+    @Test
     void shutdownFlushesEvenIfScheduledWriterNeverStarted() {
         manager.getSkills(uuid).addXp(mining, 22);
         manager.savePlayerNow(uuid);

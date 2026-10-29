@@ -14,9 +14,7 @@ import me.lidan.cavecrawlers.commands.completions.*;
 import me.lidan.cavecrawlers.drops.DropLoader;
 import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
-import me.lidan.cavecrawlers.gui.ConfirmGui;
-import me.lidan.cavecrawlers.gui.ItemsGui;
-import me.lidan.cavecrawlers.gui.PlayerViewer;
+import me.lidan.cavecrawlers.gui.*;
 import me.lidan.cavecrawlers.index.EntityHeads;
 import me.lidan.cavecrawlers.integration.mythic.MythicMobsHook;
 import me.lidan.cavecrawlers.items.*;
@@ -32,6 +30,7 @@ import me.lidan.cavecrawlers.packets.PacketManager;
 import me.lidan.cavecrawlers.perks.Perk;
 import me.lidan.cavecrawlers.perks.PerksManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
+import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopManager;
 import me.lidan.cavecrawlers.shop.ShopMenu;
@@ -46,12 +45,14 @@ import me.lidan.cavecrawlers.storage.db.Database;
 import me.lidan.cavecrawlers.storage.db.DbMigrator;
 import me.lidan.cavecrawlers.utils.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -72,7 +73,9 @@ import revxrsal.commands.bukkit.annotation.CommandPermission;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -277,12 +280,19 @@ public class CaveCrawlersMainCommand {
     }
 
     private void reloadAddonsInternal(CommandSender sender) {
-        @NotNull Plugin[] plugins = CaveCrawlers.getInstance().getServer().getPluginManager().getPlugins();
-        for (Plugin plugin : plugins) {
-            if (plugin.getPluginMeta().getPluginDependencies().contains("CaveCrawlers")) {
-                Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + plugin.getName());
-                sender.sendMessage(ChatColor.GREEN + plugin.getName() + " reloaded!");
+        Map<String, List<String>> dependencies = new LinkedHashMap<>();
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            var meta = plugin.getPluginMeta();
+            if (meta.getPluginDependencies().contains("CaveCrawlers")
+                    || meta.getPluginSoftDependencies().contains("CaveCrawlers")) {
+                List<String> required = new ArrayList<>(meta.getPluginDependencies());
+                required.addAll(meta.getPluginSoftDependencies());
+                dependencies.put(plugin.getName(), required);
             }
+        }
+        for (String name : PluginReloadOrder.ordered(dependencies)) {
+            Bukkit.dispatchCommand(getConsoleSender(), "plugman reload " + name);
+            sender.sendMessage(ChatColor.GREEN + name + " reloaded!");
         }
     }
 
@@ -292,9 +302,16 @@ public class CaveCrawlersMainCommand {
         if (!requirePlugMan(sender)) {
             return;
         }
-        reloadPluginInternal();
-        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
-        reloadAddonsInternal(sender);
+        var title = Title.title(
+                MiniMessageUtils.miniMessage("<gold><bold>Game Updating</bold></gold>"), Component.empty(),
+                Title.Times.times(Duration.ZERO,
+                        Duration.ofSeconds(20), Duration.ofSeconds(1)));
+        Bukkit.getOnlinePlayers().forEach(player -> player.showTitle(title));
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            reloadPluginInternal();
+            sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+            reloadAddonsInternal(sender);
+        });
     }
 
     @Subcommand("config saveStats")
@@ -801,13 +818,13 @@ public class CaveCrawlersMainCommand {
     @Subcommand("coins give")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsGive(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.giveCoins(player, amount);
+        VaultUtils.giveCoins(player, amount, "admin_grant", "command");
     }
 
     @Subcommand("coins take")
     @CommandPermission("cavecrawlers.admin.coins")
     public void coinsTake(CommandSender sender, OfflinePlayer player, double amount) {
-        VaultUtils.takeCoins(player, amount);
+        VaultUtils.takeCoins(player, amount, "admin_remove", "command");
     }
 
     @Subcommand("coins get")
@@ -951,23 +968,31 @@ public class CaveCrawlersMainCommand {
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         PlayerData playerData = dataManager.loadPlayerData(arg.getUniqueId());
         dataManager.savePlayerDataInMap(arg.getUniqueId(), playerData);
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Loaded Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data load requested. <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data save")
     @CommandPermission("cavecrawlers.admin.data")
     public void dataSave(Player sender, @Default("me") Player arg) {
+        if (!requirePlayerData(sender, arg)) return;
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.savePlayerData(arg.getUniqueId());
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Saved Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data save queued. <gold>Player Name: <name>", Map.of("name", arg.getName())));
     }
 
     @Subcommand("data reset")
     @CommandPermission("cavecrawlers.admin.data")
     public void dataReset(Player sender, @Default("me") Player arg) {
+        if (!requirePlayerData(sender, arg)) return;
         PlayerDataManager dataManager = PlayerDataManager.getInstance();
         dataManager.resetPlayerData(arg.getUniqueId());
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Reset Player Data! <gold>Player Name: <name>", Map.of("name", arg.getName())));
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Player data reset queued. <gold>Player Name: <name>", Map.of("name", arg.getName())));
+    }
+
+    private boolean requirePlayerData(CommandSender sender, Player target) {
+        if (PlayerSkillsManager.getInstance().canPersistPlayer(target.getUniqueId())) return true;
+        sender.sendMessage(MiniMessageUtils.miniMessage("<red>Player data is unavailable. Please reconnect."));
+        return false;
     }
 
     @Subcommand("data migrate h2-to-mysql")
@@ -997,21 +1022,23 @@ public class CaveCrawlersMainCommand {
                 Map.of("from", fromType.toUpperCase(), "to", toType.toUpperCase())));
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            // Flush all dirty player data to the source DB before copying.
-            PlayerSkillsManager.getInstance().saveAll();
-            try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
-                    ? Database.openMysqlSource(plugin, 2)
-                    : Database.openH2Source(plugin, 2)) {
-                long startTime = System.currentTimeMillis();
-                int count = DbMigrator.migrateSkills(
-                        Database.getInstance().getJdbi(),
-                        DbMigrator.toJdbi(targetDs));
-                sender.sendMessage(count == 0
-                        ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
-                        : MiniMessageUtils.miniMessage(
-                        "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
-                                "Set <gold>database.type: <to></gold> in config.yml and restart.",
-                        Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
+            try {
+                PlayerSkillsManager.getInstance().withMigrationBarrier(() -> {
+                    try (HikariDataSource targetDs = toType.equalsIgnoreCase("mysql")
+                            ? Database.openMysqlSource(plugin, 2)
+                            : Database.openH2Source(plugin, 2)) {
+                        long startTime = System.currentTimeMillis();
+                        int count = DbMigrator.migrateSkills(
+                                Database.getInstance().getJdbi(),
+                                DbMigrator.toJdbi(targetDs));
+                        sender.sendMessage(count == 0
+                                ? MiniMessageUtils.miniMessage("<yellow>Source database has no skill data to migrate.")
+                                : MiniMessageUtils.miniMessage(
+                                "<green>Migration complete! in <yellow><time>ms <gold><count></gold> records copied to <to>. " +
+                                        "Set <gold>database.type: <to></gold> in config.yml and restart.",
+                                Map.of("count", String.valueOf(count), "to", toType, "time", String.valueOf(System.currentTimeMillis() - startTime))));
+                    }
+                });
             } catch (Exception e) {
                 sender.sendMessage(MiniMessageUtils.miniMessage(
                         "<red>Migration failed: <msg>",
@@ -1228,6 +1255,87 @@ public class CaveCrawlersMainCommand {
         ItemStack skull = EntityHeads.fromEntityType(entityHead);
         sender.getInventory().addItem(skull);
         sender.sendMessage("Added skull to inventory!");
+    }
+
+    @Subcommand("sell admin")
+    @CommandPermission("cavecrawlers.sell.admin")
+    public void sellAdmin(Player sender) {
+        SellAdminGui sellAdminGui = new SellAdminGui(sender);
+        sellAdminGui.open();
+    }
+
+    @Subcommand("sell sync-prices-shop")
+    @CommandPermission("cavecrawlers.sell.sync")
+    public void sellSyncPricesShop(CommandSender sender, @SuggestWith(ShopIDCompletions.class) String id) {
+        ShopMenu shop = shopManager.getShop(id);
+        if (shop == null) {
+            sender.sendMessage("Shop not found!");
+            return;
+        }
+        sellSyncPricesForShop(shop, sender);
+
+        SellMenu.config.save();
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Shop prices synchronized!"));
+    }
+
+    private void sellSyncPricesForShop(ShopMenu shop, CommandSender sender) {
+        for (ShopItem shopItem : shop.getShopItemList()) {
+            sellSyncPricesForShopItem(shopItem, sender);
+        }
+    }
+
+    private void sellSyncPricesForShopItem(ShopItem shopItem, CommandSender sender) {
+        double price = 0;
+        String result = shopItem.getResult().getID();
+        for (Map.Entry<ItemInfo, Integer> itemInfoIntegerEntry : shopItem.getIngredientsMap().entrySet()) {
+            String id = itemInfoIntegerEntry.getKey().getID();
+            double basePrice = getSellPrice(id);
+            if (basePrice <= 0) {
+                sender.sendMessage(MiniMessageUtils.miniMessage("<red>NOT Set <yellow>%s<red> depends on <gold>%s".formatted(result, id)));
+                return;
+            }
+            price += basePrice * itemInfoIntegerEntry.getValue();
+        }
+        if (price <= 0) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>NOT Set <yellow>%s<red> no price".formatted(result)));
+            return;
+        }
+        setSellPrice(result, price / shopItem.getResultAmount(), sender);
+    }
+
+    @Subcommand("sell sync-prices-hard")
+    @CommandPermission("cavecrawlers.sell.sync")
+    public void sellSyncPrices(CommandSender sender) {
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Syncing Compress item prices"));
+        ConfigurationSection prices = SellMenu.config.getConfigurationSection("prices");
+        for (String key : prices.getKeys(false)) {
+            if (key.startsWith("ENCHANTED_") || key.startsWith("FLAWED") || key.startsWith("FINE")) {
+                continue;
+            }
+            double price = prices.getDouble(key);
+
+            // set enchanted price to base * 64
+            setSellPrice("ENCHANTED_" + key, price * 64, sender);
+            setSellPrice("COMPRESSED_" + key, price * 64, sender);
+            if (key.startsWith("ROUGH")) {
+                String baseKey = key.replace("ROUGH_", "");
+                setSellPrice("FLAWED_" + baseKey, price * 64, sender);
+                setSellPrice("FINE_" + baseKey, price * 64 * 64, sender);
+            }
+        }
+        SellMenu.config.save();
+    }
+
+    public void setSellPrice(String id, double price, CommandSender sender) {
+        if (itemsManager.getItemByID(id) == null) {
+            return;
+        }
+        SellMenu.config.set("prices." + id, price);
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Set <yellow><id><green> price to <gold><price>", Map.of("id", id, "price", StringUtils.getNumberFormat(price))));
+    }
+
+    public double getSellPrice(String id) {
+        return SellMenu.config.getDouble("prices." + id, -1);
     }
 
     @Subcommand("mythic skill")

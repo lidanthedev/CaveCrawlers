@@ -50,6 +50,7 @@ import me.lidan.cavecrawlers.stats.ActionBarManager;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.cavecrawlers.stats.AbsorptionDisplay;
 import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.storage.YamlMigrationTask;
 import me.lidan.cavecrawlers.storage.db.Database;
@@ -78,7 +79,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -89,6 +93,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     public static Economy economy = null;
     public static boolean usePlaceholderAPI = false;
     private final AtomicBoolean databaseRetryScheduled = new AtomicBoolean(false);
+    private volatile boolean stopping;
     private final AtomicBoolean legacyYamlMigrationRan = new AtomicBoolean(false);
     private final AtomicBoolean legacyYamlMigrationComplete = new AtomicBoolean(false);
     private final AtomicBoolean delayedDataReady = new AtomicBoolean(false);
@@ -96,6 +101,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     private Lamp.Builder<BukkitCommandActor> commandHandlerBuilder;
     private MythicBukkit mythicBukkit;
     private CaveCrawlersExpansion caveCrawlersExpansion;
+    private AbsorptionDisplay absorptionDisplay;
 
     /**
      * Get the plugin instance
@@ -143,6 +149,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     @Override
     public void onEnable() {
+        stopping = false;
         // Plugin startup logic
         long start = System.currentTimeMillis();
         commandHandlerBuilder = BukkitLamp.builder(this);
@@ -159,11 +166,10 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveDefaultResources();
         registerConfig();
 
-        initializeDatabaseAsync();
-
         PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
         playerSkillsManager.setServerId();
         log.info("Server session ID: {}", playerSkillsManager.getServerId());
+        initializeDatabaseAsync();
 
         registerCommandResolvers();
         registerCommandCompletions();
@@ -201,7 +207,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
                 MiningManager.getInstance().loadBrokenBlocks();
                 delayedDataReady.set(true);
                 runDatabaseReadyWorkIfPossible();
-                StatsManager.getInstance().loadAllPlayers();
                 registerPlaceholders();
                 startTasks();
                 registerMythicHook();
@@ -279,12 +284,15 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         registerConfig();
         ConfigMessage.reload();
+        if (absorptionDisplay != null) {
+            absorptionDisplay.reload();
+        }
 
         clearGameplayRegistries();
         IndexBaseCategoryMenu.clearItemCache();
 
         registerFromConfigs(this);
-        registerSkills();
+        reloadContent(SkillsManager.getInstance());
 
         if (!databaseSettingsBefore.equals(getDatabaseSettings())) {
             sender.sendMessage(ChatColor.YELLOW + "Database settings changed. A full reload or server restart is required for them to take effect.");
@@ -305,7 +313,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         BossLoader.getInstance().clear();
         PerksLoader.getInstance().clear();
         AltarLoader.getInstance().clear();
-        SkillsManager.getInstance().clear();
     }
 
     private Map<String, Object> getDatabaseSettings() {
@@ -475,6 +482,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
     private void initializeDatabaseAsync() {
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
+            if (stopping) return;
             if (Database.getInstance().initialize(this)) {
                 onDatabaseAvailable();
                 return;
@@ -484,12 +492,14 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     private void scheduleDatabaseRetry(long delaySeconds) {
+        if (stopping) return;
         if (!databaseRetryScheduled.compareAndSet(false, true)) {
             return;
         }
 
         getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
             databaseRetryScheduled.set(false);
+            if (stopping) return;
             if (Database.getInstance().initialize(this)) {
                 onDatabaseAvailable();
             } else {
@@ -503,8 +513,19 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     private void onDatabaseAvailable() {
-        registerDB();
-        getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+        if (stopping) {
+            Database.getInstance().shutdown();
+            return;
+        }
+        try {
+            registerDB();
+            PlayerSkillsManager.getInstance().heartbeat();
+            if (!stopping) getServer().getScheduler().runTask(this, this::runDatabaseReadyWorkIfPossible);
+        } catch (Exception e) {
+            log.warn("Database schema initialization failed; retrying: {}", e.getMessage(), e);
+            Database.getInstance().shutdown();
+            scheduleDatabaseRetry(5);
+        }
     }
 
     private void runDatabaseReadyWorkIfPossible() {
@@ -515,9 +536,6 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             return;
         }
         runLegacyYamlMigrationIfReady();
-        PlayerSkillsManager.getInstance().scheduleLoadsForOnlinePlayers();
-        PlayerSkillsManager.getInstance().scheduleLoadsForPendingPlayers();
-        PlayerSkillsManager.getInstance().flushPendingSavesAsync();
     }
 
     private void runLegacyYamlMigrationIfReady() {
@@ -557,6 +575,9 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         registerEvent(new StartupJoinGateListener());
         PacketManager.getInstance().cancelDamageIndicatorParticle();
         PacketManager.getInstance().preventClientPacketsDuringPlayerDataLoad();
+        absorptionDisplay = new AbsorptionDisplay(this);
+        registerEvent(absorptionDisplay);
+        absorptionDisplay.reload();
     }
 
     /**
@@ -587,11 +608,17 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
             }
             ItemsManager.getInstance().loadNotFullyLoadedItems();
         }, 0, TICKS_TO_SECOND);
-        long saveIntervalTicks = (long) getConfig().getInt("database.save-interval", 30) * TICKS_TO_SECOND;
+        long saveIntervalTicks = Math.max(1L, getConfig().getLong("database.save-interval", 30L)) * TICKS_TO_SECOND;
         getServer().getScheduler().runTaskTimerAsynchronously(this, bukkitTask -> {
             log.info("Auto saving player data...");
             PlayerSkillsManager.getInstance().saveAllAsync();
         }, saveIntervalTicks, saveIntervalTicks);
+
+        long heartbeatTicks = PlayerSkillsManager.getInstance().getLeaseConfig().heartbeatInterval().toSeconds() * TICKS_TO_SECOND;
+        getServer().getScheduler().runTaskTimerAsynchronously(this,
+                task -> PlayerSkillsManager.getInstance().heartbeat(), 0, heartbeatTicks);
+        getServer().getScheduler().runTaskTimer(this,
+                task -> PlayerSkillsManager.getInstance().checkLeaseHealth(), 1, 1);
     }
 
     /**
@@ -611,7 +638,17 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
     }
 
     public void markLegacyYamlMigrationComplete() {
-        legacyYamlMigrationComplete.set(true);
+        if (stopping) return;
+        getServer().getScheduler().runTask(this, () -> {
+            if (stopping) return;
+            legacyYamlMigrationComplete.set(true);
+            PlayerSkillsManager playerSkillsManager = PlayerSkillsManager.getInstance();
+            Bukkit.getOnlinePlayers().forEach(player -> playerSkillsManager.loadPlayerSync(player.getUniqueId()));
+            StatsManager.getInstance().loadAllPlayers();
+            playerSkillsManager.scheduleLoadsForOnlinePlayers();
+            playerSkillsManager.scheduleLoadsForPendingPlayers();
+            playerSkillsManager.flushPendingSavesAsync();
+        });
     }
 
     /**
@@ -619,11 +656,18 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
      */
     @Override
     public void onDisable() {
+        stopping = true;
+        if (absorptionDisplay != null) {
+            absorptionDisplay.close();
+        }
         // Plugin shutdown logic
         getServer().getScheduler().cancelTasks(this);
         MiningManager.getInstance().regenBlocks();
-        PlayerSkillsManager.getInstance().shutdown();
-        Database.getInstance().shutdown();
+        try {
+            PlayerSkillsManager.getInstance().shutdown();
+        } finally {
+            Database.getInstance().shutdown();
+        }
         AltarManager.getInstance().reset();
         killHolograms();
         closeAllGuis();

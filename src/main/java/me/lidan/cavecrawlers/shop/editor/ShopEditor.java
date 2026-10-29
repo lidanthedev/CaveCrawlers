@@ -7,6 +7,7 @@ import dev.triumphteam.gui.guis.PaginatedGui;
 import lombok.NonNull;
 import me.lidan.cavecrawlers.gui.GuiItems;
 import me.lidan.cavecrawlers.gui.ItemsGui;
+import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -49,6 +50,10 @@ public class ShopEditor {
             ItemStack item = shopItem.toItem();
             List<Component> lore = changeLastLoreLine(item, MiniMessageUtils.miniMessage("<yellow>Click to edit item"));
             GuiItem guiItem = ItemBuilder.from(item).lore(lore).asGuiItem(event -> {
+                if (event.isShiftClick()) {
+                    ItemsManager.getInstance().giveItem(player, shopItem.getResult(), 1);
+                    return;
+                }
                 new ShopItemEditor(player, shopMenu, shopItem).open();
             });
             gui.addItem(guiItem);

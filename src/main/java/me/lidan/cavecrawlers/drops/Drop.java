@@ -17,6 +17,7 @@ import me.lidan.cavecrawlers.utils.Range;
 import me.lidan.cavecrawlers.utils.StringUtils;
 import me.lidan.cavecrawlers.utils.VaultUtils;
 import org.bukkit.Location;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -164,6 +165,8 @@ public class Drop implements ConfigurationSerializable {
             return;
         }
         itemsManager.giveItem(player, result.itemInfo(), (int) amount);
+        if (amount > 0) Bukkit.getPluginManager().callEvent(new ItemGrantedEvent(
+                player.getUniqueId(), result.itemInfo().getID(), (int) amount, "drop_reward"));
         if (announce != null) {
             DropRarity dropRarity = DropRarity.getRarity(chance);
             placeholders.putAll(Map.of("amount", StringUtils.getNumberFormat(amount), "name", result.itemInfo().getFormattedName(), "rarity", result.itemInfo().getRarity().toString(), "dropRarity", dropRarity.toString()));
@@ -180,6 +183,11 @@ public class Drop implements ConfigurationSerializable {
     }
 
     public void drop(Player player, Location location) {
+        DropGiveEvent event = new DropGiveEvent(this, player, location);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
         if (announce != null) {
             placeholders.clear();
             placeholders.put("player", player.getName());
@@ -212,7 +220,7 @@ public class Drop implements ConfigurationSerializable {
             log.warn("Coin amount {} exceeds IEEE-754 safe integer limit ({}), clamping to safe value", amount, SAFE_INTEGER_LIMIT);
             amount = amount > 0 ? SAFE_INTEGER_LIMIT : -SAFE_INTEGER_LIMIT;
         }
-        VaultUtils.giveCoins(player, (double) amount);
+        VaultUtils.giveCoins(player, (double) amount, "drop_reward", type.name().toLowerCase(Locale.ROOT));
         if (announce != null) {
             placeholders.put("amount", StringUtils.getNumberFormat(amount));
             sendAnnounceMessage(player);

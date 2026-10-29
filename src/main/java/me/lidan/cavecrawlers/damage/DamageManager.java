@@ -83,7 +83,10 @@ public class DamageManager implements DamageAPI {
         double calculated = calculation.calculate();
 
         T launchedProjectile = source.launchProjectile(projectile, velocity);
-        launchedProjectile.getPersistentDataContainer().set(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE, calculated);
+        PersistentDataContainer container = launchedProjectile.getPersistentDataContainer();
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE, calculated);
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "crit"), PersistentDataType.BOOLEAN, calculation.isCrit());
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "ability_damage"), PersistentDataType.BOOLEAN, calculation instanceof AbilityDamage);
         return launchedProjectile;
     }
 
@@ -95,6 +98,7 @@ public class DamageManager implements DamageAPI {
         PersistentDataContainer container = launchedProjectile.getPersistentDataContainer();
         container.set(new NamespacedKey(CaveCrawlers.getInstance(), "calculated"), PersistentDataType.DOUBLE, calculated);
         container.set(new NamespacedKey(CaveCrawlers.getInstance(), "crit"), PersistentDataType.BOOLEAN, calculation.isCrit());
+        container.set(new NamespacedKey(CaveCrawlers.getInstance(), "ability_damage"), PersistentDataType.BOOLEAN, calculation instanceof AbilityDamage);
         return launchedProjectile;
     }
 

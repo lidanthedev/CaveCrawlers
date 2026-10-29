@@ -151,12 +151,16 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
         }
         SkillXpGainEvent event = new SkillXpGainEvent(player, skill, xp);
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
+        if (event.isCancelled() || !canAwardSkillXp(player)
+                || PlayerDataManager.getInstance().getSkills(player) != playerSkills) {
             return;
         }
+        int previousLevel = skill.getLevel();
         skill.addXp(event.getXpGained());
         String skillName = StringUtils.setTitleCase(skillType.getName());
         playerSkills.tryLevelUp(skillType);
+        Bukkit.getPluginManager().callEvent(new SkillProgressionChangedEvent(player.getUniqueId(),
+                skillType.getId(), previousLevel, skill.getLevel(), event.getXpGained()));
         if (showMessage) {
             Component component = MiniMessageUtils.miniMessage("<dark_aqua>+<xp> <skill-name> (<xp-percent>%)", Map.of("xp", StringUtils.valueOf(event.getXpGained()), "skill-name", skillName, "xp-percent", String.valueOf(Math.floor(skill.getXp() / skill.getXpToLevel() * 1000d) / 10d)));
             ActionBarManager.getInstance().showActionBar(player, component);
@@ -166,7 +170,7 @@ public class SkillsManager extends ConfigLoader<SkillInfo> implements SkillsAPI 
 
     private boolean canAwardSkillXp(Player player) {
         PlayerSkillsManager skillsManager = PlayerSkillsManager.getInstance();
-        return Database.getInstance().isAvailable() && skillsManager.isLoaded(player.getUniqueId());
+        return Bukkit.isPrimaryThread() && skillsManager.canPersistPlayer(player.getUniqueId());
     }
 
     public BoostedCustomConfig getConfig(SkillInfo type) {

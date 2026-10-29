@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SandStorm extends ScalingClickAbility implements Listener {
     public static final String SANDSTORM_TAG = "SandStorm";
+    public static final String DAMAGE_METADATA_KEY = "damage";
     private Material material;
     private Material fillerMaterial;
     private Particle particle;
@@ -52,6 +54,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         Location center = player.getLocation();
         World world = player.getWorld();
         AtomicInteger tick = new AtomicInteger(0);
+        AbilityDamage calculation = getDamageCalculation(player);
 
         Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), bukkitTask -> {
             tick.incrementAndGet();
@@ -63,7 +66,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                 double x = Math.cos(angle) * currentRadius;
                 double z = Math.sin(angle) * currentRadius;
                 Location blockLoc = center.clone().add(x, 0, z);
-                summonFallingBlock(blockLoc, material, player);
+                summonFallingBlock(blockLoc, material, player, calculation);
             }
 
             // Fill air gaps with RED_SAND at a slightly offset radius
@@ -74,7 +77,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                     double x = Math.cos(angle) * fillerRadius;
                     double z = Math.sin(angle) * fillerRadius;
                     Location fillerLoc = center.clone().add(x, 0.5, z);
-                    summonFallingBlock(fillerLoc, fillerMaterial, player);
+                    summonFallingBlock(fillerLoc, fillerMaterial, player, calculation);
                 }
             }
 
@@ -85,7 +88,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                 double x = Math.cos(angle) * currentRadius;
                 double z = Math.sin(angle) * currentRadius;
                 Location highLoc = center.clone().add(x, 1.0, z);
-                summonFallingBlock(highLoc, fillerMaterial, player);
+                summonFallingBlock(highLoc, fillerMaterial, player, calculation);
             }
 
             // Particles - cloud dust ring
@@ -101,9 +104,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
             // Center storm swirl particles
             world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, center.clone().add(0, 1, 0), 8, 0.5, 0.5, 0.5, 0.02);
 
-            world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 0.5F, 1F);
-            world.playSound(center, Sound.WEATHER_RAIN, 0.8F, 0.5F);
-
+            world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 0.1F, 1F);
 
             if (tick.get() > 4) {
                 bukkitTask.cancel();
@@ -112,7 +113,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         return true;
     }
 
-    public void summonFallingBlock(Location loc, Material mat, Player owner) {
+    public void summonFallingBlock(Location loc, Material mat, Player owner, AbilityDamage calculation) {
         World world = loc.getWorld();
         // Spawn particles at block origin
         world.spawnParticle(XParticle.EXPLOSION.get(), loc, 1, 0, 0, 0, 0);
@@ -123,6 +124,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         fallingBlock.setVelocity(new Vector(0, randomY, 0));
         fallingBlock.setDropItem(false);
         fallingBlock.addScoreboardTag(SANDSTORM_TAG);
+        fallingBlock.setMetadata(DAMAGE_METADATA_KEY, new FixedMetadataValue(CaveCrawlers.getInstance(), calculation));
 
         // Track this block for landing damage
         fallingBlockOwners.put(fallingBlock.getUniqueId(), owner.getUniqueId());
@@ -158,8 +160,10 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         world.spawnParticle(Particle.FLAME, landLoc, 3, 0.2, 0.1, 0.2, 0.02);
 
         // Deal damage on impact
-        AbilityDamage calculation = getDamageCalculation(owner);
-        for (Entity entity : world.getNearbyEntities(landLoc, 2, 2, 2)) {
+        AbilityDamage calculation = (AbilityDamage) fallingBlock.getMetadata(DAMAGE_METADATA_KEY).getFirst().value();
+        if (calculation == null) return;
+        fallingBlock.removeMetadata(DAMAGE_METADATA_KEY, CaveCrawlers.getInstance());
+        for (Entity entity : world.getNearbyEntities(landLoc, 1.5, 1.5, 1.5)) {
             if (entity instanceof Mob mob) {
                 calculation.damage(owner, mob);
             }
@@ -167,7 +171,7 @@ public class SandStorm extends ScalingClickAbility implements Listener {
     }
 
     @Override
-    public void abilityFailedCooldown(Player player) {
+    public void abilityFailedCooldown(Player player, long cooldown) {
         // silent cooldown
     }
 

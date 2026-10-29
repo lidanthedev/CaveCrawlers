@@ -58,6 +58,7 @@ public class SkillCommand {
     @Subcommand("giveXp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void giveXp(CommandSender sender, Player target, SkillInfo type, double amount) {
+        if (!requirePlayerData(sender, target)) return;
         SkillsManager skillsManager = SkillsManager.getInstance();
         skillsManager.giveXp(target, type, amount, true);
         sender.sendMessage("add xp to %s".formatted(type.getName()));
@@ -66,6 +67,7 @@ public class SkillCommand {
     @Subcommand("addxp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void addXp(Player sender, SkillInfo type, double amount) {
+        if (!requirePlayerData(sender, sender)) return;
         SkillsManager skillsManager = SkillsManager.getInstance();
         Skills skills = playerDataManager.getSkills(sender);
         skillsManager.giveXp(sender, type, amount, true);
@@ -75,6 +77,7 @@ public class SkillCommand {
     @Subcommand("setXp")
     @CommandPermission("cavecrawlers.skills.admin")
     public void setXp(Player sender, SkillInfo type, int amount) {
+        if (!requirePlayerData(sender, sender)) return;
         Skills stats = playerDataManager.getSkills(sender);
         stats.get(type).setXpOfCurrentLevel(amount);
         sender.sendMessage(ChatColor.GREEN + "set stat %s to %s".formatted(type.getName(), amount));
@@ -150,8 +153,14 @@ public class SkillCommand {
     @Subcommand("reset")
     @CommandPermission("cavecrawlers.skills.admin")
     public void resetSkills(Player sender) {
-        Skills skills = playerDataManager.getSkills(sender);
-        skills.resetAllSkills();
-        sender.sendMessage(MiniMessageUtils.miniMessage("<green>All skills have been reset."));
+        if (!requirePlayerData(sender, sender)) return;
+        playerDataManager.resetPlayerData(sender.getUniqueId());
+        sender.sendMessage(MiniMessageUtils.miniMessage("<green>Skill reset queued."));
     }
+    private boolean requirePlayerData(CommandSender sender, Player target) {
+        if (me.lidan.cavecrawlers.storage.PlayerSkillsManager.getInstance().canPersistPlayer(target.getUniqueId())) return true;
+        sender.sendMessage(ChatColor.RED + "Player data is unavailable. Please reconnect.");
+        return false;
+    }
+
 }

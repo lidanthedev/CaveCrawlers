@@ -105,8 +105,6 @@ public class MiningManager implements MiningAPI {
     }
 
     public void breakBlock(Player player, Block block, BlockFace face) {
-        lastBrokenBlockFace.put(block, face);
-        applySlowDig(player);
         Stats stats = StatsManager.getInstance().getStats(player);
         double miningSpeed = stats.get(StatType.MINING_SPEED).getValue();
         double miningPower = stats.get(StatType.MINING_POWER).getValue();
@@ -134,7 +132,14 @@ public class MiningManager implements MiningAPI {
             return;
         }
         long required = getTicksToBreak(miningSpeed, blockInfo.getBlockStrength());
-        setProgress(player, new MiningRunnable(player, block, required));
+        BlockMineStartEvent event = new BlockMineStartEvent(player, block, blockInfo, heldItem, required);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+        lastBrokenBlockFace.put(block, face);
+        applySlowDig(player);
+        setProgress(player, new MiningRunnable(player, block, event.getRequiredTicks()));
     }
 
     private static int getHammerPerBlock() {

@@ -73,9 +73,7 @@ public class AutoPortableShopAbility extends PortableShopAbility {
             return;
         }
         ShopItem shopItem = shopItems.get(slotId);
-        if (shopItem.canBuy(player)) {
-            shopItem.buy(player, silent);
-        }
+        shopItem.buy(player, silent);
     }
 
     protected int getSlotIdOfItem(ItemStack item) {

@@ -305,13 +305,11 @@ public class CaveCrawlersMainCommand {
         var title = Title.title(
                 MiniMessageUtils.miniMessage("<gold><bold>Game Updating</bold></gold>"), Component.empty(),
                 Title.Times.times(Duration.ZERO,
-                        Duration.ofSeconds(20), Duration.ofSeconds(1)));
+                        Duration.ofSeconds(5), Duration.ofSeconds(1)));
         Bukkit.getOnlinePlayers().forEach(player -> player.showTitle(title));
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            reloadPluginInternal();
-            sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
-            reloadAddonsInternal(sender);
-        });
+        reloadPluginInternal();
+        sender.sendMessage(ChatColor.GREEN + "CaveCrawlers reloaded!");
+        reloadAddonsInternal(sender);
     }
 
     @Subcommand("config saveStats")

@@ -94,7 +94,7 @@ public class MenuGui {
     public static final String SELL_COMMAND = config.getString("sell-command", "sell");
     public static final String ACBAG_COMMAND = config.getString("acbag-command", "acbag");
     public static final String ISLAND_COMMAND = config.getString("island-command", "is");
-    public static final String HUB_COMMAND = config.getString("hub-command", "hub");
+    public static final String HUB_COMMAND = config.getString("hub-command", "spawn");
     // settings
 
     private static boolean hasSkyblock() {
@@ -105,7 +105,8 @@ public class MenuGui {
         // Inventory changes must wait until the click event has finished.
         Bukkit.getScheduler().runTask(plugin, () -> {
             player.closeInventory();
-            player.performCommand(command);
+            // Menu aliases such as /daily also need the player command preprocess event.
+            player.chat("/" + command);
         });
     }
 

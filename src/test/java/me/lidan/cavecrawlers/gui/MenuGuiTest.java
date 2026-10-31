@@ -6,6 +6,8 @@ import org.bukkit.plugin.Plugin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Method;
 
@@ -63,15 +65,23 @@ class MenuGuiTest {
         assertEquals(0, maxVaults(mock(Plugin.class), player));
     }
 
-    @Test
-    void commandsCloseTheMenuAndExecuteOnlyAfterTheClickFinishes() {
+    @ParameterizedTest
+    @ValueSource(strings = {"daily", "spawn", "playervaults:pv 30"})
+    void commandsUseThePlayerCommandPathAfterTheClickFinishes(String command) {
         Player player = mock(Player.class);
-        MenuGui.runCommand(player, "playervaults:pv 30");
+        MenuGui.runCommand(player, command);
         verifyNoInteractions(player);
         context.server().getScheduler().performOneTick();
         var order = inOrder(player);
         order.verify(player).closeInventory();
-        order.verify(player).performCommand("playervaults:pv 30");
+        order.verify(player).chat("/" + command);
+        verify(player, never()).performCommand(anyString());
+    }
+
+    @Test
+    void dailyAndHubDefaultToTheRequestedCommands() {
+        assertEquals("daily", MenuGui.DAILY_COMMAND);
+        assertEquals("spawn", MenuGui.HUB_COMMAND);
     }
 
     public interface VaultLimits {

@@ -7,12 +7,13 @@ import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public class MenuGui {
-    public static final String MENU_TITLE = "<gray>Menu";
+    public static final String MENU_TITLE = "<dark_aqua><bold>Menu";
     public static final String SKYBLOCK_WORLD = "ASkyBlock";
     private final Player player;
     private final Gui gui;
@@ -27,47 +28,50 @@ public class MenuGui {
         this.gui = Gui.gui().rows(6).title(MiniMessageUtils.miniMessageString(MENU_TITLE)).create();
 
         gui.disableAllInteractions();
-        gui.setItem(13, ItemBuilder.skull().owner(player).setName("§f%s Stats:".formatted(player.getName())).setLore(statsMessage).asGuiItem());
-        gui.setItem(20, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aSkills").setLore("§7View your Skill progression and\n §7rewards.").asGuiItem((event -> {
+        gui.setItem(13, ItemBuilder.skull().owner(player).setName("§b" + player.getName() + "'s Stats").setLore(statsMessage).asGuiItem());
+        gui.setItem(20, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aSkills").setLore("§7View your skill progression", "§7and level rewards.", "", "§eClick to view skills").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(SKILLS_COMMAND);
+            runCommand(sender, SKILLS_COMMAND);
         })));
-        gui.setItem(21, ItemBuilder.skull().texture(KITS_SKULL_TEXTURE).setName("§eKits").setLore("§7Redeem your kits, whenever","§7you want. Some kits are only for §edonator ranks", "§k","§eClick to preview kits").asGuiItem((event -> {
+        gui.setItem(21, ItemBuilder.skull().texture(DAILY_SKULL_TEXTURE).setName("§eDaily Rewards").setLore("§7Come back each day", "§7to claim your rewards.", "", "§eClick to view daily rewards").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(KITS_COMMAND);
+            runCommand(sender, DAILY_COMMAND);
         })));
-        gui.setItem(22, ItemBuilder.from(Material.EMERALD).setName("§aShop").setLore("§7Buy and sell", "§7all types of items.", "§c", "§eClick to open").asGuiItem((event -> {
+        gui.setItem(22, ItemBuilder.from(Material.BOOK).setName("§bIndex").setLore("§7Discover mobs, drops,", "§7bosses, blocks and altars.", "", "§eClick to browse the index").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(SHOP_COMMAND);
+            runCommand(sender, INDEX_COMMAND);
         })));
-        gui.setItem(23, ItemBuilder.skull().texture(WARRPS_SKULL_TEXTURE).setName("§eWarps").setLore("§7Teleport and explore all", "§7warps on that realm.", "§", "§eClick to preview kits").asGuiItem((event -> {
+        gui.setItem(23, ItemBuilder.skull().texture(WARRPS_SKULL_TEXTURE).setName("§bWarps").setLore("§7Explore the server and", "§7choose your next destination.", "", "§eClick to view warps").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(WARP_COMMAND);
+            runCommand(sender, WARP_COMMAND);
         })));
-        gui.setItem(24, ItemBuilder.from(Material.ENDER_CHEST).setName("§aStorage").setLore("§7Store Items", "§7At Your Personal Storage.", "", "§eClick to open").asGuiItem((event -> {
+        gui.setItem(24, ItemBuilder.from(Material.ENDER_CHEST).setName("§dStorage").setLore("§7Access your personal", "§7item storage.", "", "§eClick to choose storage").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(STORAGE_COMMAND);
+            Bukkit.getScheduler().runTask(plugin, () -> new StorageGui(sender).open());
         })));
-        gui.setItem(31, ItemBuilder.from(Material.GOLD_INGOT).setName("§eSell").setLore("§7", "§7Click to sell items").asGuiItem((event -> {
+        gui.setItem(31, ItemBuilder.from(Material.GOLD_INGOT).setName("§6Sell Items").setLore("§7Turn your spare items", "§7into coins.", "", "§eClick to open the sell menu").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            sender.performCommand(SELL_COMMAND);
+            runCommand(sender, SELL_COMMAND);
         })));
 
         World world = player.getWorld();
         if (hasSkyblock() && !world.getName().equalsIgnoreCase(SKYBLOCK_WORLD)) {
             gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP_SKULL_TEXTURE).setName("§bWarp To: §aPrivate Island").setLore("§7Teleports you back to your", "§7private island.", "", "§eClick to Warp").asGuiItem((event -> {
                 Player sender = (Player) event.getWhoClicked();
-                sender.performCommand(ISLAND_COMMAND);
+                runCommand(sender, ISLAND_COMMAND);
             })));
         } else {
             gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP_SKULL_TEXTURE).setName("§bWarp To: §aHub").setLore("§7Teleports you to", "§7spawn.", "", "§eClick to Warp").asGuiItem((event -> {
                 Player sender = (Player) event.getWhoClicked();
-                sender.performCommand(HUB_COMMAND);
+                runCommand(sender, HUB_COMMAND);
             })));
         }
 
         gui.setItem(49, GuiItems.CLOSE_ITEM);
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
+        for (int slot : new int[]{0, 8, 45, 53}) {
+            gui.setItem(slot, ItemBuilder.from(Material.CYAN_STAINED_GLASS_PANE).setName(" ").asGuiItem());
+        }
     }
     // heads
     public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";
@@ -80,7 +84,8 @@ public class MenuGui {
     public static final String SKILLS_COMMAND = config.getString("skills-command", "skills");
     public static final String KITS_COMMAND = config.getString("kits-command", "kits");
     public static final String SHOP_COMMAND = config.getString("shop-command", "shop");
-    public static final String WARP_COMMAND = config.getString("warp-command", "warp");
+    public static final String INDEX_COMMAND = config.getString("index-command", "index");
+    public static final String WARP_COMMAND = config.getString("warp-command", "warps");
     public static final String DAILY_COMMAND = config.getString("daily-command", "daily");
     public static final String STORAGE_COMMAND = config.getString("storage-command", "ec");
     public static final String PETS_COMMAND = config.getString("pets-command", "pets");
@@ -94,6 +99,14 @@ public class MenuGui {
 
     private static boolean hasSkyblock() {
         return plugin.getConfig().getBoolean("has-skyblock", false);
+    }
+
+    static void runCommand(Player player, String command) {
+        // Inventory changes must wait until the click event has finished.
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            player.closeInventory();
+            player.performCommand(command);
+        });
     }
 
     public void open(){

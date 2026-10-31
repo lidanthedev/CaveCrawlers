@@ -3,6 +3,7 @@ package me.lidan.cavecrawlers.gui;
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.PaginatedGui;
+import me.lidan.cavecrawlers.integration.playervaults.PlayerVaultsHook;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -28,7 +29,7 @@ public class StorageGui {
 
         Plugin vaults = Bukkit.getPluginManager().getPlugin("PlayerVaults");
         if (vaults != null && vaults.isEnabled()) {
-            int maxVaults = getMaxVaults(vaults, player);
+            int maxVaults = PlayerVaultsHook.getMaxVaults(vaults, player);
             for (int number = 1; number <= maxVaults; number++) {
                 int vault = number;
                 gui.addItem(ItemBuilder.from(Material.CHEST).setName("§aPlayer Vault #" + vault)
@@ -45,24 +46,6 @@ public class StorageGui {
         if (gui.getPageItems().isEmpty()) {
             gui.getFiller().fill(GuiItems.GLASS_ITEM);
         }
-    }
-
-    private static int getMaxVaults(Plugin vaults, Player player) {
-        if (!player.hasPermission("playervaults.commands.use")) {
-            return 0;
-        }
-        try {
-            // Use PlayerVaults' configured permission limit without a required dependency.
-            int limit = (int) vaults.getClass().getMethod("getMaxVaultAmountPermTest").invoke(vaults);
-            for (int number = limit; number > 0; number--) {
-                if (player.hasPermission("playervaults.amount." + number)) {
-                    return number;
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            MenuGui.plugin.getLogger().warning("Unable to read PlayerVaults permission limit: " + e.getMessage());
-        }
-        return 0;
     }
 
     public void open() {

@@ -31,19 +31,19 @@ public class MenuGui {
         gui.setItem(13, ItemBuilder.skull().owner(player).setName("§b" + player.getName() + "'s Stats").setLore(statsMessage).asGuiItem());
         gui.setItem(20, ItemBuilder.from(Material.DIAMOND_SWORD).setName("§aSkills").setLore("§7View your skill progression", "§7and level rewards.", "", "§eClick to view skills").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            runCommand(sender, SKILLS_COMMAND);
+            runCommand(sender, getCommand("skills", SKILLS_COMMAND));
         })));
         gui.setItem(21, ItemBuilder.skull().texture(DAILY_SKULL_TEXTURE).setName("§eDaily Rewards").setLore("§7Come back each day", "§7to claim your rewards.", "", "§eClick to view daily rewards").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            runCommand(sender, DAILY_COMMAND);
+            runCommand(sender, getCommand("daily", DAILY_COMMAND));
         })));
         gui.setItem(22, ItemBuilder.from(Material.BOOK).setName("§bIndex").setLore("§7Discover mobs, drops,", "§7bosses, blocks and altars.", "", "§eClick to browse the index").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            runCommand(sender, INDEX_COMMAND);
+            runCommand(sender, getCommand("index", INDEX_COMMAND));
         })));
         gui.setItem(23, ItemBuilder.skull().texture(WARRPS_SKULL_TEXTURE).setName("§bWarps").setLore("§7Explore the server and", "§7choose your next destination.", "", "§eClick to view warps").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            runCommand(sender, WARP_COMMAND);
+            runCommand(sender, getCommand("warps", WARP_COMMAND));
         })));
         gui.setItem(24, ItemBuilder.from(Material.ENDER_CHEST).setName("§dStorage").setLore("§7Access your personal", "§7item storage.", "", "§eClick to choose storage").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
@@ -51,19 +51,19 @@ public class MenuGui {
         })));
         gui.setItem(31, ItemBuilder.from(Material.GOLD_INGOT).setName("§6Sell Items").setLore("§7Turn your spare items", "§7into coins.", "", "§eClick to open the sell menu").asGuiItem((event -> {
             Player sender = (Player) event.getWhoClicked();
-            runCommand(sender, SELL_COMMAND);
+            runCommand(sender, getCommand("sell", SELL_COMMAND));
         })));
 
         World world = player.getWorld();
         if (hasSkyblock() && !world.getName().equalsIgnoreCase(SKYBLOCK_WORLD)) {
             gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP_SKULL_TEXTURE).setName("§bWarp To: §aPrivate Island").setLore("§7Teleports you back to your", "§7private island.", "", "§eClick to Warp").asGuiItem((event -> {
                 Player sender = (Player) event.getWhoClicked();
-                runCommand(sender, ISLAND_COMMAND);
+                runCommand(sender, getCommand("island", ISLAND_COMMAND));
             })));
         } else {
             gui.setItem(47, ItemBuilder.skull().texture(ISLAND_WARP_SKULL_TEXTURE).setName("§bWarp To: §aHub").setLore("§7Teleports you to", "§7spawn.", "", "§eClick to Warp").asGuiItem((event -> {
                 Player sender = (Player) event.getWhoClicked();
-                runCommand(sender, HUB_COMMAND);
+                runCommand(sender, getCommand("hub", HUB_COMMAND));
             })));
         }
 
@@ -101,12 +101,16 @@ public class MenuGui {
         return plugin.getConfig().getBoolean("has-skyblock", false);
     }
 
+    static String getCommand(String key, String fallback) {
+        return plugin.getConfig().getString("menu.commands." + key, fallback);
+    }
+
     static void runCommand(Player player, String command) {
         // Inventory changes must wait until the click event has finished.
         Bukkit.getScheduler().runTask(plugin, () -> {
             player.closeInventory();
             // Menu aliases such as /daily also need the player command preprocess event.
-            player.chat("/" + command);
+            player.chat(command.startsWith("/") ? command : "/" + command);
         });
     }
 

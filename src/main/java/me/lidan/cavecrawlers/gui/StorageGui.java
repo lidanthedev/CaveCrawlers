@@ -21,7 +21,7 @@ public class StorageGui {
         gui.getFiller().fillBorder(GuiItems.GLASS_ITEM);
         gui.setItem(4, ItemBuilder.from(Material.ENDER_CHEST).setName("§dEnder Chest")
                 .setLore("§7Open your personal Ender Chest.", "", "§eClick to open")
-                .asGuiItem(event -> MenuGui.runCommand(player, MenuGui.STORAGE_COMMAND)));
+                .asGuiItem(event -> MenuGui.runCommand(player, MenuGui.getCommand("ender-chest", MenuGui.STORAGE_COMMAND))));
         gui.setItem(48, GuiItems.BACK_ITEM.asGuiItem(event ->
                 Bukkit.getScheduler().runTask(MenuGui.plugin, () -> new MenuGui(player).open())));
         gui.setItem(49, GuiItems.CLOSE_ITEM);
@@ -33,7 +33,9 @@ public class StorageGui {
                 int vault = number;
                 gui.addItem(ItemBuilder.from(Material.CHEST).setName("§aPlayer Vault #" + vault)
                         .setLore("§7Store items in your personal vault.", "", "§eClick to open")
-                        .asGuiItem(event -> MenuGui.runCommand(player, "playervaults:pv " + vault)));
+                        .asGuiItem(event -> MenuGui.runCommand(player,
+                                MenuGui.getCommand("player-vault", "playervaults:pv {vault}")
+                                        .replace("{vault}", Integer.toString(vault)))));
             }
             if (maxVaults == 0) {
                 gui.setItem(22, ItemBuilder.from(Material.BARRIER).setName("§cPlayer Vaults Locked")

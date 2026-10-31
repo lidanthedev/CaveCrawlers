@@ -102,6 +102,25 @@ class MenuGuiTest {
     }
 
     @Test
+    void storageWithoutPlayerVaultsRunsConfiguredEnderChestCommand() throws Exception {
+        Player player = mock(Player.class);
+        StorageGui storage = mock(StorageGui.class, CALLS_REAL_METHODS);
+        var playerField = StorageGui.class.getDeclaredField("player");
+        playerField.setAccessible(true);
+        playerField.set(storage, player);
+        var config = context.plugin().getConfig();
+        try {
+            config.set("menu.commands.ender-chest", "enderchest");
+            storage.open();
+            verifyNoInteractions(player);
+            context.server().getScheduler().performOneTick();
+            verify(player).chat("/enderchest");
+        } finally {
+            config.set("menu.commands.ender-chest", null);
+        }
+    }
+
+    @Test
     void packagedConfigDocumentsEveryMenuCommand() throws Exception {
         try (var reader = new InputStreamReader(getClass().getResourceAsStream("/config.yml"), StandardCharsets.UTF_8)) {
             var config = YamlConfiguration.loadConfiguration(reader);

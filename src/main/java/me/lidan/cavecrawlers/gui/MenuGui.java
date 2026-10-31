@@ -69,9 +69,6 @@ public class MenuGui {
 
         gui.setItem(49, GuiItems.CLOSE_ITEM);
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
-        for (int slot : new int[]{0, 8, 45, 53}) {
-            gui.setItem(slot, ItemBuilder.from(Material.CYAN_STAINED_GLASS_PANE).setName(" ").asGuiItem());
-        }
     }
     // heads
     public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";

@@ -66,6 +66,10 @@ public class StorageGui {
     }
 
     public void open() {
+        if (!Bukkit.getPluginManager().isPluginEnabled("PlayerVaults")) {
+            MenuGui.runCommand(player, MenuGui.getCommand("ender-chest", MenuGui.STORAGE_COMMAND));
+            return;
+        }
         gui.open(player);
         GuiItems.setupNextPreviousItems(gui, 6, 2, 8);
     }

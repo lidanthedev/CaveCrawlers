@@ -4,6 +4,7 @@ import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.gui.MenuGui;
 import me.lidan.cavecrawlers.gui.PlayerViewer;
 import me.lidan.cavecrawlers.gui.SimpleMenuGui;
+import me.lidan.cavecrawlers.gui.StorageGui;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
@@ -38,6 +39,11 @@ public class MenuCommands {
     @Command({"ctmenu","ccmenu"})
     public void menu(Player sender) {
         showMenu(sender);
+    }
+
+    @Command("storage")
+    public void storage(Player sender) {
+        new StorageGui(sender).open();
     }
 
     @Command({"playerviewer","profile","myprofile"})

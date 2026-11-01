@@ -2,11 +2,13 @@ package me.lidan.cavecrawlers.listeners;
 
 import io.lumine.mythic.core.mobs.ActiveMob;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.entities.BossEntityData;
 import me.lidan.cavecrawlers.entities.EntityData;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.entities.LootShareEntityData;
 import me.lidan.cavecrawlers.skills.SkillAction;
 import me.lidan.cavecrawlers.skills.SkillsManager;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -71,6 +73,15 @@ public class SkillXpGainingListener implements Listener {
             }
         }
         EntityData entityData = EntityManager.getInstance().getEntityData(event.getEntity().getUniqueId());
+        if (entityData instanceof BossEntityData bossEntityData) {
+            for (var uuid : bossEntityData.getDamageMap().keySet()) {
+                Player participant = Bukkit.getPlayer(uuid);
+                if (participant != null) {
+                    skillsManager.tryGiveXp(SkillAction.KILL, type, participant);
+                }
+            }
+            return;
+        }
         if (entityData instanceof LootShareEntityData lootShareEntityData) {
             String finalType = type;
             lootShareEntityData.giveDropsToPlayers(damager -> skillsManager.tryGiveXp(SkillAction.KILL, finalType, damager));

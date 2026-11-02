@@ -1,17 +1,30 @@
 package me.lidan.cavecrawlers.coverage;
 
 import me.lidan.cavecrawlers.items.ItemsManager;
+import me.lidan.cavecrawlers.items.ItemInfo;
+import me.lidan.cavecrawlers.items.ItemType;
+import me.lidan.cavecrawlers.drops.DropsManager;
+import me.lidan.cavecrawlers.listeners.MiningListener;
 import me.lidan.cavecrawlers.mining.BlockInfo;
 import me.lidan.cavecrawlers.mining.MiningManager;
+import me.lidan.cavecrawlers.skills.SkillAction;
+import me.lidan.cavecrawlers.skills.SkillsManager;
 import me.lidan.cavecrawlers.stats.Stats;
+import me.lidan.cavecrawlers.stats.StatsManager;
 import me.lidan.cavecrawlers.test.MockCaveCrawlers;
+import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -21,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.*;
 
 class MiningCoverageTest {
     private MockCaveCrawlers context;
@@ -30,6 +44,8 @@ class MiningCoverageTest {
     @BeforeEach
     void setUp() throws Exception {
         context = MockCaveCrawlers.start();
+        // Async persistence cannot initialize plugin classes through thread-local static mocks.
+        Class.forName(CustomConfig.class.getName());
         setStatic(MiningManager.class, "instance", null);
         setStatic(ItemsManager.class, "instance", null);
         mining = MiningManager.getInstance();
@@ -51,6 +67,51 @@ class MiningCoverageTest {
     void breakTimeUsesStrengthAndTreatsZeroSpeedAsOne() {
         assertEquals(60, MiningManager.getTicksToBreak(30, 60));
         assertEquals(90, MiningManager.getTicksToBreak(0, 3));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"PICKAXE,NONE,false", "PICKAXE,SWORD,false", "PICKAXE,AXE,false",
+            "AXE,PICKAXE,false", "PICKAXE,PICKAXE,true", "AXE,AXE,true"})
+    void blockBreakRequiresTheConfiguredToolType(String requiredType, String heldType, boolean allowed) {
+        World world = context.server().addSimpleWorld("mining-tools");
+        Player player = context.server().addPlayer();
+        Block block = world.getBlockAt(0, 64, 0);
+        block.setType(Material.STONE);
+        mining.registerBlock(Material.STONE, new BlockInfo(10, 0, List.of(),
+                ItemType.valueOf(requiredType), Material.BLACK_WOOL.createBlockData()));
+        context.plugin().getConfig().set(MiningManager.MINING_PERSISTENCE_RESTORE_KEY, false);
+        try (MockedStatic<ItemsManager> items = mockStatic(ItemsManager.class);
+             MockedStatic<SkillsManager> skills = mockStatic(SkillsManager.class);
+             MockedStatic<DropsManager> drops = mockStatic(DropsManager.class);
+             MockedStatic<StatsManager> stats = mockStatic(StatsManager.class)) {
+            ItemsManager itemsManager = mock(ItemsManager.class);
+            SkillsManager skillsManager = mock(SkillsManager.class);
+            DropsManager dropsManager = mock(DropsManager.class);
+            StatsManager statsManager = mock(StatsManager.class);
+            items.when(ItemsManager::getInstance).thenReturn(itemsManager);
+            skills.when(SkillsManager::getInstance).thenReturn(skillsManager);
+            drops.when(DropsManager::getInstance).thenReturn(dropsManager);
+            stats.when(StatsManager::getInstance).thenReturn(statsManager);
+            when(statsManager.getStats(player)).thenReturn(new Stats());
+            if (!heldType.equals("NONE")) {
+                ItemInfo heldItem = mock(ItemInfo.class);
+                when(heldItem.getType()).thenReturn(ItemType.valueOf(heldType));
+                when(itemsManager.getItemFromItemStack(any())).thenReturn(heldItem);
+            }
+            BlockBreakEvent event = new BlockBreakEvent(block, player);
+
+            new MiningListener().onBlockBreak(event);
+
+            assertTrue(event.isCancelled());
+            assertEquals(allowed ? Material.BLACK_WOOL : Material.STONE, block.getType());
+            if (allowed) {
+                verify(skillsManager).tryGiveXp(SkillAction.MINE, Material.STONE, player);
+                verify(dropsManager).rollDropsForPlayer(player, List.of());
+                assertFalse(event.isDropItems());
+            } else {
+                verifyNoInteractions(skillsManager, dropsManager, statsManager);
+            }
+        }
     }
 
     @Test

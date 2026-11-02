@@ -358,6 +358,10 @@ public class MiningManager implements MiningAPI {
         if (blockInfo == UNBREAKABLE_BLOCK){
             return;
         }
+        ItemInfo heldItem = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
+        if (heldItem == null || heldItem.getType() != blockInfo.getBrokenBy()) {
+            return;
+        }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);
         event.setDropItems(false);
         SkillsManager skillsManager = SkillsManager.getInstance();

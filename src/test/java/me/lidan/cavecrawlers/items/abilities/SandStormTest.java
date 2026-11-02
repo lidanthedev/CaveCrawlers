@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.*;
 class SandStormTest {
     @ParameterizedTest
     @CsvSource({"0.5,64,0.5", "-3.2,64.7,-2.8"})
-    void preservesStormLayersWithoutOverlappingBlocks(double x, double y, double z) throws Exception {
+    void preservesStormSpreadWithOneBlockPerColumn(double x, double y, double z) throws Exception {
         try (MockCaveCrawlers context = MockCaveCrawlers.start()) {
             World world = mock(World.class);
             Player player = mock(Player.class);
@@ -46,6 +47,11 @@ class SandStormTest {
             var spawned = locations.getAllValues();
             assertTrue(spawned.size() > 40, "Keep the inner ring and raised blocks");
             assertEquals(spawned.size(), new HashSet<>(spawned).size());
+            assertEquals(spawned.size(), spawned.stream()
+                    .map(location -> new Vector(location.getBlockX(), 0, location.getBlockZ()))
+                    .distinct().count(), "Only one block may spawn in each horizontal column");
+            assertEquals(1, spawned.stream().filter(location -> location.getBlockX() == center.getBlockX() + 2
+                    && location.getBlockZ() == center.getBlockZ()).count(), "East must not spawn twice");
             assertEquals(2, spawned.stream().map(Location::getBlockY).distinct().count());
             assertTrue(spawned.stream().anyMatch(location -> location.getX() < x - 9));
             assertTrue(spawned.stream().anyMatch(location -> location.getX() > x + 9));

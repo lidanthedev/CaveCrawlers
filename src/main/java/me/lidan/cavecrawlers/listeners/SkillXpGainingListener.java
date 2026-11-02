@@ -61,10 +61,6 @@ public class SkillXpGainingListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntity().getKiller() == null) {
-            return;
-        }
-        Player player = event.getEntity().getKiller();
         String type = event.getEntityType().name();
         if (plugin.getMythicBukkit() != null) {
             ActiveMob activeMob = plugin.getMythicBukkit().getAPIHelper().getMythicMobInstance(event.getEntity());
@@ -80,6 +76,10 @@ public class SkillXpGainingListener implements Listener {
                     skillsManager.tryGiveXp(SkillAction.KILL, type, participant);
                 }
             }
+            return;
+        }
+        Player player = event.getEntity().getKiller();
+        if (player == null) {
             return;
         }
         if (entityData instanceof LootShareEntityData lootShareEntityData) {

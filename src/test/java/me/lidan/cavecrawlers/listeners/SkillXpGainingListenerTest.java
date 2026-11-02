@@ -20,6 +20,41 @@ import static org.mockito.Mockito.*;
 
 class SkillXpGainingListenerTest {
     @Test
+    void bossWithoutKillerStillAwardsOnlineParticipants() throws Exception {
+        try (MockCaveCrawlers context = MockCaveCrawlers.start();
+             MockedStatic<SkillsManager> skills = mockStatic(SkillsManager.class)) {
+            SkillsManager manager = mock(SkillsManager.class);
+            skills.when(SkillsManager::getInstance).thenReturn(manager);
+            Player helper = context.server().addPlayer("helper");
+            LivingEntity boss = entity(null);
+            BossEntityData data = new BossEntityData(boss);
+            data.addDamage(helper.getUniqueId(), 1);
+            EntityManager.getInstance().setEntityData(boss.getUniqueId(), data);
+            try {
+                new SkillXpGainingListener().onEntityDeath(death(boss));
+
+                verify(manager).tryGiveXp(SkillAction.KILL, "ZOMBIE", helper);
+                verifyNoMoreInteractions(manager);
+            } finally {
+                EntityManager.getInstance().clear();
+            }
+        }
+    }
+
+    @Test
+    void ordinaryMobWithoutKillerDoesNotAwardXp() throws Exception {
+        try (MockCaveCrawlers context = MockCaveCrawlers.start();
+             MockedStatic<SkillsManager> skills = mockStatic(SkillsManager.class)) {
+            SkillsManager manager = mock(SkillsManager.class);
+            skills.when(SkillsManager::getInstance).thenReturn(manager);
+
+            new SkillXpGainingListener().onEntityDeath(death(entity(null)));
+
+            verifyNoInteractions(manager);
+        }
+    }
+
+    @Test
     void bossAwardsEveryOnlineParticipantOnceIncludingSmallContributors() throws Exception {
         try (MockCaveCrawlers context = MockCaveCrawlers.start();
              MockedStatic<SkillsManager> skills = mockStatic(SkillsManager.class)) {

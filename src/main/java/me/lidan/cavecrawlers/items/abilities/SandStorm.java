@@ -18,9 +18,12 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class SandStorm extends ScalingClickAbility implements Listener {
     public static final String SANDSTORM_TAG = "SandStorm";
@@ -55,6 +58,15 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         World world = player.getWorld();
         AtomicInteger tick = new AtomicInteger(0);
         AbilityDamage calculation = getDamageCalculation(player);
+        Set<Location> occupied = new HashSet<>();
+        Consumer<Location> spawnBlock = location -> {
+            Location blockLocation = new Location(world, location.getBlockX() + 0.5,
+                    location.getBlockY(), location.getBlockZ() + 0.5);
+            if (occupied.add(blockLocation)) {
+                Material blockMaterial = occupied.size() % 2 == 1 ? material : fillerMaterial;
+                summonFallingBlock(blockLocation, blockMaterial, player, calculation);
+            }
+        };
 
         Bukkit.getScheduler().runTaskTimer(CaveCrawlers.getInstance(), bukkitTask -> {
             tick.incrementAndGet();
@@ -65,7 +77,25 @@ public class SandStorm extends ScalingClickAbility implements Listener {
                 double x = Math.cos(angle) * currentRadius;
                 double z = Math.sin(angle) * currentRadius;
                 Location blockLoc = center.clone().add(x, 0, z);
-                summonFallingBlock(blockLoc, j % 2 == 0 ? material : fillerMaterial, player, calculation);
+                spawnBlock.accept(blockLoc);
+            }
+
+            double fillerRadius = currentRadius - (radius * 0.5);
+            if (fillerRadius > 0) {
+                for (int j = 0; j < blocks; j++) {
+                    double angle = 2 * Math.PI * j / blocks + (Math.PI / blocks);
+                    double x = Math.cos(angle) * fillerRadius;
+                    double z = Math.sin(angle) * fillerRadius;
+                    spawnBlock.accept(center.clone().add(x, 0.5, z));
+                }
+            }
+
+            int highPoints = blocks / 2;
+            for (int j = 0; j < highPoints; j++) {
+                double angle = 2 * Math.PI * j / highPoints;
+                double x = Math.cos(angle) * currentRadius;
+                double z = Math.sin(angle) * currentRadius;
+                spawnBlock.accept(center.clone().add(x, 1.0, z));
             }
 
             // Particles - cloud dust ring
@@ -97,8 +127,8 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         world.spawnParticle(Particle.BLOCK, loc, 6, 0.3, 0.3, 0.3, 0, Bukkit.createBlockData(mat));
 
         FallingBlock fallingBlock = world.spawnFallingBlock(loc, Bukkit.createBlockData(mat));
-        double randomY = 0.2 + Math.random() * 0.4; // varied upward velocity
-        fallingBlock.setVelocity(new Vector(0, randomY, 0));
+        // Equal launch speeds keep vertically adjacent blocks separated.
+        fallingBlock.setVelocity(new Vector(0, 0.4, 0));
         fallingBlock.setDropItem(false);
         fallingBlock.addScoreboardTag(SANDSTORM_TAG);
         fallingBlock.setMetadata(DAMAGE_METADATA_KEY, new FixedMetadataValue(CaveCrawlers.getInstance(), calculation));

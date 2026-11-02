@@ -60,35 +60,12 @@ public class SandStorm extends ScalingClickAbility implements Listener {
             tick.incrementAndGet();
             double currentRadius = radius * tick.get();
 
-            // Main circle blocks (SAND)
             for (int j = 0; j < blocks; j++) {
                 double angle = 2 * Math.PI * j / blocks;
                 double x = Math.cos(angle) * currentRadius;
                 double z = Math.sin(angle) * currentRadius;
                 Location blockLoc = center.clone().add(x, 0, z);
-                summonFallingBlock(blockLoc, material, player, calculation);
-            }
-
-            // Fill air gaps with RED_SAND at a slightly offset radius
-            double fillerRadius = currentRadius - (radius * 0.5);
-            if (fillerRadius > 0) {
-                for (int j = 0; j < blocks; j++) {
-                    double angle = 2 * Math.PI * j / blocks + (Math.PI / blocks); // offset between main blocks
-                    double x = Math.cos(angle) * fillerRadius;
-                    double z = Math.sin(angle) * fillerRadius;
-                    Location fillerLoc = center.clone().add(x, 0.5, z);
-                    summonFallingBlock(fillerLoc, fillerMaterial, player, calculation);
-                }
-            }
-
-            // Extra blocks at a higher Y to fill vertical air gaps (half the main points)
-            int highPoints = blocks / 2;
-            for (int j = 0; j < highPoints; j++) {
-                double angle = 2 * Math.PI * j / highPoints;
-                double x = Math.cos(angle) * currentRadius;
-                double z = Math.sin(angle) * currentRadius;
-                Location highLoc = center.clone().add(x, 1.0, z);
-                summonFallingBlock(highLoc, fillerMaterial, player, calculation);
+                summonFallingBlock(blockLoc, j % 2 == 0 ? material : fillerMaterial, player, calculation);
             }
 
             // Particles - cloud dust ring

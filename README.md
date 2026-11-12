@@ -5,21 +5,10 @@ items and abilities, combat stats, skill progression, mining, loot, bosses, summ
 configure content in YAML and through in-game editors, while addon developers can extend gameplay through Java APIs
 and Bukkit events.
 
-## Important upgrade note: fenced player persistence
+## Upgrading
 
-Upgrade **every CaveCrawlers backend sharing a database together**. Do not run pre-fencing and
-post-fencing versions concurrently. Older versions write skill rows without validating fencing tokens.
-
-For the first upgrade:
-
-1. Stop all CaveCrawlers backend servers.
-2. Update the plugin on every backend.
-3. Start the network again.
-
-Once every backend uses a compatible fenced version, rolling updates can be considered when schema
-compatibility permits. Keep lease settings consistent across the network.
-See [player persistence and verification](docs/player-persistence.md) for outage behavior, addon requirements,
-and the database test suite.
+When upgrading older versions, stop and update **every backend sharing the database together**.
+See the [migration guide](docs/migration.md) before upgrading or moving player data.
 
 ## Screenshots
 Creating and editing items
@@ -52,24 +41,26 @@ Native absorption can display as [one golden-heart row](docs/absorption-display.
 
 ## Commands
 
-Arguments in `<angle brackets>` are required; arguments in `[square brackets]` are optional.
-This is a reference for common commands, not every administrative or diagnostic command.
+`<required>` `[optional]`
 
 ### Player commands
 
-| Command | Purpose | Permission |
-| --- | --- | --- |
-| `/skills` | Open the skills menu | `cavecrawlers.skills` |
-| `/stats list [player]` | Display stats, defaulting to yourself | `cavecrawlers.stats` |
-| `/sell` | Open the sell menu | No command permission required |
-| `/index` | Open the mob, block, boss, and altar index | `cavecrawlers.index.view` |
-| `/profile [player]` | View a profile, defaulting to yourself | `cavecrawlers.playerviewer` |
-| `/ccmenu` | Open the configured menu or execute its configured command | No command permission required |
+| Command | Aliases | Purpose | Permission |
+| --- | --- | --- | --- |
+| `/skills` | `/skills gui`, `/myskills gui`, `/skilladmin gui` | Open the skills menu | `cavecrawlers.skills` |
+| `/stats list [player]` | `/stat list [player]`, `/statadmin list [player]` | Display stats, defaulting to yourself | `cavecrawlers.stats` |
+| `/sell` | None | Open the sell menu | None |
+| `/index` | `/drops`, `/bestiary`, `/wiki` | Open the mob, block, boss, and altar index | `cavecrawlers.index.view` |
+| `/profile [player]` | `/playerviewer [player]`, `/myprofile [player]` | View a profile, defaulting to yourself | `cavecrawlers.playerviewer` |
+| `/ccmenu` | `/ctmenu` | Open the configured menu | None |
 
 Viewing another player's profile also requires `cavecrawlers.playerviewer.others`.
-The index also has `/drops`, `/bestiary`, and `/wiki` aliases.
 
 ### Main administration commands
+
+| Command prefix | Aliases |
+| --- | --- |
+| `/cc` | `/ct`, `/cavecrawlers` |
 
 - `/cc help`: Show administration help
 - `/cc item`: Item commands
@@ -82,8 +73,6 @@ The index also has `/drops`, `/bestiary`, and `/wiki` aliases.
 The `cavecrawlers.admin` permission defaults to operators and includes the main help, item, shop, altar,
 reload, and data administration permissions. Player commands use the permissions listed above.
 Database and lease configuration changes require a server restart.
-
-See [player persistence](docs/player-persistence.md) for data ownership, outage behavior, and addon requirements.
 
 ### Item commands
 
@@ -107,29 +96,30 @@ copies the held item into the specified custom item's base item; the held item m
 
 ### Shop and selling commands
 
-- `/cc shop create <name>`: Create a shop
-- `/cc shop open <shop-name>`: Open the shop
-- `/cc shop editor <shop-name>`: Open the shop editor
-- `/setprice <price> [itemId]`: Set a sell price, using the held custom item when the ID is omitted;
-  requires `cavecrawlers.sell.setprice`
+| Command | Aliases | Purpose |
+| --- | --- | --- |
+| `/cc shop create <name>` | `/ct shop create`, `/cavecrawlers shop create` | Create a shop |
+| `/cc shop open <shop-name>` | `/ct shop open`, `/cavecrawlers shop open` | Open the shop |
+| `/cc shop editor <shop-name>` | `/ct shop editor`, `/cavecrawlers shop editor` | Open the shop editor |
+| `/setprice <price> [itemId]` | `/setsell <price> [itemId]` | Set a sell price, using the held custom item if the ID is omitted; requires `cavecrawlers.sell.setprice` |
 
 ## Installation
 
 1. Install the required plugins and a Vault-compatible economy provider listed below.
-2. Download the CaveCrawlers jar from [releases](https://github.com/lidanthedev/CaveCrawlers/releases), or build it locally.
+2. Download the CaveCrawlers jar from [releases](https://github.com/lidanthedev/CaveCrawlers/releases).
 3. Place the jar in your server's `plugins` folder and start the server to generate configuration and example content.
 4. Review `plugins/CaveCrawlers/config.yml`, especially the vanilla gameplay options and database settings.
 5. Configure content in the generated folders, then use `/cc reload` for gameplay changes or restart for database changes.
 
-The default configuration disables vanilla crafting, anvils, enchanting, item dropping outside creative mode,
-hand swapping, and explosion block damage. Night vision is enabled and hunger is disabled. Review these settings
-before using the plugin on an existing survival server.
+CaveCrawlers defaults are set up for RPG servers. Crafting, anvils, enchanting, item dropping outside creative mode,
+hand swapping, and explosion block damage are turned off. To allow them, set the corresponding options under
+`vanilla` to `true` in `plugins/CaveCrawlers/config.yml`. Set `hunger-disabled: false` to restore hunger and
+`night-vision: false` to stop giving night vision. Restart the server after changing these settings.
 
 ## Requirements
 
 - Java 21+
-- [Paper](https://papermc.io/) Minecraft server. The current build targets the **1.21.11 Paper API**;
-  this is the compilation target, not a verified minimum supported Minecraft version.
+- [Paper](https://papermc.io/) Minecraft server
 - [Vault](https://www.spigotmc.org/resources/vault.34315/)
 - A Vault-compatible economy provider that registers an economy service. CaveCrawlers disables itself if no provider is available.
 - [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
@@ -159,14 +149,7 @@ Start with the generated example YAML files. The [drops guide](docs/drops.md) ex
 boss rewards, and altar configuration.
 
 Player progression uses a local H2 database by default, so a separate database server is not required.
-To use MySQL, configure `database.type: mysql`, the connection settings, and credentials in `config.yml`, then restart.
-Changing the database type does not migrate existing data. Follow the migration and shared-database upgrade guidance
-in [player persistence](docs/player-persistence.md) before moving existing progression or connecting multiple backends.
-
-The commands `/cc data migrate h2-to-mysql` and `/cc data migrate mysql-to-h2` copy skill data to the target database
-and require `cavecrawlers.admin.data`. Keep `database.type` set to the source during the copy and configure the MySQL
-connection settings before migrating. Stop other backends sharing the database before a cutover. The command does
-not switch the running database; wait for successful completion before changing `database.type` and restarting.
+**MySQL support is experimental and not recommended.** See the [migration guide](docs/migration.md) for moving data.
 
 ## Development
 
@@ -189,16 +172,17 @@ See [persistence verification](docs/player-persistence.md#verification) for setu
 ## Documentation
 
 - [Drops, bosses, and altars](docs/drops.md)
-- [Player persistence, upgrades, migrations, and verification](docs/player-persistence.md)
+- [Upgrades and database migration](docs/migration.md)
+- [Player persistence and verification](docs/player-persistence.md)
+- [Creating an addon](docs/creating-an-addon.md)
 - [Addon event API](docs/addon-events.md)
 - [Native absorption display](docs/absorption-display.md)
-
-Java entry points for addons are in [`me.lidan.cavecrawlers.api`](src/main/java/me/lidan/cavecrawlers/api).
-Obtain the API through `CaveCrawlers.getAPI()` and declare CaveCrawlers as a dependency in your addon's plugin metadata.
 
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests for improvements and bug fixes.
+New features should be useful to any RPG server. If a feature is specific to your server, make an
+[addon](docs/creating-an-addon.md) instead. New abilities are welcome too.
 
 ## License
 

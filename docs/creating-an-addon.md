@@ -6,8 +6,7 @@ contributions to CaveCrawlers itself.
 
 ## Set up the project
 
-Create a Java 21 Gradle project with the Gradle wrapper. Copy the CaveCrawlers jar used by your server into
-`libs/CaveCrawlers.jar` in the addon project.
+Create a Java 21 Gradle project with the Gradle wrapper and add CaveCrawlers through JitPack.
 
 `settings.gradle.kts`:
 
@@ -28,11 +27,12 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    compileOnly(files("libs/CaveCrawlers.jar"))
+    compileOnly("com.github.lidanthedev:CaveCrawlers:VERSION")
 }
 
 java {
@@ -40,8 +40,10 @@ java {
 }
 ```
 
+Replace `VERSION` with the release tag or commit matching your server's CaveCrawlers version from
+[JitPack](https://jitpack.io/#lidanthedev/CaveCrawlers).
 Keep Paper and CaveCrawlers as `compileOnly` dependencies. The server provides them; do not bundle their classes
-in your addon jar. Use the Paper version and CaveCrawlers jar that match your development server.
+in your addon jar. Use the Paper version that matches your development server.
 
 ## Declare the plugin
 

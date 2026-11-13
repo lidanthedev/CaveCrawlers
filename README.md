@@ -47,8 +47,8 @@ Native absorption can display as [one golden-heart row](docs/absorption-display.
 
 | Command | Aliases | Purpose | Permission |
 | --- | --- | --- | --- |
-| `/skills` | `/skills gui`, `/myskills gui`, `/skilladmin gui` | Open the skills menu | `cavecrawlers.skills` |
-| `/stats list [player]` | `/stat list [player]`, `/statadmin list [player]` | Display stats, defaulting to yourself | `cavecrawlers.stats` |
+| `/skills` | `/skills gui`, `/myskills gui` | Open the skills menu | `cavecrawlers.skills` |
+| `/stats list [player]` | `/stat list [player]` | Display stats, defaulting to yourself | `cavecrawlers.stats` |
 | `/sell` | None | Open the sell menu | None |
 | `/index` | `/drops`, `/bestiary`, `/wiki` | Open the mob, block, boss, and altar index | `cavecrawlers.index.view` |
 | `/profile [player]` | `/playerviewer [player]`, `/myprofile [player]` | View a profile, defaulting to yourself | `cavecrawlers.playerviewer` |
@@ -121,7 +121,7 @@ hand swapping, and explosion block damage are turned off. To allow them, set the
 - Java 21+
 - [Paper](https://papermc.io/) Minecraft server
 - [Vault](https://www.spigotmc.org/resources/vault.34315/)
-- A Vault-compatible economy provider that registers an economy service. CaveCrawlers disables itself if no provider is available.
+- A Vault-compatible economy provider, such as [EssentialsX](https://essentialsx.net/). CaveCrawlers disables itself if no provider is available.
 - [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
 - [MythicMobs](https://mythiccraft.io/index.php?resources/mythicmobs.1/)
 

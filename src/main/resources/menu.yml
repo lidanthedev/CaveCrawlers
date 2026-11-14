@@ -1,0 +1,15 @@
+# Extra buttons for the advanced menu (menu.type: advanced in config.yml).
+# Addons use these to get a menu entry. Apply changes with /cc reload.
+# A button replaces whatever is in its slot (0-53). Built-in buttons use 13, 20-24, 31, 47 and 49.
+#
+# buttons:
+#   pets:
+#     slot: 30
+#     material: BONE              # or skull-texture: <base64 texture> instead
+#     name: "<green>Pets"         # MiniMessage or legacy § colors
+#     lore:
+#       - "<gray>View and equip your pets."
+#       - ""
+#       - "<yellow>Click to open"
+#     command: pets               # run as the clicking player
+buttons: {}

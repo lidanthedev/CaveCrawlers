@@ -10,7 +10,9 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class MenuGui {
     public static final String MENU_TITLE = "<dark_aqua><bold>Menu";
@@ -68,7 +70,40 @@ public class MenuGui {
         }
 
         gui.setItem(49, GuiItems.CLOSE_ITEM);
+        addCustomButtons(gui);
         gui.getFiller().fill(GuiItems.GLASS_ITEM);
+    }
+
+    /**
+     * Adds the buttons from menu.yml so addons can get a menu entry without code in CaveCrawlers.
+     */
+    static void addCustomButtons(Gui gui) {
+        ConfigurationSection buttons = config.getConfigurationSection("buttons");
+        if (buttons == null) {
+            return;
+        }
+        for (String key : buttons.getKeys(false)) {
+            ConfigurationSection button = buttons.getConfigurationSection(key);
+            if (button == null) {
+                continue;
+            }
+            int slot = button.getInt("slot", -1);
+            String command = button.getString("command");
+            String texture = button.getString("skull-texture");
+            Material material = Material.matchMaterial(button.getString("material", "STONE"));
+            if (slot < 0 || slot >= gui.getInventory().getSize() || command == null || (texture == null && material == null)) {
+                plugin.getLogger().warning("Skipping invalid menu.yml button '" + key + "': needs a valid slot, command and material or skull-texture");
+                continue;
+            }
+            ItemBuilder item = ItemBuilder.from(texture != null ? ItemBuilder.skull().texture(texture).build() : new ItemStack(material));
+            gui.setItem(slot, item.name(MiniMessageUtils.miniMessage(button.getString("name", key)))
+                    .lore(MiniMessageUtils.miniMessageList(button.getStringList("lore")))
+                    .asGuiItem(event -> runCommand((Player) event.getWhoClicked(), command)));
+        }
+    }
+
+    public static void reload() {
+        config.load();
     }
     // heads
     public static final String KITS_SKULL_TEXTURE = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTg3MDhkNGI0YWIxMGI5YmE4NWVkMWE5MjQyYmY4MTEwNWM1NTk2ZDc0M2YyY2EyMGEzMzg3ZTI5ZDA2MzM0NSJ9fX0=";

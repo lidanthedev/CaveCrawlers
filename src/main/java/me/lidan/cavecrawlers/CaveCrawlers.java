@@ -24,6 +24,7 @@ import me.lidan.cavecrawlers.commands.*;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.drops.*;
 import me.lidan.cavecrawlers.entities.EntityManager;
+import me.lidan.cavecrawlers.gui.MenuGui;
 import me.lidan.cavecrawlers.index.IndexBaseCategoryMenu;
 import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.integration.CaveCrawlersExpansion;
@@ -242,6 +243,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         saveResource("example-skills.yml", new File(getDataFolder(), "skills/example-skills.yml"));
         saveResource("example-items.yml", new File(getDataFolder(), "items/example-items.yml"));
         saveResource("messages.yml", false);
+        saveResource("menu.yml", false);
         saveResource("example-shop.yml", new File(getDataFolder(), "shops/example-shop.yml"));
         saveResource("example-drops.yml", new File(getDataFolder(), "drops/example-drops.yml"));
         saveResource("example-blocks.yml", new File(getDataFolder(), "blocks/example-blocks.yml"));
@@ -284,6 +286,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
 
         registerConfig();
         ConfigMessage.reload();
+        MenuGui.reload();
         if (absorptionDisplay != null) {
             absorptionDisplay.reload();
         }

@@ -96,8 +96,15 @@ public class MenuGui {
                 plugin.getLogger().warning("Skipping invalid menu.yml button '" + key + "': needs a valid slot, command and material or skull-texture");
                 continue;
             }
-            ItemBuilder item = ItemBuilder.from(texture != null ? ItemBuilder.skull().texture(texture).build() : new ItemStack(material));
-            gui.setItem(slot, item.name(MiniMessageUtils.miniMessage(button.getString("name", key)))
+            ItemStack icon;
+            try {
+                icon = texture != null ? ItemBuilder.skull().texture(texture).build() : new ItemStack(material);
+            } catch (RuntimeException e) {
+                // A bad skull-texture or a non-item material (e.g. WATER) must not break the whole menu.
+                plugin.getLogger().warning("Skipping invalid menu.yml button '" + key + "': " + e.getMessage());
+                continue;
+            }
+            gui.setItem(slot, ItemBuilder.from(icon).name(MiniMessageUtils.miniMessage(button.getString("name", key)))
                     .lore(MiniMessageUtils.miniMessageList(button.getStringList("lore")))
                     .asGuiItem(event -> runCommand((Player) event.getWhoClicked(), command)));
         }

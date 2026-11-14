@@ -110,6 +110,8 @@ copies the held item into the specified custom item's base item; the held item m
 3. Place the jar in your server's `plugins` folder and start the server to generate configuration and example content.
 4. Review `plugins/CaveCrawlers/config.yml`, especially the vanilla gameplay options and database settings.
 5. Configure content in the generated folders, then use `/cc reload` for gameplay changes or restart for database changes.
+   `/cc reload` also removes items, shops, and other content that addons load from their own folders; restart the server
+   to bring that content back.
 
 CaveCrawlers defaults are set up for RPG servers. Crafting, anvils, enchanting, item dropping outside creative mode,
 hand swapping, and explosion block damage are turned off. To allow them, set the corresponding options under

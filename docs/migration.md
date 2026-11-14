@@ -34,11 +34,23 @@ Run commands from the console or with `cavecrawlers.admin` and `cavecrawlers.adm
    and connection options in `config.yml`. Restart only the migration server to load these settings.
 4. Run the command for the required direction. Wait for successful completion and check the console for errors.
 5. Stop the migration server. Set `database.type` to the **target** on the backends that will use it, then restart
-   the migration server to verify skill progress before reopening the network. H2 uses a local file on each server.
+   the migration server to verify skill progress before reopening the network.
+
+H2 uses a local file on each server, and the command reads or writes only the H2 file of the server it runs on:
+
+- **H2 to MySQL with several backends:** run steps 3 and 4 on every backend that has its own H2 file, one at a time.
+  A player already in MySQL is skipped, so the first backend migrated wins for players stored on more than one.
+  Migrate the backend with the most current progress for those players first.
+- **MySQL to H2 on several backends:** run steps 3 and 4 on every backend that will switch to H2. Each one gets its own
+  copy, and progress is no longer shared between servers after the switch.
+
+Verify skill progress on every backend that switched, not only on the migration server.
 
 The command copies a snapshot and does not change the running database. Keep players off the source after copying
-so new progress is not left behind. A zero-copy result may mean target players were skipped; verify the target
-before switching. If migration fails, keep the source selected and inspect the error before retrying.
+so new progress is not left behind. The reported count includes only imported players. Players that already have
+target data, or whose target session is locked or already used, are skipped without being named, even when the count
+is above zero. Compare source and target players before switching. If migration fails, keep the source selected and
+inspect the error before retrying.
 
 Keep the original database backup until the migration is verified. Switching back later does not copy new progress
 back to the old database.

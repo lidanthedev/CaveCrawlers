@@ -111,6 +111,7 @@ public class MiningManager implements MiningAPI {
         BlockInfo blockInfo = getBlockInfo(block.getType());
         ItemType brokenByBlockType = blockInfo.getBrokenBy();
         ItemInfo heldItem = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
+        applySlowDig(player);
         if (heldItem == null){
             return;
         }
@@ -138,7 +139,6 @@ public class MiningManager implements MiningAPI {
             return;
         }
         lastBrokenBlockFace.put(block, face);
-        applySlowDig(player);
         setProgress(player, new MiningRunnable(player, block, event.getRequiredTicks()));
     }
 
@@ -356,6 +356,10 @@ public class MiningManager implements MiningAPI {
         BlockInfo blockInfo = getBlockInfo(originType);
         event.setCancelled(true);
         if (blockInfo == UNBREAKABLE_BLOCK){
+            return;
+        }
+        ItemInfo heldItem = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
+        if (heldItem == null || heldItem.getType() != blockInfo.getBrokenBy()) {
             return;
         }
         player.playSound(block.getLocation(), Sound.BLOCK_STONE_BREAK, SoundCategory.BLOCKS, 1f, 1f);

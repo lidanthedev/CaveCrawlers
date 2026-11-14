@@ -216,7 +216,8 @@ class MySqlPersistenceTest extends DatabasePersistenceTest {
 
     private void assertLockFreeFromOtherPool() {
         otherJdbi.useHandle(h -> {
-            assertEquals(1, h.createQuery("SELECT GET_LOCK(:name, 0)").bind("name", LOCK).mapTo(Integer.class).one());
+            // MySQL frees a closed session's locks asynchronously, so wait briefly instead of racing it.
+            assertEquals(1, h.createQuery("SELECT GET_LOCK(:name, 5)").bind("name", LOCK).mapTo(Integer.class).one());
             assertEquals(1, h.createQuery("SELECT RELEASE_LOCK(:name)").bind("name", LOCK).mapTo(Integer.class).one());
         });
     }

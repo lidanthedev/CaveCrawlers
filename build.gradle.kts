@@ -57,6 +57,9 @@ dependencies {
     compileOnly("io.lumine:Mythic-Dist:5.11.2")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
+    compileOnly("com.github.drtshock:PlayerVaults:4.2.15") {
+        isTransitive = false
+    }
     implementation("com.github.cryptomorin:XSeries:13.7.0")
     implementation("dev.dejvokep:boosted-yaml:1.3.7")
     implementation("dev.dejvokep:boosted-yaml-spigot:1.5")
@@ -74,6 +77,9 @@ dependencies {
         exclude(group = "org.bukkit", module = "bukkit")
     }
     testImplementation("io.lumine:Mythic-Dist:5.11.2")
+    testImplementation("com.github.drtshock:PlayerVaults:4.2.15") {
+        isTransitive = false
+    }
     // MockBukkit publishes a JUnit 6 runtime edge; keep the existing JUnit 5 platform aligned.
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.110.0") {
         exclude(group = "org.junit.jupiter", module = "junit-jupiter-api")

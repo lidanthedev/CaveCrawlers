@@ -10,6 +10,7 @@ softdepend:
   - PlaceholderAPI
   - LuckPerms
   - Plugman
+  - PlayerVaults
 libraries:
   - com.zaxxer:HikariCP:5.1.0
   - org.jdbi:jdbi3-core:3.45.4

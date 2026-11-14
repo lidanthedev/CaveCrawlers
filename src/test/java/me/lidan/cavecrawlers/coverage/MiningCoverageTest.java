@@ -15,10 +15,12 @@ import me.lidan.cavecrawlers.test.MockCaveCrawlers;
 import me.lidan.cavecrawlers.utils.CustomConfig;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,6 +113,37 @@ class MiningCoverageTest {
             } else {
                 verifyNoInteractions(skillsManager, dropsManager, statsManager);
             }
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"NONE", "SWORD"})
+    void miningFatigueAppliesBeforeToolChecks(String heldType) {
+        World world = context.server().addSimpleWorld("mining-fatigue");
+        Player player = spy(context.server().addPlayer());
+        AttributeInstance breakSpeed = mock(AttributeInstance.class);
+        doReturn(breakSpeed).when(player).getAttribute(any());
+        Block block = world.getBlockAt(0, 64, 0);
+        block.setType(Material.STONE);
+        mining.registerBlock(Material.STONE, new BlockInfo(10, 0, List.of(),
+                ItemType.PICKAXE, Material.BLACK_WOOL.createBlockData()));
+        try (MockedStatic<ItemsManager> items = mockStatic(ItemsManager.class);
+             MockedStatic<StatsManager> stats = mockStatic(StatsManager.class)) {
+            ItemsManager itemsManager = mock(ItemsManager.class);
+            StatsManager statsManager = mock(StatsManager.class);
+            items.when(ItemsManager::getInstance).thenReturn(itemsManager);
+            stats.when(StatsManager::getInstance).thenReturn(statsManager);
+            when(statsManager.getStats(player)).thenReturn(new Stats());
+            if (!heldType.equals("NONE")) {
+                ItemInfo heldItem = mock(ItemInfo.class);
+                when(heldItem.getType()).thenReturn(ItemType.valueOf(heldType));
+                when(itemsManager.getItemFromItemStack(any())).thenReturn(heldItem);
+            }
+
+            mining.breakBlock(player, block);
+
+            assertTrue(player.hasPotionEffect(PotionEffectType.MINING_FATIGUE));
+            verify(breakSpeed).setBaseValue(0.0);
         }
     }
 

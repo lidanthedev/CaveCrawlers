@@ -42,7 +42,8 @@ H2 uses a local file on each server, and the command reads or writes only the H2
   A player already in MySQL is skipped, so the first backend migrated wins for players stored on more than one.
   Migrate the backend with the most current progress for those players first. The command does not merge data, so
   if two backends each hold the newest progress for different players, no order keeps both. Compare players found
-  on more than one backend before migrating, and do not switch until each one has been checked by hand.
+  on more than one backend before migrating. If the newest progress is split, do not switch until you have reconciled
+  that data yourself or verified another safe way to keep it.
 - **MySQL to H2 on several backends:** run steps 3 and 4 on every backend that will switch to H2. Each one gets its own
   copy, and progress is no longer shared between servers after the switch.
 

@@ -96,7 +96,7 @@ class MenuGuiTest {
 
     // triumph-gui's ItemBuilder needs CraftBukkit classes, so only buttons rejected before building can run under MockBukkit.
     @ParameterizedTest
-    @CsvSource(value = {"-1, BONE, pets", "54, BONE, pets", "30, NOT_A_MATERIAL, pets", "30, BONE, NULL"}, nullValues = "NULL")
+    @CsvSource(value = {"-1, BONE, pets", "54, BONE, pets", "30, NOT_A_MATERIAL, pets", "30, BONE, NULL", "30, NULL, pets"}, nullValues = "NULL")
     void invalidMenuYmlButtonsAreSkipped(int slot, String material, String command) {
         try {
             MenuGui.config.set("buttons.pets.slot", slot);

@@ -90,7 +90,8 @@ public class MenuGui {
             int slot = button.getInt("slot", -1);
             String command = button.getString("command");
             String texture = button.getString("skull-texture");
-            Material material = Material.matchMaterial(button.getString("material", "STONE"));
+            String materialName = button.getString("material");
+            Material material = materialName == null ? null : Material.matchMaterial(materialName);
             if (slot < 0 || slot >= gui.getInventory().getSize() || command == null || (texture == null && material == null)) {
                 plugin.getLogger().warning("Skipping invalid menu.yml button '" + key + "': needs a valid slot, command and material or skull-texture");
                 continue;

@@ -3,6 +3,7 @@ plugins {
     `maven-publish`
     id("com.gradleup.shadow") version "8.3.6"
     id("io.freefair.lombok") version "8.11"
+    id("com.modrinth.minotaur") version "2.8.7"
 }
 
 group = "me.lidan"
@@ -169,4 +170,21 @@ publishing {
             version = project.version.toString()
         }
     }
+}
+
+modrinth {
+    token.set(System.getenv("MODRINTH_TOKEN"))
+    projectId.set("cavecrawlers")
+    versionNumber.set(project.version.toString())
+    versionName.set("CaveCrawlers ${project.version}")
+    uploadFile.set(tasks.shadowJar)
+    // shortcut: hand-kept list, add each new Minecraft release here
+    gameVersions.addAll(
+        "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
+        "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6",
+        "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11",
+        "26.1", "26.1.1", "26.1.2", "26.2", "26.3",
+    )
+    loaders.addAll("paper", "purpur")
+    changelog.set("https://github.com/lidanthedev/CaveCrawlers/releases/tag/v${project.version}")
 }

@@ -45,4 +45,5 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} # Ensure you have a GH_TOKEN secret
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
         run: npx semantic-release

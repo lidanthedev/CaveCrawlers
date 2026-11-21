@@ -47,11 +47,7 @@ import me.lidan.cavecrawlers.prompt.PromptManager;
 import me.lidan.cavecrawlers.shop.ShopLoader;
 import me.lidan.cavecrawlers.shop.ShopMenu;
 import me.lidan.cavecrawlers.skills.*;
-import me.lidan.cavecrawlers.stats.ActionBarManager;
-import me.lidan.cavecrawlers.stats.StatType;
-import me.lidan.cavecrawlers.stats.Stats;
-import me.lidan.cavecrawlers.stats.StatsManager;
-import me.lidan.cavecrawlers.stats.AbsorptionDisplay;
+import me.lidan.cavecrawlers.stats.*;
 import me.lidan.cavecrawlers.storage.PlayerSkillsManager;
 import me.lidan.cavecrawlers.storage.YamlMigrationTask;
 import me.lidan.cavecrawlers.storage.db.Database;
@@ -392,6 +388,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("REAPER_IMPACT", new SoulReaperAbility(1000, 5, 10));
         abilityManager.registerAbility("ARROW_SPIRAL", new ArrowSpiralAbility());
         abilityManager.registerAbility("BUFF", new BuffAbility());
+        abilityManager.registerAbility("MULTI_ABILITY", new MultiClickAbility());
     }
 
     /**

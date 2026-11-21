@@ -63,22 +63,18 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import revxrsal.commands.annotation.*;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.bukkit.Bukkit.getConsoleSender;
@@ -558,6 +554,12 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
+        ItemAbility itemAbility = abilityManager.getAbilityByID(abilityId);
+        if (itemAbility == null) {
+            sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! ABILITY NOT FOUND OR SYNTAX ERROR!"));
+            return;
+        }
+
         itemInfo.setAbilityID(abilityId);
         itemsManager.setItem(itemInfo.getID(), itemInfo);
         itemUpdate(sender);

@@ -2,6 +2,7 @@ package me.lidan.cavecrawlers.items.abilities;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import lombok.Getter;
 import lombok.ToString;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,11 +14,12 @@ import org.bukkit.inventory.ItemStack;
 
 @ToString(callSuper = true)
 public abstract class ClickAbility extends ItemAbility implements Listener {
-
+    public static final Action[] DEFAULT_CLICK_ACTIONS = {Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK};
+    @Getter
     private Action[] allowedActions;
 
     public ClickAbility(String name, String description, double cost, long cooldown) {
-        this(name, description, cost, cooldown, Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK);
+        this(name, description, cost, cooldown, DEFAULT_CLICK_ACTIONS);
     }
 
     public ClickAbility(String name, String description, double cost, long cooldown, Action... allowedActions) {

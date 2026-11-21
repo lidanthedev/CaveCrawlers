@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -8,7 +7,9 @@ import org.bukkit.event.player.PlayerEvent;
 
 public class EtherTransmissionAbility extends TransmissionAbility {
 
+    @Setting
     private Particle particle = Particle.PORTAL;
+    @Setting
     private int maxDistance = 60;
 
     public EtherTransmissionAbility(double blocks) {
@@ -48,15 +49,4 @@ public class EtherTransmissionAbility extends TransmissionAbility {
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        EtherTransmissionAbility ability = (EtherTransmissionAbility) super.buildAbilityWithSettings(map);
-        if (map.has("maxDistance")) {
-            ability.maxDistance = map.get("maxDistance").getAsInt();
-        }
-        if (map.has("particle")) {
-            ability.particle = Particle.valueOf(map.get("particle").getAsString());
-        }
-        return ability;
-    }
 }

@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.particles.XParticle;
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
@@ -16,6 +15,7 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
 
     private static final long PERIOD = 1;
     public static final String TAG = "Spirit_Sceptre";
+    @Setting
     private int radius = 5;
 
     public SpiritSpectreAbility() {
@@ -63,12 +63,4 @@ public class SpiritSpectreAbility extends ScalingClickAbility {
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        SpiritSpectreAbility ability = (SpiritSpectreAbility) super.buildAbilityWithSettings(map);
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsInt();
-        }
-        return ability;
-    }
 }

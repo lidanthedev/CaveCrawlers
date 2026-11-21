@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import net.md_5.bungee.api.ChatColor;
@@ -10,9 +9,13 @@ import org.bukkit.event.block.Action;
 import java.util.List;
 
 public abstract class ScalingClickAbility extends ClickAbility{
+    @Setting
     protected StatType statToScale;
+    @Setting
     protected double baseAbilityDamage;
+    @Setting
     protected double abilityScaling;
+    @Setting
     protected boolean crit;
 
     public ScalingClickAbility(String name, String description, double cost, long cooldown) {
@@ -48,23 +51,5 @@ public abstract class ScalingClickAbility extends ClickAbility{
         List<String> list = super.toList();
         list.add(ChatColor.DARK_GRAY + "Scales with: " + statToScale.getFormatName());
         return list;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ScalingClickAbility ability = (ScalingClickAbility) super.buildAbilityWithSettings(map);
-        if (map.has("statToScale")) {
-            ability.statToScale = StatType.valueOf(map.get("statToScale").getAsString());
-        }
-        if (map.has("baseAbilityDamage")) {
-            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
-        }
-        if (map.has("abilityScaling")) {
-            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
-        }
-        if (map.has("crit")) {
-            ability.crit = map.get("crit").getAsBoolean();
-        }
-        return ability;
     }
 }

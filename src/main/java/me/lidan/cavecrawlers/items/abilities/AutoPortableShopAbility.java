@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import me.lidan.cavecrawlers.shop.ShopItem;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -18,7 +17,9 @@ import java.util.List;
 public class AutoPortableShopAbility extends PortableShopAbility {
     public static final String PORTABLE_SHOP_ITEM = "slotId";
     public static final int NO_SLOT_ID = -1;
+    @Setting
     protected boolean silent = true;
+    @Setting
     private int slotId = NO_SLOT_ID;
 
     public AutoPortableShopAbility(String name, String description, double cost, long cooldown) {
@@ -101,15 +102,4 @@ public class AutoPortableShopAbility extends PortableShopAbility {
         return items;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        AutoPortableShopAbility ability = (AutoPortableShopAbility) super.buildAbilityWithSettings(map);
-        if (map.has("slotId")) {
-            ability.slotId = map.get("slotId").getAsInt();
-        }
-        if (map.has("silent")) {
-            ability.silent = map.get("silent").getAsBoolean();
-        }
-        return ability;
-    }
 }

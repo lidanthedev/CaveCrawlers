@@ -1,7 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.ToString;
 import net.md_5.bungee.api.ChatColor;
@@ -20,7 +18,9 @@ import java.util.List;
 public abstract class ClickAbility extends ItemAbility implements Listener {
     public static final Action[] DEFAULT_CLICK_ACTIONS = {Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK};
     @Getter
+    @Setting
     private Action[] allowedActions;
+    @Setting
     private String displayAction;
 
     public ClickAbility(String name, String description, double cost, long cooldown) {
@@ -30,25 +30,6 @@ public abstract class ClickAbility extends ItemAbility implements Listener {
     public ClickAbility(String name, String description, double cost, long cooldown, Action... allowedActions) {
         super(name, description, cost, cooldown);
         this.allowedActions = allowedActions;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ClickAbility ability = (ClickAbility) super.buildAbilityWithSettings(map);
-        if (map.has("allowedActions")) {
-            JsonArray actions = map.get("allowedActions").getAsJsonArray();
-            if (actions != null) {
-                Action[] allowedActions = new Action[actions.size()];
-                for (int i = 0; i < actions.size(); i++) {
-                    allowedActions[i] = Action.valueOf(actions.get(i).getAsString());
-                }
-                ability.setAllowedActions(allowedActions);
-            }
-        }
-        if (map.has("displayAction")) {
-            ability.displayAction = map.get("displayAction").getAsString();
-        }
-        return ability;
     }
 
     String getDisplayAction() {

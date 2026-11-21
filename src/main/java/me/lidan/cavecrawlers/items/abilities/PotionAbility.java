@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -10,10 +9,15 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.potion.PotionEffectType;
 
 public class PotionAbility extends ClickAbility{
+    @Setting
     protected int duration; // in ticks
+    @Setting
     protected int amplifier;
+    @Setting
     protected PotionEffectType potionEffectType;
+    @Setting
     protected double range; // 0 for self, otherwise range
+    @Setting
     protected String target; // self, players, mobs, all
 
     public PotionAbility(String name, String description, double cost, long cooldown, int duration, int amplifier, PotionEffectType potionEffectType, double range, String target) {
@@ -47,24 +51,4 @@ public class PotionAbility extends ClickAbility{
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        PotionAbility ability = (PotionAbility) super.buildAbilityWithSettings(map);
-        if (map.has("duration")) {
-            ability.duration = map.get("duration").getAsInt();
-        }
-        if (map.has("amplifier")) {
-            ability.amplifier = map.get("amplifier").getAsInt();
-        }
-        if (map.has("potionEffectType")) {
-            ability.potionEffectType = PotionEffectType.getByName(map.get("potionEffectType").getAsString());
-        }
-        if (map.has("range")) {
-            ability.range = map.get("range").getAsDouble();
-        }
-        if (map.has("target")) {
-            ability.target = map.get("target").getAsString();
-        }
-        return ability;
-    }
 }

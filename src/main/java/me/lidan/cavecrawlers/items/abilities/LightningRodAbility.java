@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
@@ -9,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 
 public class LightningRodAbility extends ScalingClickAbility {
+    @Setting
     private int radius;
 
     public LightningRodAbility() {
@@ -29,12 +29,4 @@ public class LightningRodAbility extends ScalingClickAbility {
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        LightningRodAbility ability = (LightningRodAbility) super.buildAbilityWithSettings(map);
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsInt();
-        }
-        return ability;
-    }
 }

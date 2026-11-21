@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.objects.SoundOptions;
 import me.lidan.cavecrawlers.stats.Stat;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -19,9 +18,13 @@ import java.util.UUID;
 
 public class BuffAbility extends ClickAbility {
     private Cooldown<UUID> chargeCooldown = new Cooldown<>();
+    @Setting
     private Sound sound = Sound.ENTITY_WOLF_GROWL;
+    @Setting
     private int activeTime = 10000;
+    @Setting
     private int amount = 10;
+    @Setting
     private StatType statType = StatType.STRENGTH;
 
     public BuffAbility() {
@@ -45,24 +48,6 @@ public class BuffAbility extends ClickAbility {
         chargeCooldown.setCooldown(player.getUniqueId(), System.currentTimeMillis());
         player.playSound(player.getLocation(), sound, 1, 2);
         return true;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        BuffAbility ability = (BuffAbility) super.buildAbilityWithSettings(map);
-        if (map.has("amount")) {
-            ability.amount = map.get("amount").getAsInt();
-        }
-        if (map.has("activeTime")) {
-            ability.activeTime = map.get("activeTime").getAsInt();
-        }
-        if (map.has("statType")) {
-            ability.statType = StatType.valueOf(map.get("statType").getAsString());
-        }
-        if (map.has("sound")) {
-            ability.sound = SoundOptions.resolveSound(map.get("sound").getAsString());
-        }
-        return ability;
     }
 
     @EventHandler

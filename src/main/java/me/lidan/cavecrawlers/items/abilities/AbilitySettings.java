@@ -3,7 +3,10 @@ package me.lidan.cavecrawlers.items.abilities;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import me.lidan.cavecrawlers.objects.SoundOptions;
 import me.lidan.cavecrawlers.stats.StatType;
+import org.bukkit.Sound;
+import org.bukkit.potion.PotionEffectType;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -36,8 +39,7 @@ public final class AbilitySettings {
         return cached;
     }
 
-    // shortcut: unknown keys are ignored silently, because unmigrated subclasses still read their own keys
-    // in buildAbilityWithSettings overrides; warn on unknown keys once every ability uses @Setting.
+    // Unknown keys are ignored, as before: old item configs may carry keys an ability never read (e.g. Hulk "material").
     static void bind(ItemAbility ability, JsonObject settings) {
         Map<String, Field> fields = fields(ability.getClass());
         for (Map.Entry<String, JsonElement> entry : settings.entrySet()) {
@@ -77,6 +79,9 @@ public final class AbilitySettings {
         if (type == float.class || type == Float.class) return value.getAsFloat();
         if (type == boolean.class || type == Boolean.class) return value.getAsBoolean();
         if (type == StatType.class) return StatType.valueOf(value.getAsString());
+        if (type == Sound.class) return SoundOptions.resolveSound(value.getAsString());
+        // getByName returns null for unknown names; kept to match the old parser
+        if (type == PotionEffectType.class) return PotionEffectType.getByName(value.getAsString());
         if (type.isEnum()) return Enum.valueOf((Class) type, value.getAsString());
         if (type.isArray()) {
             JsonArray array = value.getAsJsonArray();

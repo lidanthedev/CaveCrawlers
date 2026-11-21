@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -16,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import java.util.*;
 
 public class EarthShooterAbility extends ClickAbility {
+    @Setting
     private int radius = 5;
 
     private final Map<UUID, List<BlockDisplay>> playersBlocks = new HashMap<>();
@@ -76,12 +76,4 @@ public class EarthShooterAbility extends ClickAbility {
         return location.getBlock();
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        EarthShooterAbility ability = (EarthShooterAbility) super.buildAbilityWithSettings(map);
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsInt();
-        }
-        return ability;
-    }
 }

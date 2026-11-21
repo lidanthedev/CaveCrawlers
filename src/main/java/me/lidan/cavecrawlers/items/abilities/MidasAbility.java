@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.particles.XParticle;
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -20,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MidasAbility extends ScalingClickAbility implements Listener {
     public static final String SHIELD_TAG = "Shield";
+    @Setting
     private Material material;
 
     public MidasAbility(double baseAbilityDamage, double abilityScaling) {
@@ -93,12 +93,4 @@ public class MidasAbility extends ScalingClickAbility implements Listener {
         // silent cooldown
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        MidasAbility ability = (MidasAbility) super.buildAbilityWithSettings(map);
-        if (map.has("material")){
-            ability.material = Material.valueOf(map.get("material").getAsString());
-        }
-        return ability;
-    }
 }

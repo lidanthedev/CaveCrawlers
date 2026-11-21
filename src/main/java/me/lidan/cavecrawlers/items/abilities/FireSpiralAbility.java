@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -11,10 +10,15 @@ import org.bukkit.util.Vector;
 
 public class FireSpiralAbility extends ScalingClickAbility {
 
+    @Setting
     private double period = 0.05;
+    @Setting
     private double radiansPerSecond = Math.PI * 3;
+    @Setting
     private double metersPerSecond = 1.5;
+    @Setting
     private double radius = 1;
+    @Setting
     private double distance = 8;
 
     public FireSpiralAbility() {
@@ -49,24 +53,4 @@ public class FireSpiralAbility extends ScalingClickAbility {
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        FireSpiralAbility ability = (FireSpiralAbility) super.buildAbilityWithSettings(map);
-        if (map.has("period")) {
-            ability.period = map.get("period").getAsDouble();
-        }
-        if (map.has("radiansPerSecond")) {
-            ability.radiansPerSecond = map.get("radiansPerSecond").getAsDouble();
-        }
-        if (map.has("metersPerSecond")) {
-            ability.metersPerSecond = map.get("metersPerSecond").getAsDouble();
-        }
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsDouble();
-        }
-        if (map.has("distance")) {
-            ability.distance = map.get("distance").getAsDouble();
-        }
-        return ability;
-    }
 }

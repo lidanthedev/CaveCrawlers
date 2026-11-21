@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.particles.XParticle;
-import com.google.gson.JsonObject;
 import lombok.ToString;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -19,6 +18,7 @@ import java.util.List;
 
 @ToString
 public class SoulReaperAbility extends ScalingClickAbility implements Listener {
+    @Setting
     private double blocks;
     public SoulReaperAbility(double baseAbilityDamage, double abilityScaling, double blocks) {
         super("Reaper Impact",  "§fTeleport §a10 blocks §fahead §fof you. §fimplode dealing §c10,000 §c❁ §cDamage §fto nearby enemies §fand granting an §6❤ Absorption §fshield for §e5 §fseconds.", 250, 100, StatType.INTELLIGENCE, baseAbilityDamage, abilityScaling);
@@ -44,16 +44,6 @@ public class SoulReaperAbility extends ScalingClickAbility implements Listener {
         }
         return true;
     }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        SoulReaperAbility ability = (SoulReaperAbility) super.buildAbilityWithSettings(map);
-        if (map.has("blocks")) {
-            ability.blocks = map.get("blocks").getAsDouble();
-        }
-
-        return ability;
-        }
 
     @Override
     public void abilityFailedCooldown(Player player, long cooldown) {

@@ -27,9 +27,13 @@ import java.util.UUID;
 @Setter
 @ToString
 public abstract class ItemAbility implements Cloneable {
+    @Setting
     private String name;
+    @Setting
     private String description;
+    @Setting
     private double cost;
+    @Setting
     private long cooldown;
     private Cooldown<UUID> abilityCooldown;
 
@@ -136,28 +140,19 @@ public abstract class ItemAbility implements Cloneable {
 
     public ItemAbility buildAbilityWithSettings(JsonObject map){
         ItemAbility ability = clone();
-        if (map.has("name")){
-            ability.name = map.get("name").getAsString();
-        }
-        if (map.has("description")){
-            ability.description = map.get("description").getAsString();
-        }
-        if (map.has("cost")){
-            double cost = map.get("cost").getAsDouble();
-            if (!Double.isFinite(cost) || cost < 0) {
-                throw new IllegalArgumentException("cost must be finite and non-negative");
-            }
-            ability.cost = cost;
-        }
-        if (map.has("cooldown")){
-            long cooldown = map.get("cooldown").getAsLong();
-            if (cooldown < 0) {
-                throw new IllegalArgumentException("cooldown cannot be negative");
-            }
-            ability.cooldown = cooldown;
-        }
-
+        AbilitySettings.bind(ability, map);
+        ability.validateSettings();
         return ability;
+    }
+
+    /** Checks bound settings; overrides must call super. Throwing rejects the settings. */
+    protected void validateSettings() {
+        if (!Double.isFinite(cost) || cost < 0) {
+            throw new IllegalArgumentException("cost must be finite and non-negative");
+        }
+        if (cooldown < 0) {
+            throw new IllegalArgumentException("cooldown cannot be negative");
+        }
     }
 
     public String getID(){

@@ -60,7 +60,14 @@ public class AbilityManager implements AbilityAPI {
                     e.printStackTrace();
                     return null;
                 }
-                ItemAbility itemAbility = ability.buildAbilityWithSettings(jo);
+                ItemAbility itemAbility;
+                try {
+                    itemAbility = ability.buildAbilityWithSettings(jo);
+                } catch (RuntimeException e) {
+                    // bad setting values (unknown action, unknown multi child) must not break item loading
+                    plugin.getLogger().warning("Invalid settings for ability: " + ID + " (" + e.getMessage() + ")");
+                    return null;
+                }
                 if (itemAbility == null) {
                     plugin.getLogger().warning("Failed to build ability with settings for ability: " + ID + " Using Default");
                     return abilityMap.get(IDWithoutSettings);

@@ -389,6 +389,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("ARROW_SPIRAL", new ArrowSpiralAbility());
         abilityManager.registerAbility("BUFF", new BuffAbility());
         abilityManager.registerAbility("MULTI_ABILITY", new MultiClickAbility());
+        abilityManager.registerAbility("COMMAND", new CommandAbility());
     }
 
     /**

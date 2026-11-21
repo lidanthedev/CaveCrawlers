@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,6 +123,10 @@ public abstract class ItemAbility implements Cloneable {
     public List<String> toList(){
         List<String> list = new ArrayList<>();
         list.add(ChatColor.GOLD + "Item Ability: " + getName());
+        return addAbilityDescriptionToList(list);
+    }
+
+    protected @NonNull List<String> addAbilityDescriptionToList(List<String> list) {
         list.addAll(StringUtils.loreBuilder(getDescription()));
         list.add(ChatColor.DARK_GRAY + "Mana Cost: " + ChatColor.DARK_AQUA + (int)getCost());
         double cooldownDouble = (double) getCooldown() /1000;

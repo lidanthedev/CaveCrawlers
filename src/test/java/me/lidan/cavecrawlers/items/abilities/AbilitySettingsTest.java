@@ -72,6 +72,13 @@ class AbilitySettingsTest {
     }
 
     @Test
+    void acceptsSpacesAndQuotedKeys() {
+        ItemAbility ability = manager.getAbilityByID("BASIC_LASER{ cost: 50, \"name\" : \"Big Laser\" }");
+        assertEquals(50, ability.getCost());
+        assertEquals("Big Laser", ability.getName());
+    }
+
+    @Test
     void ignoresUnknownKeys() {
         assertEquals("X", manager.getAbilityByID("BASIC_LASER{name:X,notAKey:1}").getName());
     }

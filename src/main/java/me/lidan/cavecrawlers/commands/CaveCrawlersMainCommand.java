@@ -554,13 +554,7 @@ public class CaveCrawlersMainCommand {
             sender.sendMessage("ERROR! NO ITEM INFO FOUND!");
             return;
         }
-        ItemAbility itemAbility;
-        try {
-            itemAbility = abilityManager.getAbilityByID(abilityId);
-        } catch (RuntimeException e) {
-            // bad settings values (unknown action, unknown multi child) throw while building
-            itemAbility = null;
-        }
+        ItemAbility itemAbility = abilityManager.getAbilityByID(abilityId);
         if (itemAbility == null) {
             sender.sendMessage(MiniMessageUtils.miniMessage("<red>ERROR! ABILITY NOT FOUND OR SYNTAX ERROR!"));
             return;

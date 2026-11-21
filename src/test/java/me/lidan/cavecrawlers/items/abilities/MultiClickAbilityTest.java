@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MultiClickAbilityTest {
@@ -57,8 +57,9 @@ class MultiClickAbilityTest {
     @Test
     void childWithMalformedSettingsIsRejected() {
         // missing closing brace on the second child's settings
-        assertThrows(IllegalArgumentException.class, () -> manager.getAbilityByID(
+        assertNull(manager.getAbilityByID(
                 "MULTI_ABILITY{abilities=[\"LASER\", \"LASER{allowedActions:[\\\"LEFT_CLICK_AIR\\\"]\"]}"));
+        assertNull(manager.getAbilityByID("LASER{allowedActions:[\"TYPO\"]}"));
     }
 
     @Test

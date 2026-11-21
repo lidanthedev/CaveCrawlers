@@ -21,7 +21,7 @@ public abstract class ClickAbility extends ItemAbility implements Listener {
     public static final Action[] DEFAULT_CLICK_ACTIONS = {Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK};
     @Getter
     private Action[] allowedActions;
-    private String displayAction = DisplayAction.RIGHT_CLICK.getValue();
+    private String displayAction;
 
     public ClickAbility(String name, String description, double cost, long cooldown) {
         this(name, description, cost, cooldown, DEFAULT_CLICK_ACTIONS);
@@ -47,31 +47,30 @@ public abstract class ClickAbility extends ItemAbility implements Listener {
         }
         if (map.has("displayAction")) {
             ability.displayAction = map.get("displayAction").getAsString();
-        } else {
-            ability.displayAction = ability.guessDisplayAction();
         }
         return ability;
     }
 
-    private String guessDisplayAction() {
-        if (allowedActions.length > 2) {
+    String getDisplayAction() {
+        if (displayAction != null) {
+            return displayAction;
+        }
+        boolean right = false;
+        boolean left = false;
+        for (Action action : allowedActions) {
+            right |= action.isRightClick();
+            left |= action.isLeftClick();
+        }
+        if (right == left) {
             return DisplayAction.ANY_CLICK.getValue();
         }
-        if (allowedActions.length >= 1) {
-            Action action = allowedActions[0];
-            if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-                return DisplayAction.RIGHT_CLICK.getValue();
-            } else if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-                return DisplayAction.LEFT_CLICK.getValue();
-            }
-        }
-        return DisplayAction.ANY_CLICK.getValue();
+        return right ? DisplayAction.RIGHT_CLICK.getValue() : DisplayAction.LEFT_CLICK.getValue();
     }
 
     @Override
     public List<String> toList() {
         List<String> list = new ArrayList<>();
-        list.add(ChatColor.GOLD + "Item Ability: " + getName() + " " + ChatColor.YELLOW + ChatColor.BOLD + displayAction);
+        list.add(ChatColor.GOLD + "Item Ability: " + getName() + " " + ChatColor.YELLOW + ChatColor.BOLD + getDisplayAction());
         addAbilityDescriptionToList(list);
         return list;
     }

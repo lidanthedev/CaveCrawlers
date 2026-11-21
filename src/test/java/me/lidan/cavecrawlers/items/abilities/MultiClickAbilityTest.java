@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MultiClickAbilityTest {
@@ -54,12 +55,27 @@ class MultiClickAbilityTest {
     }
 
     @Test
-    void childWithMalformedSettingsIsSkipped() {
+    void childWithMalformedSettingsIsRejected() {
         // missing closing brace on the second child's settings
-        MultiClickAbility multi = (MultiClickAbility) manager.getAbilityByID(
-                "MULTI_ABILITY{abilities=[\"LASER\", \"LASER{allowedActions:[\\\"LEFT_CLICK_AIR\\\"]\"]}");
+        assertThrows(IllegalArgumentException.class, () -> manager.getAbilityByID(
+                "MULTI_ABILITY{abilities=[\"LASER\", \"LASER{allowedActions:[\\\"LEFT_CLICK_AIR\\\"]\"]}"));
+    }
 
-        assertEquals(List.of(Action.RIGHT_CLICK_AIR, Action.RIGHT_CLICK_BLOCK), Arrays.asList(multi.getAllowedActions()));
+    @Test
+    void bareMultiAbilityListensToNothing() {
+        assertEquals(0, ((ClickAbility) manager.getAbilityByID("MULTI_ABILITY")).getAllowedActions().length);
+    }
+
+    @Test
+    void displayActionFollowsAllowedActions() {
+        RecordingClickAbility ability = new RecordingClickAbility("Bow", used);
+        assertEquals("RIGHT CLICK", ability.getDisplayAction());
+
+        ability.setAllowedActions(Action.LEFT_CLICK_AIR, Action.LEFT_CLICK_BLOCK);
+        assertEquals("LEFT CLICK", ability.getDisplayAction());
+
+        ability.setAllowedActions(Action.RIGHT_CLICK_AIR, Action.LEFT_CLICK_AIR);
+        assertEquals("CLICK", ability.getDisplayAction());
     }
 
     private PlayerInteractEvent click(Action action) {

@@ -21,7 +21,15 @@ public class MultiClickAbility extends ClickAbility {
     public MultiClickAbility(List<ClickAbility> abilities) {
         super("Multi Click Ability", "Do multiple click abilities at once", 0, 0);
         this.abilities = abilities;
-        this.setAllowedActions(Action.values());
+        this.setAllowedActions(childActions(abilities));
+    }
+
+    // listen to every action a child uses, else children with non-default actions never fire
+    private static Action[] childActions(List<ClickAbility> abilities) {
+        return abilities.stream()
+                .flatMap(child -> Arrays.stream(child.getAllowedActions()))
+                .distinct()
+                .toArray(Action[]::new);
     }
 
     @Override
@@ -44,18 +52,13 @@ public class MultiClickAbility extends ClickAbility {
             for (int i = 0; i < abilities.size(); i++) {
                 String abilityName = abilities.get(i).getAsString();
                 ItemAbility itemAbility = AbilityManager.getInstance().getAbilityByID(abilityName);
-                if (itemAbility instanceof ClickAbility clickAbility) {
-                    ability.abilities.add(clickAbility);
+                if (!(itemAbility instanceof ClickAbility clickAbility)) {
+                    throw new IllegalArgumentException("Not a valid click ability: " + abilityName);
                 }
+                ability.abilities.add(clickAbility);
             }
         }
-        // listen to every action a child uses, else children with non-default actions never fire
-        if (!map.has("allowedActions")) {
-            ability.setAllowedActions(ability.abilities.stream()
-                    .flatMap(child -> Arrays.stream(child.getAllowedActions()))
-                    .distinct()
-                    .toArray(Action[]::new));
-        }
+        ability.setAllowedActions(childActions(ability.abilities));
         return ability;
     }
 

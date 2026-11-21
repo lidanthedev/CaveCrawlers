@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.particles.XParticle;
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -16,8 +15,11 @@ import org.bukkit.util.Vector;
 
 public class HulkAbility extends ScalingClickAbility{
     private final CaveCrawlers plugin = CaveCrawlers.getInstance();
+    @Setting
     private Particle particle;
+    @Setting
     private double powerY;
+    @Setting
     private double radius;
 
     public HulkAbility(StatType statToScale, double baseAbilityDamage, double abilityScaling, double powerY, double radius) {
@@ -54,29 +56,4 @@ public class HulkAbility extends ScalingClickAbility{
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        HulkAbility ability = (HulkAbility) super.buildAbilityWithSettings(map);
-        if (map.has("statToScale")) {
-            ability.statToScale = StatType.valueOf(map.get("statToScale").getAsString());
-        }
-        if (map.has("material")) {
-        }
-        if (map.has("baseAbilityDamage")) {
-            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
-        }
-        if (map.has("abilityScaling")) {
-            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
-        }
-        if (map.has("powerY")) {
-            ability.powerY = map.get("powerY").getAsDouble();
-        }
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsDouble();
-        }
-        if (map.has("particle")) {
-            ability.particle = Particle.valueOf(map.get("particle").getAsString());
-        }
-        return ability;
-    }
 }

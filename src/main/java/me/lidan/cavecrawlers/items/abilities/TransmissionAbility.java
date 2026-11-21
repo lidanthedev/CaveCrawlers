@@ -1,12 +1,12 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 
 public class TransmissionAbility extends ClickAbility{
+    @Setting
     private double blocks;
 
     public TransmissionAbility(double blocks) {
@@ -26,15 +26,6 @@ public class TransmissionAbility extends ClickAbility{
         if (!teleported) return false;
         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
         return true;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        TransmissionAbility ability = (TransmissionAbility) super.buildAbilityWithSettings(map);
-        if (map.has("blocks")) {
-            ability.blocks = map.get("blocks").getAsDouble();
-        }
-        return ability;
     }
 
     @Override

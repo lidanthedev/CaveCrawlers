@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.FinalDamageCalculation;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
@@ -12,6 +11,7 @@ import java.util.List;
 
 public class FinalBoomAbility extends ClickAbility implements Listener {
 
+    @Setting
     private int damage = 10000;
 
     public FinalBoomAbility() {
@@ -29,15 +29,6 @@ public class FinalBoomAbility extends ClickAbility implements Listener {
             }
         }
         return true;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        FinalBoomAbility ability = (FinalBoomAbility) super.buildAbilityWithSettings(map);
-        if (map.has("damage")) {
-            ability.damage = map.get("damage").getAsInt();
-        }
-        return ability;
     }
 
     @Override

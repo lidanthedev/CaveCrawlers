@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.DamageCalculation;
 import me.lidan.cavecrawlers.damage.DamageManager;
 import me.lidan.cavecrawlers.damage.PlayerDamageCalculation;
@@ -16,9 +15,13 @@ import org.bukkit.util.Vector;
 
 public class MultiShotAbility extends ItemAbility implements Listener {
     public static final String BOW_TAG = "MULTI_SHOT";
+    @Setting
     private int amount;
+    @Setting
     private long maxPowerTime = 1000L;
+    @Setting
     private double maxPower = 3;
+    @Setting
     private int yawDiff = 5;
 
     public MultiShotAbility(int amount) {
@@ -68,24 +71,6 @@ public class MultiShotAbility extends ItemAbility implements Listener {
                 yaw = -yaw;
             }
         }
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        MultiShotAbility ability = (MultiShotAbility) super.buildAbilityWithSettings(map);
-        if (map.has("amount")) {
-            ability.amount = map.get("amount").getAsInt();
-        }
-        if (map.has("maxPowerTime")) {
-            ability.maxPowerTime = map.get("maxPowerTime").getAsLong();
-        }
-        if (map.has("maxPower")) {
-            ability.maxPower = map.get("maxPower").getAsDouble();
-        }
-        if (map.has("yawDiff")) {
-            ability.yawDiff = map.get("yawDiff").getAsInt();
-        }
-        return ability;
     }
 
     @Override

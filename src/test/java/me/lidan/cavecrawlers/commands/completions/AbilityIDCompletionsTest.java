@@ -42,6 +42,14 @@ class AbilityIDCompletionsTest {
     }
 
     @Test
+    void keepsTypedWhitespace() {
+        assertEquals(List.of("BASIC_LASER{cost:5, cooldown:"),
+                AbilityIDCompletions.suggestSettings("BASIC_LASER{cost:5, co", laser));
+        assertEquals(List.of("BASIC_LASER{crit: true", "BASIC_LASER{crit: false"),
+                AbilityIDCompletions.suggestSettings("BASIC_LASER{crit: ", laser));
+    }
+
+    @Test
     void suggestsEnumValues() {
         List<String> suggestions = AbilityIDCompletions.suggestSettings("BASIC_LASER{particle:FLA", laser);
         assertTrue(suggestions.contains("BASIC_LASER{particle:FLAME"));

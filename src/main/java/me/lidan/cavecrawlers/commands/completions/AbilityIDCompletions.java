@@ -90,13 +90,16 @@ public enum AbilityIDCompletions implements SuggestionProvider<BukkitCommandActo
         int separator = separatorIndex(segment);
         List<String> suggestions = new ArrayList<>();
         if (separator < 0) {
+            // keep typed whitespace (e.g. "{cost:5, ") so suggestions still match the token
+            String keyPrefix = head + segment.substring(0, segment.length() - segment.stripLeading().length());
             for (String key : fields.keySet()) {
-                if (!usedKeys.contains(key)) suggestions.add(head + key + ":");
+                if (!usedKeys.contains(key)) suggestions.add(keyPrefix + key + ":");
             }
         } else {
             Field field = fields.get(keyOf(segment));
             if (field != null && !field.getType().isArray()) {
-                String keyPart = segment.substring(0, separator + 1);
+                String afterSeparator = segment.substring(separator + 1);
+                String keyPart = segment.substring(0, segment.length() - afterSeparator.stripLeading().length());
                 for (String value : AbilitySettings.values(field.getType())) {
                     suggestions.add(head + keyPart + value);
                 }

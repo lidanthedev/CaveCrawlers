@@ -1,7 +1,6 @@
 package me.lidan.cavecrawlers.items.abilities;
 
 import com.cryptomorin.xseries.particles.XParticle;
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
@@ -28,11 +27,17 @@ import java.util.function.Consumer;
 public class SandStorm extends ScalingClickAbility implements Listener {
     public static final String SANDSTORM_TAG = "SandStorm";
     public static final String DAMAGE_METADATA_KEY = "damage";
+    @Setting
     private Material material;
+    @Setting
     private Material fillerMaterial;
+    @Setting
     private Particle particle;
+    @Setting
     private Particle secondaryParticle;
+    @Setting
     private double radius;
+    @Setting
     private int blocks;
 
     // Map falling block UUID -> owning player UUID for landing damage
@@ -183,27 +188,4 @@ public class SandStorm extends ScalingClickAbility implements Listener {
         // silent cooldown
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        SandStorm ability = (SandStorm) super.buildAbilityWithSettings(map);
-        if (map.has("material")) {
-            ability.material = Material.valueOf(map.get("material").getAsString());
-        }
-        if (map.has("fillerMaterial")) {
-            ability.fillerMaterial = Material.valueOf(map.get("fillerMaterial").getAsString());
-        }
-        if (map.has("particle")) {
-            ability.particle = Particle.valueOf(map.get("particle").getAsString());
-        }
-        if (map.has("secondaryParticle")) {
-            ability.secondaryParticle = Particle.valueOf(map.get("secondaryParticle").getAsString());
-        }
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsDouble();
-        }
-        if (map.has("blocks")) {
-            ability.blocks = map.get("blocks").getAsInt();
-        }
-        return ability;
-    }
 }

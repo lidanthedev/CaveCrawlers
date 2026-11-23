@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.damage.AbilityDamage;
 import me.lidan.cavecrawlers.stats.StatType;
 import org.bukkit.Location;
@@ -17,7 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LaserAbility extends ScalingClickAbility implements Listener {
+    @Setting
     private Particle particle;
+    @Setting
     private int range;
 
     public LaserAbility(String name, String description, double cost, long cooldown, Particle particle, double baseAbilityDamage, double abilityScaling, int range) {
@@ -50,24 +51,6 @@ public class LaserAbility extends ScalingClickAbility implements Listener {
             world.spawnParticle(particle, newLocation, 1, 0,0,0,0);
         }
         return true;
-    }
-
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        LaserAbility ability = (LaserAbility) super.buildAbilityWithSettings(map);
-        if (map.has("particle")) {
-            ability.particle = Particle.valueOf(map.get("particle").getAsString());
-        }
-        if (map.has("baseAbilityDamage")) {
-            ability.baseAbilityDamage = map.get("baseAbilityDamage").getAsDouble();
-        }
-        if (map.has("abilityScaling")) {
-            ability.abilityScaling = map.get("abilityScaling").getAsDouble();
-        }
-        if (map.has("range")) {
-            ability.range = map.get("range").getAsInt();
-        }
-        return ability;
     }
 
     @Override

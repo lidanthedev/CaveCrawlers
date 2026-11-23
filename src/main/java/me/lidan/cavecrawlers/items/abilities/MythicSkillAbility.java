@@ -1,12 +1,12 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerEvent;
 
 public class MythicSkillAbility extends ClickAbility{
     private final MythicBukkit mythicBukkit;
+    @Setting
     private String mythicSkill;
 
     public MythicSkillAbility(String mythicSkill) {
@@ -21,12 +21,4 @@ public class MythicSkillAbility extends ClickAbility{
         return mythicBukkit.getAPIHelper().castSkill(player, mythicSkill, player.getLocation());
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        MythicSkillAbility ability = (MythicSkillAbility) super.buildAbilityWithSettings(map);
-        if (map.has("mythicSkill")) {
-            ability.mythicSkill = map.get("mythicSkill").getAsString();
-        }
-        return ability;
-    }
 }

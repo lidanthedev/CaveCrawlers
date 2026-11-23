@@ -1,6 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonObject;
 import dev.triumphteam.gui.components.util.ItemNbt;
 import lombok.Getter;
 import me.lidan.cavecrawlers.shop.ShopManager;
@@ -15,6 +14,7 @@ public class PortableShopAbility extends ClickAbility {
     public static final String PORTABLE_SHOP_ID = "shopId";
     private static final Logger log = LoggerFactory.getLogger(PortableShopAbility.class);
     @Getter
+    @Setting
     private String shopId;
 
     public PortableShopAbility() {
@@ -52,12 +52,4 @@ public class PortableShopAbility extends ClickAbility {
         return shopId != null ? shopId : ItemNbt.getString(item, PORTABLE_SHOP_ID);
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        PortableShopAbility ability = (PortableShopAbility) super.buildAbilityWithSettings(map);
-        if (map.has("shopId")) {
-            ability.shopId = map.get("shopId").getAsString();
-        }
-        return ability;
-    }
 }

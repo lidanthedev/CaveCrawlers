@@ -357,6 +357,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         AbilityManager abilityManager = AbilityManager.getInstance();
         abilityManager.registerAbility("ERROR_SCYTHE_ABILITY", new ErrorScytheAbility());
         abilityManager.registerAbility("ERROR_BOOM", new BoomAbility(1000, 5));
+        abilityManager.registerAbility("FINAL_BOOM", new FinalBoomAbility());
         abilityManager.registerAbility("BASIC_LASER", new LaserAbility("Laser", "Shoot Laser", 10, 100, Particle.END_ROD, 100, 0.1, 16));
         abilityManager.registerAbility("ZOMBIE_SWORD_HEAL", new InstantHealAbility(70, 4, 5000, 120, 5));
         abilityManager.registerAbility("TARGET_MOB", new TargetAbility("BATTLE", "makes mobs battle", 0, 100));
@@ -389,6 +390,7 @@ public final class CaveCrawlers extends JavaPlugin implements CaveCrawlersAPI {
         abilityManager.registerAbility("ARROW_SPIRAL", new ArrowSpiralAbility());
         abilityManager.registerAbility("BUFF", new BuffAbility());
         abilityManager.registerAbility("MULTI_ABILITY", new MultiClickAbility());
+        abilityManager.registerAbility("COMMAND", new CommandAbility());
     }
 
     /**

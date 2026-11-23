@@ -1,7 +1,5 @@
 package me.lidan.cavecrawlers.items.abilities;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -22,14 +20,22 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
         super("Arrow Spiral", "Shoots an arrow with a Spiral around it", 0, 0);
     }
 
+    @Setting
     private double projectileVelocity = 2;
+    @Setting
     private double maxDistance = 100;
+    @Setting
     private double resolution = 10;
+    @Setting
     private double amountOfLines = 8;
+    @Setting
     private double loopiness = 1;
+    @Setting
     private double radius = 1;
 
+    @Setting
     private Particle mainParticle = Particle.SOUL;
+    @Setting
     private Particle[] sideParticles = {Particle.SOUL_FIRE_FLAME, Particle.FLAME};
 
     @Override
@@ -80,38 +86,4 @@ public class ArrowSpiralAbility extends ClickAbility implements Listener {
         return true;
     }
 
-    @Override
-    public ItemAbility buildAbilityWithSettings(JsonObject map) {
-        ArrowSpiralAbility ability = (ArrowSpiralAbility) super.buildAbilityWithSettings(map);
-        if (map.has("amountOfLines")) {
-            ability.amountOfLines = map.get("amountOfLines").getAsDouble();
-        }
-        if (map.has("maxDistance")) {
-            ability.maxDistance = map.get("maxDistance").getAsDouble();
-        }
-        if (map.has("radius")) {
-            ability.radius = map.get("radius").getAsDouble();
-        }
-        if (map.has("loopiness")) {
-            ability.loopiness = map.get("loopiness").getAsDouble();
-        }
-        if (map.has("projectileVelocity")) {
-            ability.projectileVelocity = map.get("projectileVelocity").getAsDouble();
-        }
-        if (map.has("resolution")) {
-            ability.resolution = map.get("resolution").getAsDouble();
-        }
-        if (map.has("mainParticle")) {
-            ability.mainParticle = Particle.valueOf(map.get("mainParticle").getAsString());
-        }
-        if (map.has("sideParticles")) {
-            ability.sideParticles = new Particle[map.get("sideParticles").getAsJsonArray().size()];
-            int i = 0;
-            for (JsonElement str : map.get("sideParticles").getAsJsonArray()) {
-                ability.sideParticles[i] = Particle.valueOf(str.getAsString());
-                i++;
-            }
-        }
-        return ability;
-    }
 }

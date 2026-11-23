@@ -13,7 +13,9 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class InstantHealAbility extends ChargedItemAbility implements Listener {
+    @Setting
     private double healAmount;
+    @Setting
     private double healPercent;
 
     public InstantHealAbility(double cost, int maxCharges, long chargeTime, double healAmount, double healPercent) {
@@ -46,12 +48,6 @@ public class InstantHealAbility extends ChargedItemAbility implements Listener {
     @Override
     public ItemAbility buildAbilityWithSettings(JsonObject map) {
         InstantHealAbility ability = (InstantHealAbility) super.buildAbilityWithSettings(map);
-        if (map.has("healAmount")) {
-            ability.healAmount = map.get("healAmount").getAsDouble();
-        }
-        if (map.has("healPercent")) {
-            ability.healPercent = map.get("healPercent").getAsDouble();
-        }
         ability.setDescription(getDescription(ability.healAmount, ability.healPercent));
         return ability;
     }

@@ -346,9 +346,10 @@ public class StringUtils {
         } else if (num >= 1_000d) {
             output = Math.round(num * signum / 1000d * 100d) / 100d + "k";
         } else {
-            output = num + "";
+            output = Math.round(num * signum * 100d) / 100d + "";
         }
-        return output.replace(".0", "");
+        // Strip only a trailing ".0" so "1.05k" stays intact.
+        return output.replaceFirst("\\.0(?=\\D*$)", "");
     }
 
     public static String applyCustomPlaceholders(String message, Map<String, Object> placeholders) {
